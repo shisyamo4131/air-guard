@@ -1,0 +1,33 @@
+[
+  {
+    "name": "TOP",
+    "icon": "mdi-home",
+    "to": "/",
+    "lists": []
+  },
+  {
+    "name": "マスタ管理",
+    "icon": "mdi-cube",
+    "lists": [
+      { "name": "取引先", "to": "/customers", "icon": "mdi-domain" },
+      { "name": "現場", "to": "/sites", "icon": "mdi-domain" },
+      { "name": "従業員", "to": "/employees", "icon": "mdi-domain" }
+    ]
+  },
+  {
+    "name": "配置管理",
+    "icon": "mdi-home",
+    "to": "/placements",
+    "lists": []
+  },
+  {
+    "name": "管理",
+    "icon": "mdi-wrench-cog",
+    "lists": [{ "name": "インポート", "to": "/imports" }]
+  },
+  {
+    "name": "開発",
+    "icon": "mdi-wrench-cog",
+    "lists": [{ "name": "コンポーネントテスト", "to": "/developments/sandbox" }]
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "code": "0001",
+    "name1": "株式会社唯心",
+    "name2": "",
+    "abbr": "唯心",
+    "abbrKana": "ユイシン",
+    "address": "東京都台東区清川1-23-1",
+    "status": "active"
+  },
+  {
+    "code": "0002",
+    "name1": "株式会社フルショウ",
+    "name2": "",
+    "abbr": "フルショウ",
+    "abbrKana": "フルショウ",
+    "address": "東京都世田谷区太子堂4-26-13",
+    "status": "active"
+  },
+  {
+    "code": "0016",
+    "name1": "株式会社フィールド社",
+    "name2": "",
+    "abbr": "フィールド社",
+    "abbrKana": "フィールドシャ",
+    "address": "東京都渋谷区本町3-2-10",
+    "status": "active"
+  }
+]
