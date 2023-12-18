@@ -7,6 +7,7 @@
  * 配列が空の場合はすべて許可される。
  */
 module.exports = {
+  applications: [],
   customers: [],
   'developments-sandbox': [],
   employees: [],

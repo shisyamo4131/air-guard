@@ -1,80 +1,96 @@
 <template>
-  <g-template-default label="配置管理">
-    <template #append-toolbar-title>
-      <v-spacer />
-      <v-toolbar-items>
-        <g-placement-site-register>
-          <template #activator="{ attrs, on }">
-            <v-btn v-bind="attrs" text v-on="on">
-              <v-icon>mdi-plus</v-icon>
-              <span>現場追加</span>
-            </v-btn>
-          </template>
-        </g-placement-site-register>
-      </v-toolbar-items>
-    </template>
-    <template #default="{ height }">
-      <v-container fluid class="fill-height align-start justify-start">
-        <div
-          class="overflow-y-auto"
-          :style="{
-            height: `${height - 24}px`,
-            width: `${employeeListWidth}px`,
-          }"
-        >
-          <g-placement-employee-list @selected="selectedEmployee = $event" />
-        </div>
-        <g-placement-table
-          :start-at="startAt"
-          :selected-employee="selectedEmployee"
-          :height="height - 24"
-          :style="{ width: `calc(100% - ${employeeListWidth}px)` }"
-          @selected="selectedEmployee = $event"
-        />
-      </v-container>
-      <v-snackbar
-        :value="!!hiddenIndex.length"
-        :timeout="-1"
-        color="error"
-        centered
+  <v-card max-width="600">
+    <v-card-title>申請管理（承認－却下）</v-card-title>
+    <v-card-subtitle>以下の申請を承認しますか？</v-card-subtitle>
+    <v-card-text>
+      <v-simple-table>
+        <tbody>
+          <tr>
+            <td>申請日</td>
+            <td>{{ applicationDate }}</td>
+          </tr>
+          <tr>
+            <td>申請区分</td>
+            <td>{{ $APPLICATION_TYPE[applicationType] }}</td>
+          </tr>
+          <tr>
+            <td>申請者</td>
+            <td>{{ employee?.abbr || 'loading' }}</td>
+          </tr>
+          <tr>
+            <td>対象日</td>
+            <td>{{ dates }}</td>
+          </tr>
+          <tr>
+            <td>申請事由</td>
+            <td>{{ reason }}</td>
+          </tr>
+        </tbody>
+      </v-simple-table>
+      <v-switch v-model="withdraw" label="申請を却下する" hide-details />
+    </v-card-text>
+    <v-expand-transition>
+      <v-card-text v-show="withdraw">
+        <v-form v-model="formVerified" :disabled="loading">
+          <a-textarea
+            label="却下事由"
+            :value="rejectReason"
+            :required="withdraw"
+            @input="$emit('update:rejectReason', $event)"
+          />
+        </v-form>
+      </v-card-text>
+    </v-expand-transition>
+    <v-card-actions class="justify-space-between px-5">
+      <v-btn :disabled="loading" @click="$emit('click:cancel')">閉じる</v-btn>
+      <v-btn
+        :color="withdraw ? 'warning' : 'primary'"
+        :disabled="!formVerified || loading"
+        :loading="loading"
+        @click="onClickSubmit"
       >
-        表示されていない配置情報があります。
-        <template #action="{ attrs }">
-          <v-btn v-bind="attrs" small @click="addHiddenIndex"> 表示 </v-btn>
-        </template>
-      </v-snackbar>
-    </template>
-  </g-template-default>
+        {{ withdraw ? '却下' : '承認' }}
+      </v-btn>
+    </v-card-actions>
+  </v-card>
 </template>
 
 <script>
-import GPlacementEmployeeList from '~/components/organisms/GPlacementEmployeeList.vue'
-import GPlacementSiteRegister from '~/components/organisms/GPlacementSiteRegister.vue'
-import GPlacementTable from '~/components/organisms/GPlacementTable.vue'
-import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
+import ATextarea from '~/components/atoms/inputs/ATextarea.vue'
 export default {
-  components: {
-    GTemplateDefault,
-    GPlacementTable,
-    GPlacementEmployeeList,
-    GPlacementSiteRegister,
+  components: { ATextarea },
+  props: {
+    applicationDate: { type: undefined, default: null, required: false },
+    applicationType: { type: undefined, default: null, required: false },
+    employeeId: { type: undefined, default: null, required: false },
+    dates: { type: undefined, default: null, required: false },
+    reason: { type: undefined, default: null, required: false },
+    approvedDate: { type: undefined, default: null, required: false },
+    approvedId: { type: undefined, default: null, required: false },
+    status: { type: undefined, default: null, required: false },
+    rejectReason: { type: undefined, default: null, required: false },
+    loading: { type: Boolean, default: false, required: false },
   },
   data() {
     return {
-      employeeListWidth: 168,
-      startAt: '2023-12-01',
-      selectedEmployee: null,
+      formVerified: false,
+      withdraw: false,
     }
   },
   computed: {
-    hiddenIndex() {
-      return this.$store.getters['placements/hiddenIndex']
+    employee() {
+      return this.$store.getters['masters/Employee'](this.employeeId)
     },
   },
-  watch: {},
+  watch: {
+    withdraw(v) {
+      if (!v) this.$emit('update:rejectReason', null)
+    },
+  },
   methods: {
-    addHiddenIndex() {
-      this.$store.dispatch('placements/addHiddenIndex')
+    onClickSubmit() {
+      this.$emit('update:status', this.withdraw ? 'withdraw' : 'approved')
+      this.$emit('submit')
     },
   },
 }

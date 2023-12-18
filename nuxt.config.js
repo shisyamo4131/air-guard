@@ -34,6 +34,7 @@ export default {
     './plugins/dayjs.js',
     './plugins/air-vuetify.js',
     './plugins/models.js',
+    './plugins/constants.js',
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components

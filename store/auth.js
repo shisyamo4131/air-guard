@@ -11,6 +11,9 @@ export const state = () => ({
  * GETTERS
  ******************************************************************/
 export const getters = {
+  uid(state) {
+    return state.user?.uid || undefined
+  },
   // Returns authenticated or not.
   isAuthenticated(state) {
     return !!state.user

@@ -6,6 +6,12 @@
     "lists": []
   },
   {
+    "name": "申請管理",
+    "icon": "mdi-home",
+    "to": "/applications",
+    "lists": []
+  },
+  {
     "name": "マスタ管理",
     "icon": "mdi-cube",
     "lists": [
