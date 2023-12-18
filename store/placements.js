@@ -15,10 +15,12 @@ export const state = () => ({
   index: [],
   placements: [],
   placementDetails: [],
+  applications: [],
   listeners: {
     index: null,
     placements: null,
     placementDetails: null,
+    applications: null,
   },
 })
 
@@ -94,6 +96,14 @@ export const getters = {
       })
       return day.length > 0 && night.length > 0
     },
+  hasApplication:
+    (state) =>
+    ({ date, worker }) => {
+      const result = state.applications.filter((item) => {
+        return item.dates.includes(date) && item.employeeId === worker
+      })
+      return !!result.length
+    },
 }
 
 export const mutations = {
@@ -126,6 +136,19 @@ export const mutations = {
     })
     if (index !== -1) state.placementDetails.splice(index, 1)
   },
+  setApplications(state, payload) {
+    const index = state.applications.findIndex(({ docId }) => {
+      return docId === payload.docId
+    })
+    if (index === -1) state.applications.push(payload)
+    if (index !== -1) state.applications.splice(index, 1, payload)
+  },
+  removeApplications(state, payload) {
+    const index = state.applications.findIndex(({ docId }) => {
+      return docId === payload.docId
+    })
+    if (index !== -1) state.applications.splice(index, 1)
+  },
   setListener(state, { key, value }) {
     state.listeners[key] = value
     if (!value) state[key].splice(0)
@@ -139,6 +162,34 @@ export const actions = {
    * @param {*} to A end-date to subscribe placement data.
    */
   subscribe({ commit }, { from, to }) {
+    /**
+     * A function to start a subscription to a Applications documents.
+     * @returns A listener to Applications.
+     */
+    const subscribeToApplications = () => {
+      const dateCount = this.$dayjs(to).diff(this.$dayjs(from), 'day') + 1
+      const dates = [...Array(dateCount)].map((_, i) => {
+        return this.$dayjs(from).add(i, 'day').format('YYYY-MM-DD')
+      })
+      const colRef = collection(this.$firestore, 'Applications')
+      const q = query(
+        colRef,
+        where('status', '==', 'approved'),
+        where('dates', 'array-contains-any', dates)
+      )
+      const result = onSnapshot(q, (snapshot) => {
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === 'added' || change.type === 'modified')
+            commit('setApplications', change.doc.data())
+          if (change.type === 'removed')
+            commit('removeApplications', change.doc.data())
+        })
+      })
+      return result
+    }
+    /**
+     * A function to create placements/index document.
+     */
     const createIndexDoc = () => {
       const docRef = doc(this.$firestore, 'Placements/index')
       getDoc(docRef).then((snapshot) => {
@@ -222,6 +273,8 @@ export const actions = {
     commit('setListener', { key: 'placements', value: placements })
     const placementDetails = subscribeToPlacementDetails()
     commit('setListener', { key: 'placementDetails', value: placementDetails })
+    const applications = subscribeToApplications()
+    commit('setListener', { key: 'applications', value: applications })
   },
   /**
    * An action to unsubscribe to Placement data.

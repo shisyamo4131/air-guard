@@ -230,11 +230,11 @@ export default {
       this.editItem.status = status
       if (status === 'approved') {
         this.editItem.approvedDate = this.$dayjs().format('YYYY-MM-DD')
-        this.editItem.approvedId = this.$store.getters['auth/uid']
+        this.editItem.approvedUid = this.$store.getters['auth/uid']
       }
       if (status === 'unapproved') {
         this.editItem.approvedDate = null
-        this.editItem.approvedId = null
+        this.editItem.approvedUid = null
       }
       this.submit()
     },

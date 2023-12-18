@@ -56,7 +56,7 @@ export default {
     dates: { type: undefined, default: null, required: false },
     reason: { type: undefined, default: null, required: false },
     approvedDate: { type: undefined, default: null, required: false },
-    approvedId: { type: undefined, default: null, required: false },
+    approvedUid: { type: undefined, default: null, required: false },
     status: { type: undefined, default: null, required: false },
     rejectReason: { type: undefined, default: null, required: false },
     employees: { type: Array, default: () => [], required: false },
