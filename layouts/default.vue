@@ -31,4 +31,8 @@ export default {
 .firebase-emulator-warning {
   display: none;
 }
+
+.center-input input {
+  text-align: center;
+}
 </style>

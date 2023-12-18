@@ -1,6 +1,17 @@
 <template>
   <g-template-default label="配置管理">
     <template #append-toolbar-title>
+      <g-menu-date-picker v-model="startAt">
+        <template #activator="{ attrs, on }">
+          <a-text-field
+            v-bind="attrs"
+            class="ml-4 center-input"
+            style="max-width: 180px"
+            hide-details
+            v-on="on"
+          />
+        </template>
+      </g-menu-date-picker>
       <v-spacer />
       <v-toolbar-items>
         <g-placement-site-register>
@@ -48,6 +59,8 @@
 </template>
 
 <script>
+import ATextField from '~/components/atoms/inputs/ATextField.vue'
+import GMenuDatePicker from '~/components/molecules/menus/GMenuDatePicker.vue'
 import GPlacementEmployeeList from '~/components/organisms/GPlacementEmployeeList.vue'
 import GPlacementSiteRegister from '~/components/organisms/GPlacementSiteRegister.vue'
 import GPlacementTable from '~/components/organisms/GPlacementTable.vue'
@@ -58,11 +71,13 @@ export default {
     GPlacementTable,
     GPlacementEmployeeList,
     GPlacementSiteRegister,
+    GMenuDatePicker,
+    ATextField,
   },
   data() {
     return {
       employeeListWidth: 168,
-      startAt: '2023-12-01',
+      startAt: this.$dayjs().add(1, 'day').format('YYYY-MM-DD'),
       selectedEmployee: null,
     }
   },

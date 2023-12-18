@@ -185,6 +185,10 @@ export const actions = {
             commit('removeApplications', change.doc.data())
         })
       })
+      // eslint-disable-next-line
+      console.info(
+        `[Vuex-placements.js] Subscription to Applications is now open.`
+      )
       return result
     }
     /**
