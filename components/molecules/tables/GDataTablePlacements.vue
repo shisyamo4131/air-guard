@@ -153,7 +153,11 @@ export default {
 </script>
 
 <style>
-.placement-table th:nth-child(-n + 2),
+.placement-table th:nth-child(-n + 2) {
+  position: sticky;
+  z-index: 4 !important;
+  background: #ffffff;
+}
 .placement-table td:nth-child(-n + 2) {
   position: sticky;
   z-index: 3 !important;

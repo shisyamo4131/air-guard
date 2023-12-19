@@ -1,11 +1,15 @@
 <template>
   <g-data-table-placements
     :start-at="startAt"
+    :height="height"
     :items.sync="items"
     draggable-handle=".handle"
   >
     <template #site="{ siteId, workShift }">
       <g-placement-site-card :site-id="siteId" :work-shift="workShift" />
+    </template>
+    <template #workShift="{ workShift }">
+      <g-chip-work-shift :value="workShift" />
     </template>
     <template #cell="props">
       <draggable
@@ -29,6 +33,7 @@
 
 <script>
 import draggable from 'vuedraggable'
+import GChipWorkShift from '../molecules/chips/GChipWorkShift.vue'
 import GDataTablePlacements from '../molecules/tables/GDataTablePlacements.vue'
 import GPlacementEmployeeChip from './GPlacementEmployeeChip.vue'
 import GPlacementSiteCard from './GPlacementSiteCard.vue'
@@ -38,8 +43,10 @@ export default {
     GDataTablePlacements,
     GPlacementEmployeeChip,
     GPlacementSiteCard,
+    GChipWorkShift,
   },
   props: {
+    height: { type: [Number, String], default: undefined, required: false },
     startAt: { type: String, required: true },
     selectedEmployee: {
       type: [String, Object],
