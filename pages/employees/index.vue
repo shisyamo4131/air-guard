@@ -10,12 +10,16 @@
           <g-card-input-form
             ref="form"
             label="従業員"
+            :edit-mode="editMode"
             :loading="loading"
             @click:cancel="dialog = false"
             @click:submit="submit"
           >
             <template #default>
-              <g-input-employee v-bind.sync="editItem" />
+              <g-input-employee
+                v-bind.sync="editItem"
+                :code-is-duplicated="codeIsDuplicated"
+              />
             </template>
           </g-card-input-form>
         </v-dialog>
@@ -23,7 +27,7 @@
     </template>
     <template #default>
       <v-container fluid>
-        <v-data-table :headers="headers" :items="items">
+        <v-data-table :headers="headers" :items="items" sort-by="code">
           <template #[`item.actions`]="{ item }">
             <v-icon @click="openEditor(item, 'UPDATE')">mdi-pencil</v-icon>
             <v-icon @click="openEditor(item, 'DELETE')">mdi-delete</v-icon>
@@ -58,12 +62,28 @@ export default {
     headers() {
       return [
         { text: 'CODE', value: 'code' },
-        { text: '氏名', value: 'fullName' },
-        { text: '', value: 'actions' },
+        { text: '氏名', value: 'fullName', sortable: false },
+        { text: '', value: 'actions', sortable: false, align: 'right' },
       ]
     },
     items() {
       return this.$store.getters['masters/Employees']
+    },
+    codeIsDuplicated() {
+      if (!this.editItem.code) return false
+      if (this.editMode === 'REGIST') {
+        return this.$store.getters['masters/Employees'].some(
+          ({ code }) => code === this.editItem.code
+        )
+      }
+      if (this.editMode === 'UPDATE') {
+        return this.$store.getters['masters/Employees'].some(
+          ({ docId, code }) => {
+            return docId !== this.editItem.docId && code === this.editItem.code
+          }
+        )
+      }
+      return false
     },
   },
   watch: {

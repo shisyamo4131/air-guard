@@ -5,3 +5,4 @@ initializeApp()
 setGlobalOptions({ region: 'asia-northeast1' })
 
 exports.role = require('./modules/role')
+exports.airguard = require('./modules/air-guard')

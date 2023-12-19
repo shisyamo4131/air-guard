@@ -1,9 +1,9 @@
 <template>
   <v-card>
-    <v-card-title>{{ label }}</v-card-title>
+    <v-card-title>{{ `${label} ${editModeLabel}` }}</v-card-title>
     <v-card-text class="py-5 px-6">
       <v-form ref="form" @submit.prevent>
-        <slot name="default" />
+        <slot name="default" v-bind="{ editMode }" />
       </v-form>
     </v-card-text>
     <v-card-actions class="justify-space-between">
@@ -30,8 +30,21 @@
 <script>
 export default {
   props: {
+    editMode: {
+      type: String,
+      default: 'REGIST',
+      validator: (v) => ['REGIST', 'UPDATE', 'DELETE'].includes(v),
+      required: false,
+    },
     label: { type: String, default: undefined, required: false },
     loading: { type: Boolean, default: false, required: false },
+  },
+  computed: {
+    editModeLabel() {
+      if (this.editMode === 'REGIST') return '[追加]'
+      if (this.editMode === 'UPDATE') return '[編集]'
+      return '[削除]'
+    },
   },
   methods: {
     initialize() {

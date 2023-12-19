@@ -15,7 +15,10 @@
             @click:submit="submit"
           >
             <template #default>
-              <g-input-customer v-bind.sync="editItem" />
+              <g-input-customer
+                v-bind.sync="editItem"
+                :code-is-duplicated="codeIsDuplicated"
+              />
             </template>
           </g-card-input-form>
         </v-dialog>
@@ -65,6 +68,22 @@ export default {
     },
     items() {
       return this.$store.getters['masters/Customers']
+    },
+    codeIsDuplicated() {
+      if (!this.editItem.code) return false
+      if (this.editMode === 'REGIST') {
+        return this.$store.getters['masters/Customers'].some(
+          ({ code }) => code === this.editItem.code
+        )
+      }
+      if (this.editMode === 'UPDATE') {
+        return this.$store.getters['masters/Customers'].some(
+          ({ docId, code }) => {
+            return docId !== this.editItem.docId && code === this.editItem.code
+          }
+        )
+      }
+      return false
     },
   },
   watch: {

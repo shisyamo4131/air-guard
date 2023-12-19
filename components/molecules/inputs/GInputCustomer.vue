@@ -4,6 +4,7 @@
       ref="code"
       :value="code"
       label="CODE"
+      :rules="[() => !codeIsDuplicated || '既に使用されているCODEです。']"
       @click:append-outer="contentCopy"
       @input="$emit('update:code', $event)"
     />
@@ -53,6 +54,7 @@ export default {
     abbrKana: { type: undefined, default: null, required: false },
     address: { type: undefined, default: null, required: false },
     status: { type: undefined, default: null, required: false },
+    codeIsDuplicated: { type: Boolean, default: false, required: false },
   },
   methods: {
     contentCopy() {

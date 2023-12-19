@@ -14,6 +14,7 @@ export default class Employee extends FireModel {
           if (!this.lastName && !this.firstName) return null
           return `${this.lastName} ${this.firstName}`
         },
+        set(v) {},
       },
     })
   }
