@@ -8,6 +8,14 @@ export default class Customer extends FireModel {
   constructor(context, item) {
     super(context, item)
     this.collection = 'Customers'
+    this.hasMany = [
+      {
+        collection: 'Sites',
+        field: 'customerId',
+        condition: '==',
+        type: 'collection',
+      },
+    ]
   }
 
   initialize(item) {

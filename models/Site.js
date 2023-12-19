@@ -8,6 +8,14 @@ export default class Site extends FireModel {
   constructor(context, item) {
     super(context, item)
     this.collection = 'Sites'
+    this.hasMany = [
+      {
+        collection: 'PlacementDetails',
+        field: 'siteId',
+        condition: '==',
+        type: 'collection',
+      },
+    ]
   }
 
   initialize(item) {

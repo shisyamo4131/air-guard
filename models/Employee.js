@@ -8,6 +8,14 @@ export default class Employee extends FireModel {
   constructor(context, item) {
     super(context, item)
     this.collection = 'Employees'
+    this.hasMany = [
+      {
+        collection: 'PlacementDetails',
+        field: 'workers',
+        condition: 'array-contains',
+        type: 'subcollection',
+      },
+    ]
     Object.defineProperties(this, {
       fullName: {
         enumerable: true,
