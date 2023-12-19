@@ -16,16 +16,6 @@ export default class Employee extends FireModel {
         type: 'subcollection',
       },
     ]
-    Object.defineProperties(this, {
-      fullName: {
-        enumerable: true,
-        get() {
-          if (!this.lastName && !this.firstName) return null
-          return `${this.lastName} ${this.firstName}`
-        },
-        set(v) {},
-      },
-    })
   }
 
   initialize(item) {

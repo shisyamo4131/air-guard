@@ -37,6 +37,9 @@
           @click:edit="openEditor($event, 'UPDATE')"
           @click:delete="openEditor($event, 'DELETE')"
         >
+          <template #[`item.fullName`]="{ item }">
+            {{ `${item.lastName} ${item.firstName}` }}
+          </template>
         </g-data-table>
       </v-container>
     </template>
