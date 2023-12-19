@@ -7,7 +7,7 @@
     @start="$emit('selected', employees[$event.oldIndex].docId)"
     @end="$emit('selected', null)"
   >
-    <v-list-item v-for="(item, index) of employees" :key="index">
+    <v-list-item v-for="(item, index) of employees" :key="index" dense>
       <v-list-item-content>
         <v-list-item-title>
           <v-icon class="handle" left small style="cursor: grab"
@@ -26,7 +26,13 @@ export default {
   components: { draggable },
   computed: {
     employees() {
-      return this.$store.getters['masters/Employees']
+      const result = this.$store.getters['masters/Employees']
+      result.sort((a, b) => {
+        if (a.code < b.code) return -1
+        if (a.code > b.code) return 1
+        return 0
+      })
+      return result
     },
   },
 }

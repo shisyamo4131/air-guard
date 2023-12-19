@@ -14,6 +14,14 @@
       </g-menu-date-picker>
       <v-spacer />
       <v-toolbar-items>
+        <g-placement-employee-register>
+          <template #activator="{ attrs, on }">
+            <v-btn v-bind="attrs" text v-on="on">
+              <v-icon>mdi-plus</v-icon>
+              <span>従業員追加</span>
+            </v-btn>
+          </template>
+        </g-placement-employee-register>
         <g-placement-site-register>
           <template #activator="{ attrs, on }">
             <v-btn v-bind="attrs" text v-on="on">
@@ -62,6 +70,7 @@
 import ATextField from '~/components/atoms/inputs/ATextField.vue'
 import GMenuDatePicker from '~/components/molecules/menus/GMenuDatePicker.vue'
 import GPlacementEmployeeList from '~/components/organisms/GPlacementEmployeeList.vue'
+import GPlacementEmployeeRegister from '~/components/organisms/GPlacementEmployeeRegister.vue'
 import GPlacementSiteRegister from '~/components/organisms/GPlacementSiteRegister.vue'
 import GPlacementTable from '~/components/organisms/GPlacementTable.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
@@ -73,6 +82,7 @@ export default {
     GPlacementSiteRegister,
     GMenuDatePicker,
     ATextField,
+    GPlacementEmployeeRegister,
   },
   data() {
     return {
