@@ -25,23 +25,33 @@
         </v-dialog>
       </v-toolbar-items>
     </template>
-    <template #default>
+    <template #default="{ height }">
+      <v-toolbar flat>
+        <a-text-field-search v-model="search.bar" />
+      </v-toolbar>
       <v-container fluid>
-        <v-data-table :headers="headers" :items="items" sort-by="code">
-          <template #[`item.actions`]="{ item }">
-            <v-icon @click="openEditor(item, 'UPDATE')">mdi-pencil</v-icon>
-            <v-icon @click="openEditor(item, 'DELETE')">mdi-delete</v-icon>
-          </template>
-        </v-data-table>
+        <g-data-table
+          :headers="headers"
+          :items="items"
+          :height="height - 24 - toolbarHeight"
+          :search="search.bar"
+          show-actions
+          sort-by="code"
+          @click:edit="openEditor($event, 'UPDATE')"
+          @click:delete="openEditor($event, 'DELETE')"
+        >
+        </g-data-table>
       </v-container>
     </template>
   </g-template-default>
 </template>
 
 <script>
+import ATextFieldSearch from '~/components/atoms/inputs/ATextFieldSearch.vue'
 import GBtnRegist from '~/components/molecules/btns/GBtnRegist.vue'
 import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
+import GDataTable from '~/components/molecules/tables/GDataTable.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
   components: {
@@ -49,6 +59,8 @@ export default {
     GCardInputForm,
     GBtnRegist,
     GInputEmployee,
+    GDataTable,
+    ATextFieldSearch,
   },
   data() {
     return {
@@ -56,6 +68,9 @@ export default {
       editItem: this.$Employee(),
       editMode: 'REGIST',
       loading: false,
+      search: {
+        bar: null,
+      },
     }
   },
   computed: {
@@ -63,7 +78,6 @@ export default {
       return [
         { text: 'CODE', value: 'code' },
         { text: '氏名', value: 'fullName', sortable: false },
-        { text: '', value: 'actions', sortable: false, align: 'right' },
       ]
     },
     items() {
@@ -84,6 +98,10 @@ export default {
         )
       }
       return false
+    },
+    toolbarHeight() {
+      if (this.$vuetify.breakpoint.mobile) return 56
+      return 64
     },
   },
   watch: {

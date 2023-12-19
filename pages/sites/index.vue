@@ -24,14 +24,17 @@
         </v-dialog>
       </v-toolbar-items>
     </template>
-    <template #default>
+    <template #default="{ height }">
       <v-container fluid>
-        <v-data-table :headers="headers" :items="items">
-          <template #[`item.actions`]="{ item }">
-            <v-icon @click="openEditor(item, 'UPDATE')">mdi-pencil</v-icon>
-            <v-icon @click="openEditor(item, 'DELETE')">mdi-delete</v-icon>
-          </template>
-        </v-data-table>
+        <g-data-table
+          :headers="headers"
+          :items="items"
+          :height="height - 24"
+          show-actions
+          @click:edit="openEditor($event, 'UPDATE')"
+          @click:delete="openEditor($event, 'DELETE')"
+        >
+        </g-data-table>
       </v-container>
     </template>
   </g-template-default>
@@ -41,6 +44,7 @@
 import GBtnRegist from '~/components/molecules/btns/GBtnRegist.vue'
 import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
+import GDataTable from '~/components/molecules/tables/GDataTable.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
   components: {
@@ -48,6 +52,7 @@ export default {
     GCardInputForm,
     GBtnRegist,
     GInputSite,
+    GDataTable,
   },
   data() {
     return {
@@ -63,7 +68,6 @@ export default {
         { text: 'CODE', value: 'code' },
         { text: '現場名', value: 'name' },
         { text: '住所', value: 'address' },
-        { text: '', value: 'actions' },
       ]
     },
     items() {
