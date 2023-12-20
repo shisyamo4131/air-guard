@@ -6,9 +6,9 @@
     "lists": []
   },
   {
-    "name": "申請管理",
+    "name": "休暇申請管理",
     "icon": "mdi-home",
-    "to": "/applications",
+    "to": "/leave-applications",
     "lists": []
   },
   {

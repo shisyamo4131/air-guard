@@ -1,5 +1,5 @@
 <template>
-  <g-template-default label="申請管理">
+  <g-template-default label="休暇申請管理">
     <template #append-toolbar-title>
       <v-spacer />
       <v-toolbar-items>
@@ -10,20 +10,28 @@
               <span>登録</span>
             </v-btn>
           </template>
+          <g-leave-application-register
+            ref="form-create"
+            :employees="employees"
+            @click:cancel="dialog.create = false"
+            @submitted="dialog.create = false"
+          />
+        </v-dialog>
+
+        <v-dialog v-model="dialog.modify" max-width="600" scrollable>
           <g-card-input-form
-            ref="form"
-            label="申請登録"
+            ref="form-modify"
+            label="休暇申請"
             :loading="loading"
             :edit-mode="editMode"
-            @click:cancel="dialog.create = false"
-            @click:submit="createApplication"
+            @click:cancel="dialog.modify = false"
+            @click:submit="submit"
           >
             <template #default>
               <g-input-application
                 v-bind.sync="editItem"
                 :edit-mode="editMode"
                 :employees="employees"
-                :selected-dates.sync="selectedDates"
               />
             </template>
           </g-card-input-form>
@@ -114,22 +122,25 @@ import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import ASelect from '~/components/atoms/inputs/ASelect.vue'
 import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
-import GInputApplication from '~/components/molecules/inputs/GInputApplication.vue'
 import GInputApplicationApprove from '~/components/molecules/inputs/GInputApplicationApprove.vue'
 import GDataTable from '~/components/molecules/tables/GDataTable.vue'
+import GLeaveApplicationRegister from '~/components/organisms/GLeaveApplicationRegister.vue'
+import GInputApplication from '~/components/molecules/inputs/GInputApplication.vue'
 export default {
   components: {
     GTemplateDefault,
     GCardInputForm,
     ASelect,
-    GInputApplication,
     GInputApplicationApprove,
     GDataTable,
+    GLeaveApplicationRegister,
+    GInputApplication,
   },
   data() {
     return {
       dialog: {
         create: false,
+        modify: false,
         approve: false,
         unapprove: false,
       },
@@ -149,7 +160,6 @@ export default {
         type: 'non-paid',
         status: 'unapproved',
       },
-      selectedDates: [],
       reject: false,
     }
   },
@@ -161,11 +171,18 @@ export default {
   watch: {
     'dialog.create'(v) {
       if (v) return
-      this.$refs.form.initialize()
+      this.$refs['form-create'].initialize()
       this.$nextTick(() => {
         this.editItem.initialize()
         this.editMode = 'REGIST'
-        this.selectedDates = []
+      })
+    },
+    'dialog.modify'(v) {
+      if (v) return
+      this.$refs['form-modify'].initialize()
+      this.$nextTick(() => {
+        this.editItem.initialize()
+        this.editMode = 'REGIST'
       })
     },
     'dialog.approve'(v) {
@@ -219,10 +236,6 @@ export default {
       this.items.splice(0)
     },
     async submit() {
-      if (!this.selectedDates.length) {
-        alert('対象日を選択してください。')
-        return
-      }
       try {
         this.loading = true
         if (this.editMode === 'REGIST') await this.editItem.create()
@@ -242,14 +255,8 @@ export default {
     openEditor(e, mode) {
       this.editItem.initialize(e)
       this.editMode = mode
-      this.dialog.create = true
+      this.dialog.modify = true
     },
-    // onClickRow(e) {
-    //   this.editItem.initialize(e)
-    //   this.editMode = 'UPDATE'
-    //   if (e.status === 'unapproved') this.dialog.approve = true
-    //   if (e.status === 'approved') this.dialog.unapprove = true
-    // },
     submitAs(status) {
       this.editItem.status = status
       if (status === 'approved') {
@@ -261,32 +268,6 @@ export default {
         this.editItem.approvedUid = null
       }
       this.submit()
-    },
-    /**
-     * Create multiple leave-applications.
-     */
-    async createApplication() {
-      if (!this.selectedDates.length) {
-        alert('対象日を選択してください。')
-        return
-      }
-      try {
-        this.loading = true
-        const promises = []
-        this.selectedDates.forEach((date) => {
-          const model = this.$LeaveApplication(this.editItem)
-          model.date = date
-          promises.push(model.create())
-        })
-        await Promise.all(promises)
-        this.dialog.create = false
-      } catch (err) {
-        // eslint-disable-next-line
-        console.error(err)
-        alert(err.message)
-      } finally {
-        this.loading = false
-      }
     },
   },
 }

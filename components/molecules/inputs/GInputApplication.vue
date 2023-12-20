@@ -1,6 +1,6 @@
 <template>
   <v-row>
-    <v-col :cols="editMode === 'REGIST' ? 6 : 12">
+    <v-col cols="6">
       <a-date
         :value="requestDate"
         label="申請日"
@@ -24,8 +24,7 @@
         @input="$emit('update:employeeId', $event)"
       />
       <a-date
-        v-if="editMode !== 'REGIST'"
-        :value="requestDate"
+        :value="date"
         label="対象日"
         required
         @input="$emit('update:date', $event)"
@@ -37,13 +36,13 @@
         @input="$emit('update:reason', $event)"
       />
     </v-col>
-    <v-col v-if="editMode === 'REGIST'" cols="6">
+    <v-col cols="6">
       <a-date-picker
-        :value="selectedDates"
+        :value="date"
+        :disabled="editMode === 'DELETE'"
         full-width
-        multiple
         no-title
-        @input="$emit('update:selectedDates', $event)"
+        @input="$emit('update:date', $event)"
       />
     </v-col>
   </v-row>
@@ -54,8 +53,10 @@ import ADate from '~/components/atoms/inputs/ADate.vue'
 import ASelect from '~/components/atoms/inputs/ASelect.vue'
 import ATextarea from '~/components/atoms/inputs/ATextarea.vue'
 import ADatePicker from '~/components/atoms/pickers/ADatePicker.vue'
+import { editMode } from '~/components/mixins'
 export default {
   components: { ADate, ASelect, ATextarea, ADatePicker },
+  mixins: [editMode],
   props: {
     requestDate: { type: undefined, default: null, required: false },
     type: { type: undefined, default: null, required: false },
@@ -67,13 +68,6 @@ export default {
     settlementUid: { type: undefined, default: null, required: false },
     rejectReason: { type: undefined, default: null, required: false },
     employees: { type: Array, default: () => [], required: false },
-    selectedDates: { type: Array, default: () => [], required: false },
-    editMode: {
-      type: String,
-      default: 'REGIST',
-      validator: (v) => ['REGIST', 'UPDATE', 'DELETE'].includes(v),
-      required: false,
-    },
   },
 }
 </script>
