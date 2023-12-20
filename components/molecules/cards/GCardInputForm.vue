@@ -2,7 +2,7 @@
   <v-card>
     <v-card-title>{{ `${label} ${editModeLabel}` }}</v-card-title>
     <v-card-text class="py-5 px-6">
-      <v-form ref="form" @submit.prevent>
+      <v-form ref="form" :disabled="editMode === 'DELETE'" @submit.prevent>
         <slot name="default" v-bind="{ editMode }" />
       </v-form>
     </v-card-text>

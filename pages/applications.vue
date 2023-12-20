@@ -14,13 +14,16 @@
             ref="form"
             label="申請登録"
             :loading="loading"
+            :edit-mode="editMode"
             @click:cancel="dialog.create = false"
-            @click:submit="submit"
+            @click:submit="createApplication"
           >
             <template #default>
               <g-input-application
                 v-bind.sync="editItem"
+                :edit-mode="editMode"
                 :employees="employees"
+                :selected-dates.sync="selectedDates"
               />
             </template>
           </g-card-input-form>
@@ -33,40 +36,44 @@
           <v-row>
             <v-col>
               <a-select
-                v-model="search.applicationType"
-                label="申請区分"
-                :items="$APPLICATION_TYPE_ARRAY"
+                v-model="search.status"
+                label="状態"
+                :items="$LEAVE_APPLICATION_STATUS_ARRAY"
               />
             </v-col>
             <v-col>
               <a-select
-                v-model="search.applicationStatus"
-                label="状態"
-                :items="$APPLICATION_STATUS_ARRAY"
+                v-model="search.type"
+                label="申請区分"
+                :items="$LEAVE_APPLICATION_TYPE_ARRAY"
               />
             </v-col>
           </v-row>
         </v-toolbar>
-        <v-data-table :headers="headers" :items="items" @click:row="onClickRow">
-          <template #[`item.applicationType`]="{ item }">
-            {{ $APPLICATION_TYPE[item.applicationType] }}
+        <g-data-table
+          :headers="headers"
+          :items="items"
+          show-actions
+          @click:edit="openEditor($event, 'UPDATE')"
+          @click:delete="openEditor($event, 'DELETE')"
+        >
+          <template #[`item.type`]="{ item }">
+            {{ $LEAVE_APPLICATION_TYPE[item.type] }}
           </template>
           <template #[`item.employeeId`]="{ item }">
             {{ $store.getters['masters/Employee'](item.employeeId).abbr }}
           </template>
           <template #[`item.status`]="{ item }">
-            {{ $APPLICATION_STATUS[item.status] }}
+            {{ $LEAVE_APPLICATION_STATUS[item.status] }}
           </template>
-          <template #[`item.actions`]>
-            <v-icon>mdi-magnify</v-icon>
-          </template>
-        </v-data-table>
+        </g-data-table>
       </v-container>
       <!-- dialog to approve or reject application. -->
       <v-dialog v-model="dialog.approve" max-width="600">
         <g-card-input-form
           ref="form-approve"
           label="申請承認"
+          :edit-mode="editMode"
           :loading="loading"
           @click:cancel="dialog.approve = false"
           @click:submit="submitAs(reject ? 'reject' : 'approved')"
@@ -109,6 +116,7 @@ import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GInputApplication from '~/components/molecules/inputs/GInputApplication.vue'
 import GInputApplicationApprove from '~/components/molecules/inputs/GInputApplicationApprove.vue'
+import GDataTable from '~/components/molecules/tables/GDataTable.vue'
 export default {
   components: {
     GTemplateDefault,
@@ -116,6 +124,7 @@ export default {
     ASelect,
     GInputApplication,
     GInputApplicationApprove,
+    GDataTable,
   },
   data() {
     return {
@@ -125,21 +134,22 @@ export default {
         unapprove: false,
       },
       headers: [
-        { text: '申請日', value: 'applicationDate' },
-        { text: '申請区分', value: 'applicationType' },
+        { text: '申請日', value: 'requestDate' },
+        { text: '申請区分', value: 'type' },
         { text: '申請者', value: 'employeeId' },
+        { text: '対象日', value: 'date' },
         { text: '状態', value: 'status' },
-        { text: 'actions', value: 'actions', sortable: false, align: 'center' },
       ],
-      editItem: this.$Application(),
+      editItem: this.$LeaveApplication(),
       editMode: 'REGIST',
       items: [],
       listener: null,
       loading: false,
       search: {
-        applicationType: 'vacation',
-        applicationStatus: 'unapproved',
+        type: 'non-paid',
+        status: 'unapproved',
       },
+      selectedDates: [],
       reject: false,
     }
   },
@@ -152,22 +162,27 @@ export default {
     'dialog.create'(v) {
       if (v) return
       this.$refs.form.initialize()
-      this.editItem.initialize()
-      this.editMode = 'REGIST'
+      this.$nextTick(() => {
+        this.editItem.initialize()
+        this.editMode = 'REGIST'
+        this.selectedDates = []
+      })
     },
     'dialog.approve'(v) {
       if (v) return
       this.$refs['form-approve'].initialize()
-      this.editItem.initialize()
-      this.editMode = 'REGIST'
+      this.$nextTick(() => {
+        this.editItem.initialize()
+        this.editMode = 'REGIST'
+      })
     },
-    'search.applicationType': {
+    'search.type': {
       handler(v) {
         this.subscribe()
       },
       immediate: true,
     },
-    'search.applicationStatus': {
+    'search.status': {
       handler(v) {
         this.subscribe()
       },
@@ -180,11 +195,11 @@ export default {
   methods: {
     subscribe() {
       this.unsubscribe()
-      const colRef = collection(this.$firestore, 'Applications')
+      const colRef = collection(this.$firestore, 'LeaveApplications')
       const q = query(
         colRef,
-        where('applicationType', '==', this.search.applicationType),
-        where('status', '==', this.search.applicationStatus)
+        where('type', '==', this.search.type),
+        where('status', '==', this.search.status)
       )
       this.listener = onSnapshot(q, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
@@ -204,6 +219,10 @@ export default {
       this.items.splice(0)
     },
     async submit() {
+      if (!this.selectedDates.length) {
+        alert('対象日を選択してください。')
+        return
+      }
       try {
         this.loading = true
         if (this.editMode === 'REGIST') await this.editItem.create()
@@ -220,12 +239,17 @@ export default {
         this.loading = false
       }
     },
-    onClickRow(e) {
+    openEditor(e, mode) {
       this.editItem.initialize(e)
-      this.editMode = 'UPDATE'
-      if (e.status === 'unapproved') this.dialog.approve = true
-      if (e.status === 'approved') this.dialog.unapprove = true
+      this.editMode = mode
+      this.dialog.create = true
     },
+    // onClickRow(e) {
+    //   this.editItem.initialize(e)
+    //   this.editMode = 'UPDATE'
+    //   if (e.status === 'unapproved') this.dialog.approve = true
+    //   if (e.status === 'approved') this.dialog.unapprove = true
+    // },
     submitAs(status) {
       this.editItem.status = status
       if (status === 'approved') {
@@ -237,6 +261,32 @@ export default {
         this.editItem.approvedUid = null
       }
       this.submit()
+    },
+    /**
+     * Create multiple leave-applications.
+     */
+    async createApplication() {
+      if (!this.selectedDates.length) {
+        alert('対象日を選択してください。')
+        return
+      }
+      try {
+        this.loading = true
+        const promises = []
+        this.selectedDates.forEach((date) => {
+          const model = this.$LeaveApplication(this.editItem)
+          model.date = date
+          promises.push(model.create())
+        })
+        await Promise.all(promises)
+        this.dialog.create = false
+      } catch (err) {
+        // eslint-disable-next-line
+        console.error(err)
+        alert(err.message)
+      } finally {
+        this.loading = false
+      }
     },
   },
 }

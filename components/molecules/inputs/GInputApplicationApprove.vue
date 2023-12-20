@@ -4,11 +4,11 @@
       <tbody>
         <tr>
           <td>申請日</td>
-          <td>{{ applicationDate }}</td>
+          <td>{{ requestDate }}</td>
         </tr>
         <tr>
           <td>申請区分</td>
-          <td>{{ $APPLICATION_TYPE[applicationType] }}</td>
+          <td>{{ $LEAVE_APPLICATION_TYPE[type] }}</td>
         </tr>
         <tr>
           <td>申請者</td>
@@ -16,7 +16,7 @@
         </tr>
         <tr>
           <td>対象日</td>
-          <td>{{ dates }}</td>
+          <td>{{ date }}</td>
         </tr>
         <tr>
           <td>申請事由</td>
@@ -42,14 +42,14 @@ import ATextarea from '~/components/atoms/inputs/ATextarea.vue'
 export default {
   components: { ATextarea },
   props: {
-    applicationDate: { type: undefined, default: null, required: false },
-    applicationType: { type: undefined, default: null, required: false },
+    requestDate: { type: undefined, default: null, required: false },
+    type: { type: undefined, default: null, required: false },
     employeeId: { type: undefined, default: null, required: false },
-    dates: { type: undefined, default: null, required: false },
+    date: { type: undefined, default: null, required: false },
     reason: { type: undefined, default: null, required: false },
-    approvedDate: { type: undefined, default: null, required: false },
-    approvedUid: { type: undefined, default: null, required: false },
     status: { type: undefined, default: null, required: false },
+    settlementDate: { type: undefined, default: null, required: false },
+    settlementUid: { type: undefined, default: null, required: false },
     rejectReason: { type: undefined, default: null, required: false },
     reject: { type: Boolean, default: false, required: false },
   },
