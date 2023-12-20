@@ -22,14 +22,22 @@
             </v-btn>
           </template>
         </g-placement-employee-register>
-        <g-placement-site-register>
+        <g-placement-site-register-v-2>
           <template #activator="{ attrs, on }">
             <v-btn v-bind="attrs" text v-on="on">
               <v-icon>mdi-plus</v-icon>
               <span>現場追加</span>
             </v-btn>
           </template>
-        </g-placement-site-register>
+        </g-placement-site-register-v-2>
+        <!-- <g-placement-site-register>
+          <template #activator="{ attrs, on }">
+            <v-btn v-bind="attrs" text v-on="on">
+              <v-icon>mdi-plus</v-icon>
+              <span>現場追加</span>
+            </v-btn>
+          </template>
+        </g-placement-site-register> -->
       </v-toolbar-items>
     </template>
     <template #default="{ height }">
@@ -71,7 +79,7 @@ import ATextField from '~/components/atoms/inputs/ATextField.vue'
 import GMenuDatePicker from '~/components/molecules/menus/GMenuDatePicker.vue'
 import GPlacementEmployeeList from '~/components/organisms/GPlacementEmployeeList.vue'
 import GPlacementEmployeeRegister from '~/components/organisms/GPlacementEmployeeRegister.vue'
-import GPlacementSiteRegister from '~/components/organisms/GPlacementSiteRegister.vue'
+import GPlacementSiteRegisterV2 from '~/components/organisms/GPlacementSiteRegisterV2.vue'
 import GPlacementTable from '~/components/organisms/GPlacementTable.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
@@ -79,10 +87,10 @@ export default {
     GTemplateDefault,
     GPlacementTable,
     GPlacementEmployeeList,
-    GPlacementSiteRegister,
     GMenuDatePicker,
     ATextField,
     GPlacementEmployeeRegister,
+    GPlacementSiteRegisterV2,
   },
   data() {
     return {

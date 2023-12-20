@@ -8,7 +8,7 @@
       </v-list-item-icon>
       <v-list-item-content>
         <v-list-item-title>
-          {{ site.abbr }}
+          {{ site.name }}
         </v-list-item-title>
         <v-list-item-subtitle>
           {{ site.address }}

@@ -1,7 +1,15 @@
 <template>
-  <g-template-default>
-    <template #default>
-      <v-container fluid>
+  <v-dialog v-model="dialog" max-width="720" persistent scrollable>
+    <template #activator="props">
+      <slot name="activator" v-bind="props" />
+    </template>
+    <v-card>
+      <v-toolbar color="primary" dark dense flat>
+        <v-toolbar-title>配置表現場追加</v-toolbar-title>
+        <v-spacer />
+        <v-icon @click="dialog = false">mdi-close</v-icon>
+      </v-toolbar>
+      <v-card-text class="pa-0">
         <v-stepper v-model="step" vertical>
           <v-stepper-step step="1">
             現場情報入力
@@ -102,19 +110,19 @@
             </v-card>
           </v-stepper-content>
         </v-stepper>
-      </v-container>
-    </template>
-  </g-template-default>
+      </v-card-text>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
-import ATextField from '~/components/atoms/inputs/ATextField.vue'
-import GDataTable from '~/components/molecules/tables/GDataTable.vue'
-import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
+import ATextField from '../atoms/inputs/ATextField.vue'
+import GDataTable from '../molecules/tables/GDataTable.vue'
 export default {
-  components: { GTemplateDefault, ATextField, GDataTable },
+  components: { GDataTable, ATextField },
   data() {
     return {
+      dialog: false,
       step: 1,
       name: null,
       address: null,
@@ -145,17 +153,34 @@ export default {
       }
     },
   },
+  watch: {
+    dialog(v) {
+      if (v) return
+      this.selectedItem.splice(0)
+      this.name = null
+      this.address = null
+      this.workShift = 'day'
+      this.step = 1
+    },
+  },
   methods: {
     async onClickSubmit() {
-      if (this.selectedItem.length) {
-        this.$emit('selected', this.selectedItem[0].docId)
-        return
-      }
       try {
+        let siteId = ''
+        const workShift = this.workShift
         this.loading = true
-        const model = this.$Site(this.confirm)
-        const docRef = await model.create()
-        this.$emit('selected', docRef.id)
+        if (this.selectedItem.length) {
+          siteId = this.selectedItem[0].docId
+        } else {
+          const model = this.$Site(this.confirm)
+          const docRef = await model.create()
+          siteId = docRef.id
+        }
+        await this.$store.dispatch('placements/addIndex', {
+          siteId,
+          workShift,
+        })
+        this.dialog = false
       } catch (err) {
         // eslint-disable-next-line
         console.error(err)

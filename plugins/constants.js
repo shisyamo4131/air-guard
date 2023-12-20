@@ -20,9 +20,21 @@ const LEAVE_APPLICATION_TYPE_ARRAY = [
   { value: 'paid', text: '2: 有給休暇' },
 ]
 
+const WORK_SHIFT = {
+  day: '日勤',
+  night: '夜勤',
+}
+
+const WORK_SHIFT_ARRAY = [
+  { value: 'day', text: '日勤' },
+  { value: 'night', text: '夜勤' },
+]
+
 export default (context, inject) => {
   inject('LEAVE_APPLICATION_STATUS', LEAVE_APPLICATION_STATUS)
   inject('LEAVE_APPLICATION_STATUS_ARRAY', LEAVE_APPLICATION_STATUS_ARRAY)
   inject('LEAVE_APPLICATION_TYPE', LEAVE_APPLICATION_TYPE)
   inject('LEAVE_APPLICATION_TYPE_ARRAY', LEAVE_APPLICATION_TYPE_ARRAY)
+  inject('WORK_SHIFT', WORK_SHIFT)
+  inject('WORK_SHIFT_ARRAY', WORK_SHIFT_ARRAY)
 }

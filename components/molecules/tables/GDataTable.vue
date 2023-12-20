@@ -14,7 +14,7 @@ export default {
   data() {
     return {
       page: 1,
-      pageCount: 200,
+      pageCount: 0,
     }
   },
   computed: {
