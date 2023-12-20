@@ -15,12 +15,12 @@ export const state = () => ({
   index: [],
   placements: [],
   placementDetails: [],
-  applications: [],
+  leaveApplications: [],
   listeners: {
     index: null,
     placements: null,
     placementDetails: null,
-    applications: null,
+    leaveApplications: null,
   },
 })
 
@@ -99,8 +99,8 @@ export const getters = {
   hasApplication:
     (state) =>
     ({ date, worker }) => {
-      const result = state.applications.filter((item) => {
-        return item.dates.includes(date) && item.employeeId === worker
+      const result = state.leaveApplications.filter((item) => {
+        return item.date === date && item.employeeId === worker
       })
       return !!result.length
     },
@@ -136,18 +136,18 @@ export const mutations = {
     })
     if (index !== -1) state.placementDetails.splice(index, 1)
   },
-  setApplications(state, payload) {
-    const index = state.applications.findIndex(({ docId }) => {
+  setLeaveApplications(state, payload) {
+    const index = state.leaveApplications.findIndex(({ docId }) => {
       return docId === payload.docId
     })
-    if (index === -1) state.applications.push(payload)
-    if (index !== -1) state.applications.splice(index, 1, payload)
+    if (index === -1) state.leaveApplications.push(payload)
+    if (index !== -1) state.leaveApplications.splice(index, 1, payload)
   },
-  removeApplications(state, payload) {
-    const index = state.applications.findIndex(({ docId }) => {
+  removeLeaveApplications(state, payload) {
+    const index = state.leaveApplications.findIndex(({ docId }) => {
       return docId === payload.docId
     })
-    if (index !== -1) state.applications.splice(index, 1)
+    if (index !== -1) state.leaveApplications.splice(index, 1)
   },
   setListener(state, { key, value }) {
     state.listeners[key] = value
@@ -163,31 +163,31 @@ export const actions = {
    */
   subscribe({ commit }, { from, to }) {
     /**
-     * A function to start a subscription to a Applications documents.
-     * @returns A listener to Applications.
+     * A function to start a subscription to a LeaveApplications documents.
+     * @returns A listener to LeaveApplications.
      */
-    const subscribeToApplications = () => {
+    const subscribeToLeaveApplications = () => {
       const dateCount = this.$dayjs(to).diff(this.$dayjs(from), 'day') + 1
       const dates = [...Array(dateCount)].map((_, i) => {
         return this.$dayjs(from).add(i, 'day').format('YYYY-MM-DD')
       })
-      const colRef = collection(this.$firestore, 'Applications')
+      const colRef = collection(this.$firestore, 'LeaveApplications')
       const q = query(
         colRef,
         where('status', '==', 'approved'),
-        where('dates', 'array-contains-any', dates)
+        where('date', 'in', dates)
       )
       const result = onSnapshot(q, (snapshot) => {
         snapshot.docChanges().forEach((change) => {
           if (change.type === 'added' || change.type === 'modified')
-            commit('setApplications', change.doc.data())
+            commit('setLeaveApplications', change.doc.data())
           if (change.type === 'removed')
-            commit('removeApplications', change.doc.data())
+            commit('removeLeaveApplications', change.doc.data())
         })
       })
       // eslint-disable-next-line
       console.info(
-        `[Vuex-placements.js] Subscription to Applications is now open.`
+        `[Vuex-placements.js] Subscription to LeaveApplications is now open.`
       )
       return result
     }
@@ -277,8 +277,11 @@ export const actions = {
     commit('setListener', { key: 'placements', value: placements })
     const placementDetails = subscribeToPlacementDetails()
     commit('setListener', { key: 'placementDetails', value: placementDetails })
-    const applications = subscribeToApplications()
-    commit('setListener', { key: 'applications', value: applications })
+    const leaveApplications = subscribeToLeaveApplications()
+    commit('setListener', {
+      key: 'leaveApplications',
+      value: leaveApplications,
+    })
   },
   /**
    * An action to unsubscribe to Placement data.
