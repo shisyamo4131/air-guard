@@ -11,9 +11,8 @@
         <a-text-field-search v-model="search" />
       </v-toolbar>
       <v-card-text>
-        <v-data-table
+        <g-data-table
           v-model="selectedItem"
-          fixed-header
           :items="search ? sites : []"
           item-key="docId"
           :headers="headers"
@@ -42,8 +41,9 @@
 
 <script>
 import ATextFieldSearch from '../atoms/inputs/ATextFieldSearch.vue'
+import GDataTable from '../molecules/tables/GDataTable.vue'
 export default {
-  components: { ATextFieldSearch },
+  components: { ATextFieldSearch, GDataTable },
   data() {
     return {
       dialog: false,
