@@ -37,17 +37,33 @@
         @input="$emit('update:items', $event)"
       >
         <tr v-for="(item, index) of props.items" :key="index">
-          <td style="vertical-align: top">
+          <td
+            :style="{
+              'vertical-align': 'top',
+              background: `${item.workShift === 'day' ? '#fff3e0' : '#E8EAF6'}`,
+            }"
+          >
             <slot name="site" v-bind="{ ...item }">
               {{ item.siteId }}
             </slot>
           </td>
-          <td>
+          <td
+            :style="{
+              background: `${item.workShift === 'day' ? '#fff3e0' : '#E8EAF6'}`,
+            }"
+          >
             <slot name="workShift" v-bind="{ ...item }">
               {{ item.workShift }}
             </slot>
           </td>
-          <td v-for="col of cols" :key="col.date" style="vertical-align: top">
+          <td
+            v-for="col of cols"
+            :key="col.date"
+            :style="{
+              'vertical-align': 'top',
+              background: `${item.workShift === 'day' ? '#fff3e0' : '#E8EAF6'}`,
+            }"
+          >
             <slot
               name="cell"
               v-bind="{
