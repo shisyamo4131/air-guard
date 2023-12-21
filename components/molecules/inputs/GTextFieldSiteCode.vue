@@ -33,8 +33,10 @@ import {
   where,
 } from 'firebase/firestore'
 import ATextField from '~/components/atoms/inputs/ATextField.vue'
+import { editMode } from '~/components/mixins'
 export default {
   components: { ATextField },
+  mixins: [editMode],
   props: {
     value: { type: undefined, default: null, required: false },
   },

@@ -8,10 +8,10 @@
       </v-list-item-icon>
       <v-list-item-content>
         <v-list-item-title>
-          {{ site.name }}
+          {{ site?.name || 'loading' }}
         </v-list-item-title>
         <v-list-item-subtitle>
-          {{ site.address }}
+          {{ site?.address || 'loading' }}
         </v-list-item-subtitle>
       </v-list-item-content>
     </v-list-item>

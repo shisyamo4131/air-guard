@@ -42,7 +42,16 @@
                   no-results-text="該当する現場がありません。"
                   no-data-text="現場名を入力してください。"
                   @page-count="pageCount = $event"
-                />
+                >
+                  <template #[`item.customerId`]="{ item }">
+                    {{
+                      $store.getters['masters/Customer'](item.customerId).abbr
+                    }}
+                  </template>
+                  <template #[`item.status`]="{ item }">
+                    {{ $SITE_STATUS[item.status] }}
+                  </template>
+                </g-data-table>
               </v-card-text>
               <v-card-actions class="justify-end">
                 <v-btn
@@ -131,6 +140,8 @@ export default {
       headers: [
         { text: '現場名', value: 'name' },
         { text: '住所', value: 'address' },
+        { text: '取引先', value: 'customerId' },
+        { text: '状態', value: 'status' },
       ],
       selectedItem: [],
     }

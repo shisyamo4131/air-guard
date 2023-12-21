@@ -10,12 +10,13 @@
           <g-card-input-form
             ref="form"
             label="現場"
+            :edit-mode="editMode"
             :loading="loading"
             @click:cancel="dialog = false"
             @click:submit="submit"
           >
             <template #default>
-              <g-input-site v-bind.sync="editItem" />
+              <g-input-site v-bind.sync="editItem" :edit-mode="editMode" />
             </template>
           </g-card-input-form>
         </v-dialog>

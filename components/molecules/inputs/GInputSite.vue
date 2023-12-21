@@ -4,6 +4,8 @@
       ref="code"
       :value="code"
       label="CODE"
+      :edit-mode="editMode"
+      :disabled="synchronized"
       @click:append-outer="contentCopy"
       @input="$emit('update:code', $event)"
     />
@@ -48,8 +50,10 @@
 import GTextFieldSiteCode from './GTextFieldSiteCode.vue'
 import ATextField from '~/components/atoms/inputs/ATextField.vue'
 import AAutocomplete from '~/components/atoms/inputs/AAutocomplete.vue'
+import { editMode } from '~/components/mixins'
 export default {
   components: { ATextField, GTextFieldSiteCode, AAutocomplete },
+  mixins: [editMode],
   props: {
     code: { type: undefined, default: null, required: false },
     name: { type: undefined, default: null, required: false },
@@ -58,6 +62,7 @@ export default {
     address: { type: undefined, default: null, required: false },
     customerId: { type: undefined, default: null, required: false },
     status: { type: undefined, default: null, required: false },
+    synchronized: { type: Boolean, default: false, required: false },
   },
   methods: {
     contentCopy() {
