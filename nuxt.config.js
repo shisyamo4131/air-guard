@@ -35,6 +35,7 @@ export default {
     './plugins/air-vuetify.js',
     './plugins/models.js',
     './plugins/constants.js',
+    './plugins/vue-papa-parse.js',
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components

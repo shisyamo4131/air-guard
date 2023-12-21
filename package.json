@@ -30,6 +30,7 @@
     "firebase": "^10.7.1",
     "nuxt": "^2.15.8",
     "vue": "^2.7.10",
+    "vue-papa-parse": "^3.1.0",
     "vue-server-renderer": "^2.7.10",
     "vue-template-compiler": "^2.7.10",
     "vuedraggable": "^2.24.3",
