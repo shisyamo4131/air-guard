@@ -64,45 +64,59 @@ export const getters = {
       ).values()
     )
   },
+  /**
+   * Returns whether there are duplicate placements of a given employee
+   * on the same day and shift.
+   * @param {string} date A date of placement.
+   * @param {string} workShift 'day' or 'nigiht'
+   * @param {string} worker An document-id of employee.
+   * @returns
+   */
   isDuplicated:
     (state) =>
     ({ date, workShift, worker }) => {
-      return (
-        state.placementDetails.filter((item) => {
-          return (
-            item.date === date &&
-            item.workShift === workShift &&
-            item.workers.includes(worker)
-          )
-        }).length > 1
-      )
+      const workerPlacements = state.placementDetails.filter((item) => {
+        if (item.date !== date) return false
+        if (item.workShift !== workShift) return false
+        if (!item.workers.includes(worker)) return false
+        return true
+      })
+      return workerPlacements.length > 1
     },
+  /**
+   * Returns whether the specified employee is in a continuous work placement
+   * on the specified date.
+   * @param {string} date A date of placement.
+   * @param {string} worker An document-id of employee.
+   * @returns
+   */
   isContinuos:
     (state) =>
     ({ date, worker }) => {
-      const day = state.placementDetails.filter((item) => {
-        return (
-          item.date === date &&
-          item.workShift === 'day' &&
-          item.workers.includes(worker)
-        )
+      const workerPlacements = state.placementDetails.filter((item) => {
+        return item.date === date && item.workers.includes(worker)
       })
-      const night = state.placementDetails.filter((item) => {
-        return (
-          item.date === date &&
-          item.workShift === 'night' &&
-          item.workers.includes(worker)
-        )
-      })
-      return day.length > 0 && night.length > 0
+      const { day, night } = workerPlacements.reduce((sum, i) => {
+        if (i.workShift === 'day') sum.day = (sum?.day || 0) + 1
+        if (i.workShift === 'night') sum.night = (sum?.night || 0) + 1
+        return sum
+      }, {})
+      return day > 0 && night > 0
     },
-  hasApplication:
+  /**
+   * Returns whether or not an approved leave application exists
+   * for a given employee on a given date.
+   * @param {string} date A date of placement.
+   * @param {string} worker An document-id of employee.
+   * @returns
+   */
+  hasLeaveApplication:
     (state) =>
     ({ date, worker }) => {
-      const result = state.leaveApplications.filter((item) => {
+      const result = state.leaveApplications.some((item) => {
         return item.date === date && item.employeeId === worker
       })
-      return !!result.length
+      return result
     },
 }
 

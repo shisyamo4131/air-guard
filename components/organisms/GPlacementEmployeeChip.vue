@@ -24,7 +24,7 @@ export default {
     errors() {
       const result = []
       if (this.isDuplicated) result.push('配置が重複しています。')
-      if (this.hasApplication) result.push('休暇申請を受理しています。')
+      if (this.hasLeaveApplication) result.push('休暇申請を受理しています。')
       return result
     },
     isDuplicated() {
@@ -33,8 +33,8 @@ export default {
     isContinuos() {
       return this.$store.getters['placements/isContinuos']({ ...this.$props })
     },
-    hasApplication() {
-      return this.$store.getters['placements/hasApplication']({
+    hasLeaveApplication() {
+      return this.$store.getters['placements/hasLeaveApplication']({
         ...this.$props,
       })
     },
