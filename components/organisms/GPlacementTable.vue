@@ -28,6 +28,11 @@
         />
       </draggable>
     </template>
+    <template #foot="{ date }">
+      <div class="text-center">
+        {{ $store.getters['placements/operationCount'](date) }}
+      </div>
+    </template>
   </g-data-table-placements>
 </template>
 

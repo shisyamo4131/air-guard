@@ -80,6 +80,17 @@
         </tr>
       </draggable>
     </template>
+    <template #foot>
+      <tfoot>
+        <tr>
+          <td></td>
+          <td></td>
+          <td v-for="col of cols" :key="col.date">
+            <slot name="foot" v-bind="{ date: col.date }" />
+          </td>
+        </tr>
+      </tfoot>
+    </template>
   </v-data-table>
 </template>
 
@@ -187,7 +198,17 @@ export default {
 .placement-table td:nth-child(2) {
   left: 276px;
 }
-.placement-table tr:hover td:nth-child(-n + 2) {
+/* .placement-table tr:hover td:nth-child(-n + 2) {
   background: #eee;
+} */
+.placement-table tfoot td {
+  position: sticky;
+  z-index: 2 !important;
+  background: #ffffff;
+  bottom: 0;
+}
+.placement-table th:nth-child(n + 3),
+.placement-table td:nth-child(n + 3) {
+  border-left: thin solid #bdbdbd;
 }
 </style>

@@ -118,6 +118,10 @@ export const getters = {
       })
       return result
     },
+  operationCount: (state) => (date) => {
+    const dayPlacement = state.placements.find((item) => item.date === date)
+    return dayPlacement?.operationCount || 0
+  },
 }
 
 export const mutations = {
