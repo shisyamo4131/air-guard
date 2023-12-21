@@ -48,7 +48,6 @@
           :selected-employee="selectedEmployee"
           :height="height - 24"
           :style="{ width: `calc(100% - ${employeeListWidth}px)` }"
-          @selected="selectedEmployee = $event"
         />
       </v-container>
       <v-snackbar

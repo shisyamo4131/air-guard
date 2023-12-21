@@ -75,13 +75,13 @@ export const getters = {
   isDuplicated:
     (state) =>
     ({ date, workShift, worker }) => {
-      const workerPlacements = state.placementDetails.filter((item) => {
-        if (item.date !== date) return false
-        if (item.workShift !== workShift) return false
-        if (!item.workers.includes(worker)) return false
-        return true
-      })
-      return workerPlacements.length > 1
+      const result = state.placementDetails
+        .filter((item) => item.date === date)
+        .filter((item) => item.workShift === workShift)
+        .reduce((sum, i) => {
+          return sum + i.workers.filter((id) => id === worker).length
+        }, 0)
+      return result > 1
     },
   /**
    * Returns whether the specified employee is in a continuous work placement
