@@ -40,6 +40,9 @@
           <template #[`item.fullName`]="{ item }">
             {{ `${item.lastName} ${item.firstName}` }}
           </template>
+          <template #[`item.status`]="{ item }">
+            {{ $EMPLOYEE_STATUS[item.status] }}
+          </template>
         </g-data-table>
       </v-container>
     </template>
@@ -78,6 +81,7 @@ export default {
       return [
         { text: 'CODE', value: 'code' },
         { text: '氏名', value: 'fullName', sortable: false },
+        { text: '状態', value: 'status', sortable: false },
       ]
     },
     items() {

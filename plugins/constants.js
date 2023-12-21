@@ -1,3 +1,13 @@
+const EMPLOYEE_STATUS = {
+  active: '在籍',
+  expired: '退職',
+}
+
+const EMPLOYEE_STATUS_ARRAY = [
+  { value: 'active', text: '在籍' },
+  { value: 'expired', text: '退職' },
+]
+
 const LEAVE_APPLICATION_STATUS = {
   approved: '承認',
   unapproved: '未承認',
@@ -31,6 +41,8 @@ const WORK_SHIFT_ARRAY = [
 ]
 
 export default (context, inject) => {
+  inject('EMPLOYEE_STATUS', EMPLOYEE_STATUS)
+  inject('EMPLOYEE_STATUS_ARRAY', EMPLOYEE_STATUS_ARRAY)
   inject('LEAVE_APPLICATION_STATUS', LEAVE_APPLICATION_STATUS)
   inject('LEAVE_APPLICATION_STATUS_ARRAY', LEAVE_APPLICATION_STATUS_ARRAY)
   inject('LEAVE_APPLICATION_TYPE', LEAVE_APPLICATION_TYPE)
