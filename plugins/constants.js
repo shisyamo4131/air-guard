@@ -1,3 +1,13 @@
+const CUSTOMER_STATUS = {
+  active: '契約中',
+  expired: '契約終了',
+}
+
+const CUSTOMER_STATUS_ARRAY = [
+  { value: 'active', text: '契約中' },
+  { value: 'expired', text: '契約終了' },
+]
+
 const EMPLOYEE_STATUS = {
   active: '在籍',
   expired: '退職',
@@ -51,6 +61,8 @@ const WORK_SHIFT_ARRAY = [
 ]
 
 export default (context, inject) => {
+  inject('CUSTOMER_STATUS', CUSTOMER_STATUS)
+  inject('CUSTOMER_STATUS_ARRAY', CUSTOMER_STATUS_ARRAY)
   inject('EMPLOYEE_STATUS', EMPLOYEE_STATUS)
   inject('EMPLOYEE_STATUS_ARRAY', EMPLOYEE_STATUS_ARRAY)
   inject('LEAVE_APPLICATION_STATUS', LEAVE_APPLICATION_STATUS)

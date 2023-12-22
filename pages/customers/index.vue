@@ -1,5 +1,5 @@
 <template>
-  <g-template-default label="取引先管理">
+  <g-template-index label="取引先管理" :search.sync="search.bar">
     <template #append-toolbar-title>
       <v-spacer />
       <v-toolbar-items>
@@ -21,35 +21,54 @@
         </v-dialog>
       </v-toolbar-items>
     </template>
+    <template #search-bar="{ attrs, on }">
+      <a-text-field-search v-bind="attrs" v-on="on" />
+      <a-switch
+        v-model="search.includeExpired"
+        class="ml-2"
+        hide-details
+        label="契約終了も表示する"
+      />
+    </template>
     <template #default="{ height }">
       <v-container fluid>
         <g-data-table
           :headers="headers"
           :items="items"
           :height="height - 24"
+          :search="search.bar"
           show-actions
+          sort-by="code"
+          sort-desc
           @click:edit="openEditor($event, 'UPDATE')"
           @click:delete="openEditor($event, 'DELETE')"
         >
+          <template #[`item.status`]="{ item }">
+            {{ $CUSTOMER_STATUS[item.status] }}
+          </template>
         </g-data-table>
       </v-container>
     </template>
-  </g-template-default>
+  </g-template-index>
 </template>
 
 <script>
+import ASwitch from '~/components/atoms/inputs/ASwitch.vue'
+import ATextFieldSearch from '~/components/atoms/inputs/ATextFieldSearch.vue'
 import GBtnRegist from '~/components/molecules/btns/GBtnRegist.vue'
 import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import GDataTable from '~/components/molecules/tables/GDataTable.vue'
-import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
+import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 export default {
   components: {
-    GTemplateDefault,
     GCardInputForm,
     GBtnRegist,
     GInputCustomer,
     GDataTable,
+    GTemplateIndex,
+    ASwitch,
+    ATextFieldSearch,
   },
   data() {
     return {
@@ -57,6 +76,10 @@ export default {
       editItem: this.$Customer(),
       editMode: 'REGIST',
       loading: false,
+      search: {
+        bar: null,
+        includeExpired: false,
+      },
     }
   },
   computed: {
@@ -65,10 +88,14 @@ export default {
         { text: 'CODE', value: 'code' },
         { text: '取引先名1', value: 'name1' },
         { text: '取引先名2', value: 'name2' },
+        { text: '状態', value: 'status', sortable: false },
       ]
     },
     items() {
-      return this.$store.getters['masters/Customers']
+      return this.$store.getters['masters/Customers'].filter(({ status }) => {
+        if (this.search.includeExpired) return true
+        return status === 'active'
+      })
     },
   },
   watch: {

@@ -1,5 +1,5 @@
 <template>
-  <g-template-default label="現場管理">
+  <g-template-index label="現場管理" :search.sync="search.bar">
     <template #append-toolbar-title>
       <v-spacer />
       <v-toolbar-items>
@@ -22,33 +22,33 @@
         </v-dialog>
       </v-toolbar-items>
     </template>
+    <template #search-bar="{ attrs, on }">
+      <a-text-field-search v-bind="attrs" v-on="on" />
+      <g-autocomplete-customer
+        v-model="search.customerId"
+        class="ml-2"
+        :items="$store.getters['masters/Customers']"
+        clearable
+        flat
+        hide-details
+        :outlined="false"
+        placeholder="取引先"
+        prepend-inner-icon="mdi-magnify"
+        solo-inverted
+      />
+      <a-switch
+        v-model="search.includeExpired"
+        class="ml-2"
+        hide-details
+        label="終了現場も表示する"
+      />
+    </template>
     <template #default="{ height }">
       <v-container fluid>
-        <v-toolbar flat>
-          <a-text-field-search v-model="search.bar" />
-          <g-autocomplete-customer
-            v-model="search.customerId"
-            class="ml-2"
-            :items="$store.getters['masters/Customers']"
-            clearable
-            flat
-            hide-details
-            :outlined="false"
-            placeholder="取引先"
-            prepend-inner-icon="mdi-magnify"
-            solo-inverted
-          />
-          <a-switch
-            v-model="search.includeExpired"
-            class="ml-2"
-            hide-details
-            label="終了現場も表示する"
-          />
-        </v-toolbar>
         <g-data-table
           :headers="headers"
           :items="items"
-          :height="height - 24 - toolbarHeight"
+          :height="height - 24"
           :search="search.bar"
           show-actions
           sort-by="code"
@@ -65,7 +65,7 @@
         </g-data-table>
       </v-container>
     </template>
-  </g-template-default>
+  </g-template-index>
 </template>
 
 <script>
@@ -76,10 +76,9 @@ import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
 import GAutocompleteCustomer from '~/components/molecules/inputs/GAutocompleteCustomer.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GDataTable from '~/components/molecules/tables/GDataTable.vue'
-import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
+import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 export default {
   components: {
-    GTemplateDefault,
     GCardInputForm,
     GBtnRegist,
     GInputSite,
@@ -87,6 +86,7 @@ export default {
     ATextFieldSearch,
     ASwitch,
     GAutocompleteCustomer,
+    GTemplateIndex,
   },
   data() {
     return {
@@ -121,10 +121,6 @@ export default {
           if (!this.search.customerId) return true
           return customerId === this.search.customerId
         })
-    },
-    toolbarHeight() {
-      if (this.$vuetify.breakpoint.mobile) return 56
-      return 64
     },
   },
   watch: {

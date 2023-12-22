@@ -1,5 +1,6 @@
 <script>
 /**
+ * ### GTemplateDefault
  * @author shisyamo4131
  */
 export default {
