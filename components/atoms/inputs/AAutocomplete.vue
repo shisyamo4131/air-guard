@@ -1,18 +1,19 @@
 <script>
 /**
+ * ### AAutocomplete
  * @author shisyamo4131
  */
-export default {}
+export default {
+  props: {
+    dense: { type: Boolean, default: true, required: false },
+    outlined: { type: Boolean, default: true, required: false },
+    requiredError: { type: String, default: '必須入力', required: false },
+  },
+}
 </script>
 
 <template>
-  <air-autocomplete
-    v-bind="$attrs"
-    dense
-    outlined
-    required-error="必須入力"
-    v-on="$listeners"
-  >
+  <air-autocomplete v-bind="{ ...$props, ...$attrs }" v-on="$listeners">
     <template
       v-for="(_, scopedSlotName) in $scopedSlots"
       #[scopedSlotName]="slotData"

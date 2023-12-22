@@ -26,6 +26,18 @@
       <v-container fluid>
         <v-toolbar flat>
           <a-text-field-search v-model="search.bar" />
+          <g-autocomplete-customer
+            v-model="search.customerId"
+            class="ml-2"
+            :items="$store.getters['masters/Customers']"
+            clearable
+            flat
+            hide-details
+            :outlined="false"
+            placeholder="取引先"
+            prepend-inner-icon="mdi-magnify"
+            solo-inverted
+          />
           <a-switch
             v-model="search.includeExpired"
             class="ml-2"
@@ -61,6 +73,7 @@ import ASwitch from '~/components/atoms/inputs/ASwitch.vue'
 import ATextFieldSearch from '~/components/atoms/inputs/ATextFieldSearch.vue'
 import GBtnRegist from '~/components/molecules/btns/GBtnRegist.vue'
 import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
+import GAutocompleteCustomer from '~/components/molecules/inputs/GAutocompleteCustomer.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GDataTable from '~/components/molecules/tables/GDataTable.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
@@ -73,6 +86,7 @@ export default {
     GDataTable,
     ATextFieldSearch,
     ASwitch,
+    GAutocompleteCustomer,
   },
   data() {
     return {
@@ -83,6 +97,7 @@ export default {
       search: {
         bar: null,
         includeExpired: false,
+        customerId: null,
       },
     }
   },
@@ -97,10 +112,15 @@ export default {
       ]
     },
     items() {
-      return this.$store.getters['masters/Sites'].filter(({ status }) => {
-        if (this.search.includeExpired) return true
-        return status === 'active'
-      })
+      return this.$store.getters['masters/Sites']
+        .filter(({ status }) => {
+          if (this.search.includeExpired) return true
+          return status === 'active'
+        })
+        .filter(({ customerId }) => {
+          if (!this.search.customerId) return true
+          return customerId === this.search.customerId
+        })
     },
     toolbarHeight() {
       if (this.$vuetify.breakpoint.mobile) return 56

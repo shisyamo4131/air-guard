@@ -9,13 +9,20 @@
       @click:append-outer="contentCopy"
       @input="$emit('update:code', $event)"
     />
-    <a-autocomplete
+    <!-- <a-autocomplete
       :value="customerId"
       label="取引先"
       required
       :items="$store.getters['masters/Customers']"
       item-text="abbr"
       item-value="docId"
+      @input="$emit('update:customerId', $event)"
+    /> -->
+    <g-autocomplete-customer
+      :value="customerId"
+      label="取引先"
+      required
+      :items="$store.getters['masters/Customers']"
       @input="$emit('update:customerId', $event)"
     />
     <a-text-field
@@ -48,11 +55,11 @@
 
 <script>
 import GTextFieldSiteCode from './GTextFieldSiteCode.vue'
+import GAutocompleteCustomer from './GAutocompleteCustomer.vue'
 import ATextField from '~/components/atoms/inputs/ATextField.vue'
-import AAutocomplete from '~/components/atoms/inputs/AAutocomplete.vue'
 import { editMode } from '~/components/mixins'
 export default {
-  components: { ATextField, GTextFieldSiteCode, AAutocomplete },
+  components: { ATextField, GTextFieldSiteCode, GAutocompleteCustomer },
   mixins: [editMode],
   props: {
     code: { type: undefined, default: null, required: false },
