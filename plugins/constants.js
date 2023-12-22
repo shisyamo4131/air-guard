@@ -1,3 +1,31 @@
+const CHAR_REGEXP = {
+  全: '[ァ-ンヴー]',
+  ア: '[ア-オ]',
+  カ: '[カ-ゴ]',
+  サ: '[サ-ゾ]',
+  タ: '[タ-ド]',
+  ナ: '[ナ-ノ]',
+  ハ: '[ハ-ポ]',
+  マ: '[マ-モ]',
+  ヤ: '[ヤ-ヨ]',
+  ラ: '[ラ-ロ]',
+  ワ: '[ワ-ン]',
+}
+
+const CHAR_REGEXP_ARRAY = [
+  { text: '全', value: '[ァ-ンヴー]' },
+  { text: 'ア', value: '[ア-オ]' },
+  { text: 'カ', value: '[カ-ゴ]' },
+  { text: 'サ', value: '[サ-ゾ]' },
+  { text: 'タ', value: '[タ-ド]' },
+  { text: 'ナ', value: '[ナ-ノ]' },
+  { text: 'ハ', value: '[ハ-ポ]' },
+  { text: 'マ', value: '[マ-モ]' },
+  { text: 'ヤ', value: '[ヤ-ヨ]' },
+  { text: 'ラ', value: '[ラ-ロ]' },
+  { text: 'ワ', value: '[ワ-ン]' },
+]
+
 const CUSTOMER_STATUS = {
   active: '契約中',
   expired: '契約終了',
@@ -61,6 +89,8 @@ const WORK_SHIFT_ARRAY = [
 ]
 
 export default (context, inject) => {
+  inject('CHAR_REGEXP', CHAR_REGEXP)
+  inject('CHAR_REGEXP_ARRAY', CHAR_REGEXP_ARRAY)
   inject('CUSTOMER_STATUS', CUSTOMER_STATUS)
   inject('CUSTOMER_STATUS_ARRAY', CUSTOMER_STATUS_ARRAY)
   inject('EMPLOYEE_STATUS', EMPLOYEE_STATUS)

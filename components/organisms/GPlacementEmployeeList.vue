@@ -24,9 +24,16 @@
 import draggable from 'vuedraggable'
 export default {
   components: { draggable },
+  props: {
+    regExp: { type: String, default: undefined, required: false },
+  },
   computed: {
     employees() {
-      const result = this.$store.getters['masters/Employees']
+      const result = this.$store.getters['masters/Employees'].filter((item) => {
+        if (!this.regExp) return true
+        const regExp = new RegExp(`^${this.regExp}`)
+        return regExp.test(item.lastNameKana)
+      })
       result.sort((a, b) => {
         if (a.code < b.code) return -1
         if (a.code > b.code) return 1

@@ -5,11 +5,31 @@
  */
 export default {
   props: {
-    value: { type: String, default: '全', required: false },
+    value: {
+      type: undefined,
+      default: undefined,
+      validator: (v) => {
+        if (!v) return true
+        return [
+          '全',
+          'ア',
+          'カ',
+          'サ',
+          'タ',
+          'ナ',
+          'ハ',
+          'マ',
+          'ヤ',
+          'ラ',
+          'ワ',
+        ].includes(v)
+      },
+      required: false,
+    },
   },
   data() {
     return {
-      chars: ['全', 'あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ'],
+      chars: ['全', 'ア', 'カ', 'サ', 'タ', 'ナ', 'ハ', 'マ', 'ヤ', 'ラ', 'ワ'],
       lazyValue: null,
     }
   },
@@ -17,7 +37,8 @@ export default {
     value: {
       handler(newVal, oldVal) {
         if (newVal === oldVal) return
-        this.lazyValue = newVal
+        this.lazyValue = newVal || '全'
+        if (!newVal) this.$emit('input', '全')
       },
       immediate: true,
     },

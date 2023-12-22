@@ -35,13 +35,17 @@
     <template #default="{ height }">
       <v-container fluid class="fill-height align-start justify-start">
         <div
-          class="overflow-y-auto"
+          class="overflow-y-auto d-flex"
           :style="{
             height: `${height - 24}px`,
             width: `${employeeListWidth}px`,
           }"
         >
-          <g-placement-employee-list @selected="selectedEmployee = $event" />
+          <g-firest-char v-model="firstChar" />
+          <g-placement-employee-list
+            :reg-exp="$CHAR_REGEXP[firstChar]"
+            @selected="selectedEmployee = $event"
+          />
         </div>
         <g-placement-table
           :start-at="startAt"
@@ -67,6 +71,7 @@
 
 <script>
 import ATextField from '~/components/atoms/inputs/ATextField.vue'
+import GFirestChar from '~/components/molecules/GFirestChar.vue'
 import GMenuDatePicker from '~/components/molecules/menus/GMenuDatePicker.vue'
 import GPlacementEmployeeList from '~/components/organisms/GPlacementEmployeeList.vue'
 import GPlacementEmployeeRegister from '~/components/organisms/GPlacementEmployeeRegister.vue'
@@ -82,10 +87,12 @@ export default {
     ATextField,
     GPlacementEmployeeRegister,
     GPlacementSiteRegister,
+    GFirestChar,
   },
   data() {
     return {
       employeeListWidth: 168,
+      firstChar: null,
       startAt: this.$dayjs().add(1, 'day').format('YYYY-MM-DD'),
       selectedEmployee: null,
     }
