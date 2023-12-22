@@ -18,24 +18,35 @@
           <v-stepper-content step="1">
             <v-card>
               <v-card-text>
-                <a-text-field
-                  v-model="name"
-                  :disabled="!!selectedItem.length"
-                  label="現場名"
-                />
-                <a-text-field
-                  v-model="address"
-                  :disabled="!!selectedItem.length"
-                  label="住所"
-                />
+                <v-form ref="form" v-model="formVerified">
+                  <a-text-field
+                    v-model="inputs.name"
+                    :disabled="!!selectedItem.length"
+                    label="現場名"
+                    :required="!selectedItem.length"
+                  />
+                  <a-text-field
+                    v-model="inputs.address"
+                    :disabled="!!selectedItem.length"
+                    label="住所"
+                    :required="!selectedItem.length"
+                  />
+                  <g-autocomplete-customer
+                    v-model="inputs.customerId"
+                    label="取引先"
+                    :disabled="!!selectedItem.length"
+                    :items="$store.getters['masters/Customers']"
+                    :required="!selectedItem.length"
+                  />
+                </v-form>
                 <g-data-table
                   v-model="selectedItem"
-                  :search="name"
+                  :search="inputs.name"
                   disable-sort
                   :headers="headers"
                   :height="220"
                   :items-per-page="2"
-                  :items="(name || '').trim() ? sites : []"
+                  :items="(inputs.name || '').trim() ? sites : []"
                   item-key="docId"
                   show-select
                   single-select
@@ -43,6 +54,12 @@
                   no-data-text="現場名を入力してください。"
                   @page-count="pageCount = $event"
                 >
+                  <template #[`item.name`]="{ item }">
+                    <div>{{ item.name }}</div>
+                    <div class="grey--text">
+                      {{ item.address }}
+                    </div>
+                  </template>
                   <template #[`item.customerId`]="{ item }">
                     {{
                       $store.getters['masters/Customer'](item.customerId).abbr
@@ -56,7 +73,7 @@
               <v-card-actions class="justify-end">
                 <v-btn
                   color="primary"
-                  :disabled="(!name || !address) && !selectedItem.length"
+                  :disabled="!formVerified && !selectedItem.length"
                   @click="step++"
                   >次へ</v-btn
                 >
@@ -126,20 +143,24 @@
 
 <script>
 import ATextField from '../atoms/inputs/ATextField.vue'
+import GAutocompleteCustomer from '../molecules/inputs/GAutocompleteCustomer.vue'
 import GDataTable from '../molecules/tables/GDataTable.vue'
 export default {
-  components: { GDataTable, ATextField },
+  components: { GDataTable, ATextField, GAutocompleteCustomer },
   data() {
     return {
       dialog: false,
       step: 1,
-      name: null,
-      address: null,
+      inputs: {
+        customerId: null,
+        name: null,
+        address: null,
+      },
+      formVerified: false,
       workShift: 'day',
       loading: false,
       headers: [
         { text: '現場名', value: 'name' },
-        { text: '住所', value: 'address' },
         { text: '取引先', value: 'customerId' },
         { text: '状態', value: 'status' },
       ],
@@ -158,8 +179,8 @@ export default {
         }
       } else {
         return {
-          name: this.name,
-          address: this.address,
+          name: this.inputs.name,
+          address: this.inputs.address,
         }
       }
     },
@@ -168,8 +189,7 @@ export default {
     dialog(v) {
       if (v) return
       this.selectedItem.splice(0)
-      this.name = null
-      this.address = null
+      this.$refs.form.reset()
       this.workShift = 'day'
       this.step = 1
     },
@@ -183,7 +203,7 @@ export default {
         if (this.selectedItem.length) {
           siteId = this.selectedItem[0].docId
         } else {
-          const model = this.$Site(this.confirm)
+          const model = this.$Site({ ...this.inputs, abbr: this.inputs.name })
           const docRef = await model.create()
           siteId = docRef.id
         }
