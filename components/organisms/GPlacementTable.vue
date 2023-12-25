@@ -73,7 +73,13 @@ export default {
     },
     items: {
       get() {
-        const index = this.$store.getters['placements/index']
+        // ------------------------------------------------------
+        // 2023-12-15 Changed due to added 'hidden' field to placements/index.
+        // ------------------------------------------------------
+        // const index = this.$store.getters['placements/index']
+        const index = this.$store.getters['placements/index'].filter(
+          (item) => (item?.hidden || false) === false
+        )
         const result = index.map(({ siteId, workShift }) => {
           const detail = this.dates.reduce((sum, date) => {
             const params = { date, siteId, workShift }

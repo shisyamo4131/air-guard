@@ -42,9 +42,37 @@ export const getters = {
     },
   /**
    * Returns an array of siteId-workShift contained in placement-details
-   * and not contained in placement-index.
+   * and contained in placement-index with hidden as true.
    */
   hiddenIndex(state) {
+    const result = state.placementDetails
+      .filter(({ workers }) => {
+        return workers.length > 0
+      })
+      .filter(({ siteId, workShift }) => {
+        return state.index.some((item) => {
+          return (
+            item.siteId === siteId &&
+            item.workShift === workShift &&
+            (item?.hidden || false)
+          )
+        })
+      })
+    return Array.from(
+      new Map(
+        result.map(({ siteId, workShift }) => {
+          const key = `${siteId}-${workShift}`
+          const value = { siteId, workShift }
+          return [key, value]
+        })
+      ).values()
+    )
+  },
+  /**
+   * Returns an array of siteId-workShift contained in placement-details
+   * and not contained in placement-index.
+   */
+  requiredIndex(state) {
     const result = state.placementDetails
       .filter(({ workers }) => {
         return workers.length > 0
@@ -315,10 +343,34 @@ export const actions = {
     })
   },
   /**
-   * Add hidden-index to placement/index document.
+   * Add required-index to placement/index document.
    */
-  async addHiddenIndex({ getters }) {
-    const items = getters.index.concat(getters.hiddenIndex)
+  async addRequiredIndex({ getters }) {
+    // 2023-12-25 Changed due to added 'hidden' field in placements/index.
+    // const items = getters.index.concat(getters.requiredIndex)
+    const items = getters.index.concat(
+      getters.requiredIndex.map((item) => {
+        return { ...item, hidden: false }
+      })
+    )
+    const docRef = doc(this.$firestore, `Placements/index`)
+    await setDoc(docRef, { items })
+  },
+  /**
+   * Update the hidden fields at the site enumerated in the hidden-index array
+   * to false.
+   */
+  async showHiddenIndex({ getters }) {
+    const isMatch = ({ siteId, workShift }) => {
+      return getters.hiddenIndex.some((item) => {
+        return item.siteId === siteId && item.workShift === workShift
+      })
+    }
+    const items = getters.index.map((item) => {
+      const newItem = JSON.parse(JSON.stringify({ ...item }))
+      if (isMatch(item)) newItem.hidden = false
+      return newItem
+    })
     const docRef = doc(this.$firestore, `Placements/index`)
     await setDoc(docRef, { items })
   },
@@ -329,18 +381,40 @@ export const actions = {
     /* eslint-disable */
     console.info(`[Vuex-placements.js] 'addIndex' is called.`)
     console.table({ siteId, workShift })
-    /* eslint-enable */
-    const isExist = state.index.some(
-      (item) => item.siteId === siteId && item.workShift === workShift
-    )
-    if (isExist) {
-      /* eslint-disable */
-      console.warn(`[Vuex-placements.js] Specified index is already exist.`)
-      /* eslint-enable */
-      throw new Error('既に登録されています。')
-    }
+    // ------------------------------------------------------
+    // 2023-12-15 Changed due to added 'hidden' field to placements/index.
+    // ------------------------------------------------------
+    // const isExist = state.index.some(
+    //   (item) => item.siteId === siteId && item.workShift === workShift
+    // )
+    // if (isExist) {
+    //   console.warn(`[Vuex-placements.js] Specified index is already exist.`)
+    //   throw new Error('既に登録されています。')
+    // }
+    // const docRef = doc(this.$firestore, 'Placements/index')
+    // await updateDoc(docRef, { items: arrayUnion({ siteId, workShift }) })
     const docRef = doc(this.$firestore, 'Placements/index')
-    await updateDoc(docRef, { items: arrayUnion({ siteId, workShift }) })
+    const existIndex = state.index.findIndex((item) => {
+      return item.siteId === siteId && item.workShift === workShift
+    })
+    if (existIndex !== -1) {
+      if (state.index[existIndex]?.hidden || false) {
+        const newIndex = state.index.map((item) =>
+          JSON.parse(JSON.stringify(item))
+        )
+        newIndex[existIndex].hidden = false
+        await updateDoc(docRef, { items: newIndex })
+      } else {
+        console.warn(`[Vuex-placements.js] Specified index is already exist.`)
+        throw new Error('既に登録されています。')
+      }
+    } else {
+      await updateDoc(docRef, {
+        items: arrayUnion({ siteId, workShift, hidden: false }),
+      })
+    }
+    // ------------------------------------------------------
+    /* eslint-enable */
   },
   /**
    * Update Placement/index document.
@@ -350,20 +424,34 @@ export const actions = {
     /* eslint-disable */
     console.info(`[Vuex-placements.js] 'updateIndex' is called.`)
     console.table(items)
-    /* eslint-enable */
     const docRef = doc(this.$firestore, `Placements/index`)
     setDoc(docRef, { items })
+    /* eslint-enable */
   },
   deleteIndex({ getters }, { siteId, workShift }) {
     /* eslint-disable */
     console.info(`[Vuex-placements.js] 'deleteIndex' is called.`)
     console.table({ siteId, workShift })
-    /* eslint-enable */
     const newItems = getters.index.filter((item) => {
       return !(item.siteId === siteId && item.workShift === workShift)
     })
     const docRef = doc(this.$firestore, `Placements/index`)
     setDoc(docRef, { items: newItems })
+    /* eslint-enable */
+  },
+  hideIndex({ getters }, { siteId, workShift }) {
+    /* eslint-disable */
+    console.info(`[Vuex-placements.js] 'hideIndex' is called.`)
+    console.table({ siteId, workShift })
+    const newItems = getters.index.map((item) => {
+      const isMatch = item.siteId === siteId && item.workShift === workShift
+      return JSON.parse(
+        JSON.stringify({ ...item, hidden: isMatch || item.hidden })
+      )
+    })
+    const docRef = doc(this.$firestore, `Placements/index`)
+    setDoc(docRef, { items: newItems })
+    /* eslint-enable */
   },
   /**
    * Update PlacementDetail document.
@@ -377,7 +465,6 @@ export const actions = {
     /* eslint-disable */
     console.info(`[Vuex-placements.js] 'updatePlacementDetail' is called.`)
     console.table({ docId, date, siteId, workShift, workers })
-    /* eslint-enable */
     const hasPlacement = state.placements.some((item) => item.date === date)
     if (!hasPlacement) {
       const newItem = { date, operationCount: 0 }
@@ -387,5 +474,6 @@ export const actions = {
     const colRef = collection(this.$firestore, path)
     const docRef = docId || undefined ? doc(colRef, docId) : doc(colRef)
     setDoc(docRef, { date, siteId, workShift, workers, docId: docRef.id })
+    /* eslint-enable */
   },
 }

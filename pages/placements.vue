@@ -55,14 +55,16 @@
         />
       </v-container>
       <v-snackbar
-        :value="!!hiddenIndex.length"
+        :value="!!requiredIndex.length || !!hiddenIndex.length"
         :timeout="-1"
         color="error"
         centered
       >
         表示されていない配置情報があります。
         <template #action="{ attrs }">
-          <v-btn v-bind="attrs" small @click="addHiddenIndex"> 表示 </v-btn>
+          <v-btn v-bind="attrs" small @click="showHiddenOrRequiredIndex">
+            表示
+          </v-btn>
         </template>
       </v-snackbar>
     </template>
@@ -101,11 +103,19 @@ export default {
     hiddenIndex() {
       return this.$store.getters['placements/hiddenIndex']
     },
+    requiredIndex() {
+      return this.$store.getters['placements/requiredIndex']
+    },
   },
   watch: {},
   methods: {
-    addHiddenIndex() {
-      this.$store.dispatch('placements/addHiddenIndex')
+    async showHiddenOrRequiredIndex() {
+      if (this.requiredIndex.length) {
+        await this.$store.dispatch('placements/addRequiredIndex')
+      }
+      if (this.hiddenIndex.length) {
+        await this.$store.dispatch('placements/showHiddenIndex')
+      }
     },
   },
 }
