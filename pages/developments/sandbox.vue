@@ -1,59 +1,18 @@
+<template>
+  <v-container>
+    <v-card>
+      <v-card-text>
+        <g-autocomplete-site :items="$store.getters['masters/Sites']" />
+      </v-card-text>
+    </v-card>
+  </v-container>
+</template>
+
 <script>
-/**
- * ### GFirstChar
- * @author shisyamo4131
- */
+import GAutocompleteSite from '~/components/molecules/inputs/GAutocompleteSite.vue'
 export default {
-  props: {
-    value: { type: String, default: '全', required: false },
-  },
-  data() {
-    return {
-      chars: ['全', 'あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ'],
-      lazyValue: null,
-    }
-  },
-  watch: {
-    value: {
-      handler(newVal, oldVal) {
-        if (newVal === oldVal) return
-        this.lazyValue = newVal
-      },
-      immediate: true,
-    },
-  },
-  methods: {
-    onClick(e) {
-      this.lazyValue = e
-      this.$emit('input', e)
-    },
-  },
+  components: { GAutocompleteSite },
 }
 </script>
 
-<template>
-  <div class="first-charactor text-caption">
-    <v-card
-      v-for="(item, index) of chars"
-      :key="index"
-      :color="`${lazyValue === item ? 'blue lighten-5' : ''}`"
-      flat
-      outlined
-      @click="onClick(item)"
-    >
-      <span>{{ item }}</span>
-    </v-card>
-  </div>
-</template>
-
-<style scoped>
-.first-charactor {
-  width: 24px;
-}
-
-.first-charactor >>> div {
-  /* border: 1px solid red; */
-  text-align: center;
-  color: #2196f3;
-}
-</style>
+<style></style>
