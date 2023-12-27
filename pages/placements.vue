@@ -1,6 +1,6 @@
 <template>
   <g-template-default label="配置管理">
-    <template #append-toolbar-title>
+    <template #append-toolbar>
       <g-menu-date-picker v-model="startAt">
         <template #activator="{ attrs, on }">
           <a-text-field

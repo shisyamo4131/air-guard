@@ -1,6 +1,6 @@
 <template>
   <g-template-index label="取引先管理" :search.sync="search.bar">
-    <template #append-toolbar-title>
+    <template #append-toolbar>
       <v-spacer />
       <v-toolbar-items>
         <v-dialog v-model="dialog" max-width="600">

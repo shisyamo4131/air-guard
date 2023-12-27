@@ -1,6 +1,6 @@
 <template>
   <g-template-default label="休暇申請管理">
-    <template #append-toolbar-title>
+    <template #append-toolbar>
       <v-spacer />
       <v-toolbar-items>
         <v-dialog v-model="dialog.create" max-width="600" scrollable>
