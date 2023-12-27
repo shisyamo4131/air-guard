@@ -80,6 +80,12 @@ export default {
       this[`import${this.selectedCollection}`]()
     },
     async importCustomers() {
+      if (
+        this.$store.getters['masters/Customers'].filter(({ code }) => !code)
+          .length
+      ) {
+        throw new Error('関連付けが行われていない取引先があります。')
+      }
       const notExistData = this.csvData.filter((item) => {
         return !this.$store.getters['masters/Customers'].some(
           ({ code }) => code === item.code
@@ -93,6 +99,12 @@ export default {
       await Promise.all(promises)
     },
     async importEmployees() {
+      if (
+        this.$store.getters['masters/Employees'].filter(({ code }) => !code)
+          .length
+      ) {
+        throw new Error('関連付けが行われていない従業員があります。')
+      }
       const notExistData = this.csvData.filter((item) => {
         return !this.$store.getters['masters/Employees'].some(
           ({ code }) => code === item.code
@@ -106,17 +118,31 @@ export default {
       await Promise.all(promises)
     },
     async importSites() {
-      const notExistData = this.csvData.filter((item) => {
-        return !this.$store.getters['masters/Sites'].some(
-          ({ code }) => code === item.code
-        )
-      })
-      notExistData.forEach((item) => {
-        const customer = this.$store.getters['masters/Customers'].find(
-          ({ code }) => code === item.customerCode
-        )
-        if (customer) item.customerId = customer.docId
-      })
+      if (
+        this.$store.getters['masters/Sites'].filter(({ code }) => !code).length
+      ) {
+        throw new Error('関連付けが行われていない現場があります。')
+      }
+      const notExistData = this.csvData
+        .filter((item) => {
+          return !this.$store.getters['masters/Sites'].some(
+            ({ code }) => code === item.code
+          )
+        })
+        .map((item) => {
+          const customer = this.$store.getters['masters/Customers'].find(
+            ({ code }) => code === item.customerCode
+          )
+          if (customer) item.customerId = customer.docId
+          return item
+        })
+        .filter(({ customerId }) => !!customerId)
+      // notExistData.forEach((item) => {
+      //   const customer = this.$store.getters['masters/Customers'].find(
+      //     ({ code }) => code === item.customerCode
+      //   )
+      //   if (customer) item.customerId = customer.docId
+      // })
       this.$store.dispatch('masters/unsubscribe')
       const promises = []
       let counter = 0
