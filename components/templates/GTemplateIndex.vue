@@ -20,7 +20,7 @@ export default {
       }
     },
     toolbarHeight() {
-      if (this.$vuetify.breakpoint.mobile) return 56
+      if (this.$vuetify.breakpoint.smAndDown) return 56
       return 64
     },
   },

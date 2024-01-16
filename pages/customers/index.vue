@@ -1,5 +1,5 @@
 <template>
-  <g-template-index label="取引先管理" :search.sync="search.bar">
+  <g-template-index label="取引先管理">
     <template #append-toolbar>
       <v-spacer />
       <v-toolbar-items>
@@ -21,8 +21,11 @@
         </v-dialog>
       </v-toolbar-items>
     </template>
-    <template #search-bar="{ attrs, on }">
-      <a-text-field-search v-bind="attrs" v-on="on" />
+    <template #search-bar>
+      <g-text-field-ngram-search
+        collection-id="Customers"
+        :items.sync="items"
+      />
       <a-switch
         v-model="search.includeExpired"
         class="ml-2"
@@ -36,7 +39,6 @@
           :headers="headers"
           :items="items"
           :height="height - 24"
-          :search="search.bar"
           show-actions
           sort-by="code"
           sort-desc
@@ -54,11 +56,11 @@
 
 <script>
 import ASwitch from '~/components/atoms/inputs/ASwitch.vue'
-import ATextFieldSearch from '~/components/atoms/inputs/ATextFieldSearch.vue'
 import GBtnRegist from '~/components/molecules/btns/GBtnRegist.vue'
 import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import GDataTable from '~/components/molecules/tables/GDataTable.vue'
+import GTextFieldNgramSearch from '~/components/organisms/GTextFieldNgramSearch.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 export default {
   components: {
@@ -68,18 +70,20 @@ export default {
     GDataTable,
     GTemplateIndex,
     ASwitch,
-    ATextFieldSearch,
+    GTextFieldNgramSearch,
   },
   data() {
     return {
       dialog: false,
       editItem: this.$Customer(),
       editMode: 'REGIST',
+      items: [],
       loading: false,
       search: {
         bar: null,
         includeExpired: false,
       },
+      // timerId: null,
     }
   },
   computed: {
@@ -91,12 +95,6 @@ export default {
         { text: '状態', value: 'status', sortable: false },
       ]
     },
-    items() {
-      return this.$store.getters['masters/Customers'].filter(({ status }) => {
-        if (this.search.includeExpired) return true
-        return status === 'active'
-      })
-    },
   },
   watch: {
     dialog(v) {
@@ -105,8 +103,23 @@ export default {
       this.editItem.initialize()
       this.editMode = 'REGIST'
     },
+    // 'search.bar'(v) {
+    //   this.items.splice(0)
+    //   clearTimeout(this.timerId)
+    //   if (!v) return
+    //   this.timerId = setTimeout(() => {
+    //     this.fetch()
+    //   }, 500)
+    // },
   },
   methods: {
+    // async fetch() {
+    //   const result = await this.$store.dispatch('masters/fetch', {
+    //     collectionId: 'Customers',
+    //     search: this.search.bar,
+    //   })
+    //   this.items = result
+    // },
     openEditor(item, mode) {
       this.editItem.initialize(item)
       this.editMode = mode
