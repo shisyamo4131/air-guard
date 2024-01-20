@@ -7,9 +7,11 @@
  * 配列が空の場合はすべて許可される。
  */
 module.exports = {
+  'admin-autonumbers': ['admin', 'developer'],
   'leave-applications': [],
   customers: [],
   'developments-sandbox': [],
+  'developments-models': [],
   employees: [],
   imports: ['admin', 'developer'],
   placements: [],

@@ -16,6 +16,7 @@ export default class Customer extends FireModel {
         type: 'collection',
       },
     ]
+    this.tokenFields = ['name1', 'name2', 'abbr', 'abbrKana']
   }
 
   initialize(item) {

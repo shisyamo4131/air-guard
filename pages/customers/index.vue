@@ -22,9 +22,9 @@
       </v-toolbar-items>
     </template>
     <template #search-bar>
-      <g-text-field-ngram-search
-        collection-id="Customers"
-        :items.sync="items"
+      <g-text-field-search
+        v-model="search.value"
+        :lazy-value.sync="search.lazyValue"
       />
       <a-switch
         v-model="search.includeExpired"
@@ -59,8 +59,8 @@ import ASwitch from '~/components/atoms/inputs/ASwitch.vue'
 import GBtnRegist from '~/components/molecules/btns/GBtnRegist.vue'
 import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
+import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
 import GDataTable from '~/components/molecules/tables/GDataTable.vue'
-import GTextFieldNgramSearch from '~/components/organisms/GTextFieldNgramSearch.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 export default {
   components: {
@@ -70,20 +70,24 @@ export default {
     GDataTable,
     GTemplateIndex,
     ASwitch,
-    GTextFieldNgramSearch,
+    GTextFieldSearch,
+  },
+  asyncData({ app }) {
+    const model = app.$Customer()
+    const items = model.items
+    return { model, items }
   },
   data() {
     return {
       dialog: false,
       editItem: this.$Customer(),
       editMode: 'REGIST',
-      items: [],
       loading: false,
       search: {
-        bar: null,
         includeExpired: false,
+        lazyValue: null,
+        value: null,
       },
-      // timerId: null,
     }
   },
   computed: {
@@ -103,23 +107,12 @@ export default {
       this.editItem.initialize()
       this.editMode = 'REGIST'
     },
-    // 'search.bar'(v) {
-    //   this.items.splice(0)
-    //   clearTimeout(this.timerId)
-    //   if (!v) return
-    //   this.timerId = setTimeout(() => {
-    //     this.fetch()
-    //   }, 500)
-    // },
+    'search.lazyValue'(v) {
+      this.model.unsubscribe()
+      !v || this.model.subscribe(v)
+    },
   },
   methods: {
-    // async fetch() {
-    //   const result = await this.$store.dispatch('masters/fetch', {
-    //     collectionId: 'Customers',
-    //     search: this.search.bar,
-    //   })
-    //   this.items = result
-    // },
     openEditor(item, mode) {
       this.editItem.initialize(item)
       this.editMode = mode

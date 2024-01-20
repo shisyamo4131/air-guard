@@ -42,7 +42,6 @@
  * 3. 'length' as the number of digits
  * 4. 'field' as the field to be numbered
  * 5. 'status' as the field to be boolean
- * 6. define the condition in the field to mean validation.
  */
 
 import {
@@ -53,6 +52,7 @@ import {
   getDoc,
   getDocs,
   limit,
+  onSnapshot,
   query,
   runTransaction,
   updateDoc,
@@ -64,6 +64,9 @@ export default class FireModel {
   #collection
   #auth
   #hasMany = []
+  #tokenFields = []
+  #listener = null // A listener for subscription.
+  #items = [] // An array of fetched documents data by subscription.
 
   /**
    * constructor
@@ -74,6 +77,29 @@ export default class FireModel {
     this.#auth = context.app.$auth
     this.#firestore = context.app.$firestore
     this.initialize(item)
+    Object.defineProperties(this, {
+      tokenMap: {
+        enumerable: true,
+        get() {
+          if (!this.#tokenFields.length) return null
+          const arr = []
+          this.#tokenFields.forEach((fieldName) => {
+            if (fieldName in this && !!this[fieldName]) {
+              const target = this[fieldName].replace(/\s+/g, '')
+              for (let i = 0; i <= target.length - 1; i++) {
+                arr.push([target.substring(i, i + 1).toLowerCase(), true])
+              }
+              for (let i = 0; i <= target.length - 2; i++) {
+                arr.push([target.substring(i, i + 2).toLowerCase(), true])
+              }
+            }
+          })
+          const result = Object.fromEntries(arr)
+          return result
+        },
+        set(v) {},
+      },
+    })
   }
 
   get collection() {
@@ -112,6 +138,14 @@ export default class FireModel {
       }
     }
     this.#hasMany = v
+  }
+
+  get tokenFields() {
+    return this.#tokenFields
+  }
+
+  set tokenFields(v) {
+    this.#tokenFields = v
   }
 
   get firestore() {
@@ -226,6 +260,10 @@ export default class FireModel {
   get dateJst() {
     const offset = new Date().getTimezoneOffset()
     return new Date(new Date().getTime() + (offset + 9 * 60) * 60 * 1000)
+  }
+
+  get items() {
+    return this.#items
   }
 
   /**
@@ -477,11 +515,94 @@ export default class FireModel {
   }
 
   /**
+   * Retrieves documents from Firestore whose tokenMap matches the string
+   * given as an argument and returns them as an array.
+   * @param {string} ngram
+   * @param {array} constraints
+   * @returns An array of document data retrieved from firestore.
+   */
+  async fetchDocs(ngram = undefined, constraints = []) {
+    const grams = this.convertToGrams(ngram)
+    const colRef = collection(this.#firestore, this.#collection)
+    const wheres = grams.map((gram) => {
+      return where(`tokenMap.${gram}`, '==', true)
+    })
+    const q = query(colRef, ...constraints, ...wheres)
+    const snapshot = await getDocs(q)
+    if (snapshot.empty) return []
+    return snapshot.docs.map((doc) => doc.data())
+  }
+
+  /**
+   * Starts a subscription to a document that matches the criteria given
+   * in the argument constraints and returns a function to unsubscribe.
+   * You can add conditions by tokenMap by giving a string to the argument ngram.
+   * @param {string} ngram
+   * @param {array} constraints
+   * @returns Reference to the array in which the retrieved document data is stored.
+   */
+  subscribe(ngram = undefined, constraints = []) {
+    this.unsubscribe()
+    // eslint-disable-next-line
+    console.info('Subscription of %s has been started.', this.#collection)
+    this.#items.splice(0)
+    const grams = this.convertToGrams(ngram)
+    const wheres = grams.map((gram) => {
+      return where(`tokenMap.${gram}`, '==', true)
+    })
+    const colRef = collection(this.#firestore, this.#collection)
+    const q = query(colRef, ...constraints, ...wheres)
+    this.#listener = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        const item = change.doc.data()
+        const index = this.#items.findIndex(({ docId }) => docId === item.docId)
+        if (change.type === 'added') this.#items.push(item)
+        if (change.type === 'modified') this.#items.splice(index, 1, item)
+        if (change.type === 'removed') this.#items.splice(index, 1)
+      })
+    })
+    return this.#items
+  }
+
+  /**
+   * Unsubscribe to firestore documents.
+   */
+  unsubscribe() {
+    if (this.#listener) this.#listener()
+    this.#listener = null
+    this.#items.splice(0)
+  }
+
+  /**
    * コンソールを出力します。
    * @param {message, params, type}
    */
   sendConsole({ message, params = [], type = 'info' }) {
     // eslint-disable-next-line
     console[type](`[FireModel.js] ${message}`, ...params)
+  }
+
+  /**
+   * Returns an array of divided string from query text.
+   * Returns empty array if the query text is null, undefined or
+   * not string.
+   * @param {string} val query text.
+   * @returns An array of divided string from query text.
+   */
+  convertToGrams(val) {
+    // Return empty array if query text is null or undefined.
+    if (!val) return []
+    // Return empty array if the 'search' is not string.
+    if (!(typeof val === 'string')) return []
+    // Get divided string array from query text.
+    const length = val.length === 1 ? 1 : 2
+    const divided = Array.from(val).reduce((sum, _, index) => {
+      if (index > val.length - length) return sum
+      sum.push(val.substring(index, index + length))
+      return sum
+    }, [])
+    // Delete duplicated element.
+    const result = [...new Set(divided)]
+    return result
   }
 }
