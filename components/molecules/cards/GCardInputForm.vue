@@ -14,6 +14,10 @@
  *
  * CANCELボタンがクリックされるとclick:cancelイベントがemitされます。
  *
+ * ref属性を使用してこのコンポーネントのinitialize()を呼び出すと、検証結果を初期化します。
+ * NOTE: v-formのresetValidation()を呼び出しています。INPUTコンポーネントに
+ * 正常に値がセットされない不具合（原因不明）を確認したため、reset()は使用しません。
+ *
  * #### PROPS
  * | name     | type    | default   | required | description |
  * | -------- | ------- | --------- | -------- | ----------- |
@@ -52,7 +56,7 @@ export default {
    ***************************************************************************/
   methods: {
     initialize() {
-      this.$refs.form.reset()
+      this.$refs.form.resetValidation()
     },
     validate() {
       const result = this.$refs.form.validate()
@@ -71,7 +75,11 @@ export default {
   <v-card>
     <v-card-title>{{ `${label || ''} ${editModeLabel}` }}</v-card-title>
     <v-card-text class="py-5 px-6">
-      <v-form ref="form" :disabled="editMode === 'DELETE'" @submit.prevent>
+      <v-form
+        ref="form"
+        :disabled="editMode === 'DELETE' || loading"
+        @submit.prevent
+      >
         <slot name="default" v-bind="{ editMode }" />
       </v-form>
     </v-card-text>
