@@ -1,3 +1,92 @@
+<script>
+import ASwitch from '~/components/atoms/inputs/ASwitch.vue'
+import ARenderlessCrud from '~/components/atoms/renderless/ARenderlessCrud.vue'
+import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
+import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
+import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
+import GDataTable from '~/components/molecules/tables/GDataTable.vue'
+import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
+/**
+ * ### pages.customers.index
+ * @author shisyamo4131
+ */
+export default {
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
+  components: {
+    GCardInputForm,
+    GInputCustomer,
+    GDataTable,
+    GTemplateIndex,
+    ASwitch,
+    GTextFieldSearch,
+    ARenderlessCrud,
+  },
+  /***************************************************************************
+   * ASYNCDATA
+   ***************************************************************************/
+  asyncData({ app }) {
+    const model = app.$Customer()
+    const items = model.items
+    return { model, items }
+  },
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
+  data() {
+    return {
+      dialog: false,
+      editMode: 'REGIST',
+      loading: false,
+      search: {
+        includeExpired: false,
+        lazyValue: null,
+        value: null,
+      },
+    }
+  },
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
+  computed: {
+    headers() {
+      return [
+        { text: 'CODE', value: 'code' },
+        { text: '取引先名1', value: 'name1' },
+        { text: '取引先名2', value: 'name2' },
+        { text: '状態', value: 'status', sortable: false },
+      ]
+    },
+  },
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    dialog(v) {
+      if (v) return
+      this.editMode = 'REGIST'
+      this.$refs.form.initialize()
+      this.model.initialize()
+    },
+    'search.lazyValue'(v) {
+      this.model.unsubscribe()
+      !v || this.model.subscribe(v)
+    },
+  },
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    openEditor(item, mode) {
+      this.editMode = mode
+      this.model.initialize(item)
+      this.dialog = true
+    },
+  },
+}
+</script>
+
 <template>
   <g-template-index label="取引先管理">
     <template #append-toolbar>
@@ -5,19 +94,27 @@
       <v-toolbar-items>
         <v-dialog v-model="dialog" max-width="600">
           <template #activator="{ attrs, on }">
-            <g-btn-regist v-bind="attrs" text v-on="on" />
+            <v-btn v-bind="attrs" icon v-on="on"
+              ><v-icon>mdi-plus</v-icon></v-btn
+            >
           </template>
-          <g-card-input-form
-            ref="form"
-            label="取引先"
-            :loading="loading"
-            @click:cancel="dialog = false"
-            @click:submit="submit"
+          <a-renderless-crud
+            :edit-mode="editMode"
+            :model="model"
+            @cancel="dialog = false"
+            @submit:complete="dialog = false"
           >
-            <template #default>
-              <g-input-customer v-bind.sync="editItem" />
+            <template #default="{ attrs, on }">
+              <g-card-input-form
+                ref="form"
+                label="取引先"
+                v-bind="attrs"
+                v-on="on"
+              >
+                <g-input-customer v-bind.sync="model" />
+              </g-card-input-form>
             </template>
-          </g-card-input-form>
+          </a-renderless-crud>
         </v-dialog>
       </v-toolbar-items>
     </template>
@@ -53,88 +150,5 @@
     </template>
   </g-template-index>
 </template>
-
-<script>
-import ASwitch from '~/components/atoms/inputs/ASwitch.vue'
-import GBtnRegist from '~/components/molecules/btns/GBtnRegist.vue'
-import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
-import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
-import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
-import GDataTable from '~/components/molecules/tables/GDataTable.vue'
-import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
-export default {
-  components: {
-    GCardInputForm,
-    GBtnRegist,
-    GInputCustomer,
-    GDataTable,
-    GTemplateIndex,
-    ASwitch,
-    GTextFieldSearch,
-  },
-  asyncData({ app }) {
-    const model = app.$Customer()
-    const items = model.items
-    return { model, items }
-  },
-  data() {
-    return {
-      dialog: false,
-      editItem: this.$Customer(),
-      editMode: 'REGIST',
-      loading: false,
-      search: {
-        includeExpired: false,
-        lazyValue: null,
-        value: null,
-      },
-    }
-  },
-  computed: {
-    headers() {
-      return [
-        { text: 'CODE', value: 'code' },
-        { text: '取引先名1', value: 'name1' },
-        { text: '取引先名2', value: 'name2' },
-        { text: '状態', value: 'status', sortable: false },
-      ]
-    },
-  },
-  watch: {
-    dialog(v) {
-      if (v) return
-      this.$refs.form.initialize()
-      this.editItem.initialize()
-      this.editMode = 'REGIST'
-    },
-    'search.lazyValue'(v) {
-      this.model.unsubscribe()
-      !v || this.model.subscribe(v)
-    },
-  },
-  methods: {
-    openEditor(item, mode) {
-      this.editItem.initialize(item)
-      this.editMode = mode
-      this.dialog = true
-    },
-    async submit() {
-      try {
-        this.loading = true
-        if (this.editMode === 'REGIST') await this.editItem.create()
-        if (this.editMode === 'UPDATE') await this.editItem.update()
-        if (this.editMode === 'DELETE') await this.editItem.delete()
-        this.dialog = false
-      } catch (err) {
-        // eslint-disable-next-line
-        console.error(err)
-        alert(err.message)
-      } finally {
-        this.loading = false
-      }
-    },
-  },
-}
-</script>
 
 <style></style>

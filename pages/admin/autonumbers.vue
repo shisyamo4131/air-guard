@@ -5,7 +5,7 @@ import GInputAutonumber from '~/components/molecules/inputs/GInputAutonumber.vue
 import GDataTableAutonumbers from '~/components/molecules/tables/GDataTableAutonumbers.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 /**
- * ### page.autonumbers
+ * ### pages.admin.autonumbers
  * @author shisyamo4131
  */
 export default {
