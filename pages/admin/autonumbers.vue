@@ -1,4 +1,5 @@
 <script>
+import ARenderlessCrud from '~/components/atoms/renderless/ARenderlessCrud.vue'
 import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
 import GInputAutonumber from '~/components/molecules/inputs/GInputAutonumber.vue'
 import GDataTableAutonumbers from '~/components/molecules/tables/GDataTableAutonumbers.vue'
@@ -14,8 +15,9 @@ export default {
   components: {
     GTemplateDefault,
     GDataTableAutonumbers,
-    GInputAutonumber,
     GCardInputForm,
+    GInputAutonumber,
+    ARenderlessCrud,
   },
   /***************************************************************************
    * ASYNCDATA
@@ -32,7 +34,6 @@ export default {
     return {
       dialog: false,
       editMode: 'REGIST',
-      loading: false,
     }
   },
   /***************************************************************************
@@ -50,24 +51,6 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
-    async submit(mode) {
-      if (mode === 'REGIST') await this.model.create()
-      if (mode === 'UPDATE') await this.model.update()
-      if (mode === 'DELETE') await this.model.delete()
-    },
-    async onClickSubmit() {
-      try {
-        this.loading = true
-        await this.submit(this.editMode)
-        this.dialog = false
-      } catch (err) {
-        // eslint-disable-next-line
-        console.error(err)
-        alert(err.message)
-      } finally {
-        this.loading = false
-      }
-    },
     onClickEdit(item) {
       this.editMode = 'UPDATE'
       this.model.initialize(item)
@@ -90,15 +73,21 @@ export default {
         <template #activator="{ attrs, on }">
           <v-btn v-bind="attrs" icon v-on="on"><v-icon>mdi-plus</v-icon></v-btn>
         </template>
-        <g-card-input-form
-          ref="form"
+        <a-renderless-crud
           :edit-mode="editMode"
-          :loading="loading"
-          @click:cancel="dialog = false"
-          @click:submit="submit"
+          :model="model"
+          @cancel="dialog = false"
+          @submit:complete="dialog = false"
         >
-          <g-input-autonumber v-bind.sync="model" :edit-mode="editMode" />
-        </g-card-input-form>
+          <template #default="{ attrs, on }">
+            <g-card-input-form ref="form" v-bind="attrs" v-on="on">
+              <g-input-autonumber
+                v-bind.sync="model"
+                :edit-mode="attrs.editMode"
+              />
+            </g-card-input-form>
+          </template>
+        </a-renderless-crud>
       </v-dialog>
     </template>
     <template #default="{ height }">

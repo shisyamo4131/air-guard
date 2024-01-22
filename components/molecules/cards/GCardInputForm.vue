@@ -42,6 +42,12 @@ export default {
     loading: { type: Boolean, default: false, required: false },
   },
   /***************************************************************************
+   * DATA
+   ***************************************************************************/
+  data() {
+    return {}
+  },
+  /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
@@ -52,20 +58,27 @@ export default {
     },
   },
   /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {},
+  /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
     initialize() {
       this.$refs.form.resetValidation()
     },
-    validate() {
-      const result = this.$refs.form.validate()
-      if (!result) alert('入力に不備があります。')
-      return result
+    onClickCancel() {
+      this.$emit('click:cancel')
     },
     onClickSubmit() {
       if (!this.validate()) return
       this.$emit('click:submit')
+    },
+    validate() {
+      const result = this.$refs.form.validate()
+      if (!result) alert('入力に不備があります。')
+      return result
     },
   },
 }
@@ -84,7 +97,7 @@ export default {
       </v-form>
     </v-card-text>
     <v-card-actions class="justify-space-between">
-      <v-btn :disabled="loading" @click="$emit('click:cancel')">cancel</v-btn>
+      <v-btn :disabled="loading" @click="onClickCancel">cancel</v-btn>
       <slot
         name="btn-submit"
         v-bind="{
