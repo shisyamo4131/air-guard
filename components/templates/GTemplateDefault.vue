@@ -30,9 +30,10 @@ export default {
 <template>
   <div :style="{ height: `${templateHeight}px` }">
     <v-toolbar color="primary" dark dense flat>
-      <slot name="prepend-toolbar" />
+      <slot name="prepend-toolbar" v-bind="{ label }" />
       <v-toolbar-title>{{ label }}</v-toolbar-title>
-      <slot name="append-toolbar" />
+      <v-spacer />
+      <slot name="append-toolbar" v-bind="{ label }" />
     </v-toolbar>
     <div class="overflow-y-auto" :style="{ height: `${containerHeight}px` }">
       <slot name="default" v-bind="{ height: containerHeight }" />

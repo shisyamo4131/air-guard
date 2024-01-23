@@ -1,10 +1,37 @@
+<script>
+import ATextField from '~/components/atoms/inputs/ATextField.vue'
+/**
+ * ## GInputCustomer
+ * Customer用INPUT
+ *
+ * @author shisyamo4131
+ */
+export default {
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
+  components: { ATextField },
+  /***************************************************************************
+   * PROPS
+   ***************************************************************************/
+  props: {
+    code: { type: String, default: '', required: false },
+    name1: { type: String, default: '', required: false },
+    name2: { type: String, default: '', required: false },
+    abbr: { type: String, default: '', required: false },
+    abbrKana: { type: String, default: '', required: false },
+    address: { type: String, default: '', required: false },
+    status: { type: String, default: '', required: false },
+  },
+}
+</script>
+
 <template>
   <div>
-    <g-text-field-customer-code
-      ref="code"
+    <a-text-field
       :value="code"
       label="CODE"
-      @click:append-outer="contentCopy"
+      disabled
       @input="$emit('update:code', $event)"
     />
     <a-text-field
@@ -39,32 +66,5 @@
     />
   </div>
 </template>
-
-<script>
-import GTextFieldCustomerCode from './GTextFieldCustomerCode.vue'
-import ATextField from '~/components/atoms/inputs/ATextField.vue'
-export default {
-  components: { ATextField, GTextFieldCustomerCode },
-  props: {
-    code: { type: undefined, default: null, required: false },
-    name1: { type: undefined, default: null, required: false },
-    name2: { type: undefined, default: null, required: false },
-    abbr: { type: undefined, default: null, required: false },
-    abbrKana: { type: undefined, default: null, required: false },
-    address: { type: undefined, default: null, required: false },
-    status: { type: undefined, default: null, required: false },
-  },
-  methods: {
-    contentCopy() {
-      const fetchedItem = this.$refs.code.fetchedItem
-      Object.keys(fetchedItem).forEach((key) => {
-        if (key in this.$props) {
-          this.$emit(`update:${key}`, fetchedItem[key])
-        }
-      })
-    },
-  },
-}
-</script>
 
 <style></style>

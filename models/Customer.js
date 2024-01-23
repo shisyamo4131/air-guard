@@ -20,12 +20,12 @@ export default class Customer extends FireModel {
   }
 
   initialize(item) {
-    this.code = null
-    this.name1 = null
-    this.name2 = null
-    this.abbr = null
-    this.abbrKana = null
-    this.address = null
+    this.code = ''
+    this.name1 = ''
+    this.name2 = ''
+    this.abbr = ''
+    this.abbrKana = ''
+    this.address = ''
     this.status = 'active'
     super.initialize(item)
   }
