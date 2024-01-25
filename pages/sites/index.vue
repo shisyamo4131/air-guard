@@ -52,7 +52,6 @@ export default {
    ***************************************************************************/
   watch: {
     lazySearch(v) {
-      this.model.unsubscribe()
       if (v) {
         this.model.subscribe(v)
       } else {
