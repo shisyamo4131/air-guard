@@ -16,6 +16,7 @@ export default class Site extends FireModel {
         type: 'collection',
       },
     ]
+    this.tokenFields = ['name', 'abbr', 'abbrKana']
   }
 
   initialize(item) {
@@ -26,7 +27,6 @@ export default class Site extends FireModel {
     this.address = null
     this.customerId = null
     this.status = 'active'
-    this.synchronized = false
     super.initialize(item)
   }
 
@@ -34,7 +34,6 @@ export default class Site extends FireModel {
     if (!this.code) return true
     const exist = await this.fetchByCode(this.code)
     if (exist) throw new Error('既に使用されているCODEです。')
-    this.synchronized = true
     return true
   }
 
@@ -43,7 +42,6 @@ export default class Site extends FireModel {
     const exist = await this.fetchByCode(this.code)
     if (exist && exist.docId !== this.docId)
       throw new Error('既に使用されているCODEです。')
-    this.synchronized = true
     return true
   }
 

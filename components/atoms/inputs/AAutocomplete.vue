@@ -1,9 +1,13 @@
 <script>
 /**
  * ### AAutocomplete
+ *
  * @author shisyamo4131
  */
 export default {
+  /***************************************************************************
+   * PROPS
+   ***************************************************************************/
   props: {
     dense: { type: Boolean, default: true, required: false },
     outlined: { type: Boolean, default: true, required: false },

@@ -568,7 +568,15 @@ export default class FireModel {
    * Unsubscribe to firestore documents.
    */
   unsubscribe() {
-    if (this.#listener) this.#listener()
+    if (this.#listener) {
+      // eslint-disable-next-line
+      console.info(
+        'Subscription of %s has been unsubscribed.',
+        this.#collection
+      )
+
+      this.#listener()
+    }
     this.#listener = null
     this.#items.splice(0)
   }
