@@ -75,9 +75,10 @@ export default {
     :items="filteredItems"
     :lazy-search.sync="lazySearch"
     :model="model"
+    regist-at-page
   >
-    <template #input>
-      <g-input-customer v-bind.sync="model" />
+    <template #input="{ attrs, on }">
+      <g-input-customer v-bind="attrs" v-on="on" />
     </template>
     <template #append-search>
       <a-switch

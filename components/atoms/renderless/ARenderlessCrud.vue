@@ -5,15 +5,14 @@
  * レンダーレスコンポーネントです。
  * ※modelはFireModelを継承しているものとします。
  *
- * defaultスロットにはprops.modelに対するUIを提供するコンポーネントを配置します。
- * click:submitイベントをemitするsubmitボタン
- * click:cancelイベントをemitするcancelボタン
- * が存在していることを前提としており、スロットプロパティのonを利用することで
- * 簡便にCRUD機能を実装することが可能です。
- * submit()が正常に終了するとsubmit:completeイベントを、
- * submit()で異常が発生した場合はsubmit:errorイベントを、
- * defaultスロットに配置されたコンポーネントからclick:cancelイベントを受け取ると
- * cancelイベントをemitします。
+ * slots.defaultはprops.modelに対するINPUTコンポーネントへ提供するための
+ * スロットプロパティattrs, onを提供します。
+ * attrs: props.modelの各プロパティ値をv-bindするためのプロパティです。
+ * on: INPUTコンポーネントからemitされたupdateイベントを取得するためのリスナープロパティです。
+ * 同時に、UIテンプレートへ状態を提供するためのスロットプロパティstatus, actionsを
+ * 提供します。
+ * status: editMode（編集モード）、loading（処理中であることを表す）
+ * actions: UIテンプレートからemitされるclick:cancel, click:submitイベントを取得するためのリスナープロパティです。
  *
  * CREATE、UPDATE、DELETEのどれが実行されるかは、props.editModeに
  * 指定されている値に依存します。
@@ -48,6 +47,35 @@ export default {
     }
   },
   /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
+  computed: {
+    attrs() {
+      return { ...this.model }
+    },
+    on() {
+      const result = {}
+      Object.keys(this.model).forEach((key) => {
+        result[`update:${key}`] = ($event) => {
+          this.model.initialize({ ...this.model, [key]: $event })
+        }
+      })
+      return result
+    },
+    status() {
+      return {
+        editMode: this.editMode,
+        loading: this.loading,
+      }
+    },
+    actions() {
+      return {
+        'click:cancel': this.onClickCancel,
+        'click:submit': this.submit,
+      }
+    },
+  },
+  /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
@@ -80,14 +108,10 @@ export default {
    ***************************************************************************/
   render() {
     return this.$scopedSlots.default({
-      attrs: {
-        editMode: this.editMode,
-        loading: this.loading,
-      },
-      on: {
-        'click:cancel': this.onClickCancel,
-        'click:submit': this.submit,
-      },
+      attrs: this.attrs,
+      on: this.on,
+      status: this.status,
+      actions: this.actions,
     })
   },
 }

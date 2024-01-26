@@ -1,22 +1,42 @@
 <script>
 /**
- * ### GDataTable
+ * ## GDataTable
+ *
+ * @author shisyamo4131
  */
 import ADataTable from '~/components/atoms/tables/ADataTable.vue'
 export default {
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
   components: { ADataTable },
+  /***************************************************************************
+   * PROPS
+   ***************************************************************************/
   props: {
+    actionType: {
+      type: String,
+      default: 'show-detail',
+      validator: (v) => ['edit-delete', 'show-detail'].includes(v),
+      required: false,
+    },
     headers: { type: Array, default: () => [], required: false },
     height: { type: [Number, String], default: undefined, required: false },
     hidePagination: { type: Boolean, default: false, required: false },
     showActions: { type: Boolean, default: false, required: false },
   },
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
   data() {
     return {
       page: 1,
       pageCount: 0,
     }
   },
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
   computed: {
     internalHeaders() {
       const actionColumn = {
@@ -39,11 +59,17 @@ export default {
       return 76
     },
   },
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
   watch: {
     page() {
       this.scrollToTop()
     },
   },
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
   methods: {
     scrollToTop() {
       const wrapper = this.$el.querySelector('div.v-data-table__wrapper')
@@ -75,15 +101,22 @@ export default {
     </template>
     <template #[`item.actions`]="props">
       <slot name="item.actions" v-bind="props">
-        <v-icon color="green" @click="$emit('click:edit', props.item)"
-          >mdi-pencil</v-icon
-        >
-        <v-icon
-          class="ml-2"
-          color="red"
-          @click="$emit('click:delete', props.item)"
-          >mdi-delete</v-icon
-        >
+        <div v-if="actionType === 'edit-delete'">
+          <v-icon color="green" @click="$emit('click:edit', props.item)"
+            >mdi-pencil</v-icon
+          >
+          <v-icon
+            class="ml-2"
+            color="red"
+            @click="$emit('click:delete', props.item)"
+            >mdi-delete</v-icon
+          >
+        </div>
+        <div v-if="actionType === 'show-detail'">
+          <v-icon @click="$emit('click:detail', props.item)"
+            >mdi-magnify</v-icon
+          >
+        </div>
       </slot>
     </template>
     <template #footer="props">

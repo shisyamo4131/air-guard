@@ -9,7 +9,7 @@
       </v-toolbar-items>
     </template>
     <template #default>
-      <v-container>
+      <v-container fluid>
         <v-card outlined>
           <v-simple-table>
             <tbody>
@@ -48,7 +48,13 @@
 <script>
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
   components: { GTemplateDefault },
+  /***************************************************************************
+   * ASYNCDATA
+   ***************************************************************************/
   async asyncData({ app, route }) {
     const docId = route.params.docId
     const model = app.$Customer()
