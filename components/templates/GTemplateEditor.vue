@@ -14,6 +14,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    deletable: { type: Boolean, default: false, required: false },
     loading: { type: Boolean, default: false, required: false },
   },
   /***************************************************************************
@@ -51,6 +52,21 @@ export default {
         <v-form ref="form">
           <slot name="default" />
         </v-form>
+        <air-dialog-confirm-delete @click:delete="$emit('click:delete')">
+          <template #activator="{ attrs, on }">
+            <v-btn
+              v-if="deletable"
+              v-bind="attrs"
+              block
+              color="error"
+              :disabled="loading"
+              :loading="loading"
+              outlined
+              v-on="on"
+              >削除する</v-btn
+            >
+          </template>
+        </air-dialog-confirm-delete>
       </v-container>
     </template>
   </g-template-default>

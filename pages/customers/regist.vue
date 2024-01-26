@@ -1,12 +1,12 @@
 <script>
+import ARenderlessCrud from '~/components/atoms/renderless/ARenderlessCrud.vue'
+import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
+import GTemplateEditor from '~/components/templates/GTemplateEditor.vue'
 /**
  * ## page.customers.regist
  *
  * @author shisyamo4131
  */
-import ARenderlessCrud from '~/components/atoms/renderless/ARenderlessCrud.vue'
-import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
-import GTemplateEditor from '~/components/templates/GTemplateEditor.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -26,8 +26,8 @@ export default {
   <a-renderless-crud
     :model="model"
     edit-mode="REGIST"
-    @submit:complete="$router.go(-1)"
-    @cancel="$router.go(-1)"
+    @submit:REGIST="$router.push(`/customers/${model.docId}`)"
+    @cancel="$router.push('/customers')"
   >
     <template #default="{ attrs, on, status, actions }">
       <g-template-editor label="取引先登録" v-bind="status" v-on="actions">

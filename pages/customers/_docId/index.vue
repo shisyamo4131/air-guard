@@ -1,57 +1,16 @@
-<template>
-  <g-template-default label="取引先詳細">
-    <template #append-toolbar>
-      <v-spacer />
-      <v-toolbar-items>
-        <v-btn text @click="$router.push(`/customers/${docId}/edit`)"
-          ><v-icon left>mdi-pencil</v-icon>編集</v-btn
-        >
-      </v-toolbar-items>
-    </template>
-    <template #default>
-      <v-container fluid>
-        <v-card outlined>
-          <v-simple-table>
-            <tbody>
-              <tr>
-                <td>CODE</td>
-                <td>{{ model.code }}</td>
-              </tr>
-              <tr>
-                <td>取引先名1</td>
-                <td>{{ model.name1 }}</td>
-              </tr>
-              <tr>
-                <td>取引先名2</td>
-                <td>{{ model.name2 }}</td>
-              </tr>
-              <tr>
-                <td>略称</td>
-                <td>{{ model.abbr }}</td>
-              </tr>
-              <tr>
-                <td>略称カナ</td>
-                <td>{{ model.abbrKana }}</td>
-              </tr>
-              <tr>
-                <td>住所</td>
-                <td>{{ model.address }}</td>
-              </tr>
-            </tbody>
-          </v-simple-table>
-        </v-card>
-      </v-container>
-    </template>
-  </g-template-default>
-</template>
-
 <script>
+import GSimpleTableCustomer from '~/components/molecules/tables/GSimpleTableCustomer.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
+/**
+ * ## page.customers.docId
+ *
+ * @author shisyamo4131
+ */
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTemplateDefault },
+  components: { GTemplateDefault, GSimpleTableCustomer },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -63,5 +22,28 @@ export default {
   },
 }
 </script>
+
+<template>
+  <g-template-default label="取引先詳細">
+    <template #prepend-toolbar>
+      <v-btn icon @click="$router.push('/customers')"
+        ><v-icon>mdi-chevron-left</v-icon></v-btn
+      >
+    </template>
+    <template #append-toolbar>
+      <v-spacer />
+      <v-btn icon @click="$router.push(`/customers/${docId}/edit`)"
+        ><v-icon>mdi-pencil</v-icon></v-btn
+      >
+    </template>
+    <template #default>
+      <v-container fluid>
+        <v-card outlined>
+          <g-simple-table-customer v-bind="model" />
+        </v-card>
+      </v-container>
+    </template>
+  </g-template-default>
+</template>
 
 <style></style>

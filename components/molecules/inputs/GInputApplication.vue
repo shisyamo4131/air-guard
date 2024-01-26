@@ -53,11 +53,15 @@ import ADate from '~/components/atoms/inputs/ADate.vue'
 import ASelect from '~/components/atoms/inputs/ASelect.vue'
 import ATextarea from '~/components/atoms/inputs/ATextarea.vue'
 import ADatePicker from '~/components/atoms/pickers/ADatePicker.vue'
-import { editMode } from '~/components/mixins'
 export default {
   components: { ADate, ASelect, ATextarea, ADatePicker },
-  mixins: [editMode],
   props: {
+    editMode: {
+      type: String,
+      default: 'REGIST',
+      validator: (v) => ['REGIST', 'UPDATE', 'DELETE'].includes(v),
+      required: false,
+    },
     requestDate: { type: undefined, default: null, required: false },
     type: { type: undefined, default: null, required: false },
     employeeId: { type: undefined, default: null, required: false },

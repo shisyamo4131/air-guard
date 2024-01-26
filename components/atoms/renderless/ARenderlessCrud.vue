@@ -70,8 +70,9 @@ export default {
     },
     actions() {
       return {
+        'click:delete': this.onClickDelete,
         'click:cancel': this.onClickCancel,
-        'click:submit': this.submit,
+        'click:submit': this.onClickSubmit,
       }
     },
   },
@@ -84,12 +85,12 @@ export default {
       if (mode === 'UPDATE') await this.model.update()
       if (mode === 'DELETE') await this.model.delete()
     },
-    async submit() {
+    async submit(mode) {
       try {
         this.loading = true
-        if (this.customSubmit) await this.customSubmit(this.editMode)
-        if (!this.customSubmit) await this.defaultSubmit(this.editMode)
-        this.$emit('submit:complete')
+        if (this.customSubmit) await this.customSubmit(mode)
+        if (!this.customSubmit) await this.defaultSubmit(mode)
+        this.$emit(`submit:${mode}`)
       } catch (err) {
         // eslint-disable-next-line
         console.error(err)
@@ -101,6 +102,12 @@ export default {
     },
     onClickCancel() {
       this.$emit('cancel')
+    },
+    onClickDelete() {
+      this.submit('DELETE')
+    },
+    onClickSubmit() {
+      this.submit(this.editMode)
     },
   },
   /***************************************************************************

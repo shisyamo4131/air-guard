@@ -1,8 +1,23 @@
 /**
+ * ## Customer
+ *
  * @author shisyamo4131
  */
 import { collection, getDocs, limit, query, where } from 'firebase/firestore'
 import FireModel from './FireModel'
+
+const props = {
+  props: {
+    code: { type: String, default: '', required: false },
+    name1: { type: String, default: '', required: false },
+    name2: { type: String, default: '', required: false },
+    abbr: { type: String, default: '', required: false },
+    abbrKana: { type: String, default: '', required: false },
+    address: { type: String, default: '', required: false },
+    status: { type: String, default: 'active', required: false },
+  },
+}
+export { props }
 
 export default class Customer extends FireModel {
   constructor(context, item) {
@@ -20,13 +35,15 @@ export default class Customer extends FireModel {
   }
 
   initialize(item) {
-    this.code = ''
-    this.name1 = ''
-    this.name2 = ''
-    this.abbr = ''
-    this.abbrKana = ''
-    this.address = ''
-    this.status = 'active'
+    Object.keys(props.props)
+      .filter((key) => !(key in this))
+      .forEach((key) => {
+        Object.defineProperty(this, key, {
+          value: props.props[key].default,
+          enumerable: true,
+          writable: true,
+        })
+      })
     super.initialize(item)
   }
 

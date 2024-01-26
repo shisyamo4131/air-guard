@@ -114,7 +114,7 @@ export default {
         </div>
         <div v-if="actionType === 'show-detail'">
           <v-icon @click="$emit('click:detail', props.item)"
-            >mdi-magnify</v-icon
+            >mdi-chevron-right</v-icon
           >
         </div>
       </slot>

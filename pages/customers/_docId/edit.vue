@@ -1,70 +1,48 @@
-<template>
-  <g-template-default :label="editModel.name1">
-    <template #prepend-toolbar>
-      <v-btn icon @click="$router.go(-1)"
-        ><v-icon>mdi-chevron-left</v-icon></v-btn
-      >
-    </template>
-    <template #append-toolbar>
-      <v-spacer />
-      <v-toolbar-items>
-        <v-btn
-          :disabled="loading"
-          :loading="loading"
-          text
-          @click="onClickSubmit"
-          ><v-icon left>mdi-check</v-icon>確定</v-btn
-        >
-      </v-toolbar-items>
-    </template>
-    <v-container>
-      <v-form ref="form" :disabled="loading">
-        <g-input-customer v-bind.sync="editModel" />
-      </v-form>
-    </v-container>
-  </g-template-default>
-</template>
-
 <script>
+import ARenderlessCrud from '~/components/atoms/renderless/ARenderlessCrud.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
-import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
+import GTemplateEditor from '~/components/templates/GTemplateEditor.vue'
+/**
+ * ## page.customer.docId.edit
+ *
+ * @author shisyamo4131
+ */
 export default {
-  components: { GTemplateDefault, GInputCustomer },
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
+  components: { GInputCustomer, ARenderlessCrud, GTemplateEditor },
+  /***************************************************************************
+   * ASYNCDATA
+   ***************************************************************************/
   async asyncData({ app, route }) {
     const docId = route.params.docId
-    const editModel = app.$Customer()
-    await editModel.fetch(docId)
-    return { docId, editModel }
-  },
-  data() {
-    return {
-      loading: false,
-    }
-  },
-  methods: {
-    validate() {
-      const result = this.$refs.form.validate()
-      if (!result) {
-        alert('入力に不備があります。')
-      }
-      return result
-    },
-    async onClickSubmit() {
-      if (!this.validate()) return
-      try {
-        this.loading = true
-        await this.editModel.update()
-        this.$router.push(`/customers/${this.docId}`)
-      } catch (err) {
-        // eslint-disable-next-line
-        console.error(err)
-        alert(err.message)
-      } finally {
-        this.loading = false
-      }
-    },
+    const model = app.$Customer()
+    await model.fetch(docId)
+    return { docId, model }
   },
 }
 </script>
+
+<template>
+  <a-renderless-crud
+    :model="model"
+    edit-mode="UPDATE"
+    @submit:UPDATE="$router.push(`/customers/${docId}`)"
+    @submit:DELETE="$router.push(`/customers`)"
+    @cancel="$router.push('/customers')"
+  >
+    <template #default="{ attrs, on, status, actions }">
+      <g-template-editor
+        label="取引先編集"
+        v-bind="status"
+        deletable
+        v-on="actions"
+      >
+        <g-input-customer v-bind="attrs" v-on="on" />
+      </g-template-editor>
+    </template>
+  </a-renderless-crud>
+</template>
 
 <style></style>
