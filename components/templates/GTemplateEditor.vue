@@ -52,10 +52,12 @@ export default {
         <v-form ref="form">
           <slot name="default" />
         </v-form>
-        <air-dialog-confirm-delete @click:delete="$emit('click:delete')">
+        <air-dialog-confirm-delete
+          v-if="deletable"
+          @click:delete="$emit('click:delete')"
+        >
           <template #activator="{ attrs, on }">
             <v-btn
-              v-if="deletable"
               v-bind="attrs"
               block
               color="error"
