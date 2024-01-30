@@ -35,7 +35,11 @@ export default {
 </script>
 
 <template>
-  <g-data-table v-bind="$attrs" :headers="headers" v-on="$listeners">
+  <g-data-table
+    v-bind="{ ...$props, ...$attrs }"
+    :headers="headers"
+    v-on="$listeners"
+  >
     <template #[`item.status`]="{ item }">
       {{ $CUSTOMER_STATUS[item.status] }}
     </template>

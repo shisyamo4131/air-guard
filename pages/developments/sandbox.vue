@@ -1,18 +1,25 @@
 <template>
   <g-template-default>
     <v-container>
-      <v-text-field v-model="value" @change="test" />
+      <a-renderless-zipcode @loaded="address = $event.full">
+        <template #default="{ attrs, on }">
+          <v-text-field v-model="zipcode" v-bind="attrs" v-on="on" />
+        </template>
+      </a-renderless-zipcode>
+      <v-text-field v-model="address" />
     </v-container>
   </g-template-default>
 </template>
 
 <script>
+import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
-  components: { GTemplateDefault },
+  components: { GTemplateDefault, ARenderlessZipcode },
   data() {
     return {
-      value: null,
+      zipcode: null,
+      address: null,
     }
   },
   methods: {
