@@ -80,6 +80,14 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    // attrs() {
+    //   // return { ...this.model }
+    //   const result = {}
+    //   Object.keys(this.model).forEach((key) => {
+    //     result[key] = this.model[key]
+    //   })
+    //   return result
+    // },
     async defaultSubmit(mode) {
       if (mode === 'REGIST') await this.model.create()
       if (mode === 'UPDATE') await this.model.update()
@@ -90,7 +98,7 @@ export default {
         this.loading = true
         if (this.customSubmit) await this.customSubmit(mode)
         if (!this.customSubmit) await this.defaultSubmit(mode)
-        this.$emit(`submit:${mode}`)
+        this.$emit(`submit:complete`, mode)
       } catch (err) {
         // eslint-disable-next-line
         console.error(err)

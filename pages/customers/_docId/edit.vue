@@ -28,17 +28,12 @@ export default {
   <a-renderless-crud
     :model="model"
     edit-mode="UPDATE"
-    @submit:UPDATE="$router.push(`/customers/${docId}`)"
-    @submit:DELETE="$router.push(`/customers`)"
-    @cancel="$router.push('/customers')"
+    @submit:complete="$router.push(`/customers/${docId}`)"
+    @cancel="$router.push(`/customers/${docId}`)"
   >
     <template #default="{ attrs, on, status, actions }">
-      <g-template-editor
-        label="取引先編集"
-        v-bind="status"
-        deletable
-        v-on="actions"
-      >
+      <g-template-editor label="取引先編集" v-bind="status" v-on="actions">
+        {{ attrs }}
         <g-input-customer v-bind="attrs" v-on="on" />
       </g-template-editor>
     </template>

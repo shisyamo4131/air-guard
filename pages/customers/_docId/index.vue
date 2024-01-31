@@ -1,4 +1,5 @@
 <script>
+import ARenderlessCrud from '~/components/atoms/renderless/ARenderlessCrud.vue'
 import GSimpleTableCustomer from '~/components/molecules/tables/GSimpleTableCustomer.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 /**
@@ -10,7 +11,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTemplateDefault, GSimpleTableCustomer },
+  components: { GTemplateDefault, GSimpleTableCustomer, ARenderlessCrud },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -24,26 +25,47 @@ export default {
 </script>
 
 <template>
-  <g-template-default label="取引先詳細">
-    <template #prepend-toolbar>
-      <v-btn icon @click="$router.push('/customers')"
-        ><v-icon>mdi-chevron-left</v-icon></v-btn
-      >
+  <a-renderless-crud
+    :model="model"
+    edit-mode="DELETE"
+    @submit:complete="$router.replace('/customers')"
+  >
+    <template #default="{ actions }">
+      <g-template-default label="取引先詳細">
+        <template #prepend-toolbar>
+          <v-btn icon @click="$router.push('/customers')"
+            ><v-icon>mdi-chevron-left</v-icon></v-btn
+          >
+        </template>
+        <template #append-toolbar>
+          <v-spacer />
+          <v-btn icon @click="$router.push(`/customers/${docId}/edit`)"
+            ><v-icon>mdi-pencil</v-icon></v-btn
+          >
+        </template>
+        <template #default>
+          <v-container fluid>
+            <v-card outlined>
+              <g-simple-table-customer v-bind="model" />
+            </v-card>
+            <air-dialog-confirm-delete v-on="actions">
+              <template #activator="{ attrs, on }">
+                <v-btn
+                  class="mt-4"
+                  v-bind="attrs"
+                  block
+                  color="error"
+                  small
+                  v-on="on"
+                  >この取引先を削除する</v-btn
+                >
+              </template>
+            </air-dialog-confirm-delete>
+          </v-container>
+        </template>
+      </g-template-default>
     </template>
-    <template #append-toolbar>
-      <v-spacer />
-      <v-btn icon @click="$router.push(`/customers/${docId}/edit`)"
-        ><v-icon>mdi-pencil</v-icon></v-btn
-      >
-    </template>
-    <template #default>
-      <v-container fluid>
-        <v-card outlined>
-          <g-simple-table-customer v-bind="model" />
-        </v-card>
-      </v-container>
-    </template>
-  </g-template-default>
+  </a-renderless-crud>
 </template>
 
 <style></style>

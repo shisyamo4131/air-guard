@@ -1,8 +1,3 @@
-/**
- * ## Customer
- *
- * @author shisyamo4131
- */
 import { collection, getDocs, limit, query, where } from 'firebase/firestore'
 import FireModel from './FireModel'
 
@@ -22,6 +17,11 @@ const props = {
 }
 export { props }
 
+/**
+ * ## Customer
+ *
+ * @author shisyamo4131
+ */
 export default class Customer extends FireModel {
   constructor(context, item) {
     super(context, item)
@@ -35,19 +35,9 @@ export default class Customer extends FireModel {
       },
     ]
     this.tokenFields = ['name1', 'name2', 'abbr', 'abbrKana']
-  }
-
-  initialize(item) {
-    Object.keys(props.props)
-      .filter((key) => !(key in this))
-      .forEach((key) => {
-        Object.defineProperty(this, key, {
-          value: props.props[key].default,
-          enumerable: true,
-          writable: true,
-        })
-      })
-    super.initialize(item)
+    Object.keys(props.props).forEach((key) => {
+      this[key] = props.props[key].default
+    })
   }
 
   async beforeCreate() {

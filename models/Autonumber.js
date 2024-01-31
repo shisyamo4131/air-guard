@@ -1,4 +1,16 @@
 import FireModel from './FireModel'
+
+const props = {
+  props: {
+    collectionId: { type: String, default: '', required: false },
+    current: { type: Number, default: null, required: false },
+    length: { type: Number, default: null, required: false },
+    field: { type: String, default: 'code', required: false },
+    status: { type: Boolean, default: true, required: false },
+  },
+}
+export { props }
+
 /**
  * ### Autonumber
  * 自動採番管理データモデルです。
@@ -20,14 +32,19 @@ export default class Autonumber extends FireModel {
   constructor(context, item) {
     super(context, item)
     this.collection = 'Autonumbers'
+    this.tokenFields = ['collectionId']
   }
 
   initialize(item) {
-    this.collectionId = null
-    this.current = 0
-    this.length = null
-    this.field = 'code'
-    this.status = true
+    Object.keys(props.props)
+      .filter((key) => !(key in this))
+      .forEach((key) => {
+        Object.defineProperty(this, key, {
+          value: props.props[key].default,
+          enumerable: true,
+          writable: true,
+        })
+      })
     super.initialize(item)
   }
 

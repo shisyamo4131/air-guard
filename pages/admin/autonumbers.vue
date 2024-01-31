@@ -1,9 +1,8 @@
 <script>
-import ARenderlessCrud from '~/components/atoms/renderless/ARenderlessCrud.vue'
-import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
+import { limit, orderBy } from 'firebase/firestore'
 import GInputAutonumber from '~/components/molecules/inputs/GInputAutonumber.vue'
 import GDataTableAutonumbers from '~/components/molecules/tables/GDataTableAutonumbers.vue'
-import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
+import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 /**
  * ### pages.admin.autonumbers
  * @author shisyamo4131
@@ -13,95 +12,57 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GTemplateDefault,
     GDataTableAutonumbers,
-    GCardInputForm,
     GInputAutonumber,
-    ARenderlessCrud,
+    GTemplateIndex,
   },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
   asyncData({ app }) {
     const model = app.$Autonumber()
-    const items = model.subscribe()
-    return { model, items }
+    const defaultConstraints = [orderBy('updateAt', 'desc'), limit(10)]
+    const items = model.subscribe(undefined, defaultConstraints)
+    return { model, items, defaultConstraints }
   },
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
-    return {
-      dialog: false,
-      editMode: 'REGIST',
-    }
+    return {}
   },
   /***************************************************************************
    * WATCH
    ***************************************************************************/
-  watch: {
-    dialog(v) {
-      if (v) return
-      this.editMode = 'REGIST'
-      this.$refs.form.initialize()
-      this.model.initialize()
-    },
+  watch: {},
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.model.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
-  methods: {
-    onClickEdit(item) {
-      this.editMode = 'UPDATE'
-      this.model.initialize(item)
-      this.dialog = true
-    },
-    onClickDelete(item) {
-      this.editMode = 'DELETE'
-      this.model.initialize(item)
-      this.dialog = true
-    },
-  },
+  methods: {},
 }
 </script>
 
 <template>
-  <g-template-default label="自動採番管理">
-    <template #append-toolbar>
-      <v-spacer />
-      <v-dialog v-model="dialog" width="600">
-        <template #activator="{ attrs, on }">
-          <v-btn v-bind="attrs" icon v-on="on"><v-icon>mdi-plus</v-icon></v-btn>
-        </template>
-        <a-renderless-crud
-          :edit-mode="editMode"
-          :model="model"
-          @cancel="dialog = false"
-          @submit:complete="dialog = false"
-        >
-          <template #default="{ attrs, on }">
-            <g-card-input-form ref="form" v-bind="attrs" v-on="on">
-              <g-input-autonumber
-                v-bind.sync="model"
-                :edit-mode="attrs.editMode"
-              />
-            </g-card-input-form>
-          </template>
-        </a-renderless-crud>
-      </v-dialog>
+  <g-template-index
+    label="自動採番管理"
+    action-type="edit-delete"
+    :dialog-props="{ width: 600 }"
+    :items="model.items"
+    :model="model"
+  >
+    <template #input="{ attrs, on }">
+      <g-input-autonumber v-bind="attrs" v-on="on" />
     </template>
-    <template #default="{ height }">
-      <v-container fluid>
-        <g-data-table-autonumbers
-          :items="items"
-          :height="height - 24"
-          show-actions
-          @click:edit="onClickEdit($event)"
-          @click:delete="onClickDelete($event)"
-        />
-      </v-container>
+    <template #data-table="{ attrs, on }">
+      <g-data-table-autonumbers v-bind="attrs" v-on="on" />
     </template>
-  </g-template-default>
+  </g-template-index>
 </template>
 
 <style></style>

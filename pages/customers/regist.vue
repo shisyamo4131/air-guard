@@ -26,7 +26,7 @@ export default {
   <a-renderless-crud
     :model="model"
     edit-mode="REGIST"
-    @submit:REGIST="$router.push(`/customers/${model.docId}`)"
+    @submit:complete="$router.push(`/customers/${model.docId}`)"
     @cancel="$router.push('/customers')"
   >
     <template #default="{ attrs, on, status, actions }">

@@ -188,9 +188,8 @@ export default {
       const path = this.$route.path + '/' + event.docId
       this.$router.push(path)
     },
-    onCompleted() {
-      const editMode = this.editMode
-      this.$emit('completed', editMode)
+    onCompleted(event) {
+      this.$emit('completed', event)
       this.dialog = false
     },
   },
