@@ -1,4 +1,7 @@
 <script>
+import ANumeric from '~/components/atoms/inputs/ANumeric.vue'
+import ASelect from '~/components/atoms/inputs/ASelect.vue'
+import ATextarea from '~/components/atoms/inputs/ATextarea.vue'
 import ATextField from '~/components/atoms/inputs/ATextField.vue'
 import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
 import { props } from '~/models/Customer'
@@ -13,7 +16,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { ATextField, ARenderlessZipcode },
+  components: { ATextField, ARenderlessZipcode, ASelect, ANumeric, ATextarea },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -59,7 +62,7 @@ export default {
       @loaded="$emit('update:address1', $event.full)"
     >
       <template #default="{ attrs, on }">
-        <a-text-field v-bind="attrs" label="郵便番号" required v-on="on" />
+        <a-text-field v-bind="attrs" label="郵便番号" v-on="on" />
       </template>
     </a-renderless-zipcode>
     <a-text-field
@@ -76,7 +79,37 @@ export default {
     <a-text-field
       :value="tel"
       label="電話番号"
+      input-type="tel"
       @input="$emit('update:tel', $event)"
+    />
+    <a-text-field
+      :value="fax"
+      label="FAX番号"
+      input-type="tel"
+      @input="$emit('update:fax', $event)"
+    />
+    <a-select
+      :value="deadline"
+      label="締日"
+      :items="$DEADLINE_ARRAY"
+      @input="$emit('update:deadline', $event)"
+    />
+    <a-numeric
+      :value="depositMonth"
+      label="入金月"
+      suffix="ヶ月後"
+      @input="$emit('update:depositMonth', $event)"
+    />
+    <a-select
+      :value="depositDate"
+      label="入金日"
+      :items="$DEADLINE_ARRAY"
+      @input="$emit('update:depositDate', $event)"
+    />
+    <a-textarea
+      :value="remarks"
+      label="備考"
+      @input="$emit('update:remarks', $event)"
     />
   </div>
 </template>

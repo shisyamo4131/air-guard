@@ -29,7 +29,13 @@
             </v-row>
           </v-card-text>
           <v-card-actions class="justify-end">
-            <v-btn color="primary" @click="submit">submit</v-btn>
+            <v-btn
+              color="primary"
+              :disabled="loading"
+              :loading="loading"
+              @click="submit"
+              >submit</v-btn
+            >
           </v-card-actions>
         </v-card>
       </v-container>
@@ -48,14 +54,17 @@ export default {
       collections: ['Customers', 'Sites', 'Employees'],
       file: null,
       csvData: [],
+      loading: false,
     }
   },
   computed: {
     headers() {
       if (!this.csvData.length) return []
-      const result = Object.keys(this.csvData[0]).map((key) => {
-        return { text: key, value: key }
-      })
+      const result = Object.keys(this.csvData[0])
+        .map((key) => {
+          return { text: key, value: key }
+        })
+        .filter((item, index) => index < 5)
       return result
     },
   },
@@ -76,25 +85,37 @@ export default {
         })
       })
     },
-    submit() {
-      this[`import${this.selectedCollection}`]()
+    async submit() {
+      const autonumber = this.$Autonumber()
+      try {
+        this.loading = true
+        await autonumber.stop(this.selectedCollection)
+        await this[`import${this.selectedCollection}`]()
+        // eslint-disable-next-line
+        console.info(`[imports.vue] インポート処理が正常に完了しました。`)
+      } catch (err) {
+        // eslint-disable-next-line
+        console.error(err)
+        alert(err.message)
+      } finally {
+        await autonumber.refresh(this.selectedCollection)
+        await autonumber.start(this.selectedCollection)
+        this.loading = false
+      }
     },
     async importCustomers() {
-      if (
-        this.$store.getters['masters/Customers'].filter(({ code }) => !code)
-          .length
-      ) {
-        throw new Error('関連付けが行われていない取引先があります。')
-      }
-      const notExistData = this.csvData.filter((item) => {
-        return !this.$store.getters['masters/Customers'].some(
-          ({ code }) => code === item.code
-        )
-      })
       const promises = []
-      for (const item of notExistData) {
-        const model = this.$Customer(item)
-        promises.push(model.create())
+      for (const data of this.csvData) {
+        const model = this.$Customer()
+        data.depositMonth = parseInt(data.depositMonth)
+        const existDocRef = await model.isCodeExist(data.code)
+        if (existDocRef) {
+          model.initialize({ ...data, docId: existDocRef.id })
+          promises.push(model.update())
+        } else {
+          model.initialize(data)
+          promises.push(model.create())
+        }
       }
       await Promise.all(promises)
     },

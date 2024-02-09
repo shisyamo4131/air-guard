@@ -1,3 +1,13 @@
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  orderBy,
+  query,
+  updateDoc,
+} from 'firebase/firestore'
 import FireModel from './FireModel'
 
 const props = {
@@ -80,5 +90,53 @@ export default class Autonumber extends FireModel {
       }
       resolve()
     })
+  }
+
+  /**
+   * 指定されたコレクションの自動採番を開始します。
+   * @param {string} collectionId 対象のコレクションIDです。
+   */
+  async start(collectionId) {
+    const docRef = doc(this.firestore, `Autonumbers/${collectionId}`)
+    await updateDoc(docRef, { status: true })
+  }
+
+  /**
+   * 指定されたコレクションの自動採番を停止します。
+   * @param {string} collectionId 対象のコレクションIDです。
+   */
+  async stop(collectionId) {
+    const docRef = doc(this.firestore, `Autonumbers/${collectionId}`)
+    await updateDoc(docRef, { status: false })
+  }
+
+  /**
+   * 指定されたコレクションの自動採番について、現在値を指定された値に更新します。
+   * 値が指定されなかった場合、指定されたコレクションのドキュメントに使用されている
+   * 最大値が適用されます。
+   * @param {string} collectionId 対象のコレクションIDです。
+   * @param {string | number} val 更新する値です。
+   */
+  async refresh(collectionId, val = undefined) {
+    const docRef = doc(this.firestore, `Autonumbers/${collectionId}`)
+    const docSnapshot = await getDoc(docRef)
+    if (!docSnapshot.exists()) {
+      throw new Error(`[Autonumber.js] Could not find the specified document.`)
+    }
+    const field = docSnapshot.data().field
+    const getCurrent = async () => {
+      const colRef = collection(this.firestore, collectionId)
+      const q = query(colRef, orderBy(field, 'desc'), limit(1))
+      const querySnapshot = await getDocs(q)
+      return querySnapshot.empty
+        ? 0
+        : parseInt(querySnapshot.docs[0].data()[field])
+    }
+    const current = val || val === 0 ? parseInt(val) : await getCurrent()
+    await updateDoc(docRef, { current })
+    // eslint-disable-next-line
+    console.info(
+      `[Autonumber.js] ${collectionId} コレクションの自動採番現在値を ${current} に更新しました。`
+    )
   }
 }

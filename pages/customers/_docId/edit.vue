@@ -33,7 +33,6 @@ export default {
   >
     <template #default="{ attrs, on, status, actions }">
       <g-template-editor label="取引先編集" v-bind="status" v-on="actions">
-        {{ attrs }}
         <g-input-customer v-bind="attrs" v-on="on" />
       </g-template-editor>
     </template>

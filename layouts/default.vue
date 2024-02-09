@@ -1,13 +1,13 @@
 <template>
   <v-app dark>
     <g-navigation-drawer v-model="drawer" app fixed />
-    <v-app-bar app dense fixed>
+    <v-app-bar app dense fixed flat>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <v-toolbar-title>AirGuard</v-toolbar-title>
       <v-spacer />
     </v-app-bar>
     <v-main>
-      <v-container fluid>
+      <v-container fluid :class="containerClass">
         <Nuxt />
       </v-container>
     </v-main>
@@ -23,6 +23,15 @@ export default {
     return {
       drawer: false,
     }
+  },
+  computed: {
+    containerClass() {
+      const result = {}
+      if (this.$vuetify.breakpoint.xs) {
+        result['pa-0'] = true
+      }
+      return result
+    },
   },
 }
 </script>

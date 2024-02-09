@@ -49,6 +49,28 @@ export default {
         <td>電話番号</td>
         <td>{{ tel }}</td>
       </tr>
+      <tr>
+        <td>FAX番号</td>
+        <td>{{ fax }}</td>
+      </tr>
+      <tr>
+        <td>締日</td>
+        <td>{{ $DEADLINE[deadline] }}</td>
+      </tr>
+      <tr>
+        <td>入金サイト</td>
+        <td>
+          {{ `${depositMonth}ヶ月後${$DEADLINE[depositDate]}` }}
+        </td>
+      </tr>
+      <tr>
+        <td>備考</td>
+        <td>
+          <p style="white-space: pre-line">
+            {{ remarks }}
+          </p>
+        </td>
+      </tr>
     </tbody>
   </v-simple-table>
 </template>

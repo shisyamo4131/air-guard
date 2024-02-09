@@ -36,6 +36,24 @@ const CUSTOMER_STATUS_ARRAY = [
   { value: 'expired', text: '契約終了' },
 ]
 
+const DEADLINE = {
+  '05': '5日',
+  10: '10日',
+  15: '15日',
+  20: '20日',
+  25: '25日',
+  99: '末日',
+}
+
+const DEADLINE_ARRAY = [
+  { text: '5日', value: '05' },
+  { text: '10日', value: '10' },
+  { text: '15日', value: '15' },
+  { text: '20日', value: '20' },
+  { text: '25日', value: '25' },
+  { text: '末日', value: '99' },
+]
+
 const EMPLOYEE_STATUS = {
   active: '在籍',
   expired: '退職',
@@ -93,6 +111,8 @@ export default (context, inject) => {
   inject('CHAR_REGEXP_ARRAY', CHAR_REGEXP_ARRAY)
   inject('CUSTOMER_STATUS', CUSTOMER_STATUS)
   inject('CUSTOMER_STATUS_ARRAY', CUSTOMER_STATUS_ARRAY)
+  inject('DEADLINE', DEADLINE)
+  inject('DEADLINE_ARRAY', DEADLINE_ARRAY)
   inject('EMPLOYEE_STATUS', EMPLOYEE_STATUS)
   inject('EMPLOYEE_STATUS_ARRAY', EMPLOYEE_STATUS_ARRAY)
   inject('LEAVE_APPLICATION_STATUS', LEAVE_APPLICATION_STATUS)
