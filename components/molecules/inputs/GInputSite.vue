@@ -1,6 +1,9 @@
 <script>
 import GAutocompleteCustomer from './GAutocompleteCustomer.vue'
 import ATextField from '~/components/atoms/inputs/ATextField.vue'
+import { props } from '~/models/Site'
+import ADate from '~/components/atoms/inputs/ADate.vue'
+
 /**
  * ## GInputSite
  * Site用INPUT
@@ -11,19 +14,11 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { ATextField, GAutocompleteCustomer },
+  components: { ATextField, GAutocompleteCustomer, ADate },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  props: {
-    code: { type: undefined, default: null, required: false },
-    name: { type: undefined, default: null, required: false },
-    abbr: { type: undefined, default: null, required: false },
-    abbrKana: { type: undefined, default: null, required: false },
-    address: { type: undefined, default: null, required: false },
-    customerId: { type: undefined, default: null, required: false },
-    status: { type: undefined, default: null, required: false },
-  },
+  mixins: [props],
 }
 </script>
 
@@ -61,10 +56,25 @@ export default {
       @input="$emit('update:abbrKana', $event)"
     />
     <a-text-field
+      :value="customerCode"
+      label="略称番号"
+      @input="$emit('update:customerCode', $event)"
+    />
+    <a-text-field
       :value="address"
       label="住所"
       required
       @input="$emit('update:address', $event)"
+    />
+    <a-date
+      :value="startAt"
+      label="開始日"
+      @input="$emit('update:startAt', $event)"
+    />
+    <a-date
+      :value="endAt"
+      label="終了日"
+      @input="$emit('update:endAt', $event)"
     />
   </div>
 </template>
