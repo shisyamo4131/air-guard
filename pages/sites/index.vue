@@ -71,10 +71,10 @@ export default {
 <template>
   <g-template-index
     label="現場管理"
-    :dialog-props="{ width: 600 }"
     :items="filteredItems"
     :lazy-search.sync="lazySearch"
     :model="model"
+    regist-at-page
   >
     <template #input>
       <g-input-site v-bind.sync="model" />

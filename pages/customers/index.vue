@@ -71,7 +71,6 @@ export default {
 <template>
   <g-template-index
     label="取引先管理"
-    :dialog-props="{ width: 600 }"
     :items="filteredItems"
     :lazy-search.sync="lazySearch"
     :model="model"
