@@ -23,7 +23,7 @@
   "dependencies": {
     "@nuxtjs/axios": "^5.13.6",
     "@nuxtjs/pwa": "^3.3.5",
-    "air-vuetify": "^0.13.1",
+    "air-vuetify": "^0.13.3",
     "axios-jsonp": "^1.0.4",
     "core-js": "^3.25.3",
     "cross-env": "^7.0.3",
