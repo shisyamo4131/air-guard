@@ -55,7 +55,7 @@ export default {
       if (v) {
         this.model.subscribe(v)
       } else {
-        this.model.subscribe(undefined, [this.defaultConstraints])
+        this.model.subscribe(undefined, this.defaultConstraints)
       }
     },
   },
