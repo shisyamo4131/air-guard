@@ -44,6 +44,7 @@
 </template>
 
 <script>
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import ASelect from '~/components/atoms/inputs/ASelect.vue'
 export default {
@@ -103,14 +104,86 @@ export default {
         this.loading = false
       }
     },
+    chunkedArr(arr, size) {
+      return arr.flatMap((_, i, a) =>
+        i % size ? [] : [arr.slice(i, i + size)]
+      )
+    },
+    async getExistDocsFromArray(arr, collectionId, field) {
+      /* eslint-disable */
+      console.info(
+        `[imports.vue] ${collectionId}からドキュメントを取得します。`
+      )
+      console.info(arr)
+      const chunkedIds = this.chunkedArr(arr, 10)
+      const result = []
+      for (const arr of chunkedIds) {
+        const colRef = collection(this.$firestore, collectionId)
+        const q = query(colRef, where(field, 'in', arr))
+        const querySnapshot = await getDocs(q)
+        if (!querySnapshot.empty)
+          result.push(...querySnapshot.docs.map((doc) => doc.data()))
+      }
+      console.info(
+        `[imports.vue] ${collectionId}から${result.length}件のドキュメントを取得しました。`
+      )
+      /* eslint-enable */
+      return result
+    },
     async importCustomers() {
+      const existDocs = await this.getExistDocsFromArray(
+        this.csvData.map(({ code }) => code),
+        'Customers',
+        'code'
+      )
       const promises = []
       for (const data of this.csvData) {
         const model = this.$Customer()
-        data.depositMonth = parseInt(data.depositMonth)
-        const existDocRef = await model.isCodeExist(data.code)
-        if (existDocRef) {
-          model.initialize({ ...data, docId: existDocRef.id })
+        data.depositMonth = Number(data.depositMonth)
+        const existDoc = existDocs.find(({ code }) => code === data.code)
+        if (existDoc) {
+          model.initialize({ ...data, docId: existDoc.docId })
+          promises.push(model.update())
+        } else {
+          model.initialize(data)
+          promises.push(model.create())
+        }
+      }
+      await Promise.all(promises)
+    },
+    async importSites() {
+      const customerCodes = [
+        ...new Set(this.csvData.map(({ customerCode }) => customerCode)),
+      ]
+      const customers = await this.getExistDocsFromArray(
+        customerCodes,
+        'Customers',
+        'code'
+      )
+      if (customers.length !== customerCodes.length) {
+        const customerNotExist = this.csvData.filter((data) => {
+          return !customers.some(({ code }) => code === data.customerCode)
+        })
+        // eslint-disable-next-line
+        console.table(customerNotExist)
+        throw new Error(
+          'CSVデータに取引先が未登録である現場が含まれています。処理を中断します。'
+        )
+      }
+      const existDocs = await this.getExistDocsFromArray(
+        this.csvData.map(({ code }) => code),
+        'Sites',
+        'code'
+      )
+      const promises = []
+      for (const data of this.csvData) {
+        const model = this.$Site()
+        data.customerId = customers.find(
+          ({ code }) => code === data.customerCode
+        ).docId
+        const existDoc = existDocs.find(({ code }) => code === data.code)
+        if (existDoc) {
+          model.initialize({ ...data, docId: existDoc.docId })
           promises.push(model.update())
         } else {
           model.initialize(data)
@@ -137,48 +210,6 @@ export default {
         promises.push(model.create())
       }
       await Promise.all(promises)
-    },
-    async importSites() {
-      if (
-        this.$store.getters['masters/Sites'].filter(({ code }) => !code).length
-      ) {
-        throw new Error('関連付けが行われていない現場があります。')
-      }
-      const notExistData = this.csvData
-        .filter((item) => {
-          return !this.$store.getters['masters/Sites'].some(
-            ({ code }) => code === item.code
-          )
-        })
-        .map((item) => {
-          const customer = this.$store.getters['masters/Customers'].find(
-            ({ code }) => code === item.customerCode
-          )
-          if (customer) item.customerId = customer.docId
-          return item
-        })
-        .filter(({ customerId }) => !!customerId)
-      // notExistData.forEach((item) => {
-      //   const customer = this.$store.getters['masters/Customers'].find(
-      //     ({ code }) => code === item.customerCode
-      //   )
-      //   if (customer) item.customerId = customer.docId
-      // })
-      this.$store.dispatch('masters/unsubscribe')
-      const promises = []
-      let counter = 0
-      for (const item of notExistData) {
-        const model = this.$Site(item)
-        promises.push(model.create())
-        counter++
-        if (counter === 50) {
-          await Promise.all(promises)
-          promises.splice(0)
-          counter = 0
-        }
-      }
-      await Promise.all(promises)
-      this.$store.dispatch('masters/subscribe')
     },
   },
 }
