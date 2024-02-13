@@ -73,20 +73,28 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
-    // ユーザーからの入力内容に変更があった場合の処理
-    // props.delayで指定されたミリ秒だけディレイを入れて該当するドキュメントを読み込む。
-    // ### NOTE ###
-    // props.multiple = false の際、選択肢からitemが選択されるとsearch-inputが
-    // item-textで指定された値に更新されるため、どうしてもfetchDocs()が実行されてしまう。
+    /**
+     * ユーザーからの入力内容に変更が生じた場合の処理です。
+     * props.modelのfetchDocs()を実行します。
+     * 最初にclearTimeoutによりdata.timerIdを初期化することで
+     * ユーザーからの入力が完了するまでの遅延処理を実現しています。
+     * [NOTE]
+     * props.multiple = false の際、選択肢からitemが選択されるとsearch-inputが
+     * props.item-textで指定された値に更新されるため、どうしてもfetchDocs()が実行されてします。
+     * 既に読み込まれているitemsからの選択であること、またはitem-textとsearch-inputを比較することで
+     * 制御しようとしたが、処理が複雑になりすぎるため断念。
+     */
     searchInput: {
-      handler(v) {
+      handler(newVal, oldVal) {
         clearTimeout(this.timerId)
-        if (v) {
-          this.timerId = setTimeout(async () => {
-            this.items = await this.model.fetchDocs(v)
-            this.loading = false
-          }, this.delay)
-        }
+        if (!newVal || newVal === oldVal) return
+        this.timerId = setTimeout(async () => {
+          const result = await this.model.fetchDocs(newVal)
+          // fetchDocs()の結果、ドキュメントが取得できていればdata.itemsにセット。
+          // 過去に取得していたドキュメントはAutocompleteのcache-itemsに依存。
+          if (result.length) this.items = result
+          this.timerId = null
+        }, this.delay)
       },
     },
     timerId(v) {

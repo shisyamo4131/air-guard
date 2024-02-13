@@ -1,31 +1,35 @@
 <template>
   <g-template-default>
     <v-container>
-      <a-renderless-zipcode @loaded="address = $event.full">
-        <template #default="{ attrs, on }">
-          <v-text-field v-model="zipcode" v-bind="attrs" v-on="on" />
-        </template>
-      </a-renderless-zipcode>
-      <v-text-field v-model="address" />
+      <g-autocomplete-customer
+        v-model="value"
+        item-text="abbr"
+        label="single"
+      />
+      <!-- <g-autocomplete-customer
+        v-model="multipleValue"
+        label="multiple"
+        multiple
+      />
+      <v-autocomplete :items="items" :search-input.sync="search" /> -->
     </v-container>
   </g-template-default>
 </template>
 
 <script>
-import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
+import GAutocompleteCustomer from '~/components/molecules/inputs/GAutocompleteCustomer.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
-  components: { GTemplateDefault, ARenderlessZipcode },
+  components: { GTemplateDefault, GAutocompleteCustomer },
   data() {
     return {
-      zipcode: null,
-      address: null,
+      // value: null,
+      // multipleValue: [],
+      value: 'cCKqxYVGLOWkTJViCar7',
+      multipleValue: ['cCKqxYVGLOWkTJViCar7', 'QYPCuQGgHFxYGB3zwziK'],
+      items: ['aaa', 'bbb'],
+      search: null,
     }
-  },
-  methods: {
-    test(event) {
-      console.log(event)
-    },
   },
 }
 </script>
