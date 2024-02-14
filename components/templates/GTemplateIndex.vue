@@ -38,11 +38,13 @@ import GTemplateDefault from './GTemplateDefault.vue'
  * | name         | type           | default       | required | description                            |
  * | ------------ | -------------- | ------------- | -------- | -------------------------------------- |
  * | actionType   | string         | 'show-detail' | false    |                                        |
+ * | delay        | string, number | 500           | false    |                                        |
  * | dialogProps  | object         | undefined     | false    | Properties of v-dialog for input form. |
  * | editAtPage   | boolean        | false         | false    |                                        |
  * | editPage     | string         | edit          | false    |                                        |
  * | items        | array          | []            | false    | An array of items for data-table.      |
  * | lazySearch   | string, object | null          | false    |                                        |
+ * | loading      | boolean        | false         | false    |                                        |
  * | model        | object         | -             | true     |                                        |
  * | registAtPage | boolean        | false         | false    |                                        |
  * | registPage   | string         | regist        | false    |                                        |
@@ -102,11 +104,13 @@ export default {
       validator: (v) => ['edit-delete', 'show-detail'].includes(v),
       required: false,
     },
+    delay: { type: [String, Number], default: 500, required: false },
     dialogProps: { type: Object, default: undefined, required: false },
     editAtPage: { type: Boolean, default: false, required: false },
     editPage: { type: String, default: 'edit', required: false },
     items: { type: Array, default: () => [], required: false },
     lazySearch: { type: [String, Object], default: null, required: false },
+    loading: { type: Boolean, default: false, required: false },
     model: { type: Object, required: true },
     registAtPage: { type: Boolean, default: false, required: false },
     registPage: { type: String, default: 'regist', required: false },
@@ -234,7 +238,9 @@ export default {
         <slot name="prepend-search" />
         <g-text-field-search
           v-model="internalSearch"
+          :delay="delay"
           :lazy-value="lazySearch"
+          :loading="loading"
           @update:lazyValue="$emit('update:lazySearch', $event)"
         />
         <slot name="append-search" />

@@ -19,21 +19,16 @@ export default {
     GDataTableSites,
   },
   /***************************************************************************
-   * ASYNCDATA
-   ***************************************************************************/
-  asyncData({ app }) {
-    const model = app.$Site()
-    const defaultConstraints = [orderBy('updateAt', 'desc'), limit(10)]
-    const items = model.subscribe(undefined, defaultConstraints)
-    return { model, items, defaultConstraints }
-  },
-  /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
+      defaultConstraints: [orderBy('updateAt', 'desc'), limit(10)],
       includeExpired: false,
+      items: [],
       lazySearch: null,
+      loading: false,
+      model: this.$Site(),
     }
   },
   /***************************************************************************
@@ -51,19 +46,24 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
-    lazySearch(v) {
-      if (v) {
-        this.model.subscribe(v)
-      } else {
-        this.model.subscribe(undefined, this.defaultConstraints)
-      }
+    lazySearch: {
+      async handler(v) {
+        this.loading = true
+        await this.fetchDocs()
+        this.loading = false
+      },
+      immediate: true,
     },
   },
   /***************************************************************************
-   * DESTROYED
+   * METHODS
    ***************************************************************************/
-  destroyed() {
-    this.model.unsubscribe()
+  methods: {
+    async fetchDocs() {
+      const ngram = this.lazySearch || undefined
+      const constraints = this.lazySearch ? [] : this.defaultConstraints
+      this.items = await this.model.fetchDocs(ngram, constraints)
+    },
   },
 }
 </script>
@@ -73,6 +73,7 @@ export default {
     label="現場管理"
     :items="filteredItems"
     :lazy-search.sync="lazySearch"
+    :loading="loading"
     :model="model"
     regist-at-page
   >

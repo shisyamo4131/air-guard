@@ -41,7 +41,7 @@ export default {
     value: {
       handler(v) {
         clearTimeout(this.timerId)
-        const delay = v ? parseInt(this.delay) : 0
+        const delay = v ? Number(this.delay) : 0
         this.timerId = setTimeout(() => {
           this.$emit('update:lazyValue', v)
         }, delay)
