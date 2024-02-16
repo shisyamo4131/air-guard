@@ -1,31 +1,28 @@
-const {
-  onDocumentCreated,
-  onDocumentUpdated,
-  onDocumentDeleted,
-} = require('firebase-functions/v2/firestore')
+const { onDocumentUpdated } = require('firebase-functions/v2/firestore')
+const { getFirestore } = require('firebase-admin/firestore')
 const { info } = require('firebase-functions/logger')
-const tokenMap = require('./tokenMap')
-const TOKEN_FIELDS = ['abbr', 'abbrKana']
-
-exports.onCreate = onDocumentCreated('Customers/{docId}', async (event) => {
-  info(`A document of Customers collection has been created.`)
-  const docId = event.params.docId
-  const data = event.data.data()
-  await tokenMap.sync('Customers', docId, data, TOKEN_FIELDS)
-  info(`The document for the token map has been created successfull.`)
-})
+const firestore = getFirestore()
 
 exports.onUpdate = onDocumentUpdated('Customers/{docId}', async (event) => {
-  info(`A document of Customers collection has been updated.`)
+  info(`[customer.js] A document of Customers collection has been updated.`)
+  info({ before: event.data.before.data(), after: event.data.after.data() })
   const docId = event.params.docId
   const data = event.data.after.data()
-  await tokenMap.sync('Customers', docId, data, TOKEN_FIELDS)
-  info(`The document for the token map has been updated successfull.`)
+  await syncSites(docId, data)
 })
 
-exports.onDelete = onDocumentDeleted('Customers/{docId}', async (event) => {
-  info(`A document of Customers collection has been deleted.`)
-  const docId = event.params.docId
-  await tokenMap.remove('Customers', docId)
-  info(`The document created for the token map has been deleted successfull.`)
-})
+async function syncSites(docId, data) {
+  info(`[customer.js] Start synchronization to the 'Sites' collection.`)
+  const colRef = firestore.collection('Sites')
+  const query = colRef.where('customer.docId', '==', docId)
+  const querySnapshot = await query.get()
+  if (querySnapshot.empty) return
+  const promises = []
+  querySnapshot.docs.forEach((doc) => {
+    promises.push(doc.ref.update({ customer: data }))
+  })
+  await Promise.all(promises)
+  info(
+    `[customer.js] Synchronization to the 'Sites' collection has been completed.`
+  )
+}
