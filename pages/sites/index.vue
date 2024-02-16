@@ -4,6 +4,7 @@ import ASwitch from '~/components/atoms/inputs/ASwitch.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GDataTableSites from '~/components/molecules/tables/GDataTableSites.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
+import GAutocompleteCustomer from '~/components/molecules/inputs/GAutocompleteCustomer.vue'
 /**
  * ### pages.sites.index
  * @author shisyamo4131
@@ -17,12 +18,14 @@ export default {
     GTemplateIndex,
     ASwitch,
     GDataTableSites,
+    GAutocompleteCustomer,
   },
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
+      customerId: undefined,
       defaultConstraints: [orderBy('updateAt', 'desc'), limit(10)],
       includeExpired: false,
       items: [],
@@ -36,10 +39,15 @@ export default {
    ***************************************************************************/
   computed: {
     filteredItems() {
-      return this.items.filter((item) => {
-        if (this.includeExpired) return true
-        return item.status === 'active'
-      })
+      return this.items
+        .filter((item) => {
+          if (this.includeExpired) return true
+          return item.status === 'active'
+        })
+        .filter((item) => {
+          if (!this.customerId) return true
+          return item.customer.docId === this.customerId
+        })
     },
   },
   /***************************************************************************
@@ -81,11 +89,22 @@ export default {
       <g-input-site v-bind.sync="model" />
     </template>
     <template #append-search>
+      <g-autocomplete-customer
+        v-model="customerId"
+        label="取引先"
+        prepend-inner-icon="mdi-magnify"
+        hide-details
+        clearable
+        flat
+        solo-inverted
+        :outlined="false"
+        class="ml-2"
+      />
       <a-switch
         v-model="includeExpired"
         class="ml-2"
-        hide-details
         label="終了現場も表示する"
+        hide-details
       />
     </template>
     <template #data-table="{ attrs, on }">
