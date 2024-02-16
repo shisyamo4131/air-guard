@@ -1,5 +1,5 @@
 <template>
-  <g-template-default>
+  <g-template-index>
     <v-container>
       <g-autocomplete-customer
         v-model="value"
@@ -13,14 +13,14 @@
       />
       <v-autocomplete :items="items" :search-input.sync="search" /> -->
     </v-container>
-  </g-template-default>
+  </g-template-index>
 </template>
 
 <script>
 import GAutocompleteCustomer from '~/components/molecules/inputs/GAutocompleteCustomer.vue'
-import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
+import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 export default {
-  components: { GTemplateDefault, GAutocompleteCustomer },
+  components: { GAutocompleteCustomer, GTemplateIndex },
   data() {
     return {
       // value: null,

@@ -247,7 +247,7 @@ export default {
       </v-toolbar>
       <div
         class="overflow-y-auto"
-        :style="{ height: height - searchBarHeight }"
+        :style="{ height: `${height - searchBarHeight}px` }"
       >
         <v-container fluid>
           <slot
