@@ -3,7 +3,6 @@ import FireModel from './FireModel'
 
 const props = {
   props: {
-    customerId: { type: String, default: '', required: false },
     code: { type: String, default: '', required: false },
     name: { type: String, default: '', required: false },
     abbr: { type: String, default: '', required: false },
@@ -14,6 +13,7 @@ const props = {
     endAt: { type: String, default: '', required: false },
     status: { type: String, default: 'active', required: false },
     remarks: { type: String, default: '', required: false },
+    customer: { type: Object, default: null, required: false },
   },
 }
 export { props }

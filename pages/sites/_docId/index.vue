@@ -19,9 +19,7 @@ export default {
     const docId = route.params.docId
     const model = app.$Site()
     await model.fetch(docId)
-    const customer = app.$Customer()
-    await customer.fetch(model.customerId)
-    return { docId, model, customer }
+    return { docId, model }
   },
 }
 </script>
@@ -48,7 +46,7 @@ export default {
         <template #default>
           <v-container fluid>
             <v-card outlined>
-              <g-simple-table-site v-bind="{ ...model, customer }" />
+              <g-simple-table-site v-bind="model" />
             </v-card>
             <air-dialog-confirm-delete v-on="actions">
               <template #activator="{ attrs, on }">

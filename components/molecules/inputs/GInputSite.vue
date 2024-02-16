@@ -31,10 +31,11 @@ export default {
       @input="$emit('update:code', $event)"
     />
     <g-autocomplete-customer
-      :value="customerId"
+      :value="customer"
       label="取引先"
       required
-      @input="$emit('update:customerId', $event)"
+      return-object
+      @input="$emit('update:customer', $event)"
     />
     <a-text-field
       :value="name"

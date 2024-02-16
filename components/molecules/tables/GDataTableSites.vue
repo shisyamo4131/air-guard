@@ -42,7 +42,7 @@ export default {
   >
     <template #[`item.name`]="{ item }">
       <div>{{ item.name }}</div>
-      <div>{{ item.customerId }}</div>
+      <div>{{ item?.customer?.abbr || 'loading' }}</div>
     </template>
     <template #[`item.status`]="{ item }">
       {{ $SITE_STATUS[item.status] }}

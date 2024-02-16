@@ -115,7 +115,7 @@ export default {
           }
           this.loading = false
         } else {
-          const docId = this.returnObject ? v.docId : v
+          const docId = this.returnObject ? v?.docId || undefined : v
           this.loading = true
           await this.setInitialValue(docId)
           this.loading = false

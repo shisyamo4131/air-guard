@@ -7,9 +7,6 @@ import { props } from '~/models/Site'
  */
 export default {
   mixins: [props],
-  props: {
-    customer: { type: Object, required: true },
-  },
 }
 </script>
 
