@@ -7,7 +7,7 @@ const props = {
     name: { type: String, default: '', required: false },
     abbr: { type: String, default: '', required: false },
     abbrKana: { type: String, default: '', required: false },
-    customerCode: { type: String, default: '', required: false },
+    abbrNumber: { type: String, default: '', required: false },
     address: { type: String, default: '', required: false },
     startAt: { type: String, default: '', required: false },
     endAt: { type: String, default: '', required: false },

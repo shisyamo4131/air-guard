@@ -39,7 +39,7 @@ export default {
       </tr>
       <tr>
         <td>略称番号</td>
-        <td>{{ customerCode }}</td>
+        <td>{{ abbrNumber }}</td>
       </tr>
       <tr>
         <td>開始日</td>

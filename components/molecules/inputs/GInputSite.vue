@@ -57,9 +57,9 @@ export default {
       @input="$emit('update:abbrKana', $event)"
     />
     <a-text-field
-      :value="customerCode"
+      :value="abbrNumber"
       label="略称番号"
-      @input="$emit('update:customerCode', $event)"
+      @input="$emit('update:abbrNumber', $event)"
     />
     <a-text-field
       :value="address"

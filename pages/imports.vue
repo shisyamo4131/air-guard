@@ -178,9 +178,7 @@ export default {
       const promises = []
       for (const data of this.csvData) {
         const model = this.$Site()
-        data.customerId = customers.find(
-          ({ code }) => code === data.customerCode
-        ).docId
+        data.customer = customers.find(({ code }) => code === data.customerCode)
         const existDoc = existDocs.find(({ code }) => code === data.code)
         if (existDoc) {
           model.initialize({ ...data, docId: existDoc.docId })
