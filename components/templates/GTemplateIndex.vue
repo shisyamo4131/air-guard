@@ -115,8 +115,8 @@ export default {
     registAtPage: { type: Boolean, default: false, required: false },
     registPage: { type: String, default: 'regist', required: false },
     search: { type: [String, Object], default: null, required: false },
-    searchDetailBadge: { type: Boolean, default: false, required: false },
-    useSearchDetail: { type: Boolean, default: false, required: false },
+    searchDrawerBadge: { type: Boolean, default: false, required: false },
+    useSearchDrawer: { type: Boolean, default: false, required: false },
   },
   /***************************************************************************
    * DATA
@@ -126,7 +126,7 @@ export default {
       dialog: false,
       editMode: 'REGIST',
       internalSearch: null,
-      searchDialog: false,
+      searchDrawer: false,
     }
   },
   /***************************************************************************
@@ -199,9 +199,9 @@ export default {
       this.$emit('completed', event)
       this.dialog = false
     },
-    onClickSearchDetailSubmit() {
-      this.$emit('click:search-detail-submit')
-      this.searchDialog = false
+    onClickSearchDrawerSubmit() {
+      this.$emit('click:search-drawer-submit')
+      this.searchDrawer = false
     },
   },
 }
@@ -250,25 +250,13 @@ export default {
           @update:lazyValue="$emit('update:lazySearch', $event)"
         >
           <template #append-outer>
-            <v-dialog v-model="searchDialog" max-width="480" persistent>
-              <template #activator="{ attrs, on }">
-                <v-badge color="warning" :value="searchDetailBadge" overlap dot>
-                  <v-icon v-bind="attrs" :disabled="!useSearchDetail" v-on="on"
-                    >mdi-magnify-plus-outline</v-icon
-                  >
-                </v-badge>
-              </template>
-              <v-card>
-                <v-card-text class="px-5 py-6">
-                  <slot name="search-detail" />
-                </v-card-text>
-                <v-card-actions class="justify-end">
-                  <v-btn color="primary" @click="onClickSearchDetailSubmit"
-                    >submit</v-btn
-                  >
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
+            <v-badge color="warning" :value="searchDrawerBadge" overlap dot>
+              <v-icon
+                :disabled="!useSearchDrawer"
+                @click="searchDrawer = !searchDrawer"
+                >mdi-magnify-plus-outline</v-icon
+              >
+            </v-badge>
           </template>
         </g-text-field-search>
       </v-toolbar>
@@ -276,6 +264,14 @@ export default {
         class="overflow-y-auto"
         :style="{ height: `${height - searchBarHeight}px` }"
       >
+        <v-navigation-drawer v-model="searchDrawer" absolute right temporary>
+          <slot name="search-drawer" />
+          <v-list-item>
+            <v-btn color="primary" block @click="onClickSearchDrawerSubmit"
+              >submit</v-btn
+            >
+          </v-list-item>
+        </v-navigation-drawer>
         <v-container fluid>
           <slot
             name="data-table"

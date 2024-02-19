@@ -84,24 +84,26 @@ export default {
     :loading="loading"
     :model="model"
     regist-at-page
-    :search-detail-badge="!!customerId || includeExpired"
-    use-search-detail
+    :search-drawer-badge="!!customerId || includeExpired"
+    use-search-drawer
   >
     <template #input>
       <g-input-site v-bind.sync="model" />
     </template>
-    <template #search-detail>
-      <g-autocomplete-customer
-        v-model="customerId"
-        label="取引先"
-        clearable
-        hide-details
-      />
-      <a-switch
-        v-model="includeExpired"
-        label="終了現場も表示する"
-        hide-details
-      />
+    <template #search-drawer>
+      <v-container>
+        <g-autocomplete-customer
+          v-model="customerId"
+          label="取引先"
+          clearable
+          hide-details
+        />
+        <a-switch
+          v-model="includeExpired"
+          label="終了現場も表示する"
+          hide-details
+        />
+      </v-container>
     </template>
     <template #data-table="{ attrs, on }">
       <g-data-table-sites v-bind="attrs" v-on="on" />
