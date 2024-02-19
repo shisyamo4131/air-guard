@@ -264,7 +264,7 @@ export default {
         class="overflow-y-auto"
         :style="{ height: `${height - searchBarHeight}px` }"
       >
-        <v-navigation-drawer v-model="searchDrawer" absolute right temporary>
+        <v-navigation-drawer v-model="searchDrawer" fixed right temporary>
           <slot name="search-drawer" />
           <v-list-item>
             <v-btn color="primary" block @click="onClickSearchDrawerSubmit"

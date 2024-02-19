@@ -23,6 +23,9 @@ export default {
    ***************************************************************************/
   computed: {
     headers() {
+      if (this.$vuetify.breakpoint.smAndDown) {
+        return [{ text: '取引先名', value: 'abbr' }]
+      }
       return [
         { text: 'CODE', value: 'code' },
         { text: '取引先名1', value: 'name1' },

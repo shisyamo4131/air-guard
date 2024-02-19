@@ -23,6 +23,9 @@ export default {
    ***************************************************************************/
   computed: {
     headers() {
+      if (this.$vuetify.breakpoint.smAndDown) {
+        return [{ text: '現場名', value: 'abbr' }]
+      }
       return [
         { text: 'CODE', value: 'code' },
         { text: '現場名', value: 'name' },
@@ -38,10 +41,17 @@ export default {
   <g-data-table
     v-bind="{ ...$props, ...$attrs }"
     :headers="headers"
+    :mobile-breakpoint="0"
     v-on="$listeners"
   >
     <template #[`item.name`]="{ item }">
       <div>{{ item.name }}</div>
+      <div class="text-caption grey--text text--darken-1">
+        {{ item?.customer?.abbr || 'loading' }}
+      </div>
+    </template>
+    <template #[`item.abbr`]="{ item }">
+      <div>{{ item.abbr }}</div>
       <div class="text-caption grey--text text--darken-1">
         {{ item?.customer?.abbr || 'loading' }}
       </div>
