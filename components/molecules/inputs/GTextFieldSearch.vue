@@ -57,7 +57,17 @@ export default {
 </script>
 
 <template>
-  <a-text-field-search v-bind="$attrs" :value="value" v-on="$listeners" />
+  <a-text-field-search v-bind="$attrs" :value="value" v-on="$listeners">
+    <template
+      v-for="(_, scopedSlotName) in $scopedSlots"
+      #[scopedSlotName]="slotData"
+    >
+      <slot :name="scopedSlotName" v-bind="slotData" />
+    </template>
+    <template v-for="(_, slotName) in $slots" #[slotName]>
+      <slot :name="slotName" />
+    </template>
+  </a-text-field-search>
 </template>
 
 <style></style>

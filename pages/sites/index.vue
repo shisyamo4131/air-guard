@@ -84,25 +84,21 @@ export default {
     :loading="loading"
     :model="model"
     regist-at-page
+    :search-detail-badge="!!customerId || includeExpired"
+    use-search-detail
   >
     <template #input>
       <g-input-site v-bind.sync="model" />
     </template>
-    <template #append-search>
+    <template #search-detail>
       <g-autocomplete-customer
         v-model="customerId"
         label="取引先"
-        prepend-inner-icon="mdi-magnify"
-        hide-details
         clearable
-        flat
-        solo-inverted
-        :outlined="false"
-        class="ml-2"
+        hide-details
       />
       <a-switch
         v-model="includeExpired"
-        class="ml-2"
         label="終了現場も表示する"
         hide-details
       />
