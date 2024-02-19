@@ -76,17 +76,21 @@ export default {
     :loading="loading"
     :model="model"
     regist-at-page
+    :search-drawer-badge="includeExpired"
+    use-search-drawer
   >
     <template #input="{ attrs, on }">
       <g-input-customer v-bind="attrs" v-on="on" />
     </template>
-    <template #append-search>
-      <a-switch
-        v-model="includeExpired"
-        class="ml-2"
-        hide-details
-        label="契約終了も表示する"
-      />
+    <template #search-drawer>
+      <v-container>
+        <a-switch
+          v-model="includeExpired"
+          class="ml-2"
+          hide-details
+          label="契約終了も表示する"
+        />
+      </v-container>
     </template>
     <template #data-table="{ attrs, on }">
       <g-data-table-customers v-bind="attrs" v-on="on" />
