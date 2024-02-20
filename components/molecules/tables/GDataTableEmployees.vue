@@ -1,8 +1,8 @@
 <script>
 import GDataTable from './GDataTable.vue'
 /**
- * ## GDataTableCustomers
- * Customers用DataTableコンポーネント
+ * ## GDataTableEmployees
+ * Employees用DataTableコンポーネント
  *
  * @author shisyamo4131
  */
@@ -24,12 +24,11 @@ export default {
   computed: {
     headers() {
       if (this.$vuetify.breakpoint.xs) {
-        return [{ text: '取引先名', value: 'abbr' }]
+        return [{ text: '氏名', value: 'fullName' }]
       }
       return [
         { text: 'CODE', value: 'code' },
-        { text: '取引先名1', value: 'name1' },
-        { text: '取引先名2', value: 'name2' },
+        { text: '氏名', value: 'fullName' },
         { text: '状態', value: 'status', sortable: false },
       ]
     },
@@ -44,8 +43,11 @@ export default {
     :mobile-breakpoint="0"
     v-on="$listeners"
   >
+    <template #[`item.fullName`]="{ item }">
+      {{ `${item.lastName} ${item.firstName}` }}
+    </template>
     <template #[`item.status`]="{ item }">
-      {{ $CUSTOMER_STATUS[item.status] }}
+      {{ $EMPLOYEE_STATUS[item.status] }}
     </template>
   </g-data-table>
 </template>

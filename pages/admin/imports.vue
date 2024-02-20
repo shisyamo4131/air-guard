@@ -191,21 +191,22 @@ export default {
       await Promise.all(promises)
     },
     async importEmployees() {
-      if (
-        this.$store.getters['masters/Employees'].filter(({ code }) => !code)
-          .length
-      ) {
-        throw new Error('関連付けが行われていない従業員があります。')
-      }
-      const notExistData = this.csvData.filter((item) => {
-        return !this.$store.getters['masters/Employees'].some(
-          ({ code }) => code === item.code
-        )
-      })
+      const existDocs = await this.getExistDocsFromArray(
+        this.csvData.map(({ code }) => code),
+        'Employees',
+        'code'
+      )
       const promises = []
-      for (const item of notExistData) {
-        const model = this.$Employee(item)
-        promises.push(model.create())
+      for (const data of this.csvData) {
+        const model = this.$Employee()
+        const existDoc = existDocs.find(({ code }) => code === data.code)
+        if (existDoc) {
+          model.initialize({ ...data, docId: existDoc.docId })
+          promises.push(model.update())
+        } else {
+          model.initialize(data)
+          promises.push(model.create())
+        }
       }
       await Promise.all(promises)
     },

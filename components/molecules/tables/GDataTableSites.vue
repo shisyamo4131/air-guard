@@ -23,7 +23,7 @@ export default {
    ***************************************************************************/
   computed: {
     headers() {
-      if (this.$vuetify.breakpoint.smAndDown) {
+      if (this.$vuetify.breakpoint.xs) {
         return [{ text: '現場名', value: 'abbr' }]
       }
       return [

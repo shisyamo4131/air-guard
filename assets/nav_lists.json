@@ -31,7 +31,7 @@
     "icon": "mdi-wrench-cog",
     "lists": [
       { "name": "自動採番", "to": "/admin/autonumbers" },
-      { "name": "インポート", "to": "/imports" }
+      { "name": "インポート", "to": "/admin/imports" }
     ]
   },
   {

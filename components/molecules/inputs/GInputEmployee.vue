@@ -1,10 +1,32 @@
+<script>
+import ATextarea from '~/components/atoms/inputs/ATextarea.vue'
+import ATextField from '~/components/atoms/inputs/ATextField.vue'
+import { props } from '~/models/Employee'
+
+/**
+ * ## InputEmployee
+ * Employee用INPUT
+ *
+ * @author shisyamo4131
+ */
+export default {
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
+  components: { ATextField, ATextarea },
+  /***************************************************************************
+   * PROPS
+   ***************************************************************************/
+  mixins: [props],
+}
+</script>
+
 <template>
   <div>
-    <g-text-field-employee-code
-      ref="code"
+    <a-text-field
       :value="code"
       label="CODE"
-      @click:append-outer="contentCopy"
+      disabled
       @input="$emit('update:code', $event)"
     />
     <a-text-field
@@ -40,34 +62,12 @@
       maxlength="5"
       @input="$emit('update:abbr', $event)"
     />
+    <a-textarea
+      :value="remarks"
+      label="備考"
+      @input="$emit('update:remarks', $event)"
+    />
   </div>
 </template>
-
-<script>
-import GTextFieldEmployeeCode from './GTextFieldEmployeeCode.vue'
-import ATextField from '~/components/atoms/inputs/ATextField.vue'
-export default {
-  components: { ATextField, GTextFieldEmployeeCode },
-  props: {
-    code: { type: undefined, default: null, required: false },
-    lastName: { type: undefined, default: null, required: false },
-    firstName: { type: undefined, default: null, required: false },
-    lastNameKana: { type: undefined, default: null, required: false },
-    firstNameKana: { type: undefined, default: null, required: false },
-    abbr: { type: undefined, default: null, required: false },
-    status: { type: undefined, default: null, required: false },
-  },
-  methods: {
-    contentCopy() {
-      const fetchedItem = this.$refs.code.fetchedItem
-      Object.keys(fetchedItem).forEach((key) => {
-        if (key in this.$props) {
-          this.$emit(`update:${key}`, fetchedItem[key])
-        }
-      })
-    },
-  },
-}
-</script>
 
 <style></style>
