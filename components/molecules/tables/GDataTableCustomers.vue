@@ -41,6 +41,7 @@ export default {
   <g-data-table
     v-bind="{ ...$props, ...$attrs }"
     :headers="headers"
+    :mobile-breakpoint="0"
     v-on="$listeners"
   >
     <template #[`item.status`]="{ item }">
