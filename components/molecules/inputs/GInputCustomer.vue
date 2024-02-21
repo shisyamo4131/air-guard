@@ -53,6 +53,8 @@ export default {
       :value="abbrKana"
       label="略称カナ"
       required
+      hint="検索に使用されます"
+      ignore-surrogate-pair
       input-type="katakana"
       @input="$emit('update:abbrKana', $event)"
     />

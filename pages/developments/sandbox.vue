@@ -1,26 +1,16 @@
 <template>
-  <g-template-index>
+  <g-template-default>
     <v-container>
-      <g-autocomplete-customer
-        v-model="value"
-        item-text="abbr"
-        label="single"
-      />
-      <!-- <g-autocomplete-customer
-        v-model="multipleValue"
-        label="multiple"
-        multiple
-      />
-      <v-autocomplete :items="items" :search-input.sync="search" /> -->
+      <a-text-field v-model="value" ignore-surrogate-pair />
     </v-container>
-  </g-template-index>
+  </g-template-default>
 </template>
 
 <script>
-import GAutocompleteCustomer from '~/components/molecules/inputs/GAutocompleteCustomer.vue'
-import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
+import ATextField from '~/components/atoms/inputs/ATextField.vue'
+import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
-  components: { GAutocompleteCustomer, GTemplateIndex },
+  components: { ATextField, GTemplateDefault },
   data() {
     return {
       // value: null,

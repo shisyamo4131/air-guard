@@ -87,6 +87,7 @@ export default {
     searchInput: {
       handler(newVal, oldVal) {
         clearTimeout(this.timerId)
+        this.timerId = null
         if (!newVal || newVal === oldVal) return
         this.timerId = setTimeout(async () => {
           const result = await this.model.fetchDocs(newVal)

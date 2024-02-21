@@ -1,7 +1,6 @@
 <script>
 /**
- * ### AAutocomplete
- *
+ * ## AAutocomplete
  * @author shisyamo4131
  */
 export default {

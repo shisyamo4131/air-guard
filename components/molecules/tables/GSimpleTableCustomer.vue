@@ -27,11 +27,12 @@ export default {
       </tr>
       <tr>
         <td>略称</td>
-        <td>{{ abbr }}</td>
-      </tr>
-      <tr>
-        <td>略称カナ</td>
-        <td>{{ abbrKana }}</td>
+        <td>
+          <div class="text-caption grey--text text--darken-1">
+            {{ abbrKana }}
+          </div>
+          <div>{{ abbr }}</div>
+        </td>
       </tr>
       <tr>
         <td>郵便番号</td>

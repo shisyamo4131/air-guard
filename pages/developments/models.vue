@@ -53,12 +53,14 @@
 <script>
 import ASelect from '~/components/atoms/inputs/ASelect.vue'
 import GInputAutonumber from '~/components/molecules/inputs/GInputAutonumber.vue'
+import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
   components: {
     GTemplateDefault,
     ASelect,
     GInputAutonumber,
+    GInputCustomer,
   },
   data() {
     return {
@@ -67,6 +69,11 @@ export default {
           text: 'Autonumber',
           model: this.$Autonumber(),
           component: 'g-input-autonumber',
+        },
+        {
+          text: 'Customer',
+          model: this.$Customer(),
+          component: 'g-input-customer',
         },
       ],
       selectedItem: null,

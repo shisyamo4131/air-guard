@@ -87,10 +87,10 @@ export default class FireModel {
             if (fieldName in this && !!this[fieldName]) {
               const target = this[fieldName].replace(/\s+/g, '')
               for (let i = 0; i <= target.length - 1; i++) {
-                arr.push([target.substring(i, i + 1).toLowerCase(), true])
+                arr.push([target.substring(i, i + 1), true])
               }
               for (let i = 0; i <= target.length - 2; i++) {
-                arr.push([target.substring(i, i + 2).toLowerCase(), true])
+                arr.push([target.substring(i, i + 2), true])
               }
             }
           })
