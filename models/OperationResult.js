@@ -37,6 +37,15 @@ export default class OperationResult extends FireModel {
     Object.keys(props.props).forEach((key) => {
       this[key] = props.props[key].default
     })
+    Object.defineProperties(this, {
+      month: {
+        enumerable: true,
+        get() {
+          return this.date ? this.date.substring(0, 7) : ''
+        },
+        set(v) {},
+      },
+    })
   }
 
   initialize(item) {

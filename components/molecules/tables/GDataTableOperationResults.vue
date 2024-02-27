@@ -24,7 +24,10 @@ export default {
   computed: {
     headers() {
       if (this.$vuetify.breakpoint.xs) {
-        return [{ text: '現場', value: 'site.abbr' }]
+        return [
+          { text: '日付', value: 'date' },
+          { text: '現場', value: 'site.abbr' },
+        ]
       }
       return [
         { text: 'CODE', value: 'code' },
@@ -43,6 +46,15 @@ export default {
     :mobile-breakpoint="0"
     v-on="$listeners"
   >
+    <template #[`item.date`]="{ item }">
+      {{ `${$dayjs(item.date).format('DD日(ddd)')}` }}
+    </template>
+    <template #[`item.site.abbr`]="{ item }">
+      <div>{{ item.site.abbr }}</div>
+      <div class="text-caption grey--text text--darken-1">
+        {{ item.site.customer.abbr }}
+      </div>
+    </template>
   </g-data-table>
 </template>
 

@@ -242,23 +242,28 @@ export default {
     <template #default="{ height }">
       <!-- search-bar -->
       <v-toolbar flat>
-        <g-text-field-search
-          v-model="internalSearch"
-          :delay="delay"
-          :lazy-value="lazySearch"
-          :loading="loading"
-          @update:lazyValue="$emit('update:lazySearch', $event)"
+        <slot name="search-box">
+          <g-text-field-search
+            v-model="internalSearch"
+            :delay="delay"
+            :lazy-value="lazySearch"
+            :loading="loading"
+            @update:lazyValue="$emit('update:lazySearch', $event)"
+          />
+        </slot>
+        <v-badge
+          class="ml-4"
+          color="warning"
+          :value="searchDrawerBadge"
+          overlap
+          dot
         >
-          <template #append-outer>
-            <v-badge color="warning" :value="searchDrawerBadge" overlap dot>
-              <v-icon
-                :disabled="!useSearchDrawer"
-                @click="searchDrawer = !searchDrawer"
-                >mdi-magnify-plus-outline</v-icon
-              >
-            </v-badge>
-          </template>
-        </g-text-field-search>
+          <v-icon
+            :disabled="!useSearchDrawer"
+            @click="searchDrawer = !searchDrawer"
+            >mdi-magnify-plus-outline</v-icon
+          >
+        </v-badge>
       </v-toolbar>
       <div
         class="overflow-y-auto"
