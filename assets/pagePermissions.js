@@ -23,6 +23,10 @@ module.exports = {
   'employees-regist': [],
   'employees-docId': [],
   'employees-docId-edit': [],
+  'operation-resuls': [],
+  'operation-resuls-regist': [],
+  'operation-resuls-docId': [],
+  'operation-resuls-docId-edit': [],
   imports: ['admin', 'developer'],
   placements: [],
 }

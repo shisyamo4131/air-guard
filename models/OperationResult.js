@@ -4,45 +4,36 @@ import FireModel from './FireModel'
 const props = {
   props: {
     code: { type: String, default: null, required: false },
-    lastName: { type: String, default: null, required: false },
-    firstName: { type: String, default: null, required: false },
-    lastNameKana: { type: String, default: null, required: false },
-    firstNameKana: { type: String, default: null, required: false },
-    abbr: { type: String, default: null, required: false },
-    zipcode: { type: String, default: '', required: false },
-    address1: { type: String, default: '', required: false },
-    address2: { type: String, default: '', required: false },
-    tel: { type: String, default: '', required: false },
-    mobile: { type: String, default: '', required: false },
-    status: { type: String, default: 'active', required: false },
+    date: { type: String, default: '', required: false },
+    site: { type: Object, default: null, required: false },
+    workShift: {
+      type: String,
+      default: 'day',
+      validator: (v) => ['day', 'night', 'else'].includes(v),
+      required: false,
+    },
     remarks: { type: String, default: '', required: false },
   },
 }
 export { props }
 
 /**
- * ## Employee
+ * ## OperationResult
  * @author shisyamo4131
  */
-export default class Employee extends FireModel {
+export default class OperationResult extends FireModel {
   constructor(context, item) {
     super(context, item)
-    this.collection = 'Employees'
-    this.hasMany = [
-      {
-        collection: 'PlacementDetails',
-        field: 'workers',
-        condition: 'array-contains',
-        type: 'subcollection',
-      },
-    ]
-    this.tokenFields = [
-      'lastName',
-      'firstName',
-      'lastNameKana',
-      'firstNameKana',
-      'abbr',
-    ]
+    this.collection = 'OperationResults'
+    // this.hasMany = [
+    //   {
+    //     collection: 'PlacementDetails',
+    //     field: 'workers',
+    //     condition: 'array-contains',
+    //     type: 'subcollection',
+    //   },
+    // ]
+    this.tokenFields = []
     Object.keys(props.props).forEach((key) => {
       this[key] = props.props[key].default
     })

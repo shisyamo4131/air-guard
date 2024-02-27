@@ -2,7 +2,6 @@
 import GAutocomplete from './GAutocomplete.vue'
 /**
  * ### GAutocompleteCustomer
- * 取引先用Autocompleteコンポーネント
  *
  * @author shisyamo4131
  */

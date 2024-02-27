@@ -21,6 +21,13 @@
     ]
   },
   {
+    "name": "実績管理",
+    "icon": "mdi-cube",
+    "lists": [
+      { "name": "稼働実績", "to": "/operation-results", "icon": "mdi-domain" }
+    ]
+  },
+  {
     "name": "配置管理",
     "icon": "mdi-home",
     "to": "/placements",
