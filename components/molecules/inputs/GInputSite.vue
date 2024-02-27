@@ -47,6 +47,8 @@ export default {
       :value="abbr"
       label="略称"
       required
+      hint="検索に使用されます"
+      ignore-surrogate-pair
       @input="$emit('update:abbr', $event)"
     />
     <a-text-field

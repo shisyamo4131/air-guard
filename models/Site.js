@@ -34,7 +34,7 @@ export default class Site extends FireModel {
         type: 'collection',
       },
     ]
-    this.tokenFields = ['abbrKana']
+    this.tokenFields = ['abbr', 'abbrKana']
     Object.keys(props.props).forEach((key) => {
       this[key] = props.props[key].default
     })

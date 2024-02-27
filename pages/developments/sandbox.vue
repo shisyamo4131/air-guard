@@ -1,25 +1,39 @@
 <template>
   <g-template-default>
     <v-container>
-      <a-text-field v-model="value" ignore-surrogate-pair />
+      <v-form v-model="valid">
+        <g-text-field-code v-model="value" required @blur="test" />
+        <div>
+          {{ value }}
+        </div>
+        <div>
+          {{ valid }}
+        </div>
+      </v-form>
     </v-container>
   </g-template-default>
 </template>
 
 <script>
-import ATextField from '~/components/atoms/inputs/ATextField.vue'
+import GTextFieldCode from '~/components/molecules/inputs/GTextFieldCode.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
-  components: { ATextField, GTemplateDefault },
+  components: { GTemplateDefault, GTextFieldCode },
   data() {
     return {
-      // value: null,
+      valid: false,
+      value: null,
       // multipleValue: [],
-      value: 'cCKqxYVGLOWkTJViCar7',
-      multipleValue: ['cCKqxYVGLOWkTJViCar7', 'QYPCuQGgHFxYGB3zwziK'],
-      items: ['aaa', 'bbb'],
-      search: null,
+      // value: 'cCKqxYVGLOWkTJViCar7',
+      // multipleValue: ['cCKqxYVGLOWkTJViCar7', 'QYPCuQGgHFxYGB3zwziK'],
+      // items: ['aaa', 'bbb'],
+      // search: null,
     }
+  },
+  methods: {
+    test() {
+      console.log('OK')
+    },
   },
 }
 </script>
