@@ -1,5 +1,5 @@
 <script>
-import { limit, orderBy } from 'firebase/firestore'
+import { limit, orderBy, where } from 'firebase/firestore'
 import ASwitch from '~/components/atoms/inputs/ASwitch.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GDataTableSites from '~/components/molecules/tables/GDataTableSites.vue'
@@ -26,7 +26,11 @@ export default {
   data() {
     return {
       customerId: undefined,
-      defaultConstraints: [orderBy('updateAt', 'desc'), limit(10)],
+      defaultConstraints: [
+        where('status', '==', 'active'),
+        orderBy('updateAt', 'desc'),
+        limit(10),
+      ],
       includeExpired: false,
       items: [],
       lazySearch: null,
