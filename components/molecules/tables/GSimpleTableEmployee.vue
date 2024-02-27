@@ -30,6 +30,26 @@ export default {
         <td>{{ `${lastNameKana} ${firstNameKana}` }}</td>
       </tr>
       <tr>
+        <td>郵便番号</td>
+        <td>{{ zipcode }}</td>
+      </tr>
+      <tr>
+        <td>住所</td>
+        <td>{{ address1 }}</td>
+      </tr>
+      <tr>
+        <td>建物名・階数</td>
+        <td>{{ address2 }}</td>
+      </tr>
+      <tr>
+        <td>電話番号</td>
+        <td>{{ tel }}</td>
+      </tr>
+      <tr>
+        <td>携帯電話</td>
+        <td>{{ mobile }}</td>
+      </tr>
+      <tr>
         <td>備考</td>
         <td>
           <p style="white-space: pre-line">

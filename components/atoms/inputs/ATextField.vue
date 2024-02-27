@@ -21,12 +21,12 @@ export default {
     requiredError: { type: String, default: '必須入力です', required: false },
     katakanaError: {
       type: String,
-      default: '全角カタカナのみ使用可能です',
+      default: '全角カタカナ・スペースのみ使用可能です',
       required: false,
     },
     katakanaRule: {
       type: Function,
-      default: (v) => /^[\u30A1-\u30F6ー]+$/.test(v),
+      default: (v) => /^[\u30A1-\u30F6ー\x20\u3000]+$/.test(v),
       required: false,
     },
     rules: { type: Array, default: () => [], required: false },

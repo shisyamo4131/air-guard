@@ -44,7 +44,10 @@ export default {
     v-on="$listeners"
   >
     <template #[`item.fullName`]="{ item }">
-      {{ `${item.lastName} ${item.firstName}` }}
+      <div class="text-caption grey--text text--darken-1">
+        {{ `${item.lastNameKana} ${item.firstNameKana}` }}
+      </div>
+      <div>{{ `${item.lastName} ${item.firstName}` }}</div>
     </template>
     <template #[`item.status`]="{ item }">
       {{ $EMPLOYEE_STATUS[item.status] }}
