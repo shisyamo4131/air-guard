@@ -42,6 +42,8 @@
  * 3. 'length' as the number of digits
  * 4. 'field' as the field to be numbered
  * 5. 'status' as the field to be boolean
+ *
+ * @update 2024-02-27 tokenMap に使用できないサロゲートペア文字列を排除するように修正。
  */
 
 import {
@@ -85,7 +87,12 @@ export default class FireModel {
           const arr = []
           this.#tokenFields.forEach((fieldName) => {
             if (fieldName in this && !!this[fieldName]) {
-              const target = this[fieldName].replace(/\s+/g, '')
+              /* 2024-02-27 サロゲートペア文字を排除するように修正 */
+              // const target = this[fieldName].replace(/\s+/g, '')
+              const target = this[fieldName].replace(
+                /[\uD800-\uDBFF]|[\uDC00-\uDFFF]|\s+/g,
+                ''
+              )
               for (let i = 0; i <= target.length - 1; i++) {
                 arr.push([target.substring(i, i + 1), true])
               }
