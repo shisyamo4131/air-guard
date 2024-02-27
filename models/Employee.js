@@ -3,13 +3,18 @@ import FireModel from './FireModel'
 
 const props = {
   props: {
-    code: { type: undefined, default: null, required: false },
-    lastName: { type: undefined, default: null, required: false },
-    firstName: { type: undefined, default: null, required: false },
-    lastNameKana: { type: undefined, default: null, required: false },
-    firstNameKana: { type: undefined, default: null, required: false },
-    abbr: { type: undefined, default: null, required: false },
-    status: { type: undefined, default: null, required: false },
+    code: { type: String, default: null, required: false },
+    lastName: { type: String, default: null, required: false },
+    firstName: { type: String, default: null, required: false },
+    lastNameKana: { type: String, default: null, required: false },
+    firstNameKana: { type: String, default: null, required: false },
+    abbr: { type: String, default: null, required: false },
+    zipcode: { type: String, default: '', required: false },
+    address1: { type: String, default: '', required: false },
+    address2: { type: String, default: '', required: false },
+    tel: { type: String, default: '', required: false },
+    mobile: { type: String, default: '', required: false },
+    status: { type: String, default: null, required: false },
     remarks: { type: String, default: '', required: false },
   },
 }
