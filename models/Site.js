@@ -40,6 +40,13 @@ export default class Site extends FireModel {
     })
   }
 
+  initialize(item) {
+    Object.keys(props.props).forEach((key) => {
+      this[key] = props.props[key].default
+    })
+    super.initialize(item)
+  }
+
   /**
    * 指定されたcodeに該当するドキュメントが存在するかどうかを返します。
    * 存在すれば該当ドキュメントの参照を、存在しなければundefinedを返します。

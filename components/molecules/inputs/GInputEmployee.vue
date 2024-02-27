@@ -44,6 +44,8 @@ export default {
       :value="lastNameKana"
       label="氏カナ"
       required
+      hint="検索に使用されます"
+      ignore-surrogate-pair
       input-type="katakana"
       @input="$emit('update:lastNameKana', $event)"
     />
@@ -51,6 +53,8 @@ export default {
       :value="firstNameKana"
       label="名カナ"
       required
+      hint="検索に使用されます"
+      ignore-surrogate-pair
       input-type="katakana"
       @input="$emit('update:firstNameKana', $event)"
     />
@@ -58,6 +62,8 @@ export default {
       :value="abbr"
       label="略称"
       required
+      hint="検索に使用されます"
+      ignore-surrogate-pair
       counter
       maxlength="5"
       @input="$emit('update:abbr', $event)"
