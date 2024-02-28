@@ -22,12 +22,16 @@ export default {
         <td>{{ `${lastName} ${firstName}` }}</td>
       </tr>
       <tr>
+        <td>氏名カナ</td>
+        <td>{{ `${lastNameKana} ${firstNameKana}` }}</td>
+      </tr>
+      <tr>
         <td>略称</td>
         <td>{{ abbr }}</td>
       </tr>
       <tr>
-        <td>氏名カナ</td>
-        <td>{{ `${lastNameKana} ${firstNameKana}` }}</td>
+        <td>性別</td>
+        <td>{{ gender }}</td>
       </tr>
       <tr>
         <td>郵便番号</td>

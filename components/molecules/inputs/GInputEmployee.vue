@@ -69,6 +69,14 @@ export default {
       maxlength="5"
       @input="$emit('update:abbr', $event)"
     />
+    <v-radio-group
+      :value="gender"
+      :row="$vuetify.breakpoint.mdAndUp"
+      @change="$emit('update:gender', $event)"
+    >
+      <v-radio label="男性" value="male" />
+      <v-radio label="女性" value="female" />
+    </v-radio-group>
     <a-renderless-zipcode
       :value="zipcode"
       @input="$emit('update:zipcode', $event)"

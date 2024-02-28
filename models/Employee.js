@@ -9,6 +9,7 @@ const props = {
     lastNameKana: { type: String, default: null, required: false },
     firstNameKana: { type: String, default: null, required: false },
     abbr: { type: String, default: null, required: false },
+    gender: { type: String, default: 'male', required: false },
     zipcode: { type: String, default: '', required: false },
     address1: { type: String, default: '', required: false },
     address2: { type: String, default: '', required: false },
