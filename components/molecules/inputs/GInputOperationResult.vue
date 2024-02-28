@@ -4,6 +4,7 @@ import ATextarea from '~/components/atoms/inputs/ATextarea.vue'
 import ATextField from '~/components/atoms/inputs/ATextField.vue'
 import { props } from '~/models/OperationResult'
 import ADate from '~/components/atoms/inputs/ADate.vue'
+import ANumeric from '~/components/atoms/inputs/ANumeric.vue'
 
 /**
  * ## GInputOperationResult
@@ -15,7 +16,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { ATextField, ATextarea, GAutocompleteSite, ADate },
+  components: { ATextField, ATextarea, GAutocompleteSite, ADate, ANumeric },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -38,6 +39,12 @@ export default {
       required
       return-object
       @input="$emit('update:site', $event)"
+    />
+    <a-numeric
+      :value="sales"
+      label="売上"
+      required
+      @input="$emit('update:sales', $event)"
     />
     <a-textarea
       :value="remarks"

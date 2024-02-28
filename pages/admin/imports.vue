@@ -5,15 +5,17 @@
         <v-card>
           <v-card-title>import</v-card-title>
           <v-card-text>
-            <v-row>
-              <v-col cols="2">
-                <v-form ref="form">
+            <v-form ref="form">
+              <v-row>
+                <v-col>
                   <a-select
                     v-model="selectedCollection"
                     :items="collections"
                     label="collection"
                     required
                   />
+                </v-col>
+                <v-col>
                   <v-file-input
                     v-model="file"
                     label="file"
@@ -21,12 +23,10 @@
                     dense
                     :rules="[(v) => !!v || 'required.']"
                   />
-                </v-form>
-              </v-col>
-              <v-col cols="10">
-                <v-data-table :headers="headers" :items="csvData" />
-              </v-col>
-            </v-row>
+                </v-col>
+              </v-row>
+            </v-form>
+            <v-data-table :headers="headers" :items="csvData" />
           </v-card-text>
           <v-card-actions class="justify-end">
             <v-btn
@@ -52,7 +52,7 @@ export default {
   data() {
     return {
       selectedCollection: null,
-      collections: ['Customers', 'Sites', 'Employees'],
+      collections: ['Customers', 'Sites', 'Employees', 'OperationResults'],
       file: null,
       csvData: [],
       loading: false,
@@ -71,6 +71,7 @@ export default {
   },
   watch: {
     async file(v) {
+      if (!v) return
       this.csvData = await this.readCsv()
     },
   },
@@ -199,6 +200,42 @@ export default {
       const promises = []
       for (const data of this.csvData) {
         const model = this.$Employee()
+        const existDoc = existDocs.find(({ code }) => code === data.code)
+        if (existDoc) {
+          model.initialize({ ...data, docId: existDoc.docId })
+          promises.push(model.update())
+        } else {
+          model.initialize(data)
+          promises.push(model.create())
+        }
+      }
+      await Promise.all(promises)
+    },
+    async importOperationResults() {
+      const siteCodes = [
+        ...new Set(this.csvData.map(({ siteCode }) => siteCode)),
+      ]
+      const sites = await this.getExistDocsFromArray(siteCodes, 'Sites', 'code')
+      if (sites.length !== siteCodes.length) {
+        const siteNotExist = this.csvData.filter((data) => {
+          return !sites.some(({ code }) => code === data.siteCode)
+        })
+        // eslint-disable-next-line
+        console.table(siteNotExist)
+        throw new Error(
+          'CSVデータに現場が未登録である稼働実績が含まれています。処理を中断します。'
+        )
+      }
+      const existDocs = await this.getExistDocsFromArray(
+        this.csvData.map(({ code }) => code),
+        'OperationResults',
+        'code'
+      )
+      const promises = []
+      for (const data of this.csvData) {
+        const model = this.$OperationResult()
+        data.site = sites.find(({ code }) => code === data.siteCode)
+        data.sales = Number(data.sales)
         const existDoc = existDocs.find(({ code }) => code === data.code)
         if (existDoc) {
           model.initialize({ ...data, docId: existDoc.docId })

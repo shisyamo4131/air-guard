@@ -12,6 +12,7 @@ const props = {
       validator: (v) => ['day', 'night', 'else'].includes(v),
       required: false,
     },
+    sales: { type: Number, default: null, required: false },
     remarks: { type: String, default: '', required: false },
   },
 }

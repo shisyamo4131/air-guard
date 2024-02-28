@@ -99,11 +99,13 @@ const SITE_STATUS_ARRAY = [
 const WORK_SHIFT = {
   day: '日勤',
   night: '夜勤',
+  else: 'その他',
 }
 
 const WORK_SHIFT_ARRAY = [
   { value: 'day', text: '日勤' },
   { value: 'night', text: '夜勤' },
+  { value: 'else', text: 'その他' },
 ]
 
 export default (context, inject) => {

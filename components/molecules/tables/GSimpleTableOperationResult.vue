@@ -26,6 +26,10 @@ export default {
         <td>{{ site.abbr }}</td>
       </tr>
       <tr>
+        <td>売上</td>
+        <td>{{ `${(sales || 0).toLocaleString()} 円` }}</td>
+      </tr>
+      <tr>
         <td>備考</td>
         <td>
           <p style="white-space: pre-line">

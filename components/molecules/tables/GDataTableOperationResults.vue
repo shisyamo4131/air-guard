@@ -27,12 +27,20 @@ export default {
         return [
           { text: '日付', value: 'date' },
           { text: '現場', value: 'site.abbr' },
+          { text: '売上', value: 'sales' },
         ]
       }
       return [
         { text: 'CODE', value: 'code' },
-        { text: '日付', value: 'date' },
-        { text: '現場', value: 'site.abbr' },
+        { text: '日付', value: 'date', align: 'center', sortable: false },
+        {
+          text: '勤務区分',
+          value: 'workShift',
+          align: 'center',
+          sortable: false,
+        },
+        { text: '現場', value: 'site.abbr', sortable: false },
+        { text: '売上', value: 'sales', align: 'right', sortable: false },
       ]
     },
   },
@@ -49,11 +57,17 @@ export default {
     <template #[`item.date`]="{ item }">
       {{ `${$dayjs(item.date).format('DD日(ddd)')}` }}
     </template>
+    <template #[`item.workShift`]="{ item }">
+      {{ $WORK_SHIFT[item.workShift] }}
+    </template>
     <template #[`item.site.abbr`]="{ item }">
       <div>{{ item.site.abbr }}</div>
       <div class="text-caption grey--text text--darken-1">
         {{ item.site.customer.abbr }}
       </div>
+    </template>
+    <template #[`item.sales`]="{ item }">
+      {{ `${(item.sales || 0).toLocaleString()} 円` }}
     </template>
   </g-data-table>
 </template>
