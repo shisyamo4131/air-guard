@@ -15,7 +15,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
-    sortBy: { type: [String, Array], default: 'code', required: false },
+    sortBy: { type: [String, Array], default: 'date', required: false },
     sortDesc: { type: [Boolean, Array], default: true, required: false },
   },
   /***************************************************************************
@@ -27,11 +27,9 @@ export default {
         return [
           { text: '日付', value: 'date' },
           { text: '現場', value: 'site.abbr' },
-          { text: '売上', value: 'sales' },
         ]
       }
       return [
-        { text: 'CODE', value: 'code' },
         { text: '日付', value: 'date', align: 'center', sortable: false },
         {
           text: '勤務区分',
@@ -61,7 +59,9 @@ export default {
       {{ $WORK_SHIFT[item.workShift] }}
     </template>
     <template #[`item.site.abbr`]="{ item }">
-      <div>{{ item.site.abbr }}</div>
+      <div class="text-truncate" style="max-width: 200px">
+        {{ item.site.abbr }}
+      </div>
       <div class="text-caption grey--text text--darken-1">
         {{ item.site.customer.abbr }}
       </div>

@@ -40,7 +40,7 @@ export default {
   computed: {
     internalHeaders() {
       const actionColumn = {
-        text: 'actions',
+        text: '',
         value: 'actions',
         sortable: false,
         align: 'right',

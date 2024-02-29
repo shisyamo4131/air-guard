@@ -57,3 +57,9 @@ Firestore はあいまい検索ができない。AirGuard では登録されて�
 
 使用できない特殊文字の判定は「サロゲートペア」を含むか、含まないかで判断する。
 https://codezine.jp/article/detail/1592
+
+### 改修・追加機能
+
+- Cloud Functions の onUpdated トリガーが、内容に変更がなくても更新されてしまう。
+  - 更新日時（updateAt、updateDate）が更新されるため。
+  - 作成日時、更新日時はサブコレクションに history を作るべきか？

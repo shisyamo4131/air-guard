@@ -27,7 +27,7 @@ export default {
   computed: {
     containerClass() {
       const result = {}
-      if (this.$vuetify.breakpoint.xs) {
+      if (this.$vuetify.breakpoint.smAndDown) {
         result['pa-0'] = true
       }
       return result
