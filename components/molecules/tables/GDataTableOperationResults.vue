@@ -38,6 +38,7 @@ export default {
           sortable: false,
         },
         { text: '現場', value: 'site.abbr', sortable: false },
+        { text: '稼働数', value: 'workers', align: 'right', sortable: false },
         { text: '売上', value: 'sales', align: 'right', sortable: false },
       ]
     },
@@ -65,6 +66,18 @@ export default {
       <div class="text-caption grey--text text--darken-1">
         {{ item.site.customer.abbr }}
       </div>
+    </template>
+    <template #[`item.workers`]="{ item }">
+      {{
+        `${
+          item.workers.normal +
+          item.workers.half +
+          item.workers.canceled +
+          item.workersQualified.normal +
+          item.workersQualified.half +
+          item.workersQualified.canceled
+        } 人工`
+      }}
     </template>
     <template #[`item.sales`]="{ item }">
       {{ `${(item.sales || 0).toLocaleString()} 円` }}

@@ -72,12 +72,25 @@
  * - Edit the 'plugins' property to load this file.
  *
   plugins: ['./plugins/firebase.js']
- *
+ * 
+ * @update 2024-02-29 Emulator接続でFirestoreが以下のエラーを返すことがある。
+ *                    ---------------------------------------------------
+ *                    @firebase/firestore: Firestore (x.xx.x): Could not reach
+ *                    Cloud Firestore backend. Backend didn't respond within 10 seconds.
+ *                    ---------------------------------------------------
+ *                    原因は不明だが、Firestoreの初期化時にexperimentalForceLongPollingを
+ *                    有効にすると改善する報告があるものの、firebase v10.7.1では改善されず。
+ *                    v10.6.0にダウングレードしたところ、現象が発生しなくなったようなので
+ *                    しばらく様子見。
  */
 
 /* eslint-disable */
 import { initializeApp } from 'firebase/app'
-import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore'
+// import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore'
+import {
+  connectFirestoreEmulator,
+  initializeFirestore,
+} from 'firebase/firestore'
 import { connectDatabaseEmulator, getDatabase } from 'firebase/database'
 import { connectAuthEmulator, getAuth } from 'firebase/auth'
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions'
@@ -98,7 +111,10 @@ export default (context, inject) => {
   const firebaseApp = initializeApp(firebaseConfig)
   const inAuth = getAuth(firebaseApp)
   const inFunctions = getFunctions(firebaseApp)
-  const inFirestore = getFirestore(firebaseApp)
+  // const inFirestore = getFirestore(firebaseApp)
+  const inFirestore = initializeFirestore(firebaseApp, {
+    experimentalForceLongPolling: true,
+  })
   const inDatabase = getDatabase(firebaseApp)
   const inStorage = getStorage(firebaseApp)
   const inVapidKey = firebaseConfig?.vapidKey || ''
