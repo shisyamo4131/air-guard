@@ -30,7 +30,7 @@ export default {
         ]
       }
       return [
-        { text: '日付', value: 'date', align: 'center', sortable: false },
+        { text: '日付', value: 'date' },
         {
           text: '勤務区分',
           value: 'workShift',
@@ -59,7 +59,7 @@ export default {
       {{ $WORK_SHIFT[item.workShift] }}
     </template>
     <template #[`item.site.abbr`]="{ item }">
-      <div class="text-truncate" style="max-width: 200px">
+      <div class="text-truncate" style="max-width: 168px">
         {{ item.site.abbr }}
       </div>
       <div class="text-caption grey--text text--darken-1">
