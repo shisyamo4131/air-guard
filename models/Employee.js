@@ -44,14 +44,13 @@ export default class Employee extends FireModel {
       'firstNameKana',
       'abbr',
     ]
-    Object.keys(props.props).forEach((key) => {
-      this[key] = props.props[key].default
-    })
   }
 
   initialize(item) {
     Object.keys(props.props).forEach((key) => {
-      this[key] = props.props[key].default
+      const propDefault = props.props[key].default
+      this[key] =
+        typeof propDefault === 'function' ? propDefault() : propDefault
     })
     super.initialize(item)
   }

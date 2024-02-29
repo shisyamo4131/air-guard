@@ -13,6 +13,28 @@ const props = {
       required: false,
     },
     sales: { type: Number, default: null, required: false },
+    workers: {
+      type: Object,
+      default() {
+        return {
+          normal: 0,
+          half: 0,
+          canceled: 0,
+        }
+      },
+      required: false,
+    },
+    workersQualified: {
+      type: Object,
+      default() {
+        return {
+          normal: 0,
+          half: 0,
+          canceled: 0,
+        }
+      },
+      required: false,
+    },
     remarks: { type: String, default: '', required: false },
   },
 }
@@ -35,9 +57,6 @@ export default class OperationResult extends FireModel {
     //   },
     // ]
     this.tokenFields = []
-    Object.keys(props.props).forEach((key) => {
-      this[key] = props.props[key].default
-    })
     Object.defineProperties(this, {
       month: {
         enumerable: true,
@@ -51,7 +70,9 @@ export default class OperationResult extends FireModel {
 
   initialize(item) {
     Object.keys(props.props).forEach((key) => {
-      this[key] = props.props[key].default
+      const propDefault = props.props[key].default
+      this[key] =
+        typeof propDefault === 'function' ? propDefault() : propDefault
     })
     super.initialize(item)
   }

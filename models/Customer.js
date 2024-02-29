@@ -40,14 +40,13 @@ export default class Customer extends FireModel {
       },
     ]
     this.tokenFields = ['abbr', 'abbrKana']
-    Object.keys(props.props).forEach((key) => {
-      this[key] = props.props[key].default
-    })
   }
 
   initialize(item) {
     Object.keys(props.props).forEach((key) => {
-      this[key] = props.props[key].default
+      const propDefault = props.props[key].default
+      this[key] =
+        typeof propDefault === 'function' ? propDefault() : propDefault
     })
     super.initialize(item)
   }

@@ -236,6 +236,14 @@ export default {
         const model = this.$OperationResult()
         data.site = sites.find(({ code }) => code === data.siteCode)
         data.sales = Number(data.sales)
+        data.workers = {}
+        data.workersQualified = {}
+        data.workers.normal = Number(data.workersNormal)
+        data.workers.half = Number(data.workersHalf)
+        data.workers.canceled = Number(data.workersCanceled)
+        data.workersQualified.normal = Number(data.workersQualifiedNormal)
+        data.workersQualified.half = Number(data.workersQualifiedHalf)
+        data.workersQualified.canceled = Number(data.workersQualifiedCanceled)
         const existDoc = existDocs.find(({ code }) => code === data.code)
         if (existDoc) {
           model.initialize({ ...data, docId: existDoc.docId })
