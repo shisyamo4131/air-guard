@@ -62,22 +62,29 @@ export default {
     month: {
       handler(newVal, oldVal) {
         if (newVal === oldVal) return
-        this.fetchDocs()
+        // this.fetchDocs()
+        const constraints = [where('month', '==', newVal)]
+        this.items = this.model.subscribe(undefined, constraints)
       },
       immediate: true,
     },
   },
   /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.model.unsubscribe()
+  },
+  /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    async fetchDocs() {
-      this.items.splice(0)
-      const constraints = [where('month', '==', this.month)]
-      this.loading = true
-      this.items = await this.model.fetchDocs(undefined, constraints)
-      this.loading = false
-    },
+    // async fetchDocs() {
+    //   const constraints = [where('month', '==', this.month)]
+    //   this.loading = true
+    //   this.items = await this.model.fetchDocs(undefined, constraints)
+    //   this.loading = false
+    // },
   },
 }
 </script>
