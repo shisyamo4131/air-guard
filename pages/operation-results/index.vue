@@ -12,6 +12,7 @@ import GAutocompleteSite from '~/components/molecules/inputs/GAutocompleteSite.v
  * @author shisyamo4131
  */
 export default {
+  name: 'OperationResultsIndex',
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/

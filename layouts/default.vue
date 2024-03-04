@@ -8,7 +8,7 @@
     </v-app-bar>
     <v-main>
       <v-container fluid :class="containerClass">
-        <Nuxt />
+        <Nuxt keep-alive :keep-alive-props="{ include: keepAlivePages }" />
       </v-container>
     </v-main>
   </v-app>
@@ -31,6 +31,20 @@ export default {
         result['pa-0'] = true
       }
       return result
+    },
+    keepAlivePages() {
+      // return []
+      if (this.$route.path.includes('/customers')) {
+        return ['CustomersIndex']
+      } else if (this.$route.path.includes('/sites')) {
+        return ['SitesIndex']
+      } else if (this.$route.path.includes('/employees')) {
+        return ['EmployeesIndex']
+      } else if (this.$route.path.includes('/operation-results')) {
+        return ['OperationResultsIndex']
+      } else {
+        return []
+      }
     },
   },
 }

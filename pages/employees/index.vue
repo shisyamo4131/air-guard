@@ -9,6 +9,7 @@ import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
  * @author shisyamo4131
  */
 export default {
+  name: 'EmployeesIndex',
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/

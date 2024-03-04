@@ -10,6 +10,7 @@ import GAutocompleteCustomer from '~/components/molecules/inputs/GAutocompleteCu
  * @author shisyamo4131
  */
 export default {
+  name: 'SitesIndex',
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
