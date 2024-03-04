@@ -87,10 +87,10 @@ export default class FireModel {
           const arr = []
           this.#tokenFields.forEach((fieldName) => {
             if (fieldName in this && !!this[fieldName]) {
-              /* 2024-02-27 サロゲートペア文字を排除するように修正 */
+              /* 2024-02-27 サロゲートペア文字と一部の記号を排除するように修正 */
               // const target = this[fieldName].replace(/\s+/g, '')
               const target = this[fieldName].replace(
-                /[\uD800-\uDBFF]|[\uDC00-\uDFFF]|\s+/g,
+                /[\uD800-\uDBFF]|[\uDC00-\uDFFF]|~|\*|\[|\]|\s+/g,
                 ''
               )
               for (let i = 0; i <= target.length - 1; i++) {
@@ -610,10 +610,14 @@ export default class FireModel {
     // Return empty array if the 'search' is not string.
     if (!(typeof val === 'string')) return []
     // Get divided string array from query text.
-    const length = val.length === 1 ? 1 : 2
-    const divided = Array.from(val).reduce((sum, _, index) => {
-      if (index > val.length - length) return sum
-      sum.push(val.substring(index, index + length))
+    const target = val.replace(
+      /[\uD800-\uDBFF]|[\uDC00-\uDFFF]|~|\*|\[|\]|\s+/g,
+      ''
+    )
+    const length = target.length === 1 ? 1 : 2
+    const divided = Array.from(target).reduce((sum, _, index) => {
+      if (index > target.length - length) return sum
+      sum.push(target.substring(index, index + length))
       return sum
     }, [])
     // Delete duplicated element.

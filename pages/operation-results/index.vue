@@ -71,8 +71,11 @@ export default {
    ***************************************************************************/
   methods: {
     async fetchDocs() {
+      this.items.splice(0)
       const constraints = [where('month', '==', this.month)]
+      this.loading = true
       this.items = await this.model.fetchDocs(undefined, constraints)
+      this.loading = false
     },
   },
 }
@@ -106,6 +109,7 @@ export default {
             :value="$dayjs(`${month}-01`).format('YYYY年MM月')"
             hide-details
             readonly
+            :loading="loading"
             v-on="on"
           />
         </template>

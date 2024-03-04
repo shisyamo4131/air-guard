@@ -24,6 +24,14 @@ exports.isDocumentChanged = (event) => {
   return result
 }
 
+/**
+ * 非正規化されたドキュメントデータを同期させます。
+ * @param {*} collectionId
+ * @param {*} field
+ * @param {*} docId
+ * @param {*} data
+ * @returns
+ */
 exports.syncDocument = async (collectionId, field, docId, data) => {
   const colRef = firestore.collection(collectionId)
   const query = colRef.where(`${field}.docId`, '==', docId)
