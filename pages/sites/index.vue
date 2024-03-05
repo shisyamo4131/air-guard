@@ -22,21 +22,27 @@ export default {
     GAutocompleteCustomer,
   },
   /***************************************************************************
+   * ASYNCDATA
+   ***************************************************************************/
+  asyncData({ app }) {
+    const model = app.$Site()
+    const defaultConstraints = [
+      where('status', '==', 'active'),
+      orderBy('updateAt', 'desc'),
+      limit(10),
+    ]
+    const items = model.subscribe(undefined, defaultConstraints)
+    return { model, defaultConstraints, items }
+  },
+  /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
       customerId: undefined,
-      defaultConstraints: [
-        where('status', '==', 'active'),
-        orderBy('updateAt', 'desc'),
-        limit(10),
-      ],
       includeExpired: false,
-      items: [],
       lazySearch: null,
       loading: false,
-      model: this.$Site(),
     }
   },
   /***************************************************************************
@@ -59,25 +65,22 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
-    lazySearch: {
-      async handler(v) {
-        this.loading = true
-        await this.fetchDocs()
-        this.loading = false
-      },
-      immediate: true,
+    lazySearch(v) {
+      const ngram = v || undefined
+      const constraints = v ? [] : this.defaultConstraints
+      this.items = this.model.subscribe(ngram, constraints)
     },
+  },
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.model.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
-  methods: {
-    async fetchDocs() {
-      const ngram = this.lazySearch || undefined
-      const constraints = this.lazySearch ? [] : this.defaultConstraints
-      this.items = await this.model.fetchDocs(ngram, constraints)
-    },
-  },
+  methods: {},
 }
 </script>
 

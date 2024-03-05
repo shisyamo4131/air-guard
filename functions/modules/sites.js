@@ -3,12 +3,11 @@ const {
   onDocumentDeleted,
 } = require('firebase-functions/v2/firestore')
 const { getFirestore } = require('firebase-admin/firestore')
-const { isDocumentChanged, syncDocument } = require('./utils')
+const { syncDocument } = require('./utils')
 const firestore = getFirestore()
 
 exports.onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
   const docId = event.params.docId
-  if (!isDocumentChanged(event)) return null
   const data = event.data.after.data()
   await syncDocument('OperationResults', 'site', docId, data)
 })

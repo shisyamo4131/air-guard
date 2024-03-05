@@ -3,25 +3,18 @@ const firestore = getFirestore()
 
 /**
  * Firestoreドキュメントの内容に変更があったかどうかを返します。
- * updateDate、updateAt、uidフィールドの変更は対象外とします。
- * @param {*} event FirestoreのonUpdateトリガーのイベントオブジェクト
+ * @param {*} event onDocumentUpdatedトリガーのイベントオブジェクト
  * @returns
  */
-exports.isDocumentChanged = (event) => {
-  const {
-    updateDate: beforeUpdateDate,
-    updateAt: beforeUpdateAt,
-    uid: beforeUid,
-    ...before
-  } = event.data.before.data()
-  const {
-    updateDate: afterUpdateDate,
-    updateAt: afterUpdateAt,
-    uid: afterUid,
-    ...after
-  } = event.data.after.data()
-  const result = JSON.stringify(before) !== JSON.stringify(after)
-  return result
+exports.isDocumentChanged = (event, fields) => {
+  /* Check the event object. */
+  const before = event?.data?.before?.data() || undefined
+  const after = event?.data?.after?.data() || undefined
+  if (!before || !after)
+    throw new Error('onDocumentUpdatedのeventオブジェクトが必要です。')
+  return fields.some((field) => {
+    return JSON.stringify(before[field]) !== JSON.stringify(after[field])
+  })
 }
 
 /**

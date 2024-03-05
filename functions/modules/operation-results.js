@@ -4,6 +4,7 @@ const {
   onDocumentDeleted,
 } = require('firebase-functions/v2/firestore')
 const { getFirestore } = require('firebase-admin/firestore')
+const { isDocumentChanged } = require('./utils')
 const firestore = getFirestore()
 
 exports.onCreate = onDocumentCreated(
@@ -22,10 +23,10 @@ exports.onUpdate = onDocumentUpdated(
     const before = event.data.before.data()
     const after = event.data.after.data()
     const promises = []
-    if (before.site.docId !== after.site.docId || before.date !== after.date) {
+    if (isDocumentChanged(event, ['site.docId', 'date', 'sales'])) {
       promises.push(syncSiteDaylySales(before.site.docId, before.date))
+      promises.push(syncSiteDaylySales(after.site.docId, after.date))
     }
-    promises.push(syncSiteDaylySales(after.site.docId, after.date))
     await Promise.all(promises)
   }
 )
