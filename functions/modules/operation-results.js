@@ -23,9 +23,11 @@ exports.onUpdate = onDocumentUpdated(
     const before = event.data.before.data()
     const after = event.data.after.data()
     const promises = []
-    if (isDocumentChanged(event, ['site.docId', 'date', 'sales'])) {
-      promises.push(syncSiteDaylySales(before.site.docId, before.date))
+    if (isDocumentChanged(event, ['site.docId', 'date', 'sales', 'workers'])) {
       promises.push(syncSiteDaylySales(after.site.docId, after.date))
+    }
+    if (isDocumentChanged(event, ['site.docId', 'date'])) {
+      promises.push(syncSiteDaylySales(before.site.docId, before.date))
     }
     await Promise.all(promises)
   }
@@ -47,9 +49,27 @@ const syncSiteDaylySales = async (siteId, date) => {
     .where('site.docId', '==', siteId)
     .where('date', '==', date)
   const querySnapshot = await query.get()
-  const total = querySnapshot.docs.reduce((sum, i) => sum + i.data().sales, 0)
-  const month = date.substring(0, 7)
   const year = date.substring(0, 4)
+  const month = date.substring(0, 7)
+  const total = querySnapshot.docs.reduce((sum, i) => sum + i.data().sales, 0)
+  const workers = querySnapshot.docs.reduce(
+    (sum, i) => {
+      sum.canceled = sum.canceled + i.data().workers.canceled
+      sum.half = sum.half + i.data().workers.half
+      sum.normal = sum.normal + i.data().workers.normal
+      return sum
+    },
+    { canceled: 0, half: 0, normal: 0 }
+  )
+  const workersQualified = querySnapshot.docs.reduce(
+    (sum, i) => {
+      sum.canceled = sum.canceled + i.data().workersQualified.canceled
+      sum.half = sum.half + i.data().workersQualified.half
+      sum.normal = sum.normal + i.data().workersQualified.normal
+      return sum
+    },
+    { canceled: 0, half: 0, normal: 0 }
+  )
   const docRef = firestore.doc(`Sites/${siteId}/SiteDaylySales/${date}`)
-  total ? await docRef.set({ year, month, date, total }) : await docRef.delete()
+  await docRef.set({ year, month, date, total, workers, workersQualified })
 }

@@ -15,7 +15,25 @@ exports.onModify = onDocumentWritten(
       (sum, doc) => sum + doc.data().total,
       0
     )
+    const workers = querySnapshot.docs.reduce(
+      (sum, i) => {
+        sum.canceled = sum.canceled + i.data().workers.canceled
+        sum.half = sum.half + i.data().workers.half
+        sum.normal = sum.normal + i.data().workers.normal
+        return sum
+      },
+      { canceled: 0, half: 0, normal: 0 }
+    )
+    const workersQualified = querySnapshot.docs.reduce(
+      (sum, i) => {
+        sum.canceled = sum.canceled + i.data().workersQualified.canceled
+        sum.half = sum.half + i.data().workersQualified.half
+        sum.normal = sum.normal + i.data().workersQualified.normal
+        return sum
+      },
+      { canceled: 0, half: 0, normal: 0 }
+    )
     const docRef = firestore.doc(`Sites/${siteId}/SiteMonthlySales/${month}`)
-    total ? await docRef.set({ year, month, total }) : await docRef.delete()
+    await docRef.set({ year, month, total, workers, workersQualified })
   }
 )

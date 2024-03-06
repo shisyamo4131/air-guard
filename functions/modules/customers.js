@@ -1,7 +1,5 @@
 const { onDocumentUpdated } = require('firebase-functions/v2/firestore')
-const { getFirestore } = require('firebase-admin/firestore')
-const firestore = getFirestore()
-const { isDocumentChanged } = require('./utils')
+const { isDocumentChanged, syncDocuments } = require('./utils')
 
 exports.onUpdate = onDocumentUpdated('Customers/{docId}', async (event) => {
   /* Sync to Sites. */
@@ -15,23 +13,8 @@ exports.onUpdate = onDocumentUpdated('Customers/{docId}', async (event) => {
  * @returns
  */
 async function syncCustomerToSites(event) {
-  /* Define sync fields. */
-  const fields = ['name1', 'name2', 'abbr', 'abbrKana', 'deadline']
   /* Return if there are no change. */
-  if (!isDocumentChanged(event, fields)) return
+  if (!isDocumentChanged(event)) return
   /* Create synchronize data. */
-  const docId = event.data.after.id
-  const newData = Object.fromEntries(
-    fields.map((field) => [field, event.data.after.data()[field]])
-  )
-  newData.docId = docId
-  newData.ref = firestore.doc(`Customers/${docId}`)
-  /* Sync */
-  const colRef = firestore.collection('Sites')
-  const query = colRef.where('customer.docId', '==', docId)
-  const querySnapshot = await query.get()
-  const promises = querySnapshot.docs.map((doc) =>
-    doc.ref.update({ customer: newData })
-  )
-  await Promise.all(promises)
+  await syncDocuments('Sites', 'customer', event.data.after.data())
 }
