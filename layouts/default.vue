@@ -33,18 +33,15 @@ export default {
       return result
     },
     keepAlivePages() {
-      // return []
-      if (this.$route.path.includes('/customers')) {
-        return ['CustomersIndex']
-      } else if (this.$route.path.includes('/sites')) {
-        return ['SitesIndex']
-      } else if (this.$route.path.includes('/employees')) {
-        return ['EmployeesIndex']
-      } else if (this.$route.path.includes('/operation-results')) {
-        return ['OperationResultsIndex']
-      } else {
-        return []
-      }
+      // const result = [
+      //   'IndexPage',
+      //   'CustomersIndex',
+      //   'SitesIndex',
+      //   'EmployeesIndex',
+      //   'OperationResultsIndex',
+      // ]
+      const result = []
+      return result
     },
   },
 }
