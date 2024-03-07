@@ -6,6 +6,7 @@ const props = {
     code: { type: String, default: null, required: false },
     date: { type: String, default: '', required: false },
     site: { type: Object, default: null, required: false },
+    employees: { type: Array, default: [], required: false },
     workShift: {
       type: String,
       default: 'day',

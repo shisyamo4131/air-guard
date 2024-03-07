@@ -19,7 +19,11 @@ exports.onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
 })
 
 const deleteSubCollections = async (docId) => {
-  const collectionIds = ['SiteDaylySales']
+  const collectionIds = [
+    'SiteDaylySales',
+    'SiteMonthlySales',
+    'SiteYearlySales',
+  ]
   for (const collectionId of collectionIds) {
     const colRef = firestore.collection(`Sites/${docId}/${collectionId}`)
     const querySnapshot = await colRef.get()

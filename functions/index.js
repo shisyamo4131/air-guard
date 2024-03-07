@@ -10,3 +10,4 @@ exports.sites = require('./modules/sites')
 
 exports.operationResults = require('./modules/operation-results')
 exports.siteDaylySales = require('./modules/site-dayly-sales')
+exports.siteMonthlySales = require('./modules/site-monthly-sales')
