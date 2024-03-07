@@ -30,7 +30,7 @@ export default {
     @cancel="$router.push('/operation-results')"
   >
     <template #default="{ attrs, on, status, actions }">
-      <g-template-editor label="取引先登録" v-bind="status" v-on="actions">
+      <g-template-editor label="稼働実績登録" v-bind="status" v-on="actions">
         <g-input-operation-result v-bind="attrs" v-on="on" />
       </g-template-editor>
     </template>
