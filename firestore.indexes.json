@@ -15,7 +15,7 @@
       ]
     },
     {
-      "collectionGroup": "Sites",
+      "collectionGroup": "Employees",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -29,7 +29,7 @@
       ]
     },
     {
-      "collectionGroup": "Employees",
+      "collectionGroup": "Sites",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -47,6 +47,29 @@
     {
       "collectionGroup": "PlacementDetails",
       "fieldPath": "date",
+      "ttl": false,
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "SiteMonthlySales",
+      "fieldPath": "month",
       "ttl": false,
       "indexes": [
         {

@@ -26,6 +26,34 @@ export default {
         <td>{{ site.abbr }}</td>
       </tr>
       <tr>
+        <td>警備士A</td>
+        <td>
+          {{
+            `${
+              workersQualified.normal +
+              workersQualified.half +
+              workersQualified.canceled
+            } 人工`
+          }}
+          {{
+            `（半勤: ${(workersQualified.half || 0).toLocaleString()}  中止: ${(
+              workersQualified.canceled || 0
+            ).toLocaleString()}）`
+          }}
+        </td>
+      </tr>
+      <tr>
+        <td>警備士B</td>
+        <td>
+          {{ `${workers.normal + workers.half + workers.canceled} 人工` }}
+          {{
+            `（半勤: ${(workers.half || 0).toLocaleString()}  中止: ${(
+              workers.canceled || 0
+            ).toLocaleString()}）`
+          }}
+        </td>
+      </tr>
+      <tr>
         <td>売上</td>
         <td>{{ `${(sales || 0).toLocaleString()} 円` }}</td>
       </tr>
