@@ -15,15 +15,18 @@ exports.onModify = onDocumentWritten(
       (sum, doc) => sum + doc.data().total,
       0
     )
-    const workers = querySnapshot.docs.reduce(
-      (sum, i) => {
-        sum.canceled = sum.canceled + i.data().workers.canceled
-        sum.half = sum.half + i.data().workers.half
-        sum.normal = sum.normal + i.data().workers.normal
-        return sum
-      },
-      { canceled: 0, half: 0, normal: 0 }
-    )
+    const workStatus = ['normal', 'half', 'canceled']
+    const workers = querySnapshot.docs
+      .map((doc) => doc.data())
+      .reduce(
+        (sum, i) => {
+          workStatus.forEach((status) => {
+            sum[status] = sum[status] + i.workers[status]
+          })
+          return sum
+        },
+        { canceled: 0, half: 0, normal: 0 }
+      )
     const workersQualified = querySnapshot.docs.reduce(
       (sum, i) => {
         sum.canceled = sum.canceled + i.data().workersQualified.canceled
