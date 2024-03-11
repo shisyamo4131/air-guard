@@ -1,5 +1,6 @@
 <script>
 import ARenderlessCrud from '~/components/atoms/renderless/ARenderlessCrud.vue'
+import GDataTableSiteContracts from '~/components/molecules/tables/GDataTableSiteContracts.vue'
 import GSimpleTableSite from '~/components/molecules/tables/GSimpleTableSite.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 /**
@@ -11,7 +12,12 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTemplateDefault, GSimpleTableSite, ARenderlessCrud },
+  components: {
+    GTemplateDefault,
+    GSimpleTableSite,
+    ARenderlessCrud,
+    GDataTableSiteContracts,
+  },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -19,7 +25,14 @@ export default {
     const docId = route.params.docId
     const model = app.$Site()
     await model.fetch(docId)
-    return { docId, model }
+    const modelSiteContract = app.$SiteContract(docId)
+    const siteContracts = await modelSiteContract.fetchDocs()
+    return { docId, model, siteContracts }
+  },
+  data() {
+    return {
+      tab: null,
+    }
   },
 }
 </script>
@@ -44,23 +57,34 @@ export default {
           >
         </template>
         <template #default>
+          <v-tabs v-model="tab">
+            <v-tab>登録情報</v-tab>
+            <v-tab>契約情報</v-tab>
+          </v-tabs>
           <v-container fluid>
-            <v-card outlined>
-              <g-simple-table-site v-bind="model" />
-            </v-card>
-            <air-dialog-confirm-delete v-on="actions">
-              <template #activator="{ attrs, on }">
-                <v-btn
-                  class="mt-4"
-                  v-bind="attrs"
-                  block
-                  color="error"
-                  small
-                  v-on="on"
-                  >この現場を削除する</v-btn
-                >
-              </template>
-            </air-dialog-confirm-delete>
+            <v-tabs-items v-model="tab">
+              <v-tab-item>
+                <v-card outlined>
+                  <g-simple-table-site v-bind="model" />
+                </v-card>
+                <air-dialog-confirm-delete v-on="actions">
+                  <template #activator="{ attrs, on }">
+                    <v-btn
+                      class="mt-4"
+                      v-bind="attrs"
+                      block
+                      color="error"
+                      small
+                      v-on="on"
+                      >この現場を削除する</v-btn
+                    >
+                  </template>
+                </air-dialog-confirm-delete>
+              </v-tab-item>
+              <v-tab-item>
+                <g-data-table-site-contracts :items="siteContracts" />
+              </v-tab-item>
+            </v-tabs-items>
           </v-container>
         </template>
       </g-template-default>

@@ -80,14 +80,6 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
-    // attrs() {
-    //   // return { ...this.model }
-    //   const result = {}
-    //   Object.keys(this.model).forEach((key) => {
-    //     result[key] = this.model[key]
-    //   })
-    //   return result
-    // },
     async defaultSubmit(mode) {
       if (mode === 'REGIST') await this.model.create()
       if (mode === 'UPDATE') await this.model.update()

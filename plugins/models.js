@@ -4,6 +4,7 @@ import Customer from '../models/Customer'
 import Employee from '../models/Employee'
 import OperationResult from '../models/OperationResult'
 import Site from '../models/Site'
+import SiteContract from '../models/SiteContract'
 
 export default (context, inject) => {
   inject('Autonumber', (item) => new Autonumber(context, item))
@@ -12,4 +13,8 @@ export default (context, inject) => {
   inject('Employee', (item) => new Employee(context, item))
   inject('OperationResult', (item) => new OperationResult(context, item))
   inject('Site', (item) => new Site(context, item))
+  inject(
+    'SiteContract',
+    (siteId, item) => new SiteContract(context, siteId, item)
+  )
 }
