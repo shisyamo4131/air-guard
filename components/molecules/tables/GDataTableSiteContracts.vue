@@ -11,9 +11,9 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      workShift: 'day',
+      dayDiv: 'weekdays',
       claimType: 'standard',
-      prices: ['normal', 'half', 'canceled', 'overtime'],
+      prices: ['price', 'overtime'],
     }
   },
   /***************************************************************************
@@ -23,33 +23,20 @@ export default {
     headers() {
       return [
         { text: '適用開始日付', value: 'startDate', width: '132' },
+        { text: '勤務区分', value: 'workShift' },
+        { text: '開始時刻', value: 'startAt' },
+        { text: '終了時刻', value: 'endAt' },
+        { text: '休憩時間', value: 'breakTime' },
+        { text: '実働時間', value: 'workTime' },
         {
           text: '基本単価',
-          value: `unitPrices.${this.workShift}.${this.claimType}.normal`,
-          align: 'right',
+          value: `unitPrices.${this.dayDiv}.${this.claimType}.price`,
           sortable: false,
-          width: '82',
         },
         {
           text: '残業単価',
-          value: `unitPrices.${this.workShift}.${this.claimType}.overtime`,
-          align: 'right',
+          value: `unitPrices.${this.dayDiv}.${this.claimType}.overtime`,
           sortable: false,
-          width: '82',
-        },
-        {
-          text: '半勤単価',
-          value: `unitPrices.${this.workShift}.${this.claimType}.half`,
-          align: 'right',
-          sortable: false,
-          width: '82',
-        },
-        {
-          text: '中止単価',
-          value: `unitPrices.${this.workShift}.${this.claimType}.canceled`,
-          align: 'right',
-          sortable: false,
-          width: '82',
         },
       ]
     },
@@ -63,28 +50,33 @@ export default {
     :headers="headers"
     hide-default-footer
     :items-per-page="-1"
-    :mobile-breakpoint="0"
     sort-by="startDate"
     sort-desc
     v-on="$listeners"
   >
     <template #top>
       <div class="d-flex justify-end">
-        <v-radio-group v-model="workShift" row hide-details>
-          <v-radio label="日勤" value="day" />
-          <v-radio label="夜勤" value="night" />
+        <v-radio-group v-model="dayDiv" row>
+          <v-radio label="平日" value="weekdays" />
+          <v-radio label="土曜" value="saturday" />
+          <v-radio label="日曜" value="sunday" />
+          <v-radio label="祝日" value="holiday" />
         </v-radio-group>
-        <v-radio-group v-model="claimType" row hide-details>
+        <v-divider class="mr-3" vertical />
+        <v-radio-group v-model="claimType" row>
           <v-radio label="資格なし" value="standard" />
           <v-radio label="資格あり" value="qualified" />
         </v-radio-group>
       </div>
     </template>
+    <template #[`item.workShift`]="{ item }">
+      {{ $WORK_SHIFT[item.workShift] }}
+    </template>
     <template
       v-for="price of prices"
-      #[`item.unitPrices.${workShift}.${claimType}.${price}`]="{ item }"
+      #[`item.unitPrices.${dayDiv}.${claimType}.${price}`]="{ item }"
     >
-      {{ item.unitPrices[workShift][claimType][price].toLocaleString() }}
+      {{ item.unitPrices[dayDiv][claimType][price].toLocaleString() }}
     </template>
   </v-data-table>
 </template>
