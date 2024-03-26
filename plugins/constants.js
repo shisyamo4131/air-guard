@@ -86,6 +86,20 @@ const LEAVE_APPLICATION_TYPE_ARRAY = [
   { value: 'paid', text: '2: 有給休暇' },
 ]
 
+const SECURITY_TYPE = {
+  traffic: '交通誘導警備',
+  jam: '雑踏警備',
+  facility: '施設警備',
+  patrol: '巡回警備',
+}
+
+const SECURITY_TYPE_ARRAY = [
+  { value: 'traffic', text: '交通誘導警備' },
+  { value: 'jam', text: '雑踏警備' },
+  { value: 'facility', text: '施設警備' },
+  { value: 'patrol', text: '巡回警備' },
+]
+
 const SITE_STATUS = {
   active: '稼働中',
   expired: '終了',
@@ -121,6 +135,8 @@ export default (context, inject) => {
   inject('LEAVE_APPLICATION_STATUS_ARRAY', LEAVE_APPLICATION_STATUS_ARRAY)
   inject('LEAVE_APPLICATION_TYPE', LEAVE_APPLICATION_TYPE)
   inject('LEAVE_APPLICATION_TYPE_ARRAY', LEAVE_APPLICATION_TYPE_ARRAY)
+  inject('SECURITY_TYPE', SECURITY_TYPE)
+  inject('SECURITY_TYPE_ARRAY', SECURITY_TYPE_ARRAY)
   inject('SITE_STATUS', SITE_STATUS)
   inject('SITE_STATUS_ARRAY', SITE_STATUS_ARRAY)
   inject('WORK_SHIFT', WORK_SHIFT)

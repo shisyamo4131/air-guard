@@ -45,32 +45,4 @@ exports.onDelete = onDocumentDeleted(
 const syncSiteDaylySales = async (siteId, date) => {
   const model = new SiteDaylySales(siteId, date)
   await model.sync()
-  // const colRef = firestore.collection('OperationResults')
-  // const query = colRef
-  //   .where('site.docId', '==', siteId)
-  //   .where('date', '==', date)
-  // const querySnapshot = await query.get()
-  // const year = date.substring(0, 4)
-  // const month = date.substring(0, 7)
-  // const total = querySnapshot.docs.reduce((sum, i) => sum + i.data().sales, 0)
-  // const workers = querySnapshot.docs.reduce(
-  //   (sum, i) => {
-  //     sum.canceled = sum.canceled + i.data().workers.canceled
-  //     sum.half = sum.half + i.data().workers.half
-  //     sum.normal = sum.normal + i.data().workers.normal
-  //     return sum
-  //   },
-  //   { canceled: 0, half: 0, normal: 0 }
-  // )
-  // const workersQualified = querySnapshot.docs.reduce(
-  //   (sum, i) => {
-  //     sum.canceled = sum.canceled + i.data().workersQualified.canceled
-  //     sum.half = sum.half + i.data().workersQualified.half
-  //     sum.normal = sum.normal + i.data().workersQualified.normal
-  //     return sum
-  //   },
-  //   { canceled: 0, half: 0, normal: 0 }
-  // )
-  // const docRef = firestore.doc(`Sites/${siteId}/SiteDaylySales/${date}`)
-  // await docRef.set({ year, month, date, total, workers, workersQualified })
 }

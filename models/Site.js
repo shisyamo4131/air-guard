@@ -11,6 +11,7 @@ const props = {
     address: { type: String, default: '', required: false },
     startAt: { type: String, default: '', required: false },
     endAt: { type: String, default: '', required: false },
+    securityType: { type: String, default: '', required: false },
     status: { type: String, default: 'active', required: false },
     remarks: { type: String, default: '', required: false },
     customer: { type: Object, default: null, required: false },

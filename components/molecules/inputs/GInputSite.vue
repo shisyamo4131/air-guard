@@ -2,6 +2,7 @@
 import GAutocompleteCustomer from './GAutocompleteCustomer.vue'
 import GTextField from './GTextField.vue'
 import GDate from './GDate.vue'
+import GSelect from './GSelect.vue'
 import { props } from '~/models/Site'
 import EditMode from '~/components/molecules/mixins/EditMode'
 
@@ -15,7 +16,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GAutocompleteCustomer, GTextField, GDate },
+  components: { GAutocompleteCustomer, GTextField, GDate, GSelect },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -82,6 +83,13 @@ export default {
       :value="endAt"
       label="終了日"
       @input="$emit('update:endAt', $event)"
+    />
+    <g-select
+      :value="securityType"
+      label="警備種別"
+      :items="$SECURITY_TYPE_ARRAY"
+      required
+      @input="$emit('update:securityType', $event)"
     />
   </div>
 </template>

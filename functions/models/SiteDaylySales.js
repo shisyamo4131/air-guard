@@ -7,7 +7,7 @@ module.exports = class SiteDaylySales {
   constructor(siteId, date) {
     this.#siteId = siteId
     this.#date = date
-    this.sales = 0
+    this.sales = { traffic: 0, jam: 0, facility: 0, patrol: 0 }
     this.workers = {
       standard: { normal: 0, half: 0, canceled: 0 },
       qualified: { normal: 0, half: 0, canceled: 0 },
@@ -36,7 +36,14 @@ module.exports = class SiteDaylySales {
       .where('site.docId', '==', this.#siteId)
       .where('date', '==', this.#date)
     const querySnapshot = await query.get()
-    this.sales = querySnapshot.docs.reduce((sum, i) => sum + i.data().sales, 0)
+    // this.sales = querySnapshot.docs.reduce((sum, i) => sum + i.data().sales, 0)
+    this.sales = querySnapshot.docs.reduce(
+      (sum, doc) => {
+        sum[doc.data().securityType] += doc.data().sales
+        return sum
+      },
+      { traffic: 0, jam: 0, facility: 0, patrol: 0 }
+    )
     this.workers = querySnapshot.docs.reduce(
       (sum, doc) => {
         const types = ['standard', 'qualified']
