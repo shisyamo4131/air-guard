@@ -52,6 +52,7 @@ export default {
             },
             {
               id: 'sales',
+              stacked: true,
               ticks: {
                 beginAtZero: true,
                 // Y軸の数字を3桁で区切る
@@ -59,6 +60,11 @@ export default {
                   return `${label.toLocaleString()}円`
                 },
               },
+            },
+          ],
+          xAxes: [
+            {
+              stacked: true,
             },
           ],
         },
@@ -89,22 +95,29 @@ export default {
         currentDate.subtract(this.count - (i + 1), 'month').format('YYYY-MM')
       )
     },
-    /**
-     * 売上高のデータ
-     */
-    salesData() {
+    sales() {
       // Array.reduce()の初期値に使うオブジェクトを生成
-      // 例）{ '2024-01': 0, '2024-02': 0, '2024-03': 0 }
-      const defaultValue = Object.fromEntries(this.months.map((i) => [i, 0]))
+      // 例）{ traffic: { '2024-01': 0, '2024-02': 0, '2024-03': 0 }, ...}
+      const securityTypes = ['traffic', 'jam', 'facility', 'patrol']
+      const defaultValue = Object.fromEntries(
+        securityTypes.map((securityType) => [
+          securityType,
+          Object.fromEntries(this.months.map((i) => [i, 0])),
+        ])
+      )
       // Array.reduce()を使ってfetchしたsalesデータを集計
-      // 例）{ '2024-01': 1230943, '2024-02': 23947, '2024-03': 2349987 }
+      // 例）{ traffic: { '2024-01': xxxxx, '2024-02': xxxxx, '2024-03': xxxxx }, ...}
       const result = this.items.reduce((sum, i) => {
-        sum[i.month] = sum[i.month] + i.total
+        securityTypes.forEach((securityType) => {
+          sum[securityType][i.month] += i.sales[securityType]
+        })
         return sum
       }, defaultValue)
-      // 集計結果を値のみの配列にして返す
-      // 例）[1230943, 23947, 2349987 ]
-      return Object.values(result)
+      // 集計結果のsecurityType毎の値を配列に変換
+      Object.keys(result).forEach((key) => {
+        result[key] = Object.values(result[key])
+      })
+      return result
     },
     workersData() {
       // Array.reduce()の初期値に使うオブジェクトを生成
@@ -112,21 +125,23 @@ export default {
       const defaultValue = Object.fromEntries(this.months.map((i) => [i, 0]))
       // Array.reduce()を使ってfetchしたsalesデータを集計
       // 例）{ '2024-01': 120, '2024-02': 153, '2024-03': 145 }
+      const securityTypes = ['traffic', 'jam', 'facility', 'patrol']
+      const types = ['standard', 'qualified']
+      const workResults = ['normal', 'half', 'canceled']
       const result = this.items
-        .filter(({ total }) => !!total)
+        // .filter(({ total }) => !!total)
         .reduce((sum, i) => {
-          const workers =
-            i.workers.normal +
-            i.workers.half +
-            i.workers.canceled +
-            i.workersQualified.normal +
-            i.workersQualified.half +
-            i.workersQualified.canceled
-          sum[i.month] = sum[i.month] + workers
+          securityTypes.forEach((securityType) => {
+            types.forEach((type) => {
+              workResults.forEach((workResult) => {
+                sum[i.month] += i.workers[securityType][type][workResult]
+              })
+            })
+          })
           return sum
         }, defaultValue)
       // 集計結果を値のみの配列にして返す
-      // 例）[1230943, 23947, 2349987 ]
+      // 例）[ 1230943, 23947, 2349987 ]
       return Object.values(result)
     },
     /**
@@ -148,11 +163,38 @@ export default {
           },
           {
             type: 'bar',
-            label: ['売上高'],
-            backgroundColor: '#BBDEFB',
-            borderColor: '#2196F3',
+            label: ['交通誘導警備'],
+            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+            borderColor: 'rgb(255, 99, 132)',
             borderWidth: 1,
-            data: this.salesData,
+            data: this.sales.traffic,
+            yAxisID: 'sales',
+          },
+          {
+            type: 'bar',
+            label: ['雑踏警備'],
+            backgroundColor: 'rgba(255, 159, 64, 0.2)',
+            borderColor: 'rgb(255, 159, 64)',
+            borderWidth: 1,
+            data: this.sales.jam,
+            yAxisID: 'sales',
+          },
+          {
+            type: 'bar',
+            label: ['施設警備'],
+            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+            borderColor: 'rgb(54, 162, 235)',
+            borderWidth: 1,
+            data: this.sales.facility,
+            yAxisID: 'sales',
+          },
+          {
+            type: 'bar',
+            label: ['巡回警備'],
+            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+            borderColor: 'rgb(75, 192, 192)',
+            borderWidth: 1,
+            data: this.sales.patrol,
             yAxisID: 'sales',
           },
         ],
