@@ -23,6 +23,7 @@ const deleteSubCollections = async (docId) => {
     'SiteDaylySales',
     'SiteMonthlySales',
     'SiteYearlySales',
+    'SiteContracts',
   ]
   for (const collectionId of collectionIds) {
     const colRef = firestore.collection(`Sites/${docId}/${collectionId}`)

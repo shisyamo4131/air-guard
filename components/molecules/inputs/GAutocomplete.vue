@@ -1,5 +1,6 @@
 <script>
 import AAutocomplete from '../../atoms/inputs/AAutocomplete.vue'
+import ALabelInput from '~/components/atoms/labels/ALabelInput.vue'
 /**
  * ## GAutocomplete
  * FireModelを継承したmodelをpropsで受け取り、ユーザーが入力した検索文字列に該当する
@@ -41,7 +42,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { AAutocomplete },
+  components: { AAutocomplete, ALabelInput },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -159,29 +160,33 @@ export default {
 </script>
 
 <template>
-  <a-autocomplete
-    v-bind="$attrs"
-    cache-items
-    :filter="filter || defaultFilter"
-    :items="items"
-    :item-value="itemValue"
-    :loading="loading"
-    :multiple="multiple"
-    :return-object="returnObject"
-    :search-input.sync="searchInput"
-    :value="value"
-    v-on="$listeners"
-  >
-    <template
-      v-for="(_, scopedSlotName) in $scopedSlots"
-      #[scopedSlotName]="slotData"
-    >
-      <slot :name="scopedSlotName" v-bind="slotData" />
+  <a-label-input v-bind="$attrs" v-on="$listeners">
+    <template #default="{ attrs, on }">
+      <a-autocomplete
+        v-bind="attrs"
+        cache-items
+        :filter="filter || defaultFilter"
+        :items="items"
+        :item-value="itemValue"
+        :loading="loading"
+        :multiple="multiple"
+        :return-object="returnObject"
+        :search-input.sync="searchInput"
+        :value="value"
+        v-on="on"
+      >
+        <template
+          v-for="(_, scopedSlotName) in $scopedSlots"
+          #[scopedSlotName]="slotData"
+        >
+          <slot :name="scopedSlotName" v-bind="slotData" />
+        </template>
+        <template v-for="(_, slotName) in $slots" #[slotName]>
+          <slot :name="slotName" />
+        </template>
+      </a-autocomplete>
     </template>
-    <template v-for="(_, slotName) in $slots" #[slotName]>
-      <slot :name="slotName" />
-    </template>
-  </a-autocomplete>
+  </a-label-input>
 </template>
 
 <style></style>

@@ -47,7 +47,7 @@ export default {
       >
     </template>
     <template #default>
-      <v-container fluid>
+      <v-container fluid class="py-5 px-6">
         <v-form ref="form">
           <slot name="default" />
         </v-form>

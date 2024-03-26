@@ -5,7 +5,7 @@
         <v-card>
           <v-card-title> 売上推移 </v-card-title>
           <v-card-text>
-            <b-chart-sales :height="300" date="2024-04-01" :count="4" />
+            <b-chart-sales :height="300" :date="date" :count="4" />
           </v-card-text>
         </v-card>
       </v-col>
@@ -39,7 +39,9 @@ export default {
   name: 'IndexPage',
   components: { BChartSales },
   data() {
-    return {}
+    return {
+      date: this.$dayjs().format('YYYY-MM-DD'),
+    }
   },
 }
 </script>

@@ -27,10 +27,10 @@ export default {
         return [{ text: '現場名', value: 'abbr' }]
       }
       return [
-        { text: 'CODE', value: 'code' },
+        { text: 'CODE', value: 'code', width: 84 },
         { text: '現場名', value: 'name' },
         { text: '住所', value: 'address' },
-        { text: '状態', value: 'status', sortable: false },
+        { text: '状態', value: 'status', width: 84, sortable: false },
       ]
     },
   },

@@ -87,6 +87,9 @@ export default {
         },
       },
     },
+    breakpoint: {
+      mobileBreakpoint: 'xs',
+    },
   },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build
