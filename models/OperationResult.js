@@ -18,20 +18,8 @@ const props = {
       type: Object,
       default() {
         return {
-          normal: 0,
-          half: 0,
-          canceled: 0,
-        }
-      },
-      required: false,
-    },
-    workersQualified: {
-      type: Object,
-      default() {
-        return {
-          normal: 0,
-          half: 0,
-          canceled: 0,
+          standard: { normal: 0, half: 0, canceled: 0 },
+          qualified: { normal: 0, half: 0, canceled: 0 },
         }
       },
       required: false,

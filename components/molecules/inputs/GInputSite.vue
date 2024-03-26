@@ -3,6 +3,7 @@ import GAutocompleteCustomer from './GAutocompleteCustomer.vue'
 import GTextField from './GTextField.vue'
 import GDate from './GDate.vue'
 import { props } from '~/models/Site'
+import EditMode from '~/components/molecules/mixins/EditMode'
 
 /**
  * ## GInputSite
@@ -18,7 +19,7 @@ export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [props],
+  mixins: [props, EditMode],
 }
 </script>
 
@@ -32,6 +33,7 @@ export default {
     />
     <g-autocomplete-customer
       :value="customer"
+      :disabled="editMode !== 'REGIST'"
       label="取引先"
       required
       return-object

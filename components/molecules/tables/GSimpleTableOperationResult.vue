@@ -30,14 +30,16 @@ export default {
         <td>
           {{
             `${
-              workersQualified.normal +
-              workersQualified.half +
-              workersQualified.canceled
+              workers.qualified.normal +
+              workers.qualified.half +
+              workers.qualified.canceled
             } 人工`
           }}
           {{
-            `（半勤: ${(workersQualified.half || 0).toLocaleString()}  中止: ${(
-              workersQualified.canceled || 0
+            `（半勤: ${(
+              workers.qualified.half || 0
+            ).toLocaleString()}  中止: ${(
+              workers.qualified.canceled || 0
             ).toLocaleString()}）`
           }}
         </td>
@@ -45,10 +47,16 @@ export default {
       <tr>
         <td>警備士B</td>
         <td>
-          {{ `${workers.normal + workers.half + workers.canceled} 人工` }}
           {{
-            `（半勤: ${(workers.half || 0).toLocaleString()}  中止: ${(
-              workers.canceled || 0
+            `${
+              workers.standard.normal +
+              workers.standard.half +
+              workers.standard.canceled
+            } 人工`
+          }}
+          {{
+            `（半勤: ${(workers.standard.half || 0).toLocaleString()}  中止: ${(
+              workers.standard.canceled || 0
             ).toLocaleString()}）`
           }}
         </td>

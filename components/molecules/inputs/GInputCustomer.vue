@@ -5,6 +5,7 @@ import GNumeric from './GNumeric.vue'
 import GTextarea from './GTextarea.vue'
 import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
 import { props } from '~/models/Customer'
+import EditMode from '~/components/molecules/mixins/EditMode'
 
 /**
  * ## GInputCustomer
@@ -20,7 +21,7 @@ export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [props],
+  mixins: [props, EditMode],
 }
 </script>
 

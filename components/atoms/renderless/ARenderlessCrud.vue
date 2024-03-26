@@ -1,4 +1,5 @@
 <script>
+import EditMode from '~/components/molecules/mixins/EditMode'
 /**
  * ### ARenderlessCrud
  * props.modelに指定されたモデルに対するCREATE、UPDATE、DELETEを実行する
@@ -29,13 +30,14 @@ export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
+  mixins: [EditMode],
   props: {
     customSubmit: { type: Function, default: undefined, required: false },
-    editMode: {
-      type: String,
-      validator: (v) => ['REGIST', 'UPDATE', 'DELETE'].includes(v),
-      required: true,
-    },
+    // editMode: {
+    //   type: String,
+    //   validator: (v) => ['REGIST', 'UPDATE', 'DELETE'].includes(v),
+    //   required: true,
+    // },
     model: { type: Object, required: true },
   },
   /***************************************************************************
@@ -51,7 +53,7 @@ export default {
    ***************************************************************************/
   computed: {
     attrs() {
-      return { ...this.model }
+      return { ...this.model, editMode: this.editMode }
     },
     on() {
       const result = {}

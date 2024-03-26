@@ -70,12 +70,12 @@ export default {
     <template #[`item.workers`]="{ item }">
       {{
         `${
-          item.workers.normal +
-          item.workers.half +
-          item.workers.canceled +
-          item.workersQualified.normal +
-          item.workersQualified.half +
-          item.workersQualified.canceled
+          item.workers.standard.normal +
+          item.workers.standard.half +
+          item.workers.standard.canceled +
+          item.workers.qualified.normal +
+          item.workers.qualified.half +
+          item.workers.qualified.canceled
         } 人工`
       }}
     </template>
