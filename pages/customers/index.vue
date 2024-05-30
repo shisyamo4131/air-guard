@@ -6,6 +6,7 @@ import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
+import GIconFavoriteCustomer from '~/components/molecules/icons/GIconFavoriteCustomer.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -21,6 +22,7 @@ export default {
     GIconSubmit,
     GIconClose,
     GDataTable,
+    GIconFavoriteCustomer,
   },
   /***************************************************************************
    * DATA
@@ -99,6 +101,9 @@ export default {
         this.loading = false
       }
     },
+    toggledFavorite(item) {
+      item.favorite = !item.favorite
+    },
     validate() {
       const result = this.$refs.form.validate()
       if (!result) alert('入力に不備があります。')
@@ -145,6 +150,13 @@ export default {
         :actions="['detail']"
         :headers="[
           { text: 'CODE', value: 'code', width: 84 },
+          {
+            text: 'お気に入り',
+            value: 'favorite',
+            width: 96,
+            sortable: false,
+            align: 'center',
+          },
           { text: '略称', value: 'abbr' },
           { text: '住所', value: 'address1' },
         ]"
@@ -157,10 +169,16 @@ export default {
         "
         @click:detail="onClickDetail"
       >
+        <template #[`item.favorite`]="{ item }">
+          <g-icon-favorite-customer
+            :item="item"
+            left
+            small
+            @toggled="toggledFavorite(item)"
+          />
+        </template>
         <template #[`item.abbr`]="{ item }">
-          <v-icon v-if="item.favorite" color="yellow darken-2" small left
-            >mdi-star</v-icon
-          >{{ item.abbr }}
+          {{ item.abbr }}
         </template>
       </g-data-table>
     </v-container>

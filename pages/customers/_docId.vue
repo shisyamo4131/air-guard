@@ -7,6 +7,7 @@ import GIconSubmit from '~/components/atoms/icons/GIconSubmit.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
 import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
+import GIconFavoriteSite from '~/components/molecules/icons/GIconFavoriteSite.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -23,6 +24,7 @@ export default {
     GTextFieldSearch,
     GBtnRegistIcon,
     GInputSite,
+    GIconFavoriteSite,
   },
   /***************************************************************************
    * ASYNCDATA
@@ -34,10 +36,7 @@ export default {
       site: app.$Site(),
     }
     listeners.customer.subscribeDoc(docId)
-    const items = {
-      sites: [],
-    }
-    return { docId, listeners, items }
+    return { docId, listeners }
   },
   /***************************************************************************
    * DATA
@@ -55,6 +54,9 @@ export default {
       form: {
         customer: null,
         site: null,
+      },
+      items: {
+        sites: [],
       },
       lazySearch: {
         sites: null,
@@ -138,12 +140,15 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    toggledFavoriteSite(item) {
+      item.favorite = !item.favorite
+    },
     async fetchSites() {
       this.items.sites.splice(0)
       this.loading.sites = true
       try {
-        const ngram = this.lazySearch || undefined
-        const constraints = this.lazySearch
+        const ngram = this.lazySearch.sites || undefined
+        const constraints = this.lazySearch.sites
           ? [where('customerId', '==', this.docId)]
           : [
               where('customerId', '==', this.docId),
@@ -302,7 +307,7 @@ export default {
                 {{ listeners.customer.address2 }}
               </span>
             </v-card-title>
-            <v-card-subtitle>
+            <v-card-subtitle v-if="listeners.customer.zipcode">
               {{ `〒${listeners.customer.zipcode}` }}
             </v-card-subtitle>
             <v-card-text>
@@ -377,6 +382,13 @@ export default {
               :actions="['detail']"
               :headers="[
                 { text: 'CODE', value: 'code', width: 84 },
+                {
+                  text: 'お気に入り',
+                  value: 'favorite',
+                  width: 96,
+                  sortable: false,
+                  align: 'center',
+                },
                 { text: '現場名', value: 'name' },
               ]"
               :items="items.sites"
@@ -387,13 +399,22 @@ export default {
                   : 'お気に入りに登録されている現場がありません。'
               "
               :page="page.sites"
+              sort-by="code"
+              sort-desc
               @page-count="pageCount.sites = $event"
               @click:detail="$router.push(`/sites/${$event.docId}`)"
             >
+              <template #[`item.favorite`]="{ item }">
+                <g-icon-favorite-site
+                  :item="item"
+                  left
+                  small
+                  @toggled="toggledFavoriteSite(item)"
+                />
+              </template>
               <template #[`item.name`]="{ item }">
-                <v-icon v-if="item.favorite" color="yellow darken-2" small left
-                  >mdi-star</v-icon
-                >{{ item.name }}
+                {{ item.name }}
+                <v-chip v-if="item.status === 'expired'" x-small>終了</v-chip>
                 <div class="text-caption grey--text text--darken-1">
                   {{ item.address }}
                 </div>

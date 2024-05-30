@@ -91,6 +91,7 @@ const SECURITY_TYPE = {
   jam: '雑踏警備',
   facility: '施設警備',
   patrol: '巡回警備',
+  other: 'その他',
 }
 
 const SECURITY_TYPE_ARRAY = [
@@ -98,6 +99,7 @@ const SECURITY_TYPE_ARRAY = [
   { value: 'jam', text: '雑踏警備' },
   { value: 'facility', text: '施設警備' },
   { value: 'patrol', text: '巡回警備' },
+  { value: 'other', text: 'その他' },
 ]
 
 const SITE_STATUS = {
