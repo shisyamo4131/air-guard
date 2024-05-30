@@ -41,7 +41,7 @@
             width: `${employeeListWidth}px`,
           }"
         >
-          <g-firest-char v-model="firstChar" />
+          <g-first-char v-model="firstChar" />
           <g-placement-employee-list
             :reg-exp="$CHAR_REGEXP[firstChar]"
             @selected="selectedEmployee = $event"
@@ -73,7 +73,7 @@
 
 <script>
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
-import GFirestChar from '~/components/molecules/GFirestChar.vue'
+import GFirstChar from '~/components/molecules/GFirstChar.vue'
 import GMenuDatePicker from '~/components/molecules/menus/GMenuDatePicker.vue'
 import GPlacementEmployeeList from '~/components/organisms/GPlacementEmployeeList.vue'
 import GPlacementEmployeeRegister from '~/components/organisms/GPlacementEmployeeRegister.vue'
@@ -89,7 +89,7 @@ export default {
     GTextField,
     GPlacementEmployeeRegister,
     GPlacementSiteRegister,
-    GFirestChar,
+    GFirstChar,
   },
   data() {
     return {
