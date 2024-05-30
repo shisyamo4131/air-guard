@@ -1,11 +1,7 @@
 <script>
 /**
- * ## AIconPrev
- * An icon for 'prev'.
- * All props of VIcon are available.
- *
+ * ### GIconPrev
  * @author shisyamo4131
- * @create 2024-03-21
  */
 export default {}
 </script>

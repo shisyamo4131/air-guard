@@ -1,6 +1,6 @@
 <script>
 import { collectionGroup, onSnapshot, query, where } from 'firebase/firestore'
-import AChartBar from '~/components/atoms/charts/AChartBar.vue'
+import GChartBar from '~/components/atoms/charts/GChartBar.vue'
 /**
  * ### BChartSales
  *
@@ -14,7 +14,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { AChartBar },
+  components: { GChartBar },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -233,7 +233,7 @@ export default {
 </script>
 
 <template>
-  <a-chart-bar :chart-data="chartData" :height="height" :options="options" />
+  <g-chart-bar :chart-data="chartData" :height="height" :options="options" />
 </template>
 
 <style></style>

@@ -1,11 +1,7 @@
 <script>
 /**
- * ## AIconRegist
- * An icon for 'regist'.
- * All props of VIcon are available.
- *
+ * ### GIconRegist
  * @author shisyamo4131
- * @create 2024-03-18
  */
 export default {}
 </script>

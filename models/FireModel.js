@@ -286,13 +286,6 @@ export default class FireModel {
       params: docId ? [docId] : [],
     })
     try {
-      await this.beforeCreate().catch((err) => {
-        this.sendConsole({
-          message: 'An error has occured at beforeCreate() in create().',
-          type: 'error',
-        })
-        throw err
-      })
       const colRef = collection(this.#firestore, this.#collection)
       const docRef = docId ? doc(colRef, docId) : doc(colRef)
       this.docId = docRef.id
@@ -301,6 +294,13 @@ export default class FireModel {
       this.updateAt = this.dateUtc.getTime()
       this.updateDate = this.dateJst.toLocaleString()
       this.uid = this.#auth?.currentUser?.uid || 'unknown'
+      await this.beforeCreate().catch((err) => {
+        this.sendConsole({
+          message: 'An error has occured at beforeCreate() in create().',
+          type: 'error',
+        })
+        throw err
+      })
       const { ...item } = this
       await runTransaction(this.#firestore, async (transaction) => {
         const autonumRef = doc(
@@ -406,6 +406,11 @@ export default class FireModel {
           'update() should have docId as a property. Call fetch() first.'
         )
       }
+      const colRef = collection(this.#firestore, this.#collection)
+      const docRef = doc(colRef, this.docId)
+      this.updateAt = this.dateUtc.getTime()
+      this.updateDate = this.dateJst.toLocaleString()
+      this.uid = this.#auth?.currentUser?.uid || 'unknown'
       await this.beforeUpdate().catch((err) => {
         this.sendConsole({
           message: 'An error has occured at beforeUpdate() in update().',
@@ -413,11 +418,6 @@ export default class FireModel {
         })
         throw err
       })
-      const colRef = collection(this.#firestore, this.#collection)
-      const docRef = doc(colRef, this.docId)
-      this.updateAt = this.dateUtc.getTime()
-      this.updateDate = this.dateJst.toLocaleString()
-      this.uid = this.#auth?.currentUser?.uid || 'unknown'
       const { createAt, createDate, ...item } = this
       await updateDoc(docRef, item).catch((err) => {
         this.sendConsole({
@@ -467,6 +467,8 @@ export default class FireModel {
             this.docId
         )
       }
+      const colRef = collection(this.#firestore, this.#collection)
+      const docRef = doc(colRef, this.docId)
       await this.beforeDelete().catch((err) => {
         this.sendConsole({
           message: 'An error has occured at beforeDelete() in delete().',
@@ -474,8 +476,6 @@ export default class FireModel {
         })
         throw err
       })
-      const colRef = collection(this.#firestore, this.#collection)
-      const docRef = doc(colRef, this.docId)
       await deleteDoc(docRef).catch((err) => {
         this.sendConsole({
           message: 'An error has occured at delete().',
@@ -521,6 +521,41 @@ export default class FireModel {
     return false
   }
 
+  async fetchDoc(docId = undefined) {
+    this.sendConsole({ message: 'fetchDoc() is called.' })
+    try {
+      if (!docId) throw new Error('fetchDoc() requires docId as argument.')
+      const colRef = collection(this.#firestore, this.#collection)
+      const docRef = doc(colRef, docId)
+      const docSnap = await getDoc(docRef).catch((err) => {
+        this.sendConsole({
+          message: 'An error has occured at getDoc() in fetchDoc().',
+          type: 'error',
+        })
+        throw err
+      })
+      if (docSnap.exists()) {
+        this.sendConsole({
+          message:
+            'The document corresponding to the specified document id (%s) has been fetched.',
+          params: [docId],
+        })
+        return docSnap.data()
+      } else {
+        this.sendConsole({
+          message:
+            'The document corresponding to the specified document id (%s) does not exist. FireModel properties are initialized.',
+          params: [docId],
+          type: 'warn',
+        })
+        return undefined
+      }
+    } catch (err) {
+      this.sendConsole({ message: err.message, type: 'error' })
+      throw err
+    }
+  }
+
   /**
    * Retrieves documents from Firestore whose tokenMap matches the string
    * given as an argument and returns them as an array.
@@ -550,8 +585,11 @@ export default class FireModel {
    */
   subscribe(ngram = undefined, constraints = []) {
     this.unsubscribe()
-    // eslint-disable-next-line
+    /* eslint-disable */
     console.info('Subscription of %s has been started.', this.#collection)
+    if (ngram) console.table(ngram)
+    console.table(constraints)
+    /* eslint-enable */
     this.#items.splice(0)
     const grams = this.convertToGrams(ngram)
     const wheres = grams.map((gram) => {
@@ -569,6 +607,19 @@ export default class FireModel {
       })
     })
     return this.#items
+  }
+
+  subscribeDoc(docId) {
+    this.unsubscribe()
+    // eslint-disable-next-line
+    console.info(
+      'Subscription of %s has been started.',
+      `${this.#collection}/${docId}`
+    )
+    const docRef = doc(this.#firestore, `${this.#collection}/${docId}`)
+    this.#listener = onSnapshot(docRef, (doc) => {
+      this.initialize(doc.data())
+    })
   }
 
   /**

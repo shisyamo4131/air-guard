@@ -19,23 +19,16 @@
             <v-card>
               <v-card-text>
                 <v-form ref="form" v-model="formVerified">
-                  <a-text-field
+                  <g-text-field
                     v-model="inputs.name"
                     :disabled="!!selectedItem.length"
                     label="現場名"
                     :required="!selectedItem.length"
                   />
-                  <a-text-field
+                  <g-text-field
                     v-model="inputs.address"
                     :disabled="!!selectedItem.length"
                     label="住所"
-                    :required="!selectedItem.length"
-                  />
-                  <g-autocomplete-customer
-                    v-model="inputs.customerId"
-                    label="取引先"
-                    :disabled="!!selectedItem.length"
-                    :items="$store.getters['masters/Customers']"
                     :required="!selectedItem.length"
                   />
                 </v-form>
@@ -142,11 +135,10 @@
 </template>
 
 <script>
-import ATextField from '../atoms/inputs/ATextField.vue'
-import GAutocompleteCustomer from '../molecules/inputs/GAutocompleteCustomer.vue'
-import GDataTable from '../molecules/tables/GDataTable.vue'
+import GTextField from '../atoms/inputs/GTextField.vue'
+import GDataTable from '../atoms/tables/GDataTable.vue'
 export default {
-  components: { GDataTable, ATextField, GAutocompleteCustomer },
+  components: { GDataTable, GTextField },
   data() {
     return {
       dialog: false,

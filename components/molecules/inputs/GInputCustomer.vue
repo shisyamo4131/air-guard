@@ -1,16 +1,14 @@
 <script>
-import GTextField from './GTextField.vue'
-import GSelect from './GSelect.vue'
-import GNumeric from './GNumeric.vue'
-import GTextarea from './GTextarea.vue'
+import GTextField from '../../atoms/inputs/GTextField.vue'
+import GSelect from '../../atoms/inputs/GSelect.vue'
+import GNumeric from '../../atoms/inputs/GNumeric.vue'
 import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
 import { props } from '~/models/Customer'
-import EditMode from '~/components/molecules/mixins/EditMode'
+import EditMode from '~/components/mixins/GMixinEditMode'
+import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 
 /**
  * ## GInputCustomer
- * Customer用INPUT
- *
  * @author shisyamo4131
  */
 export default {
@@ -27,12 +25,6 @@ export default {
 
 <template>
   <div>
-    <g-text-field
-      :value="code"
-      label="CODE"
-      disabled
-      @input="$emit('update:code', $event)"
-    />
     <g-text-field
       :value="name1"
       label="取引先名1"
@@ -114,6 +106,7 @@ export default {
     <g-textarea
       :value="remarks"
       label="備考"
+      hide-details
       @input="$emit('update:remarks', $event)"
     />
   </div>

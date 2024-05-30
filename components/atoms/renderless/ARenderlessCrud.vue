@@ -1,7 +1,7 @@
 <script>
-import EditMode from '~/components/molecules/mixins/EditMode'
+import EditMode from '~/components/mixins/GMixinEditMode'
 /**
- * ### ARenderlessCrud
+ * ### ARenderlessCrud[should be deleted]
  * props.modelに指定されたモデルに対するCREATE、UPDATE、DELETEを実行する
  * レンダーレスコンポーネントです。
  * ※modelはFireModelを継承しているものとします。

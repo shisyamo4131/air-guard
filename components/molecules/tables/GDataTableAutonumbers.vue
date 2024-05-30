@@ -1,5 +1,5 @@
 <script>
-import GDataTable from './GDataTable.vue'
+import GDataTable from '../../atoms/tables/GDataTable.vue'
 /**
  * ### GDataTableAutonumbers
  * 自動採番ドキュメント用のDataTableコンポーネントです。

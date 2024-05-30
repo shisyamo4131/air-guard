@@ -1,6 +1,6 @@
 <script>
-import ATextarea from '~/components/atoms/inputs/ATextarea.vue'
-import ATextField from '~/components/atoms/inputs/ATextField.vue'
+import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
+import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
 import { props } from '~/models/Employee'
 
@@ -14,7 +14,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { ATextField, ATextarea, ARenderlessZipcode },
+  components: { GTextField, GTextarea, ARenderlessZipcode },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -24,24 +24,24 @@ export default {
 
 <template>
   <div>
-    <a-text-field
+    <g-text-field
       :value="code"
       label="CODE"
       disabled
       @input="$emit('update:code', $event)"
     />
-    <a-text-field
+    <g-text-field
       :value="lastName"
       label="氏"
       required
       @input="$emit('update:lastName', $event)"
     />
-    <a-text-field
+    <g-text-field
       :value="firstName"
       label="名"
       @input="$emit('update:firstName', $event)"
     />
-    <a-text-field
+    <g-text-field
       :value="lastNameKana"
       label="氏カナ"
       required
@@ -50,7 +50,7 @@ export default {
       input-type="katakana"
       @input="$emit('update:lastNameKana', $event)"
     />
-    <a-text-field
+    <g-text-field
       :value="firstNameKana"
       label="名カナ"
       required
@@ -59,7 +59,7 @@ export default {
       input-type="katakana"
       @input="$emit('update:firstNameKana', $event)"
     />
-    <a-text-field
+    <g-text-field
       :value="abbr"
       label="略称"
       required
@@ -83,33 +83,33 @@ export default {
       @loaded="$emit('update:address1', $event.full)"
     >
       <template #default="{ attrs, on }">
-        <a-text-field v-bind="attrs" label="郵便番号" v-on="on" />
+        <g-text-field v-bind="attrs" label="郵便番号" v-on="on" />
       </template>
     </a-renderless-zipcode>
-    <a-text-field
+    <g-text-field
       :value="address1"
       label="住所"
       required
       @input="$emit('update:address1', $event)"
     />
-    <a-text-field
+    <g-text-field
       :value="address2"
       label="建物名・階数"
       @input="$emit('update:address2', $event)"
     />
-    <a-text-field
+    <g-text-field
       :value="tel"
       label="電話番号"
       input-type="tel"
       @input="$emit('update:tel', $event)"
     />
-    <a-text-field
+    <g-text-field
       :value="mobile"
       label="携帯番号"
       input-type="tel"
       @input="$emit('update:mobile', $event)"
     />
-    <a-textarea
+    <g-textarea
       :value="remarks"
       label="備考"
       @input="$emit('update:remarks', $event)"

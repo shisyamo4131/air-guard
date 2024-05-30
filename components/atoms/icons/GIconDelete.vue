@@ -1,12 +1,7 @@
 <script>
 /**
- * ## AIconDelete
- * An icon for 'delete'.
- * All props of VIcon are available.
- * Default color is red.
- *
+ * ### GIconDelete
  * @author shisyamo4131
- * @create 2024-03-18
  */
 export default {
   /***************************************************************************

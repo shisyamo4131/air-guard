@@ -3,7 +3,7 @@
     <template #append-toolbar>
       <g-menu-date-picker v-model="startAt">
         <template #activator="{ attrs, on }">
-          <a-text-field
+          <g-text-field
             v-bind="attrs"
             class="ml-4 center-input"
             style="max-width: 180px"
@@ -72,7 +72,7 @@
 </template>
 
 <script>
-import ATextField from '~/components/atoms/inputs/ATextField.vue'
+import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GFirestChar from '~/components/molecules/GFirestChar.vue'
 import GMenuDatePicker from '~/components/molecules/menus/GMenuDatePicker.vue'
 import GPlacementEmployeeList from '~/components/organisms/GPlacementEmployeeList.vue'
@@ -86,7 +86,7 @@ export default {
     GPlacementTable,
     GPlacementEmployeeList,
     GMenuDatePicker,
-    ATextField,
+    GTextField,
     GPlacementEmployeeRegister,
     GPlacementSiteRegister,
     GFirestChar,

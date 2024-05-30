@@ -1,11 +1,7 @@
 <script>
 /**
- * ## AIconNext
- * An icon for 'next'.
- * All props of VIcon are available.
- *
+ * ### GIconNext
  * @author shisyamo4131
- * @create 2024-03-18
  */
 export default {}
 </script>

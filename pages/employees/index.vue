@@ -1,6 +1,6 @@
 <script>
 import { limit, orderBy, where } from 'firebase/firestore'
-import ASwitch from '~/components/atoms/inputs/ASwitch.vue'
+import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 import GDataTableEmployees from '~/components/molecules/tables/GDataTableEmployees.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
@@ -16,7 +16,7 @@ export default {
   components: {
     GInputEmployee,
     GTemplateIndex,
-    ASwitch,
+    GSwitch,
     GDataTableEmployees,
   },
   /***************************************************************************
@@ -89,7 +89,7 @@ export default {
     </template>
     <template #search-drawer>
       <v-container>
-        <a-switch
+        <g-switch
           v-model="includeExpired"
           class="ml-2"
           hide-details

@@ -9,14 +9,14 @@
  *
  * @author shisyamo4131
  */
-import ATextField from '~/components/atoms/inputs/ATextField.vue'
-import ANumeric from '~/components/atoms/inputs/ANumeric.vue'
-import ASwitch from '~/components/atoms/inputs/ASwitch.vue'
+import GTextField from '~/components/atoms/inputs/GTextField.vue'
+import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
+import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { ATextField, ANumeric, ASwitch },
+  components: { GTextField, GNumeric, GSwitch },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -39,7 +39,7 @@ export default {
 <template>
   <div>
     <!-- 追加モード時以外は編集不可 -->
-    <a-text-field
+    <g-text-field
       :value="collectionId"
       label="コレクション名"
       required
@@ -48,26 +48,26 @@ export default {
       :persistent-hint="editMode !== 'REGIST'"
       @input="$emit('update:collectionId', $event)"
     />
-    <a-numeric
+    <g-numeric
       :value="current"
       label="現在値"
       required
       :decimal-places="0"
       @input="$emit('update:current', $event)"
     />
-    <a-numeric
+    <g-numeric
       :value="length"
       label="桁数"
       required
       @input="$emit('update:length', $event)"
     />
-    <a-text-field
+    <g-text-field
       :value="field"
       label="フィールド名"
       required
       @input="$emit('update:field', $event)"
     />
-    <a-switch
+    <g-switch
       :input-value="status"
       :label="`状態：${status ? '有効' : '無効'}`"
       @change="$emit('update:status', $event)"

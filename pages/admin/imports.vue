@@ -8,7 +8,7 @@
             <v-form ref="form">
               <v-row>
                 <v-col>
-                  <a-select
+                  <g-select
                     v-model="selectedCollection"
                     :items="collections"
                     label="collection"
@@ -46,9 +46,9 @@
 <script>
 import { collection, getDocs, query, where } from 'firebase/firestore'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
-import ASelect from '~/components/atoms/inputs/ASelect.vue'
+import GSelect from '~/components/atoms/inputs/GSelect.vue'
 export default {
-  components: { GTemplateDefault, ASelect },
+  components: { GTemplateDefault, GSelect },
   data() {
     return {
       selectedCollection: null,

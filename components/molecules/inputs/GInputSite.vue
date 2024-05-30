@@ -1,44 +1,38 @@
 <script>
-import GAutocompleteCustomer from './GAutocompleteCustomer.vue'
-import GTextField from './GTextField.vue'
-import GDate from './GDate.vue'
-import GSelect from './GSelect.vue'
+import GDate from '~/components/atoms/inputs/GDate.vue'
+import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import { props } from '~/models/Site'
-import EditMode from '~/components/molecules/mixins/EditMode'
+import EditMode from '~/components/mixins/GMixinEditMode'
+import GTextField from '~/components/atoms/inputs/GTextField.vue'
+import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
 
 /**
- * ## GInputSite
- * Site用INPUT
- *
+ * ### GInputSite
  * @author shisyamo4131
  */
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GAutocompleteCustomer, GTextField, GDate, GSelect },
+  components: { GDate, GSelect, GTextField, GAutocompleteCustomer },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   mixins: [props, EditMode],
+  props: {
+    hideCustomer: { type: Boolean, default: false, required: false },
+  },
 }
 </script>
 
 <template>
   <div>
-    <g-text-field
-      :value="code"
-      label="CODE"
-      disabled
-      @input="$emit('update:code', $event)"
-    />
     <g-autocomplete-customer
-      :value="customer"
-      :disabled="editMode !== 'REGIST'"
+      v-if="!hideCustomer"
+      :value="customerId"
       label="取引先"
       required
-      return-object
-      @input="$emit('update:customer', $event)"
+      @input="$emit('update:customerId', $event)"
     />
     <g-text-field
       :value="name"

@@ -1,19 +1,18 @@
 <script>
 /**
+ * ### GSwitch
  * @author shisyamo4131
  */
-export default {}
+export default {
+  /***************************************************************************
+   * MODEL
+   ***************************************************************************/
+  model: { prop: 'input-value', event: 'change' },
+}
 </script>
 
 <template>
-  <air-select
-    v-bind="$attrs"
-    dense
-    outlined
-    :menu-props="{ 'offset-y': true }"
-    required-error="必須入力"
-    v-on="$listeners"
-  >
+  <v-switch class="mt-0 pt-2" style="height: 66px" v-bind="attrs" v-on="on">
     <template
       v-for="(_, scopedSlotName) in $scopedSlots"
       #[scopedSlotName]="slotData"
@@ -23,7 +22,6 @@ export default {}
     <template v-for="(_, slotName) in $slots" #[slotName]>
       <slot :name="slotName" />
     </template>
-  </air-select>
+  </v-switch>
 </template>
-
 <style></style>

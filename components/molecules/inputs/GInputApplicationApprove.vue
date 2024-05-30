@@ -26,7 +26,7 @@
     </v-simple-table>
     <v-switch v-model="internalReject" label="申請を却下する" />
     <v-expand-transition>
-      <a-textarea
+      <g-textarea
         v-show="internalReject"
         label="却下事由"
         :value="rejectReason"
@@ -38,9 +38,9 @@
 </template>
 
 <script>
-import ATextarea from '~/components/atoms/inputs/ATextarea.vue'
+import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 export default {
-  components: { ATextarea },
+  components: { GTextarea },
   props: {
     requestDate: { type: undefined, default: null, required: false },
     type: { type: undefined, default: null, required: false },

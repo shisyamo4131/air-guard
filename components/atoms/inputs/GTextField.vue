@@ -1,6 +1,6 @@
 <script>
 /**
- * ## ATextField
+ * ## GTextField
  *
  * ### サロゲートペア使用文字の拒否（air-vuetify実装候補）
  * FirestoreでNgram方式によるあいまい検索を実装する際、tokenMapフィールドの

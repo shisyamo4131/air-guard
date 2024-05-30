@@ -1,4 +1,3 @@
-import { collection, getDocs, limit, query, where } from 'firebase/firestore'
 import FireModel from './FireModel'
 
 const props = {
@@ -14,7 +13,8 @@ const props = {
     securityType: { type: String, default: '', required: false },
     status: { type: String, default: 'active', required: false },
     remarks: { type: String, default: '', required: false },
-    customer: { type: Object, default: null, required: false },
+    customerId: { type: String, default: '', required: false },
+    favorite: { type: Boolean, default: true, required: false },
   },
 }
 export { props }
@@ -45,22 +45,5 @@ export default class Site extends FireModel {
         typeof propDefault === 'function' ? propDefault() : propDefault
     })
     super.initialize(item)
-  }
-
-  /**
-   * 指定されたcodeに該当するドキュメントが存在するかどうかを返します。
-   * 存在すれば該当ドキュメントの参照を、存在しなければundefinedを返します。
-   * @param {string} code
-   * @returns 該当するドキュメントの参照です。
-   */
-  async isCodeExist(code) {
-    const colRef = collection(this.firestore, this.collection)
-    const q = query(colRef, where('code', '==', code), limit(1))
-    const querySnapshot = await getDocs(q)
-    if (querySnapshot.empty) {
-      return undefined
-    } else {
-      return querySnapshot.docs[0].ref
-    }
   }
 }

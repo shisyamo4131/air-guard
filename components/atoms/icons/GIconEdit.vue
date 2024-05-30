@@ -1,12 +1,7 @@
 <script>
 /**
- * ## AIconEdit
- * An icon for 'edit'.
- * All props of VIcon are available.
- * Default color is green.
- *
+ * ### GIconEdit
  * @author shisyamo4131
- * @create 2024-03-18
  */
 export default {
   /***************************************************************************

@@ -1,7 +1,7 @@
 <template>
   <g-template-default label="MODELS">
     <v-container fluid>
-      <a-select
+      <g-select
         v-model="selectedItem"
         label="select model"
         :items="items"
@@ -51,14 +51,14 @@
 </template>
 
 <script>
-import ASelect from '~/components/atoms/inputs/ASelect.vue'
+import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GInputAutonumber from '~/components/molecules/inputs/GInputAutonumber.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
   components: {
     GTemplateDefault,
-    ASelect,
+    GSelect,
     GInputAutonumber,
     GInputCustomer,
   },

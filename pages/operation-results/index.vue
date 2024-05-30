@@ -3,10 +3,8 @@ import { where } from 'firebase/firestore'
 import GInputOperationResult from '~/components/molecules/inputs/GInputOperationResult.vue'
 import GDataTableOperationResults from '~/components/molecules/tables/GDataTableOperationResults.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
-import ATextField from '~/components/atoms/inputs/ATextField.vue'
-import ADatePicker from '~/components/atoms/pickers/ADatePicker.vue'
-import GAutocompleteCustomer from '~/components/molecules/inputs/GAutocompleteCustomer.vue'
-import GAutocompleteSite from '~/components/molecules/inputs/GAutocompleteSite.vue'
+import GTextField from '~/components/atoms/inputs/GTextField.vue'
+import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
 /**
  * ### pages.operation-results.index
  * @author shisyamo4131
@@ -20,10 +18,8 @@ export default {
     GInputOperationResult,
     GTemplateIndex,
     GDataTableOperationResults,
-    ATextField,
-    ADatePicker,
-    GAutocompleteCustomer,
-    GAutocompleteSite,
+    GTextField,
+    GDatePicker,
   },
   /***************************************************************************
    * DATA
@@ -110,7 +106,7 @@ export default {
         :return-value.sync="month"
       >
         <template #activator="{ attrs, on }">
-          <a-text-field
+          <g-text-field
             v-bind="attrs"
             class="center-input"
             style="max-width: 120px"
@@ -121,7 +117,7 @@ export default {
             v-on="on"
           />
         </template>
-        <a-date-picker
+        <g-date-picker
           :value="month"
           type="month"
           @change="$refs.monthPicker.save($event)"
@@ -130,14 +126,7 @@ export default {
       <v-spacer />
     </template>
     <template #search-drawer>
-      <v-container>
-        <g-autocomplete-customer
-          v-model="customerId"
-          label="取引先"
-          clearable
-        />
-        <g-autocomplete-site v-model="siteId" label="現場" clearable />
-      </v-container>
+      <v-container> </v-container>
     </template>
     <template #data-table="{ attrs, on }">
       <g-data-table-operation-results v-bind="attrs" v-on="on" />

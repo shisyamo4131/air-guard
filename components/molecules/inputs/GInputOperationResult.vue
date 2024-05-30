@@ -1,10 +1,9 @@
 <script>
-import GAutocompleteSite from './GAutocompleteSite.vue'
-import ATextarea from '~/components/atoms/inputs/ATextarea.vue'
-import ATextField from '~/components/atoms/inputs/ATextField.vue'
+import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
+import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import { props } from '~/models/OperationResult'
-import ADate from '~/components/atoms/inputs/ADate.vue'
-import ANumeric from '~/components/atoms/inputs/ANumeric.vue'
+import GDate from '~/components/atoms/inputs/GDate.vue'
+import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 
 /**
  * ## GInputOperationResult
@@ -16,7 +15,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { ATextField, ATextarea, GAutocompleteSite, ADate, ANumeric },
+  components: { GTextField, GTextarea, GDate, GNumeric },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -26,27 +25,20 @@ export default {
 
 <template>
   <div>
-    <a-text-field
+    <g-text-field
       :value="code"
       label="CODE"
       disabled
       @input="$emit('update:code', $event)"
     />
-    <a-date :value="date" label="日付" @input="$emit('update:date', $event)" />
-    <g-autocomplete-site
-      :value="site"
-      label="現場"
-      required
-      return-object
-      @input="$emit('update:site', $event)"
-    />
-    <a-numeric
+    <g-date :value="date" label="日付" @input="$emit('update:date', $event)" />
+    <g-numeric
       :value="sales"
       label="売上"
       required
       @input="$emit('update:sales', $event)"
     />
-    <a-textarea
+    <g-textarea
       :value="remarks"
       label="備考"
       @input="$emit('update:remarks', $event)"

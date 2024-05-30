@@ -1,11 +1,21 @@
 <template>
-  <g-template-default> </g-template-default>
+  <v-container>
+    <g-autocomplete-customer v-model="value" multiple />
+    {{ value }}
+    <g-autocomplete-site />
+  </v-container>
 </template>
 
 <script>
-import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
+import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
+import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
 export default {
-  components: { GTemplateDefault },
+  components: { GAutocompleteCustomer, GAutocompleteSite },
+  data() {
+    return {
+      value: ['h1uRedzsqeHQSHpy3FCh', 'klnShX9vk03PHloYvmQg'],
+    }
+  },
 }
 </script>
 

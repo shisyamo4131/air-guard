@@ -1,20 +1,20 @@
 <template>
   <v-row>
     <v-col cols="6">
-      <a-date
+      <g-date
         :value="requestDate"
         label="申請日"
         required
         @input="$emit('update:requestDate', $event)"
       />
-      <a-select
+      <g-select
         :value="type"
         label="申請区分"
         :items="$LEAVE_APPLICATION_TYPE_ARRAY"
         required
         @input="$emit('update:type', $event)"
       />
-      <a-select
+      <g-select
         :value="employeeId"
         label="申請者"
         :items="employees"
@@ -23,13 +23,13 @@
         required
         @input="$emit('update:employeeId', $event)"
       />
-      <a-date
+      <g-date
         :value="date"
         label="対象日"
         required
         @input="$emit('update:date', $event)"
       />
-      <a-textarea
+      <g-textarea
         :value="reason"
         label="申請事由"
         required
@@ -37,7 +37,7 @@
       />
     </v-col>
     <v-col cols="6">
-      <a-date-picker
+      <g-date-picker
         :value="date"
         :disabled="editMode === 'DELETE'"
         full-width
@@ -49,12 +49,12 @@
 </template>
 
 <script>
-import ADate from '~/components/atoms/inputs/ADate.vue'
-import ASelect from '~/components/atoms/inputs/ASelect.vue'
-import ATextarea from '~/components/atoms/inputs/ATextarea.vue'
-import ADatePicker from '~/components/atoms/pickers/ADatePicker.vue'
+import GDate from '~/components/atoms/inputs/GDate.vue'
+import GSelect from '~/components/atoms/inputs/GSelect.vue'
+import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
+import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
 export default {
-  components: { ADate, ASelect, ATextarea, ADatePicker },
+  components: { GDate, GSelect, GTextarea, GDatePicker },
   props: {
     editMode: {
       type: String,

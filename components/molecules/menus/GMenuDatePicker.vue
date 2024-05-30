@@ -15,18 +15,18 @@
       >
       </slot>
     </template>
-    <a-date-picker v-model="selectedDate" no-title>
+    <g-date-picker v-model="selectedDate" no-title>
       <v-btn small @click="menu = false">cancel</v-btn>
       <v-spacer />
       <v-btn color="primary" small @click="onClickSubmit">submit</v-btn>
-    </a-date-picker>
+    </g-date-picker>
   </v-menu>
 </template>
 
 <script>
-import ADatePicker from '~/components/atoms/pickers/ADatePicker.vue'
+import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
 export default {
-  components: { ADatePicker },
+  components: { GDatePicker },
   inheritAttrs: false,
   props: {
     value: { type: String, default: undefined, required: false },

@@ -43,14 +43,14 @@
         <v-toolbar flat>
           <v-row>
             <v-col>
-              <a-select
+              <g-select
                 v-model="search.status"
                 label="状態"
                 :items="$LEAVE_APPLICATION_STATUS_ARRAY"
               />
             </v-col>
             <v-col>
-              <a-select
+              <g-select
                 v-model="search.type"
                 label="申請区分"
                 :items="$LEAVE_APPLICATION_TYPE_ARRAY"
@@ -119,18 +119,18 @@
 
 <script>
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
-import ASelect from '~/components/atoms/inputs/ASelect.vue'
+import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GInputApplicationApprove from '~/components/molecules/inputs/GInputApplicationApprove.vue'
-import GDataTable from '~/components/molecules/tables/GDataTable.vue'
+import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GLeaveApplicationRegister from '~/components/organisms/GLeaveApplicationRegister.vue'
 import GInputApplication from '~/components/molecules/inputs/GInputApplication.vue'
 export default {
   components: {
     GTemplateDefault,
     GCardInputForm,
-    ASelect,
+    GSelect,
     GInputApplicationApprove,
     GDataTable,
     GLeaveApplicationRegister,
