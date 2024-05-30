@@ -62,13 +62,11 @@ export default {
       this.items.splice(0)
       try {
         this.loading = true
-        if (this.lazySearch) {
-          this.items = await this.model.fetchDocs(this.lazySearch)
-        } else {
-          this.items = await this.model.fetchDocs(undefined, [
-            where('favorite', '==', true),
-          ])
-        }
+        const ngram = this.lazySearch || undefined
+        const constraints = this.lazySearch
+          ? []
+          : [where('favorite', '==', true)]
+        this.items = await this.model.fetchDocs(ngram, constraints)
       } catch (err) {
         // eslint-disable-next-line
         console.error(err)
@@ -152,6 +150,11 @@ export default {
         ]"
         :items="items"
         :loading="loading"
+        :no-data-text="
+          lazySearch
+            ? '該当する現場が登録されていません。'
+            : 'お気に入りに登録されている現場がありません。'
+        "
         @click:detail="onClickDetail"
       >
         <template #[`item.abbr`]="{ item }">

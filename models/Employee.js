@@ -1,4 +1,3 @@
-import { collection, getDocs, limit, query, where } from 'firebase/firestore'
 import FireModel from './FireModel'
 
 const props = {
@@ -37,13 +36,25 @@ export default class Employee extends FireModel {
         type: 'subcollection',
       },
     ]
-    this.tokenFields = [
-      'lastName',
-      'firstName',
-      'lastNameKana',
-      'firstNameKana',
-      'abbr',
-    ]
+    this.tokenFields = ['lastNameKana', 'firstNameKana', 'abbr']
+    Object.defineProperties(this, {
+      fullName: {
+        enumerable: true,
+        get() {
+          if (!this.firstName || !this.lastName) return ''
+          return `${this.lastName} ${this.firstName}`
+        },
+        set(v) {},
+      },
+      fullNameKana: {
+        enumerable: true,
+        get() {
+          if (!this.firstNameKana || !this.lastNameKana) return ''
+          return `${this.lastNameKana} ${this.firstNameKana}`
+        },
+        set(v) {},
+      },
+    })
   }
 
   initialize(item) {
@@ -53,22 +64,5 @@ export default class Employee extends FireModel {
         typeof propDefault === 'function' ? propDefault() : propDefault
     })
     super.initialize(item)
-  }
-
-  /**
-   * 指定されたcodeに該当するドキュメントが存在するかどうかを返します。
-   * 存在すれば該当ドキュメントの参照を、存在しなければundefinedを返します。
-   * @param {string} code
-   * @returns 該当するドキュメントの参照です。
-   */
-  async isCodeExist(code) {
-    const colRef = collection(this.firestore, this.collection)
-    const q = query(colRef, where('code', '==', code), limit(1))
-    const querySnapshot = await getDocs(q)
-    if (querySnapshot.empty) {
-      return undefined
-    } else {
-      return querySnapshot.docs[0].ref
-    }
   }
 }

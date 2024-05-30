@@ -140,17 +140,19 @@ export default {
   methods: {
     async fetchSites() {
       this.items.sites.splice(0)
+      this.loading.sites = true
       try {
-        this.loading.sites = true
-        if (this.lazySearch.sites) {
-          this.items.sites = await this.listeners.site.fetchDocs(
-            this.lazySearch.sites
-          )
-        } else {
-          this.items.sites = await this.listeners.site.fetchDocs(undefined, [
-            where('favorite', '==', true),
-          ])
-        }
+        const ngram = this.lazySearch || undefined
+        const constraints = this.lazySearch
+          ? [where('customerId', '==', this.docId)]
+          : [
+              where('customerId', '==', this.docId),
+              where('favorite', '==', true),
+            ]
+        this.items.sites = await this.listeners.site.fetchDocs(
+          ngram,
+          constraints
+        )
       } catch (err) {
         // eslint-disable-next-line
         console.error(err)
@@ -386,6 +388,7 @@ export default {
               "
               :page="page.sites"
               @page-count="pageCount.sites = $event"
+              @click:detail="$router.push(`/sites/${$event.docId}`)"
             >
               <template #[`item.name`]="{ item }">
                 <v-icon v-if="item.favorite" color="yellow darken-2" small left

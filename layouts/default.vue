@@ -7,7 +7,8 @@
       <v-spacer />
     </v-app-bar>
     <v-main>
-      <Nuxt keep-alive :keep-alive-props="{ include: keepAlivePages }" />
+      <!-- <Nuxt keep-alive :keep-alive-props="{ include: keepAlivePages }" /> -->
+      <Nuxt />
     </v-main>
   </v-app>
 </template>
