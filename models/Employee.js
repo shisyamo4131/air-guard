@@ -14,6 +14,11 @@ const props = {
     address2: { type: String, default: '', required: false },
     tel: { type: String, default: '', required: false },
     mobile: { type: String, default: '', required: false },
+    hireDate: { type: String, default: '', required: false },
+    leaveDate: { type: String, default: '', required: false },
+    leaveReason: { type: String, default: '', required: false },
+    isForeigner: { type: Boolean, default: false, required: false },
+    nationality: { type: String, default: '', required: false },
     status: { type: String, default: 'active', required: false },
     remarks: { type: String, default: '', required: false },
   },
@@ -64,5 +69,21 @@ export default class Employee extends FireModel {
         typeof propDefault === 'function' ? propDefault() : propDefault
     })
     super.initialize(item)
+  }
+
+  beforeCreate() {
+    return new Promise((resolve, reject) => {
+      if (!this.isForeigner) this.nationality = ''
+      if (!this.leaveDate) this.leaveReason = ''
+      return resolve()
+    })
+  }
+
+  beforeUpdate() {
+    return new Promise((resolve, reject) => {
+      if (!this.isForeigner) this.nationality = ''
+      if (!this.leaveDate) this.leaveReason = ''
+      return resolve()
+    })
   }
 }

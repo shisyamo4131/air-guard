@@ -1,4 +1,6 @@
 <script>
+import GDate from '~/components/atoms/inputs/GDate.vue'
+import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
@@ -14,7 +16,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextField, GTextarea, ARenderlessZipcode },
+  components: { GTextField, GTextarea, ARenderlessZipcode, GSwitch, GDate },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -109,9 +111,44 @@ export default {
       input-type="tel"
       @input="$emit('update:mobile', $event)"
     />
+    <g-date
+      :value="hireDate"
+      label="入社日"
+      required
+      @input="$emit('update:hireDate', $event)"
+    />
+    <g-switch
+      :input-value="isForeigner"
+      label="外国籍"
+      @change="$emit('update:isForeigner', $event)"
+    />
+    <v-expand-transition>
+      <g-text-field
+        v-show="isForeigner"
+        :value="nationality"
+        label="国籍"
+        :required="isForeigner"
+        @input="$emit('update:nationality', $event)"
+      />
+    </v-expand-transition>
+    <g-date
+      :value="leaveDate"
+      label="退職日"
+      @input="$emit('update:leaveDate', $event)"
+    />
+    <v-expand-transition>
+      <g-text-field
+        v-show="leaveDate"
+        :value="leaveReason"
+        label="退職事由"
+        :required="!!leaveDate"
+        @input="$emit('update:leaveReason', $event)"
+      />
+    </v-expand-transition>
     <g-textarea
       :value="remarks"
       label="備考"
+      hide-details
       @input="$emit('update:remarks', $event)"
     />
   </div>

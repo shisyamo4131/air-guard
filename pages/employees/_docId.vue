@@ -122,6 +122,7 @@ export default {
           {{ listeners.employee.fullName }}
           <v-chip
             v-if="listeners.employee.status === 'expired'"
+            class="ml-2"
             color="red"
             label
             x-small
@@ -133,7 +134,20 @@ export default {
         <v-card-subtitle>
           {{ listeners.employee.fullNameKana }}
         </v-card-subtitle>
-        <v-card-text> </v-card-text>
+        <v-card-text>
+          <v-chip-group column>
+            <v-chip v-if="listeners.employee.isForeigner" small label>
+              {{ listeners.employee.nationality }}
+            </v-chip>
+            <v-chip v-else small label>日本</v-chip>
+            <v-chip small label>
+              {{ `${listeners.employee.hireDate} 入社` }}
+            </v-chip>
+            <v-chip v-if="listeners.employee.leaveDate" small label>
+              {{ `${listeners.employee.leaveDate} 退職` }}
+            </v-chip>
+          </v-chip-group>
+        </v-card-text>
         <v-dialog
           v-model="dialog.employee"
           max-width="600"
