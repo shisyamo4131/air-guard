@@ -10,6 +10,7 @@ const props = {
     status: { type: String, default: 'unapproved', required: false },
     settlementDate: { type: String, default: '', required: false },
     rejectReason: { type: String, default: '', required: false },
+    withdrawReason: { type: String, default: '', required: false },
   },
 }
 export { props }
@@ -23,6 +24,18 @@ export default class LeaveApplication extends FireModel {
   constructor(context, item) {
     super(context, item)
     this.collection = 'LeaveApplications'
+    Object.defineProperties(this, {
+      months: {
+        enumerable: true,
+        get() {
+          const result = [
+            ...new Set(this.dates.map((date) => date.substring(0, 7))),
+          ]
+          return result
+        },
+        set(v) {},
+      },
+    })
   }
 
   initialize(item) {

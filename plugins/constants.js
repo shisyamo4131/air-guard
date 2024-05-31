@@ -67,13 +67,15 @@ const EMPLOYEE_STATUS_ARRAY = [
 const LEAVE_APPLICATION_STATUS = {
   approved: '承認',
   unapproved: '未承認',
-  reject: '却下',
+  rejected: '却下',
+  withdraw: '取下',
 }
 
 const LEAVE_APPLICATION_STATUS_ARRAY = [
   { value: 'approved', text: '承認' },
   { value: 'unapproved', text: '未承認' },
-  { value: 'reject', text: '却下' },
+  { value: 'rejected', text: '却下' },
+  { value: 'withdraw', text: '取下' },
 ]
 
 const LEAVE_APPLICATION_TYPE = {

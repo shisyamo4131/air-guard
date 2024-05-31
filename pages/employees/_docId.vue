@@ -235,7 +235,14 @@ export default {
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" md="7"> </v-col>
+        <v-col cols="12" md="7">
+          <v-card flat outlined>
+            <v-card-title class="g-card__title"> 休暇申請 </v-card-title>
+            <v-container fluid>
+              <v-calendar />
+            </v-container>
+          </v-card>
+        </v-col>
       </v-row>
     </v-container>
   </div>

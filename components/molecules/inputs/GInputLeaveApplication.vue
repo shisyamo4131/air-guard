@@ -33,12 +33,14 @@ export default {
       :value="requestDate"
       label="申請日"
       required
+      :disabled="['rejected', 'withdraw'].includes(status)"
       @input="$emit('update:requestDate', $event)"
     />
     <g-select
       :value="type"
       label="休暇種別"
       :items="$LEAVE_APPLICATION_TYPE_ARRAY"
+      :disabled="['rejected', 'withdraw'].includes(status)"
       @input="$emit('update:type', $event)"
     />
     <g-autocomplete-employee
@@ -47,6 +49,7 @@ export default {
       required
       item-text="abbr"
       item-value="docId"
+      :disabled="['rejected', 'withdraw'].includes(status)"
       @input="$emit('update:employeeId', $event)"
     />
     <g-combobox-date
@@ -54,39 +57,30 @@ export default {
       label="対象日"
       required
       multiple
+      :disabled="['rejected', 'withdraw'].includes(status)"
       @input="$emit('update:dates', $event)"
     />
     <g-textarea
       :value="reason"
       label="申請事由"
       required
+      :disabled="['rejected', 'withdraw'].includes(status)"
       @input="$emit('update:reason', $event)"
     />
-    <g-select
-      :value="status"
-      label="状態"
-      :items="$LEAVE_APPLICATION_STATUS_ARRAY"
-      attach
-      @input="$emit('update:status', $event)"
+    <g-textarea
+      v-if="status === 'rejected'"
+      :value="rejectReason"
+      label="却下事由"
+      :required="status === 'rejected'"
+      @input="$emit('update:rejectReason', $event)"
     />
-    <v-expand-transition>
-      <g-combobox-date
-        v-show="status !== 'unapproved'"
-        :value="settlementDate"
-        label="決済日"
-        :required="status !== 'unapproved'"
-        @input="$emit('update:settlementDate', $event)"
-      />
-    </v-expand-transition>
-    <v-expand-transition>
-      <g-textarea
-        v-show="status === 'reject'"
-        :value="rejectReason"
-        label="否決事由"
-        :required="status === 'reject'"
-        @input="$emit('update:rejectReason', $event)"
-      />
-    </v-expand-transition>
+    <g-textarea
+      v-if="status === 'withdraw'"
+      :value="withdrawReason"
+      label="取下事由"
+      :required="status === 'withdraw'"
+      @input="$emit('update:withdrawReason', $event)"
+    />
   </div>
 </template>
 

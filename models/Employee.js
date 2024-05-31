@@ -35,6 +35,12 @@ export default class Employee extends FireModel {
     this.collection = 'Employees'
     this.hasMany = [
       {
+        collection: 'LeaveApplications',
+        field: 'employeeId',
+        condition: '==',
+        type: 'collection',
+      },
+      {
         collection: 'PlacementDetails',
         field: 'workers',
         condition: 'array-contains',
