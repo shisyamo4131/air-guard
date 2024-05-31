@@ -8,7 +8,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
-    color: { type: String, default: 'red', required: false },
+    // color: { type: String, default: 'red', required: false },
   },
 }
 </script>

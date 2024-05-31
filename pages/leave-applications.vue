@@ -1,249 +1,100 @@
-<template>
-  <g-template-default label="休暇申請管理">
-    <template #append-toolbar>
-      <v-spacer />
-      <v-toolbar-items>
-        <v-dialog v-model="dialog.create" max-width="600" scrollable>
-          <template #activator="{ attrs, on }">
-            <v-btn v-bind="attrs" text v-on="on">
-              <v-icon>mdi-plus</v-icon>
-              <span>登録</span>
-            </v-btn>
-          </template>
-          <g-leave-application-register
-            ref="form-create"
-            :employees="employees"
-            @click:cancel="dialog.create = false"
-            @submitted="dialog.create = false"
-          />
-        </v-dialog>
-
-        <v-dialog v-model="dialog.modify" max-width="600" scrollable>
-          <g-card-input-form
-            ref="form-modify"
-            label="休暇申請"
-            :loading="loading"
-            :edit-mode="editMode"
-            @click:cancel="dialog.modify = false"
-            @click:submit="submit"
-          >
-            <template #default>
-              <g-input-application
-                v-bind.sync="editItem"
-                :edit-mode="editMode"
-                :employees="employees"
-              />
-            </template>
-          </g-card-input-form>
-        </v-dialog>
-      </v-toolbar-items>
-    </template>
-    <template #default>
-      <v-container fluid>
-        <v-toolbar flat>
-          <v-row>
-            <v-col>
-              <g-select
-                v-model="search.status"
-                label="状態"
-                :items="$LEAVE_APPLICATION_STATUS_ARRAY"
-              />
-            </v-col>
-            <v-col>
-              <g-select
-                v-model="search.type"
-                label="申請区分"
-                :items="$LEAVE_APPLICATION_TYPE_ARRAY"
-              />
-            </v-col>
-          </v-row>
-        </v-toolbar>
-        <g-data-table
-          :headers="headers"
-          :items="items"
-          show-actions
-          @click:edit="openEditor($event, 'UPDATE')"
-          @click:delete="openEditor($event, 'DELETE')"
-        >
-          <template #[`item.type`]="{ item }">
-            {{ $LEAVE_APPLICATION_TYPE[item.type] }}
-          </template>
-          <template #[`item.employeeId`]="{ item }">
-            {{ $store.getters['masters/Employee'](item.employeeId).abbr }}
-          </template>
-          <template #[`item.status`]="{ item }">
-            {{ $LEAVE_APPLICATION_STATUS[item.status] }}
-          </template>
-        </g-data-table>
-      </v-container>
-      <!-- dialog to approve or reject application. -->
-      <v-dialog v-model="dialog.approve" max-width="600">
-        <g-card-input-form
-          ref="form-approve"
-          label="申請承認"
-          :edit-mode="editMode"
-          :loading="loading"
-          @click:cancel="dialog.approve = false"
-          @click:submit="submitAs(reject ? 'reject' : 'approved')"
-        >
-          <template #default>
-            <g-input-application-approve
-              v-bind.sync="editItem"
-              :reject.sync="reject"
-            />
-          </template>
-          <template #btn-submit="{ attrs, on }">
-            <v-btn
-              v-bind="attrs"
-              :color="reject ? 'warning' : 'primary'"
-              v-on="on"
-            >
-              {{ reject ? '却下' : '承認' }}
-            </v-btn>
-          </template>
-        </g-card-input-form>
-      </v-dialog>
-      <v-dialog v-model="dialog.unapprove" max-width="360">
-        <v-card>
-          <v-card-title>承認取り消し</v-card-title>
-          <v-card-text> 一度承認した申請を取り消しますか？ </v-card-text>
-          <v-card-actions class="justify-space-between">
-            <v-btn @click="dialog.unapprove = false">cancel</v-btn>
-            <v-btn @click="submitAs('unapproved')">submit</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </template>
-  </g-template-default>
-</template>
-
 <script>
-import { collection, onSnapshot, query, where } from 'firebase/firestore'
-import GSelect from '~/components/atoms/inputs/GSelect.vue'
-import GCardInputForm from '~/components/molecules/cards/GCardInputForm.vue'
-import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
-import GInputApplicationApprove from '~/components/molecules/inputs/GInputApplicationApprove.vue'
+import { collection, onSnapshot } from 'firebase/firestore'
+import GIconClose from '~/components/atoms/icons/GIconClose.vue'
+import GIconSubmit from '~/components/atoms/icons/GIconSubmit.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
-import GLeaveApplicationRegister from '~/components/organisms/GLeaveApplicationRegister.vue'
-import GInputApplication from '~/components/molecules/inputs/GInputApplication.vue'
+import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
+import GInputLeaveApplication from '~/components/molecules/inputs/GInputLeaveApplication.vue'
 export default {
+  /***************************************************************************
+   * NAME
+   ***************************************************************************/
+  name: 'LeaveApplicationIndex',
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
   components: {
-    GTemplateDefault,
-    GCardInputForm,
-    GSelect,
-    GInputApplicationApprove,
     GDataTable,
-    GLeaveApplicationRegister,
-    GInputApplication,
+    GBtnRegistIcon,
+    GInputLeaveApplication,
+    GIconClose,
+    GIconSubmit,
   },
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
   data() {
     return {
-      dialog: {
-        create: false,
-        modify: false,
-        approve: false,
-        unapprove: false,
-      },
-      headers: [
-        { text: '申請日', value: 'requestDate' },
-        { text: '申請区分', value: 'type' },
-        { text: '申請者', value: 'employeeId' },
-        { text: '対象日', value: 'date' },
-        { text: '状態', value: 'status' },
-      ],
-      editItem: this.$LeaveApplication(),
+      dialog: false,
       editMode: 'REGIST',
+      form: null,
       items: [],
       listener: null,
       loading: false,
-      search: {
-        type: 'non-paid',
-        status: 'unapproved',
-      },
-      reject: false,
+      model: this.$LeaveApplication(),
+      scrollTarget: null,
     }
   },
-  computed: {
-    employees() {
-      return this.$store.getters['masters/Employees']
-    },
-  },
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
   watch: {
-    'dialog.create'(v) {
-      if (v) return
-      this.$refs['form-create'].initialize()
-      this.$nextTick(() => {
-        this.editItem.initialize()
-        this.editMode = 'REGIST'
-      })
-    },
-    'dialog.modify'(v) {
-      if (v) return
-      this.$refs['form-modify'].initialize()
-      this.$nextTick(() => {
-        this.editItem.initialize()
-        this.editMode = 'REGIST'
-      })
-    },
-    'dialog.approve'(v) {
-      if (v) return
-      this.$refs['form-approve'].initialize()
-      this.$nextTick(() => {
-        this.editItem.initialize()
-        this.editMode = 'REGIST'
-      })
-    },
-    'search.type': {
+    dialog: {
       handler(v) {
-        this.subscribe()
-      },
-      immediate: true,
-    },
-    'search.status': {
-      handler(v) {
-        this.subscribe()
+        v || this.initialize()
       },
       immediate: true,
     },
   },
+  /***************************************************************************
+   * MOUNTED
+   ***************************************************************************/
+  mounted() {
+    this.subscribe()
+  },
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
   destroyed() {
-    this.unsubscribe()
+    if (this.listener) this.listener()
   },
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
   methods: {
+    async getEmployee(employeeId) {
+      const model = this.$Employee()
+      return await model.fetchDoc(employeeId)
+    },
     subscribe() {
-      this.unsubscribe()
       const colRef = collection(this.$firestore, 'LeaveApplications')
-      const q = query(
-        colRef,
-        where('type', '==', this.search.type),
-        where('status', '==', this.search.status)
-      )
-      this.listener = onSnapshot(q, (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
+      this.listener = onSnapshot(colRef, (snapshot) => {
+        snapshot.docChanges().forEach(async (change) => {
           const item = change.doc.data()
           const index = this.items.findIndex(
             ({ docId }) => docId === item.docId
           )
+          item.employee = await this.getEmployee(item.employeeId)
           if (change.type === 'added') this.items.push(item)
           if (change.type === 'modified') this.items.splice(index, 1, item)
           if (change.type === 'removed') this.items.splice(index, 1)
         })
       })
     },
-    unsubscribe() {
-      if (this.listener) this.listener()
-      this.listener = null
-      this.items.splice(0)
+    initialize() {
+      this.editMode = 'REGIST'
+      this.model.initialize({ requestDate: this.$dayjs().format('YYYY-MM-DD') })
+      this.form?.resetValidation()
+      this.scrollTarget?.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     },
     async submit() {
+      if (!this.validate()) return
       try {
         this.loading = true
-        if (this.editMode === 'REGIST') await this.editItem.create()
-        if (this.editMode === 'UPDATE') await this.editItem.update()
-        if (this.editMode === 'DELETE') await this.editItem.delete()
-        Object.keys(this.dialog).forEach((key) => {
-          this.dialog[key] = false
-        })
+        if (this.editMode === 'REGIST') await this.model.create()
+        if (this.editMode === 'UPDATE') await this.model.update()
+        if (this.editMode === 'DELETE') await this.model.delete()
+        this.dialog = false
       } catch (err) {
         // eslint-disable-next-line
         console.error(err)
@@ -252,25 +103,86 @@ export default {
         this.loading = false
       }
     },
-    openEditor(e, mode) {
-      this.editItem.initialize(e)
-      this.editMode = mode
-      this.dialog.modify = true
+    validate() {
+      const result = this.form.validate()
+      if (!result) alert('入力に不備があります。')
+      return result
     },
-    submitAs(status) {
-      this.editItem.status = status
-      if (status === 'approved') {
-        this.editItem.approvedDate = this.$dayjs().format('YYYY-MM-DD')
-        this.editItem.approvedUid = this.$store.getters['auth/uid']
-      }
-      if (status === 'unapproved') {
-        this.editItem.approvedDate = null
-        this.editItem.approvedUid = null
-      }
-      this.submit()
+    onClickEdit(item) {
+      this.model.initialize(item)
+      this.editMode = 'UPDATE'
+      this.dialog = true
+    },
+    onClickDelete(item) {
+      this.model.initialize(item)
+      this.editMode = 'DELETE'
+      this.dialog = true
     },
   },
 }
 </script>
+
+<template>
+  <div>
+    <v-toolbar :color="$vuetify.theme.themes.light.background" flat>
+      <v-dialog v-model="dialog" max-width="600" persistent scrollable>
+        <template #activator="{ attrs, on }">
+          <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
+        </template>
+        <v-card>
+          <v-toolbar dense flat color="primary" dark>
+            <v-toolbar-title>休暇申請[登録]</v-toolbar-title>
+          </v-toolbar>
+          <v-card-text :ref="(el) => (scrollTarget = el)" class="pa-4">
+            <v-form
+              :ref="(el) => (form = el)"
+              :disabled="loading || editMode === 'DELETE'"
+            >
+              <g-input-leave-application
+                v-bind.sync="model"
+                :edit-mode="editMode"
+              />
+            </v-form>
+          </v-card-text>
+          <v-card-actions class="justify-space-between">
+            <v-btn :disabled="loading" @click="dialog = false"
+              ><g-icon-close />close</v-btn
+            >
+            <v-btn
+              :disabled="loading"
+              :loading="loading"
+              color="primary"
+              @click="submit"
+              ><g-icon-submit />submit</v-btn
+            >
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </v-toolbar>
+    <v-container fluid>
+      <g-data-table
+        :actions="['edit', 'delete']"
+        :headers="[
+          { text: '申請日', value: 'requestDate', width: 120 },
+          { text: '申請者', value: 'employee.abbr' },
+          {
+            text: '状態',
+            value: 'status',
+            width: 84,
+            sortable: false,
+            align: 'center',
+          },
+        ]"
+        :items="items"
+        @click:edit="onClickEdit"
+        @click:delete="onClickDelete"
+      >
+        <template #[`item.status`]="{ item }">
+          <v-chip small>{{ $LEAVE_APPLICATION_STATUS[item.status] }}</v-chip>
+        </template>
+      </g-data-table>
+    </v-container>
+  </div>
+</template>
 
 <style></style>
