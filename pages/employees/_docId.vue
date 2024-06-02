@@ -2,6 +2,7 @@
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 import GIconClose from '~/components/atoms/icons/GIconClose.vue'
 import GIconSubmit from '~/components/atoms/icons/GIconSubmit.vue'
+import GLeaveApplicationCalendar from '~/components/organisms/GLeaveApplicationCalendar.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -14,6 +15,7 @@ export default {
     GInputEmployee,
     GIconClose,
     GIconSubmit,
+    GLeaveApplicationCalendar,
   },
   /***************************************************************************
    * ASYNCDATA
@@ -236,12 +238,7 @@ export default {
           </v-card>
         </v-col>
         <v-col cols="12" md="7">
-          <v-card flat outlined>
-            <v-card-title class="g-card__title"> 休暇申請 </v-card-title>
-            <v-container fluid>
-              <v-calendar />
-            </v-container>
-          </v-card>
+          <g-leave-application-calendar :employee-id="docId" />
         </v-col>
       </v-row>
     </v-container>

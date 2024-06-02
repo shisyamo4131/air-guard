@@ -6,24 +6,37 @@ const {
 const { getFirestore } = require('firebase-admin/firestore')
 const firestore = getFirestore()
 
+async function batchSet(data) {
+  const collectionId = `Employees/${data.employeeId}/EmployeeLeaveApplications`
+  const batchArray = []
+  data.dates.forEach((date, index) => {
+    if (index % 500 === 0) batchArray.push(firestore.batch())
+    const docRef = firestore.doc(`${collectionId}/${date}`)
+    const newData = { ...data, docId: date, leaveApplicationId: data.docId }
+    batchArray[batchArray.length - 1].set(docRef, newData)
+  })
+  await Promise.all(batchArray.map((batch) => batch.commit()))
+}
+
+async function batchDelete(employeeId, leaveApplicationId) {
+  const collectionId = `Employees/${employeeId}/EmployeeLeaveApplications`
+  const colRef = firestore.collection(collectionId)
+  const query = colRef.where('leaveApplicationId', '==', leaveApplicationId)
+  const querySnapshot = await query.get()
+  if (querySnapshot.empty) return
+  const batchArray = []
+  querySnapshot.docs.forEach((doc, index) => {
+    if (index % 500 === 0) batchArray.push(firestore.batch())
+    batchArray[batchArray.length - 1].delete(doc.ref)
+  })
+  await Promise.all(batchArray.map((batch) => batch.commit()))
+}
+
 exports.onCreate = onDocumentCreated(
   'LeaveApplications/{docId}',
   async (event) => {
     const data = event.data.data()
-    if (data.status === 'approved') {
-      const employeeId = data.employeeId
-      const batchArray = []
-      data.dates.forEach((date, index) => {
-        if (index === 0 || index % 500 === 0) {
-          batchArray.push(firestore.batch())
-        }
-        const docRef = firestore.doc(
-          `Employees/${employeeId}/EmployeeLeaveApplications/${date}`
-        )
-        batchArray[batchArray.length - 1].set(docRef, data)
-      })
-      await Promise.all(batchArray.map(async (batch) => await batch.commit()))
-    }
+    if (data.status === 'approved') await batchSet(data)
   }
 )
 
@@ -32,32 +45,9 @@ exports.onUpdate = onDocumentUpdated(
   async (event) => {
     const before = event.data.before.data()
     const after = event.data.after.data()
-    const batchArray = []
-    if (before.status === 'approved') {
-      before.dates.forEach((date, index) => {
-        if (index === 0 || index % 500 === 0) {
-          batchArray.push(firestore.batch())
-        }
-        const docRef = firestore.doc(
-          `Employees/${before.employeeId}/EmployeeLeaveApplications/${date}`
-        )
-        batchArray[batchArray.length - 1].delete(docRef)
-      })
-      await Promise.all(batchArray.map(async (batch) => await batch.commit()))
-    }
-    batchArray.splice(0)
-    if (after.status === 'approved') {
-      after.dates.forEach((date, index) => {
-        if (index === 0 || index % 500 === 0) {
-          batchArray.push(firestore.batch())
-        }
-        const docRef = firestore.doc(
-          `Employees/${after.employeeId}/EmployeeLeaveApplications/${date}`
-        )
-        batchArray[batchArray.length - 1].set(docRef, after)
-      })
-      await Promise.all(batchArray.map(async (batch) => await batch.commit()))
-    }
+    if (before.status === 'approved')
+      await batchDelete(before.employeeId, event.params.docId)
+    if (after.status === 'approved') await batchSet(after)
   }
 )
 
@@ -66,17 +56,7 @@ exports.onDelete = onDocumentDeleted(
   async (event) => {
     const data = event.data.data()
     if (data.status === 'approved') {
-      const batchArray = []
-      data.dates.forEach((date, index) => {
-        if (index === 0 || index % 500 === 0) {
-          batchArray.push(firestore.batch())
-        }
-        const docRef = firestore.doc(
-          `Employees/${data.employeeId}/EmployeeLeaveApplications/${date}`
-        )
-        batchArray[batchArray.length - 1].delete(docRef)
-      })
-      await Promise.all(batchArray.map(async (batch) => await batch.commit()))
+      await batchDelete(data.employeeId, event.params.docId)
     }
   }
 )
