@@ -8,6 +8,13 @@ import GInputLeaveApplication from '~/components/molecules/inputs/GInputLeaveApp
 import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
+/**
+ * ### pages.leave-applications-index
+ * @shisyamo4131
+ * 将来的には従業員からの申請を承認していくフローに切り替える必要あり。
+ * 2024/06/01時点では従業員からの申請はないので、いきなり承認済みのデータを
+ * 作成していく。
+ */
 export default {
   /***************************************************************************
    * NAME
@@ -47,7 +54,7 @@ export default {
       scrollTarget: null,
       search: {
         month: this.$dayjs().format('YYYY-MM'),
-        status: 'unapproved',
+        status: 'approved',
       },
     }
   },
@@ -78,12 +85,6 @@ export default {
       immediate: true,
       deep: true,
     },
-  },
-  /***************************************************************************
-   * MOUNTED
-   ***************************************************************************/
-  mounted() {
-    // this.subscribe()
   },
   /***************************************************************************
    * DESTROYED
@@ -122,7 +123,13 @@ export default {
     },
     initialize() {
       this.editMode = 'REGIST'
-      this.model.initialize({ requestDate: this.$dayjs().format('YYYY-MM-DD') })
+      /* ステータスは常に「承認済み」にし、決済日も入れておく */
+      // this.model.initialize({ requestDate: this.$dayjs().format('YYYY-MM-DD') })
+      this.model.initialize({
+        requestDate: this.$dayjs().format('YYYY-MM-DD'),
+        status: 'approved',
+        settlementDate: this.$dayjs().format('YYYY-MM-DD'),
+      })
       this.form?.resetValidation()
       this.scrollTarget?.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     },
@@ -188,64 +195,75 @@ export default {
 
 <template>
   <div>
-    <v-toolbar :color="$vuetify.theme.themes.light.background" flat>
-      <g-select
-        v-model="search.status"
-        label="状態"
-        :items="$LEAVE_APPLICATION_STATUS_ARRAY"
-        hide-details
-      />
-      <v-dialog ref="month" v-model="dialog.monthPicker" width="290">
-        <template #activator="{ attrs, on }">
-          <g-text-field
-            v-model="search.month"
-            label="対象年月"
-            hide-details
-            v-bind="attrs"
-            readonly
-            v-on="on"
-          />
-        </template>
-        <g-date-picker v-model="search.month" type="month" />
-      </v-dialog>
-      <v-dialog v-model="dialog.editor" max-width="600" persistent scrollable>
-        <template #activator="{ attrs, on }">
-          <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
-        </template>
-        <v-card>
-          <v-toolbar dense flat color="primary" dark>
-            <v-toolbar-title>
-              {{ `休暇申請[${mode}]` }}
-            </v-toolbar-title>
-          </v-toolbar>
-          <v-card-text :ref="(el) => (scrollTarget = el)" class="pa-4">
-            <v-form
-              :ref="(el) => (form = el)"
-              :disabled="loading || editMode === 'DELETE'"
-            >
-              <g-input-leave-application
-                v-bind.sync="model"
-                :edit-mode="editMode"
-              />
-            </v-form>
-          </v-card-text>
-          <v-card-actions class="justify-space-between">
-            <v-btn :disabled="loading" @click="dialog.editor = false"
-              ><g-icon-close />close</v-btn
-            >
-            <v-btn
-              :disabled="loading"
-              :loading="loading"
-              color="primary"
-              @click="submit"
-              ><g-icon-submit />submit</v-btn
-            >
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </v-toolbar>
     <v-container fluid>
+      <div class="d-flex mb-4" style="gap: 8px 8px">
+        <v-dialog ref="month" v-model="dialog.monthPicker" width="290">
+          <template #activator="{ attrs, on }">
+            <g-text-field
+              v-model="search.month"
+              class="center-input"
+              style="min-width: 108px; max-width: 108px"
+              label="対象年月"
+              hide-details
+              v-bind="attrs"
+              readonly
+              v-on="on"
+            />
+          </template>
+          <g-date-picker v-model="search.month" type="month" no-title />
+        </v-dialog>
+        <!-- 2024-06-01 外部からの申請がないため、休暇申請は登録時に状態：承認で固定 -->
+        <g-select
+          v-model="search.status"
+          style="min-width: 108px; max-width: 108px"
+          label="状態"
+          :items="$LEAVE_APPLICATION_STATUS_ARRAY"
+          disabled
+          hide-details
+        />
+        <v-dialog v-model="dialog.editor" max-width="600" persistent scrollable>
+          <template #activator="{ attrs, on }">
+            <g-btn-regist-icon
+              v-bind="attrs"
+              class="ml-auto"
+              color="primary"
+              v-on="on"
+            />
+          </template>
+          <v-card>
+            <v-toolbar dense flat color="primary" dark>
+              <v-toolbar-title>
+                {{ `休暇申請[${mode}]` }}
+              </v-toolbar-title>
+            </v-toolbar>
+            <v-card-text :ref="(el) => (scrollTarget = el)" class="pa-4">
+              <v-form
+                :ref="(el) => (form = el)"
+                :disabled="loading || editMode === 'DELETE'"
+              >
+                <g-input-leave-application
+                  v-bind.sync="model"
+                  :edit-mode="editMode"
+                />
+              </v-form>
+            </v-card-text>
+            <v-card-actions class="justify-space-between">
+              <v-btn :disabled="loading" @click="dialog.editor = false"
+                ><g-icon-close />close</v-btn
+              >
+              <v-btn
+                :disabled="loading"
+                :loading="loading"
+                color="primary"
+                @click="submit"
+                ><g-icon-submit />submit</v-btn
+              >
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </div>
       <g-data-table
+        :actions="['edit', 'delete']"
         :headers="[
           { text: '申請日', value: 'requestDate', width: 120 },
           { text: '申請者', value: 'employee.abbr' },
@@ -287,7 +305,7 @@ export default {
         <template #[`item.status`]="{ item }">
           <v-chip small>{{ $LEAVE_APPLICATION_STATUS[item.status] }}</v-chip>
         </template>
-        <template #[`item.settlementActions`]="{ item }">
+        <!-- <template #[`item.settlementActions`]="{ item }">
           <v-btn
             :disabled="item.status !== 'unapproved'"
             depressed
@@ -323,7 +341,7 @@ export default {
             @click="onClickWithdraw(item)"
             >取下</v-btn
           >
-        </template>
+        </template> -->
       </g-data-table>
       <v-dialog v-model="dialog.datePicker" width="290">
         <g-date-picker
