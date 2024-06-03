@@ -1,3 +1,4 @@
+import User from '../models/User'
 import Autonumber from '../models/Autonumber'
 import Customer from '../models/Customer'
 import Site from '../models/Site'
@@ -8,6 +9,7 @@ import OperationResult from '../models/OperationResult'
 import SiteContract from '../models/SiteContract'
 
 export default (context, inject) => {
+  inject('User', (item) => new User(context, item))
   inject('Autonumber', (item) => new Autonumber(context, item))
   inject('Customer', (item) => new Customer(context, item))
   inject('Site', (item) => new Site(context, item))

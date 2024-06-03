@@ -4,6 +4,7 @@ const { setGlobalOptions } = require('firebase-functions/v2')
 initializeApp()
 setGlobalOptions({ region: 'asia-northeast1' })
 
+exports.auth = require('./modules/auth')
 exports.role = require('./modules/role')
 exports.leaveApplications = require('./modules/leave-applications')
 // exports.customers = require('./modules/customers')

@@ -1,4 +1,5 @@
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
+import { doc, onSnapshot } from 'firebase/firestore'
 
 /******************************************************************
  * STATE
@@ -6,6 +7,8 @@ import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
 export const state = () => ({
   // Authentication user object.
   user: null,
+  data: null,
+  listener: null,
 })
 /******************************************************************
  * GETTERS
@@ -30,6 +33,16 @@ export const mutations = {
   setUser(state, payload) {
     state.user = payload
   },
+  setData(state, payload) {
+    state.data = payload
+  },
+  setListener(state, listener) {
+    state.listener = listener
+  },
+  removeListener(state) {
+    if (state.listener) state.listener()
+    state.listener = null
+  },
 }
 /******************************************************************
  * ACTIONS
@@ -44,10 +57,16 @@ export const actions = {
       isEmailVerified: user.emailVerified,
       roles: idTokenResult.claims.roles || [],
     })
+    const docRef = doc(this.$firestore, `Users/${user.uid}`)
+    const listener = onSnapshot(docRef, (doc) => {
+      context.commit('setData', doc.data())
+    })
+    context.commit('setListener', listener)
   },
   disactivate(context) {
     return new Promise((resolve) => {
       context.commit('setUser', null)
+      context.commit('removeListener')
       resolve()
     })
   },
