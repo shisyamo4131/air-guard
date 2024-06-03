@@ -11,6 +11,9 @@ export const state = () => ({
  * GETTERS
  ******************************************************************/
 export const getters = {
+  get: (state) => (docId) => {
+    return state.items.find((item) => item.docId === docId)
+  },
   male(state) {
     return state.items.filter(({ gender }) => gender === 'male').length
   },
