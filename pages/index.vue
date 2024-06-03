@@ -2,9 +2,12 @@
   <v-container fluid>
     <!-- <v-row justify="center" align="center"> -->
     <v-row>
-      <v-col cols="12" lg="6">
-        <g-leave-application-table flat outlined />
+      <v-col cols="12">
+        <g-temporary-site-calendar height="600" />
       </v-col>
+      <!-- <v-col cols="12" lg="6">
+        <g-leave-application-table flat outlined />
+      </v-col> -->
       <!-- <v-col cols="12">
         <v-card>
           <v-card-title> 売上推移 </v-card-title>
@@ -13,7 +16,7 @@
           </v-card-text>
         </v-card>
       </v-col> -->
-      <v-col cols="12" sm="8" md="4">
+      <!-- <v-col cols="12" sm="8" md="4">
         <v-card flat outlined>
           <v-card-title class="g-card__title"> 男女構成 </v-card-title>
           <v-simple-table>
@@ -31,20 +34,22 @@
             </tbody>
           </v-simple-table>
         </v-card>
-      </v-col>
+      </v-col> -->
     </v-row>
   </v-container>
 </template>
 
 <script>
 // import BChartSales from '~/components/molecules/charts/BChartSales.vue'
-import GLeaveApplicationTable from '~/components/organisms/GLeaveApplicationTable.vue'
+// import GLeaveApplicationTable from '~/components/organisms/GLeaveApplicationTable.vue'
+import GTemporarySiteCalendar from '~/components/organisms/GTemporarySiteCalendar.vue'
 
 export default {
   name: 'IndexPage',
   components: {
     // BChartSales,
-    GLeaveApplicationTable,
+    // GLeaveApplicationTable,
+    GTemporarySiteCalendar,
   },
   data() {
     return {
