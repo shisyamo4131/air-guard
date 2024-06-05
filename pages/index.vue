@@ -3,7 +3,7 @@
     <!-- <v-row justify="center" align="center"> -->
     <v-row>
       <v-col cols="12">
-        <g-temporary-site-calendar height="600" />
+        <g-temporary-site-calendar flat outlined height="600" />
       </v-col>
       <!-- <v-col cols="12" lg="6">
         <g-leave-application-table flat outlined />

@@ -7,6 +7,7 @@ setGlobalOptions({ region: 'asia-northeast1' })
 exports.auth = require('./modules/auth')
 exports.role = require('./modules/role')
 exports.leaveApplications = require('./modules/leave-applications')
+exports.temporarySite = require('./modules/temporary-site')
 // exports.customers = require('./modules/customers')
 // exports.sites = require('./modules/sites')
 

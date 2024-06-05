@@ -286,7 +286,7 @@ export default class FireModel {
       params: docId ? [docId] : [],
     })
     try {
-      const colRef = collection(this.#firestore, this.#collection)
+      const colRef = collection(this.#firestore, this.collection)
       const docRef = docId ? doc(colRef, docId) : doc(colRef)
       this.docId = docRef.id
       this.createAt = this.dateUtc.getTime()
@@ -305,7 +305,7 @@ export default class FireModel {
       await runTransaction(this.#firestore, async (transaction) => {
         const autonumRef = doc(
           this.#firestore,
-          `Autonumbers/${this.#collection}`
+          `Autonumbers/${this.collection}`
         )
         const autonumDoc = await transaction.get(autonumRef)
         if (autonumDoc.exists() && autonumDoc.data().status) {
@@ -315,9 +315,7 @@ export default class FireModel {
           const maxCode = Array(length + 1).join('0')
           if (newCode === maxCode) {
             throw new Error(
-              `No more documents can be added to the ${
-                this.#collection
-              } collection.`
+              `No more documents can be added to the ${this.collection} collection.`
             )
           }
           item[autonumDoc.data().field] = newCode
@@ -341,7 +339,7 @@ export default class FireModel {
       this.sendConsole({
         message:
           'A document was successfully created in the %s collection with document id %s.',
-        params: [this.#collection, docRef.id],
+        params: [this.collection, docRef.id],
       })
       return docRef
     } catch (err) {
@@ -360,7 +358,7 @@ export default class FireModel {
     this.sendConsole({ message: 'fetch() is called.' })
     try {
       if (!docId) throw new Error('fetch() requires docId as argument.')
-      const colRef = collection(this.#firestore, this.#collection)
+      const colRef = collection(this.#firestore, this.collection)
       const docRef = doc(colRef, docId)
       const docSnap = await getDoc(docRef).catch((err) => {
         this.sendConsole({
@@ -406,7 +404,7 @@ export default class FireModel {
           'update() should have docId as a property. Call fetch() first.'
         )
       }
-      const colRef = collection(this.#firestore, this.#collection)
+      const colRef = collection(this.#firestore, this.collection)
       const docRef = doc(colRef, this.docId)
       this.updateAt = this.dateUtc.getTime()
       this.updateDate = this.dateJst.toLocaleString()
@@ -436,7 +434,7 @@ export default class FireModel {
       this.sendConsole({
         message:
           'A document was successfully updated in the %s collection with document id %s.',
-        params: [this.#collection, docRef.id],
+        params: [this.collection, docRef.id],
       })
       return docRef
     } catch (err) {
@@ -467,7 +465,7 @@ export default class FireModel {
             this.docId
         )
       }
-      const colRef = collection(this.#firestore, this.#collection)
+      const colRef = collection(this.#firestore, this.collection)
       const docRef = doc(colRef, this.docId)
       await this.beforeDelete().catch((err) => {
         this.sendConsole({
@@ -493,7 +491,7 @@ export default class FireModel {
       this.sendConsole({
         message:
           'A document was successfully deleted in the %s collection with document id %s.',
-        params: [this.#collection, docRef.id],
+        params: [this.collection, docRef.id],
       })
       return docRef
     } catch (err) {
@@ -525,7 +523,7 @@ export default class FireModel {
     this.sendConsole({ message: 'fetchDoc() is called.' })
     try {
       if (!docId) throw new Error('fetchDoc() requires docId as argument.')
-      const colRef = collection(this.#firestore, this.#collection)
+      const colRef = collection(this.#firestore, this.collection)
       const docRef = doc(colRef, docId)
       const docSnap = await getDoc(docRef).catch((err) => {
         this.sendConsole({
@@ -565,7 +563,7 @@ export default class FireModel {
    */
   async fetchDocs(ngram = undefined, constraints = []) {
     const grams = this.convertToGrams(ngram)
-    const colRef = collection(this.#firestore, this.#collection)
+    const colRef = collection(this.#firestore, this.collection)
     const wheres = grams.map((gram) => {
       return where(`tokenMap.${gram}`, '==', true)
     })
@@ -586,7 +584,7 @@ export default class FireModel {
   subscribe(ngram = undefined, constraints = []) {
     this.unsubscribe()
     /* eslint-disable */
-    console.info('Subscription of %s has been started.', this.#collection)
+    console.info('Subscription of %s has been started.', this.collection)
     if (ngram) console.table(ngram)
     console.table(constraints)
     /* eslint-enable */
@@ -595,7 +593,7 @@ export default class FireModel {
     const wheres = grams.map((gram) => {
       return where(`tokenMap.${gram}`, '==', true)
     })
-    const colRef = collection(this.#firestore, this.#collection)
+    const colRef = collection(this.#firestore, this.collection)
     const q = query(colRef, ...constraints, ...wheres)
     this.#listener = onSnapshot(q, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
@@ -614,9 +612,9 @@ export default class FireModel {
     // eslint-disable-next-line
     console.info(
       'Subscription of %s has been started.',
-      `${this.#collection}/${docId}`
+      `${this.collection}/${docId}`
     )
-    const docRef = doc(this.#firestore, `${this.#collection}/${docId}`)
+    const docRef = doc(this.#firestore, `${this.collection}/${docId}`)
     this.#listener = onSnapshot(docRef, (doc) => {
       this.initialize(doc.data())
     })
@@ -628,10 +626,7 @@ export default class FireModel {
   unsubscribe() {
     if (this.#listener) {
       // eslint-disable-next-line
-      console.info(
-        'Subscription of %s has been unsubscribed.',
-        this.#collection
-      )
+      console.info('Subscription of %s has been unsubscribed.', this.collection)
 
       this.#listener()
     }

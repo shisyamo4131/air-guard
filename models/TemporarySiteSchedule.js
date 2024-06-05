@@ -2,13 +2,15 @@ import FireModel from './FireModel'
 
 const props = {
   props: {
-    name: { type: String, default: '', required: false },
-    address: { type: String, default: '', required: false },
-    numberOfPeople: { type: Number, default: null, required: false },
-    qualification: { type: Boolean, default: false, required: false },
+    date: { type: String, default: '', required: false },
     workShift: { type: String, default: 'day', required: false },
-    dates: { type: Array, default: () => [], required: false },
-    remarks: { type: String, default: '', required: false },
+    start: { type: String, default: '08:00', required: false },
+    numberOfWorkers: { type: Number, default: null, required: false },
+    qualification: { type: Boolean, default: false, required: false },
+    month: { type: String, default: '', required: false },
+    status: { type: String, default: 'accepted', required: false },
+    end: { type: String, default: '17:00', required: false },
+    parent: { type: Object, default: () => ({}), required: false },
   },
 }
 export { props }
@@ -20,20 +22,25 @@ export { props }
 export default class TemporarySiteSchedule extends FireModel {
   constructor(context, item) {
     super(context, item)
-    this.collection = 'TemporarySiteSchedules'
+    // this.collection = ``
     this.tokenFields = ['name']
     Object.defineProperties(this, {
-      months: {
+      month: {
         enumerable: true,
         get() {
-          const result = [
-            ...new Set(this.dates.map((date) => date.substring(0, 7))),
-          ]
-          return result
+          return this.date.substring(0, 7)
         },
         set(v) {},
       },
     })
+  }
+
+  get collection() {
+    return `TemporarySites/${this.parent.docId}/TemporarySiteSchedules`
+  }
+
+  set collection(v) {
+    super.collection(v)
   }
 
   initialize(item) {
@@ -43,5 +50,9 @@ export default class TemporarySiteSchedule extends FireModel {
         typeof propDefault === 'function' ? propDefault() : propDefault
     })
     super.initialize(item)
+  }
+
+  async create() {
+    await super.create(this.date)
   }
 }

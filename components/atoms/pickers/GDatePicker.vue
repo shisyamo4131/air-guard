@@ -10,6 +10,7 @@ export default {}
     v-bind="$attrs"
     locale="ja-jp"
     :day-format="(date) => new Date(date).getDate()"
+    first-day-of-week="1"
     v-on="$listeners"
   >
     <template

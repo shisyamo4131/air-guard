@@ -45,7 +45,36 @@ export default {
 </script>
 
 <template>
-  <div>
+  <g-combobox
+    v-bind="{ ...$props, ...$attrs }"
+    :chips="multiple"
+    :dense="!multiple"
+    :required="dialog ? false : required"
+    :small-chips="multiple"
+    append-icon=""
+    v-on="$listeners"
+  >
+    <template #append-outer>
+      <v-dialog
+        ref="dialog"
+        v-model="dialog"
+        :return-value.sync="value"
+        width="290px"
+      >
+        <template #activator="{ attrs, on }">
+          <v-icon v-bind="attrs" color="primary" v-on="on">mdi-calendar</v-icon>
+        </template>
+        <g-date-picker v-model="value" :multiple="multiple" no-title>
+          <v-spacer></v-spacer>
+          <v-btn text color="primary" @click="dialog = false"> Cancel </v-btn>
+          <v-btn text color="primary" @click="$refs.dialog.save(value)">
+            OK
+          </v-btn>
+        </g-date-picker>
+      </v-dialog>
+    </template>
+  </g-combobox>
+  <!-- <div>
     <v-dialog
       ref="dialog"
       v-model="dialog"
@@ -72,7 +101,7 @@ export default {
         </v-btn>
       </g-date-picker>
     </v-dialog>
-  </div>
+  </div> -->
 </template>
 
 <style></style>
