@@ -1,6 +1,6 @@
 <script>
-import GIconClose from '~/components/atoms/icons/GIconClose.vue'
-import GIconSubmit from '~/components/atoms/icons/GIconSubmit.vue'
+import GBtnCancelIcon from '~/components/molecules/btns/GBtnCancelIcon.vue'
+import GBtnSubmitIcon from '~/components/molecules/btns/GBtnSubmitIcon.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 export default {
   /***************************************************************************
@@ -10,7 +10,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GInputSite, GIconClose, GIconSubmit },
+  components: { GInputSite, GBtnCancelIcon, GBtnSubmitIcon },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -158,16 +158,16 @@ export default {
               </v-form>
             </v-card-text>
             <v-card-actions class="justify-space-between">
-              <v-btn :disabled="loading.site" @click="dialog.site = false"
-                ><g-icon-close />close</v-btn
-              >
-              <v-btn
+              <g-btn-cancel-icon
+                :disabled="loading.site"
+                @click="dialog.site = false"
+              />
+              <g-btn-submit-icon
                 :disabled="loading.site"
                 :loading="loading.site"
                 color="primary"
                 @click="submitSite"
-                ><g-icon-submit />submit</v-btn
-              >
+              />
             </v-card-actions>
           </v-card>
         </v-dialog>

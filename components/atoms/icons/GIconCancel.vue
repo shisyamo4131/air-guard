@@ -1,6 +1,6 @@
 <script>
 /**
- * ### GIconClose
+ * ### GIconCancel
  * @author shisyamo4131
  */
 export default {}

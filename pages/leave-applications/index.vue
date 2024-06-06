@@ -1,13 +1,13 @@
 <script>
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
-import GIconClose from '~/components/atoms/icons/GIconClose.vue'
-import GIconSubmit from '~/components/atoms/icons/GIconSubmit.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
 import GInputLeaveApplication from '~/components/molecules/inputs/GInputLeaveApplication.vue'
 import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
+import GBtnCancelIcon from '~/components/molecules/btns/GBtnCancelIcon.vue'
+import GBtnSubmitIcon from '~/components/molecules/btns/GBtnSubmitIcon.vue'
 /**
  * ### pages.leave-applications-index
  * @shisyamo4131
@@ -27,11 +27,11 @@ export default {
     GDataTable,
     GBtnRegistIcon,
     GInputLeaveApplication,
-    GIconClose,
-    GIconSubmit,
     GDatePicker,
     GSelect,
     GTextField,
+    GBtnCancelIcon,
+    GBtnSubmitIcon,
   },
   /***************************************************************************
    * DATA
@@ -248,16 +248,16 @@ export default {
               </v-form>
             </v-card-text>
             <v-card-actions class="justify-space-between">
-              <v-btn :disabled="loading" @click="dialog.editor = false"
-                ><g-icon-close />close</v-btn
-              >
-              <v-btn
+              <g-btn-cancel-icon
+                :disabled="loading"
+                @click="dialog.editor = false"
+              />
+              <g-btn-submit-icon
                 :disabled="loading"
                 :loading="loading"
                 color="primary"
                 @click="submit"
-                ><g-icon-submit />submit</v-btn
-              >
+              />
             </v-card-actions>
           </v-card>
         </v-dialog>

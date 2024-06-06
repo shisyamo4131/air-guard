@@ -2,12 +2,12 @@
 import { where } from 'firebase/firestore'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
-import GIconClose from '~/components/atoms/icons/GIconClose.vue'
-import GIconSubmit from '~/components/atoms/icons/GIconSubmit.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
 import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GIconFavoriteSite from '~/components/molecules/icons/GIconFavoriteSite.vue'
+import GBtnCancelIcon from '~/components/molecules/btns/GBtnCancelIcon.vue'
+import GBtnSubmitIcon from '~/components/molecules/btns/GBtnSubmitIcon.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -19,12 +19,12 @@ export default {
   components: {
     GDataTable,
     GInputCustomer,
-    GIconClose,
-    GIconSubmit,
     GTextFieldSearch,
     GBtnRegistIcon,
     GInputSite,
     GIconFavoriteSite,
+    GBtnCancelIcon,
+    GBtnSubmitIcon,
   },
   /***************************************************************************
    * ASYNCDATA
@@ -282,18 +282,16 @@ export default {
               </v-form>
             </v-card-text>
             <v-card-actions class="justify-space-between">
-              <v-btn
+              <g-btn-cancel-icon
                 :disabled="loading.customer"
                 @click="dialog.customer = false"
-                ><g-icon-close />close</v-btn
-              >
-              <v-btn
+              />
+              <g-btn-submit-icon
                 :disabled="loading.customer"
                 :loading="loading.customer"
                 color="primary"
                 @click="submitCustomer"
-                ><g-icon-submit />submit</v-btn
-              >
+              />
             </v-card-actions>
           </v-card>
         </v-dialog>
@@ -364,16 +362,16 @@ export default {
                     </v-form>
                   </v-card-text>
                   <v-card-actions class="justify-space-between">
-                    <v-btn :disabled="loading.site" @click="dialog.site = false"
-                      ><g-icon-close />close</v-btn
-                    >
-                    <v-btn
+                    <g-btn-cancel-icon
+                      :disabled="loading.site"
+                      @click="dialog.site = false"
+                    />
+                    <g-btn-submit-icon
                       :disabled="loading.site"
                       :loading="loading.site"
                       color="primary"
                       @click="submitSite"
-                      ><g-icon-submit />submit</v-btn
-                    >
+                    />
                   </v-card-actions>
                 </v-card>
               </v-dialog>

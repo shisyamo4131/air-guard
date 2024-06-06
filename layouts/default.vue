@@ -20,16 +20,13 @@
             </v-form>
           </v-card-text>
           <v-card-actions class="justify-space-between">
-            <v-btn :disabled="loading" @click="dialog = false"
-              ><g-icon-close />close</v-btn
-            >
-            <v-btn
+            <g-btn-cancel-icon :disabled="loading" @click="dialog = false" />
+            <g-btn-submit-icon
               :disabled="loading"
               :loading="loading"
               color="primary"
               @click="submit"
-              ><g-icon-submit />submit</v-btn
-            >
+            />
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -42,13 +39,13 @@
 </template>
 
 <script>
-import GIconClose from '~/components/atoms/icons/GIconClose.vue'
-import GIconSubmit from '~/components/atoms/icons/GIconSubmit.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
+import GBtnCancelIcon from '~/components/molecules/btns/GBtnCancelIcon.vue'
+import GBtnSubmitIcon from '~/components/molecules/btns/GBtnSubmitIcon.vue'
 import GNavigationDrawer from '~/components/organisms/GNavigationDrawer.vue'
 export default {
   name: 'DefaultLayout',
-  components: { GNavigationDrawer, GTextField, GIconClose, GIconSubmit },
+  components: { GNavigationDrawer, GTextField, GBtnCancelIcon, GBtnSubmitIcon },
   data() {
     return {
       drawer: false,

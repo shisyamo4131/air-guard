@@ -1,12 +1,12 @@
 <script>
 import { where } from 'firebase/firestore'
-import GIconClose from '~/components/atoms/icons/GIconClose.vue'
-import GIconSubmit from '~/components/atoms/icons/GIconSubmit.vue'
 import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GIconFavoriteCustomer from '~/components/molecules/icons/GIconFavoriteCustomer.vue'
+import GBtnCancelIcon from '~/components/molecules/btns/GBtnCancelIcon.vue'
+import GBtnSubmitIcon from '~/components/molecules/btns/GBtnSubmitIcon.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -19,10 +19,10 @@ export default {
     GTextFieldSearch,
     GBtnRegistIcon,
     GInputCustomer,
-    GIconSubmit,
-    GIconClose,
     GDataTable,
     GIconFavoriteCustomer,
+    GBtnCancelIcon,
+    GBtnSubmitIcon,
   },
   /***************************************************************************
    * DATA
@@ -131,16 +131,13 @@ export default {
             </v-form>
           </v-card-text>
           <v-card-actions class="justify-space-between">
-            <v-btn :disabled="loading" @click="dialog = false"
-              ><g-icon-close />close</v-btn
-            >
-            <v-btn
+            <g-btn-cancel-icon :disabled="loading" @click="dialog = false" />
+            <g-btn-submit-icon
               :disabled="loading"
               :loading="loading"
               color="primary"
               @click="submit"
-              ><g-icon-submit />submit</v-btn
-            >
+            />
           </v-card-actions>
         </v-card>
       </v-dialog>

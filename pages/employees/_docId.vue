@@ -1,8 +1,8 @@
 <script>
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
-import GIconClose from '~/components/atoms/icons/GIconClose.vue'
-import GIconSubmit from '~/components/atoms/icons/GIconSubmit.vue'
 import GLeaveApplicationCalendar from '~/components/organisms/GLeaveApplicationCalendar.vue'
+import GBtnCancelIcon from '~/components/molecules/btns/GBtnCancelIcon.vue'
+import GBtnSubmitIcon from '~/components/molecules/btns/GBtnSubmitIcon.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -13,9 +13,9 @@ export default {
    ***************************************************************************/
   components: {
     GInputEmployee,
-    GIconClose,
-    GIconSubmit,
     GLeaveApplicationCalendar,
+    GBtnCancelIcon,
+    GBtnSubmitIcon,
   },
   /***************************************************************************
    * ASYNCDATA
@@ -189,18 +189,16 @@ export default {
               </v-form>
             </v-card-text>
             <v-card-actions class="justify-space-between">
-              <v-btn
+              <g-btn-cancel-icon
                 :disabled="loading.employee"
                 @click="dialog.employee = false"
-                ><g-icon-close />close</v-btn
-              >
-              <v-btn
+              />
+              <g-btn-submit-icon
                 :disabled="loading.employee"
                 :loading="loading.employee"
                 color="primary"
                 @click="submitEmployee"
-                ><g-icon-submit />submit</v-btn
-              >
+              />
             </v-card-actions>
           </v-card>
         </v-dialog>

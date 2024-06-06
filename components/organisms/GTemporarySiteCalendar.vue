@@ -1,8 +1,6 @@
 <script>
 import { where } from 'firebase/firestore'
 import GCalendar from '../atoms/calendars/GCalendar.vue'
-import GIconClose from '../atoms/icons/GIconClose.vue'
-import GIconSubmit from '../atoms/icons/GIconSubmit.vue'
 import GTextarea from '../atoms/inputs/GTextarea.vue'
 import GTextField from '../atoms/inputs/GTextField.vue'
 import GNumeric from '../atoms/inputs/GNumeric.vue'
@@ -12,6 +10,8 @@ import GIconEdit from '../atoms/icons/GIconEdit.vue'
 import GBtnRegistIcon from '../molecules/btns/GBtnRegistIcon.vue'
 import GComboboxDate from '../atoms/inputs/GComboboxDate.vue'
 import GDatePicker from '../atoms/pickers/GDatePicker.vue'
+import GBtnCancelIcon from '../molecules/btns/GBtnCancelIcon.vue'
+import GBtnSubmitIcon from '../molecules/btns/GBtnSubmitIcon.vue'
 /**
  * ### GTemporarySiteCalendar
  * @author shisyamo4131
@@ -22,8 +22,6 @@ export default {
    ***************************************************************************/
   components: {
     GCalendar,
-    GIconClose,
-    GIconSubmit,
     GTextField,
     GTextarea,
     GNumeric,
@@ -33,6 +31,8 @@ export default {
     GBtnRegistIcon,
     GComboboxDate,
     GDatePicker,
+    GBtnCancelIcon,
+    GBtnSubmitIcon,
   },
   /***************************************************************************
    * PROPS
@@ -362,16 +362,16 @@ export default {
             </v-form>
           </v-card-text>
           <v-card-actions class="justify-space-between">
-            <v-btn :disabled="loading" @click="dialog.schedule = false"
-              ><g-icon-close />close</v-btn
-            >
-            <v-btn
+            <g-btn-cancel-icon
+              :disabled="loading"
+              @click="dialog.schedule = false"
+            />
+            <g-btn-submit-icon
               :disabled="loading"
               :loading="loading"
               color="primary"
               @click="submit"
-              ><g-icon-submit />submit</v-btn
-            >
+            />
           </v-card-actions>
         </v-card>
       </v-dialog>
