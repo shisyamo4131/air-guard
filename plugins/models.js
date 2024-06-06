@@ -4,7 +4,6 @@ import Customer from '../models/Customer'
 import Site from '../models/Site'
 import Employee from '../models/Employee'
 import LeaveApplication from '../models/LeaveApplication'
-import TemporarySite from '../models/TemporarySite'
 import TemporarySiteSchedule from '../models/TemporarySiteSchedule'
 import OperationResult from '../models/OperationResult'
 import SiteContract from '../models/SiteContract'
@@ -16,7 +15,6 @@ export default (context, inject) => {
   inject('Site', (item) => new Site(context, item))
   inject('Employee', (item) => new Employee(context, item))
   inject('LeaveApplication', (item) => new LeaveApplication(context, item))
-  inject('TemporarySite', (item) => new TemporarySite(context, item))
   inject(
     'TemporarySiteSchedule',
     (item) => new TemporarySiteSchedule(context, item)
