@@ -20,6 +20,7 @@ const childData = (data, date) => {
     month: date.substring(0, 7),
     status: 'accepted',
     parent: data,
+    remarks: data.remarks,
     createAt: data.createAt,
     createDate: data.createDate,
     updateAt: data.updateAt,

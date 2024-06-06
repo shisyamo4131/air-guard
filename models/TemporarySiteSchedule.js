@@ -11,6 +11,7 @@ const props = {
     status: { type: String, default: 'accepted', required: false },
     end: { type: String, default: '17:00', required: false },
     parent: { type: Object, default: () => ({}), required: false },
+    remarks: { type: String, default: '', required: false },
   },
 }
 export { props }
