@@ -1,17 +1,17 @@
 <script>
-import { collectionGroup, onSnapshot, query, where } from 'firebase/firestore'
+import { where } from 'firebase/firestore'
 import GCalendar from '../atoms/calendars/GCalendar.vue'
 import GIconClose from '../atoms/icons/GIconClose.vue'
 import GIconSubmit from '../atoms/icons/GIconSubmit.vue'
-import GComboboxDate from '../atoms/inputs/GComboboxDate.vue'
 import GTextarea from '../atoms/inputs/GTextarea.vue'
 import GTextField from '../atoms/inputs/GTextField.vue'
-import GBtnRegistIcon from '../molecules/btns/GBtnRegistIcon.vue'
 import GNumeric from '../atoms/inputs/GNumeric.vue'
 import GSwitch from '../atoms/inputs/GSwitch.vue'
-import GSelectSearch from '../molecules/inputs/GSelectSearch.vue'
 import GSelect from '../atoms/inputs/GSelect.vue'
 import GIconEdit from '../atoms/icons/GIconEdit.vue'
+import GBtnRegistIcon from '../molecules/btns/GBtnRegistIcon.vue'
+import GComboboxDate from '../atoms/inputs/GComboboxDate.vue'
+import GDatePicker from '../atoms/pickers/GDatePicker.vue'
 /**
  * ### GTemporarySiteCalendar
  * @author shisyamo4131
@@ -21,20 +21,19 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GBtnRegistIcon,
     GCalendar,
     GIconClose,
     GIconSubmit,
     GTextField,
-    GComboboxDate,
     GTextarea,
     GNumeric,
     GSwitch,
-    GSelectSearch,
     GSelect,
     GIconEdit,
+    GBtnRegistIcon,
+    GComboboxDate,
+    GDatePicker,
   },
-  inheritAttrs: false,
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -48,28 +47,26 @@ export default {
     return {
       currentDate: this.$dayjs().format('YYYY-MM-DD'),
       dialog: {
-        bulk: false,
         detail: false,
-        individual: false,
+        schedule: false,
+        duplicate: false,
       },
+      duplicateDates: [],
       editMode: 'REGIST',
       form: {
-        bulk: null,
-        individual: null,
+        schedule: null,
       },
-      schedules: [],
       listener: null,
       loading: false,
-      model: {
-        bulk: this.$TemporarySite(),
-        individual: this.$TemporarySiteSchedule(),
+      model: this.$TemporarySiteSchedule(),
+      pickerDate: {
+        duplicate: this.$dayjs().format('YYYY-MM-DD'),
       },
       remove: false,
-      // scrollTarget: null,
       scrollTarget: {
-        bulk: null,
-        individual: null,
+        schedule: null,
       },
+      schedules: [],
       selectedDate: null,
       selectedSite: null,
       type: 'month',
@@ -79,23 +76,20 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    daySchedules() {
+      if (!this.selectedDate) return []
+      return this.schedules.filter(({ date }) => date === this.selectedDate)
+    },
     events() {
-      return this.schedules
-        .map((schedule) => {
-          return {
-            name: schedule.parent.name,
-            start: new Date(`${schedule.date} ${schedule.start}`),
-            end: new Date(`${schedule.date} ${schedule.end}`),
-            color: schedule.workShift === 'day' ? 'blue' : 'red',
-            data: schedule,
-          }
-        })
-        .filter((event) => {
-          return (
-            !this.selectedSite ||
-            event.data.parent.docId === this.selectedSite.docId
-          )
-        })
+      return this.schedules.map((schedule) => {
+        return {
+          name: schedule.name,
+          start: new Date(`${schedule.date} ${schedule.start}`),
+          end: new Date(`${schedule.date} ${schedule.end}`),
+          color: schedule.workShift === 'day' ? 'blue' : 'red',
+          data: schedule,
+        }
+      })
     },
     min() {
       const result = this.$dayjs(this.currentDate)
@@ -119,37 +113,12 @@ export default {
     month() {
       return this.$dayjs(this.currentDate).format('YYYY-MM')
     },
-    sites() {
-      const unique = this.schedules.reduce((acc, { parent }) => {
-        if (!acc.some((site) => site.docId === parent.docId)) {
-          acc.push(parent)
-        }
-        return acc
-      }, [])
-      unique.forEach((item) => {
-        item.disabled = this.selectedDate
-          ? this.schedules.some(
-              (schedule) =>
-                schedule.date === this.selectedDate &&
-                schedule.parent.docId === item.docId
-            )
-          : false
-      })
-
-      return unique
-    },
   },
   /***************************************************************************
    * WATCH
    ***************************************************************************/
   watch: {
-    'dialog.bulk': {
-      handler(v) {
-        v || this.initialize()
-      },
-      immediate: true,
-    },
-    'dialog.individual': {
+    'dialog.schedule': {
       handler(v) {
         v || this.initialize()
       },
@@ -158,6 +127,15 @@ export default {
     'dialog.detail': {
       handler(v) {
         if (!v) this.selectedDate = null
+      },
+    },
+    'dialog.duplicate': {
+      handler(v) {
+        if (!v) {
+          this.duplicateDates.splice(0)
+
+          this.pickerDate.duplicate = this.$dayjs().format('YYYY-MM-DD')
+        }
       },
     },
     currentDate: {
@@ -173,92 +151,38 @@ export default {
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.model.bulk.unsubscribe()
-    if (this.listener) this.listener()
+    this.model.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
     subscribe() {
-      if (this.listener) this.listener()
-      this.schedules.splice(0)
-      const colRef = collectionGroup(this.$firestore, 'TemporarySiteSchedules')
-      const q = query(
-        colRef,
+      this.schedules = this.model.subscribe(undefined, [
         where('date', '>=', this.min),
-        where('date', '<=', this.max)
-      )
-      this.listener = onSnapshot(q, (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-          const item = change.doc.data()
-          const index = this.schedules.findIndex(
-            (schedule) =>
-              schedule.docId === item.docId &&
-              schedule.parent.docId === item.parent.docId
-          )
-          if (change.type === 'added') this.schedules.push(item)
-          if (change.type === 'modified') this.schedules.splice(index, 1, item)
-          if (change.type === 'removed') this.schedules.splice(index, 1)
-        })
-      })
+        where('date', '<=', this.max),
+      ])
     },
     initialize() {
       this.editMode = 'REGIST'
       this.remove = false
-      const { bulk, individual } = this.model
-      const { bulk: bulkForm, individual: individualForm } = this.form || {}
-      const { bulk: bulkScroll, individual: individualScroll } =
-        this.scrollTarget || {}
-      bulk.initialize()
-      individual.initialize()
-      bulkForm?.resetValidation()
-      individualForm?.resetValidation()
-      ;[bulkScroll, individualScroll].forEach((scroll) =>
-        scroll?.scrollTo({ top: 0, left: 0, behavior: 'instant' })
-      )
+      this.model.initialize()
+      this.form.schedule?.resetValidation()
+      this.scrollTarget.schedule?.scrollTo({
+        top: 0,
+        left: 0,
+        behavior: 'instant',
+      })
     },
-    async submitIndividual() {
+    async submit() {
       if (!this.validate()) return
       this.loading = true
       try {
-        if (this.remove) {
-          this.model.bulk.initialize(this.model.individual.parent)
-          this.model.bulk.dates = this.model.bulk.dates.filter(
-            (date) => date !== this.model.individual.date
-          )
-          if (this.model.bulk.dates.length) {
-            await this.model.bulk.update()
-          } else {
-            await this.model.bulk.delete()
-            this.selectedSite = null
-          }
-        } else {
-          await this.model.individual.update()
+        if (this.editMode === 'REGIST') await this.model.create()
+        if (this.editMode === 'UPDATE') {
+          this.remove ? await this.model.delete() : await this.model.update()
         }
-        this.dialog.individual = false
-        this.dialog.detail = false
-      } catch (err) {
-        // eslint-disable-next-line
-        console.error(err)
-        alert(err.message)
-      } finally {
-        this.loading = false
-      }
-    },
-    async submitBulk() {
-      if (!this.validate()) return
-      this.loading = true
-      try {
-        if (this.editMode === 'REGIST') {
-          await this.model.bulk.create()
-        } else if (this.editMode === 'UPDATE' && !this.remove) {
-          await this.model.bulk.update()
-        } else if (this.editMode === 'UPDATE' && this.remove) {
-          await this.model.bulk.delete()
-        }
-        this.selectedSite = null
-        this.dialog.bulk = false
+        this.dialog.schedule = false
       } catch (err) {
         // eslint-disable-next-line
         console.error(err)
@@ -268,28 +192,52 @@ export default {
       }
     },
     validate() {
-      const formRef = this.dialog.bulk ? this.form.bulk : this.form.individual
+      const formRef = this.dialog.bulk ? this.form.bulk : this.form.schedule
       const result = this.remove ? true : formRef.validate()
       if (!result) alert('入力に不備があります。')
       return result
     },
-    onClickEditBulk(item) {
-      this.model.bulk.initialize(item)
-      this.editMode = 'UPDATE'
-      this.dialog.bulk = true
+    onClickRegist(date) {
+      this.model.initialize({ date })
+      this.editMode = 'REGIST'
+      this.dialog.schedule = true
     },
-    onClickEditIndividualEvent(data) {
-      this.model.individual.initialize(data)
+    onClickEdit(data) {
+      this.model.initialize(data)
       this.editMode = 'UPDATE'
-      this.dialog.individual = true
+      this.dialog.schedule = true
     },
     onClickDate(date) {
       const eventsCount = this.schedules.filter(
         (schedule) => schedule.date === date
       ).length
-      if (!eventsCount) return
-      this.selectedDate = date
-      this.dialog.detail = true
+      if (!eventsCount) {
+        this.onClickRegist(date)
+      } else {
+        this.selectedDate = date
+        this.dialog.detail = true
+      }
+    },
+    async duplicate() {
+      this.loading = true
+      try {
+        const promises = this.duplicateDates.map((date) => {
+          const model = this.$TemporarySiteSchedule({
+            ...structuredClone(this.model),
+            date,
+          })
+          return model.create()
+        })
+        await Promise.all(promises)
+        this.dialog.duplicate = false
+        this.dialog.schedule = false
+      } catch (err) {
+        // eslint-disable-next-line
+        console.error(err)
+        alert(err.message)
+      } finally {
+        this.loading = false
+      }
     },
   },
 }
@@ -300,111 +248,7 @@ export default {
     <v-card-title class="g-card__title">
       スポット現場情報
       <v-dialog
-        v-model="dialog.bulk"
-        persistent
-        scrollable
-        max-width="480"
-        :fullscreen="$vuetify.breakpoint.mobile"
-      >
-        <template #activator="{ attrs, on }">
-          <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
-        </template>
-        <v-card :tile="$vuetify.breakpoint.mobile">
-          <v-toolbar flat color="primary" dark dense>
-            <v-toolbar-title>{{ `スポット現場情報[${mode}]` }}</v-toolbar-title>
-          </v-toolbar>
-          <v-card-text :ref="(el) => (scrollTarget.bulk = el)" class="pa-4">
-            <v-form :ref="(el) => (form.bulk = el)">
-              <g-text-field
-                v-model="model.bulk.name"
-                label="現場名"
-                required
-                ignore-surrogate-pair
-              />
-              <g-text-field v-model="model.bulk.address" label="住所" />
-              <v-radio-group
-                v-model="model.bulk.workShift"
-                class="mt-1"
-                :disabled="editMode !== 'REGIST'"
-                row
-              >
-                <v-radio value="day" label="日勤" />
-                <v-radio value="night" label="夜勤" />
-              </v-radio-group>
-
-              <v-row dense>
-                <v-col cols="6">
-                  <g-text-field
-                    v-model="model.bulk.start"
-                    class="center-input"
-                    label="開始時刻"
-                    :disabled="editMode !== 'REGIST'"
-                    required
-                    input-type="time"
-                  />
-                </v-col>
-                <v-col cols="6">
-                  <g-text-field
-                    v-model="model.bulk.end"
-                    class="center-input"
-                    label="終了時刻"
-                    :disabled="editMode !== 'REGIST'"
-                    required
-                    input-type="time"
-                  />
-                </v-col>
-                <v-col cols="6">
-                  <g-numeric
-                    v-model="model.bulk.numberOfWorkers"
-                    class="right-input"
-                    label="人数"
-                    :disabled="editMode !== 'REGIST'"
-                    required
-                    suffix="名"
-                  />
-                </v-col>
-                <v-col cols="6">
-                  <g-switch
-                    v-model="model.bulk.qualification"
-                    label="要資格者"
-                    :disabled="editMode !== 'REGIST'"
-                  />
-                </v-col>
-              </v-row>
-              <g-combobox-date
-                v-model="model.bulk.dates"
-                label="予定日"
-                required
-                multiple
-              />
-              <g-textarea
-                v-model="model.bulk.remarks"
-                label="備考"
-                hide-details
-              />
-              <v-checkbox
-                v-if="editMode === 'UPDATE'"
-                v-model="remove"
-                label="このスポット情報を削除する"
-              />
-            </v-form>
-          </v-card-text>
-          <v-card-actions class="justify-space-between">
-            <v-btn :disabled="loading" @click="dialog.bulk = false"
-              ><g-icon-close />close</v-btn
-            >
-            <v-btn
-              :disabled="loading"
-              :loading="loading"
-              color="primary"
-              @click="submitBulk"
-              ><g-icon-submit />submit</v-btn
-            >
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-      <v-dialog
-        v-model="dialog.individual"
+        v-model="dialog.schedule"
         persistent
         scrollable
         max-width="480"
@@ -414,32 +258,73 @@ export default {
           <v-card-title class="pa-0">
             <v-toolbar flat color="primary" dark dense>
               <v-toolbar-title>
-                {{ `${model.individual.parent.name}[${mode}]` }}
+                {{ `[${mode}]` }}
               </v-toolbar-title>
             </v-toolbar>
           </v-card-title>
-          <v-card-text
-            :ref="(el) => (scrollTarget.individual = el)"
-            class="pa-4"
-          >
-            <v-form :ref="(el) => (form.individual = el)">
+          <v-card-text :ref="(el) => (scrollTarget.schedule = el)" class="pa-4">
+            <v-form :ref="(el) => (form.schedule = el)">
+              <div v-if="editMode === 'UPDATE'" class="text-right">
+                <v-dialog
+                  ref="duplicate"
+                  v-model="dialog.duplicate"
+                  max-width="290"
+                >
+                  <template #activator="{ attrs, on }">
+                    <v-btn v-bind="attrs" color="primary" text v-on="on">
+                      <v-icon left small>mdi-content-copy</v-icon>
+                      この情報を複製する
+                    </v-btn>
+                  </template>
+                  <g-date-picker
+                    v-model="duplicateDates"
+                    :disabled="loading"
+                    multiple
+                    no-title
+                    :picker-date.sync="pickerDate.duplicate"
+                  >
+                    <v-spacer></v-spacer>
+                    <v-btn
+                      text
+                      color="primary"
+                      :disabled="loading"
+                      @click="dialog.duplicate = false"
+                    >
+                      Cancel
+                    </v-btn>
+                    <v-btn
+                      text
+                      color="primary"
+                      :disabled="loading"
+                      :loading="loading"
+                      @click="duplicate"
+                    >
+                      OK
+                    </v-btn>
+                  </g-date-picker>
+                </v-dialog>
+              </div>
               <g-select
-                v-model="model.individual.status"
+                v-model="model.status"
                 label="状態"
                 :items="$TEMPORARY_SITE_STATUS_ARRAY"
               />
-              <v-radio-group
-                v-model="model.individual.workShift"
-                row
-                class="mt-0"
-              >
+              <g-text-field
+                v-model="model.name"
+                label="現場名"
+                required
+                ignore-surrogate-pair
+              />
+              <g-text-field v-model="model.address" label="住所" />
+              <g-combobox-date v-model="model.date" label="日にち" />
+              <v-radio-group v-model="model.workShift" row class="mt-0">
                 <v-radio value="day" label="日勤" />
                 <v-radio value="night" label="夜勤" />
               </v-radio-group>
               <v-row dense>
                 <v-col cols="6">
                   <g-text-field
-                    v-model="model.individual.start"
+                    v-model="model.start"
                     class="center-input"
                     label="開始時刻"
                     required
@@ -448,7 +333,7 @@ export default {
                 </v-col>
                 <v-col cols="6">
                   <g-text-field
-                    v-model="model.individual.end"
+                    v-model="model.end"
                     class="center-input"
                     label="終了時刻"
                     required
@@ -457,7 +342,7 @@ export default {
                 </v-col>
                 <v-col cols="6">
                   <g-numeric
-                    v-model="model.individual.numberOfWorkers"
+                    v-model="model.numberOfWorkers"
                     class="right-input"
                     label="人数"
                     required
@@ -465,17 +350,10 @@ export default {
                   />
                 </v-col>
                 <v-col cols="6">
-                  <g-switch
-                    v-model="model.individual.qualification"
-                    label="要資格者"
-                  />
+                  <g-switch v-model="model.qualification" label="要資格者" />
                 </v-col>
               </v-row>
-              <g-textarea
-                v-model="model.individual.remarks"
-                label="備考"
-                hide-details
-              />
+              <g-textarea v-model="model.remarks" label="備考" hide-details />
               <v-checkbox
                 v-if="editMode === 'UPDATE'"
                 v-model="remove"
@@ -484,14 +362,14 @@ export default {
             </v-form>
           </v-card-text>
           <v-card-actions class="justify-space-between">
-            <v-btn :disabled="loading" @click="dialog.individual = false"
+            <v-btn :disabled="loading" @click="dialog.schedule = false"
               ><g-icon-close />close</v-btn
             >
             <v-btn
               :disabled="loading"
               :loading="loading"
               color="primary"
-              @click="submitIndividual"
+              @click="submit"
               ><g-icon-submit />submit</v-btn
             >
           </v-card-actions>
@@ -515,21 +393,6 @@ export default {
           ><v-icon>mdi-chevron-right</v-icon></v-btn
         >
       </div>
-      <g-select-search
-        v-model="selectedSite"
-        class="mb-3"
-        :items="sites"
-        item-text="name"
-        return-object
-      >
-        <template #append-outer>
-          <g-icon-edit
-            color="primary"
-            :disabled="!selectedSite"
-            @click="onClickEditBulk(selectedSite)"
-          />
-        </template>
-      </g-select-search>
       <div :style="{ height: `${height ? parseInt(height) : undefined}px` }">
         <g-calendar
           ref="calendar"
@@ -537,7 +400,7 @@ export default {
           :events="events"
           :type="type"
           @click:date="onClickDate($event.date)"
-          @click:event="onClickEditIndividualEvent($event.event.data)"
+          @click:event="onClickEdit($event.event.data)"
         >
           <template #event="{ event }">
             <div class="pl-1 text-truncate">
@@ -560,28 +423,41 @@ export default {
           </template>
         </g-calendar>
       </div>
-      <v-dialog v-model="dialog.detail" scrollable max-width="480">
+      <v-dialog
+        v-model="dialog.detail"
+        scrollable
+        max-width="480"
+        transition="dialog-bottom-transition"
+      >
         <v-card>
-          <v-card-title class="g-card__title">
-            {{ selectedDate }}
+          <v-card-title class="pa-0">
+            <v-toolbar dense flat>
+              <v-toolbar-title>
+                {{ selectedDate }}
+              </v-toolbar-title>
+              <v-spacer />
+              <g-btn-regist-icon
+                color="primary"
+                @click="onClickRegist(selectedDate)"
+              />
+            </v-toolbar>
           </v-card-title>
           <v-card-text>
-            <v-list-item
-              v-for="(schedule, index) of schedules.filter(
-                ({ docId }) => docId === selectedDate
-              )"
-              :key="index"
-            >
+            <v-list-item v-for="(schedule, index) of daySchedules" :key="index">
+              <v-list-item-action>
+                <div>{{ schedule.start }}</div>
+                <div>{{ schedule.end }}</div>
+              </v-list-item-action>
               <v-list-item-content>
                 <v-list-item-title>
-                  {{ schedule.parent.name }}
+                  {{ schedule.name }}
                 </v-list-item-title>
                 <v-list-item-subtitle>
-                  {{ schedule.parent.address }}
+                  {{ schedule.address }}
                 </v-list-item-subtitle>
               </v-list-item-content>
               <v-list-item-action>
-                <g-icon-edit @click="onClickEditIndividualEvent(schedule)" />
+                <g-icon-edit @click="onClickEdit(schedule)" />
               </v-list-item-action>
             </v-list-item>
           </v-card-text>

@@ -2,15 +2,15 @@ import FireModel from './FireModel'
 
 const props = {
   props: {
+    name: { type: String, default: '', required: false },
+    address: { type: String, default: '', required: false },
     date: { type: String, default: '', required: false },
     workShift: { type: String, default: 'day', required: false },
     start: { type: String, default: '08:00', required: false },
+    end: { type: String, default: '17:00', required: false },
     numberOfWorkers: { type: Number, default: null, required: false },
     qualification: { type: Boolean, default: false, required: false },
-    month: { type: String, default: '', required: false },
     status: { type: String, default: 'accepted', required: false },
-    end: { type: String, default: '17:00', required: false },
-    parent: { type: Object, default: () => ({}), required: false },
     remarks: { type: String, default: '', required: false },
   },
 }
@@ -23,7 +23,7 @@ export { props }
 export default class TemporarySiteSchedule extends FireModel {
   constructor(context, item) {
     super(context, item)
-    // this.collection = ``
+    this.collection = `TemporarySiteSchedules`
     this.tokenFields = ['name']
     Object.defineProperties(this, {
       month: {
@@ -36,14 +36,6 @@ export default class TemporarySiteSchedule extends FireModel {
     })
   }
 
-  get collection() {
-    return `TemporarySites/${this.parent.docId}/TemporarySiteSchedules`
-  }
-
-  set collection(v) {
-    super.collection(v)
-  }
-
   initialize(item) {
     Object.keys(props.props).forEach((key) => {
       const propDefault = props.props[key].default
@@ -51,9 +43,5 @@ export default class TemporarySiteSchedule extends FireModel {
         typeof propDefault === 'function' ? propDefault() : propDefault
     })
     super.initialize(item)
-  }
-
-  async create() {
-    await super.create(this.date)
   }
 }
