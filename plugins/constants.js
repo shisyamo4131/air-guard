@@ -100,6 +100,16 @@ const LEAVE_APPLICATION_TYPE_ARRAY = [
   { value: 'paid', text: '2: 有給休暇' },
 ]
 
+const OUTSOURCER_STATUS = {
+  active: '契約中',
+  expired: '契約終了',
+}
+
+const OUTSOURCER_STATUS_ARRAY = [
+  { value: 'active', text: '契約中' },
+  { value: 'expired', text: '契約終了' },
+]
+
 const SECURITY_TYPE = {
   traffic: '交通誘導警備',
   jam: '雑踏警備',
@@ -155,6 +165,8 @@ export default (context, inject) => {
   inject('CHAR_REGEXP_ARRAY', CHAR_REGEXP_ARRAY)
   inject('CUSTOMER_STATUS', CUSTOMER_STATUS)
   inject('CUSTOMER_STATUS_ARRAY', CUSTOMER_STATUS_ARRAY)
+  inject('OUTSOURCER_STATUS', OUTSOURCER_STATUS)
+  inject('OUTSOURCER_STATUS_ARRAY', OUTSOURCER_STATUS_ARRAY)
   inject('DEADLINE', DEADLINE)
   inject('DEADLINE_ARRAY', DEADLINE_ARRAY)
   inject('EDIT_MODE', EDIT_MODE)

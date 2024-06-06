@@ -17,7 +17,8 @@
     "lists": [
       { "name": "取引先", "to": "/customers", "icon": "mdi-domain" },
       { "name": "現場", "to": "/sites", "icon": "mdi-domain" },
-      { "name": "従業員", "to": "/employees", "icon": "mdi-domain" }
+      { "name": "従業員", "to": "/employees", "icon": "mdi-domain" },
+      { "name": "外注先", "to": "/outsourcers", "icon": "mdi-domain" }
     ]
   },
   {

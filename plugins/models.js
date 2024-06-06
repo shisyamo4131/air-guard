@@ -3,6 +3,7 @@ import Autonumber from '../models/Autonumber'
 import Customer from '../models/Customer'
 import Site from '../models/Site'
 import Employee from '../models/Employee'
+import Outsourcer from '../models/Outsourcer'
 import LeaveApplication from '../models/LeaveApplication'
 import TemporarySiteSchedule from '../models/TemporarySiteSchedule'
 import OperationResult from '../models/OperationResult'
@@ -14,6 +15,7 @@ export default (context, inject) => {
   inject('Customer', (item) => new Customer(context, item))
   inject('Site', (item) => new Site(context, item))
   inject('Employee', (item) => new Employee(context, item))
+  inject('Outsourcer', (item) => new Outsourcer(context, item))
   inject('LeaveApplication', (item) => new LeaveApplication(context, item))
   inject(
     'TemporarySiteSchedule',

@@ -13,6 +13,8 @@ module.exports = {
   'customers-docId': [],
   'developments-sandbox': [],
   'developments-models': [],
+  outsourcers: [],
+  'outsourcers-docId': [],
   sites: [],
   'sites-docId': [],
   employees: [],
