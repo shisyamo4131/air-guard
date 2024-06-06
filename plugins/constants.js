@@ -54,6 +54,18 @@ const DEADLINE_ARRAY = [
   { text: '末日', value: '99' },
 ]
 
+const EDIT_MODE = {
+  REGIST: '登録',
+  UPDATE: '変更',
+  DELETE: '削除',
+}
+
+const EDIT_MODE_ARRAY = [
+  { text: '登録', value: 'REGIST' },
+  { text: '変更', value: 'UPDATE' },
+  { text: '削除', value: 'DELETE' },
+]
+
 const EMPLOYEE_STATUS = {
   active: '在籍',
   expired: '退職',
@@ -145,6 +157,8 @@ export default (context, inject) => {
   inject('CUSTOMER_STATUS_ARRAY', CUSTOMER_STATUS_ARRAY)
   inject('DEADLINE', DEADLINE)
   inject('DEADLINE_ARRAY', DEADLINE_ARRAY)
+  inject('EDIT_MODE', EDIT_MODE)
+  inject('EDIT_MODE_ARRAY', EDIT_MODE_ARRAY)
   inject('EMPLOYEE_STATUS', EMPLOYEE_STATUS)
   inject('EMPLOYEE_STATUS_ARRAY', EMPLOYEE_STATUS_ARRAY)
   inject('LEAVE_APPLICATION_STATUS', LEAVE_APPLICATION_STATUS)

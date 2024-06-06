@@ -1,8 +1,7 @@
 <script>
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 import GLeaveApplicationCalendar from '~/components/organisms/GLeaveApplicationCalendar.vue'
-import GBtnCancelIcon from '~/components/molecules/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '~/components/molecules/btns/GBtnSubmitIcon.vue'
+import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -14,8 +13,7 @@ export default {
   components: {
     GInputEmployee,
     GLeaveApplicationCalendar,
-    GBtnCancelIcon,
-    GBtnSubmitIcon,
+    GCardSubmitCancel,
   },
   /***************************************************************************
    * ASYNCDATA
@@ -39,14 +37,8 @@ export default {
       editModel: {
         employee: this.$Employee(),
       },
-      form: {
-        employee: null,
-      },
       loading: {
         employee: false,
-      },
-      scrollTarget: {
-        employee: null,
       },
     }
   },
@@ -71,12 +63,6 @@ export default {
         this.editModel.employee.initialize(this.listeners.employee)
       } else {
         this.editModel.employee.initialize()
-        this.form.employee.resetValidation()
-        this.scrollTarget.employee.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: 'instant',
-        })
       }
     },
   },
@@ -93,7 +79,6 @@ export default {
    ***************************************************************************/
   methods: {
     async submitEmployee() {
-      if (!this.validateEmployee()) return
       try {
         this.loading.employee = true
         await this.editModel.employee.update()
@@ -105,11 +90,6 @@ export default {
       } finally {
         this.loading.employee = false
       }
-    },
-    validateEmployee() {
-      const result = this.form.employee.validate()
-      if (!result) alert('入力に不備があります。')
-      return result
     },
   },
 }
@@ -170,37 +150,18 @@ export default {
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
           </template>
-          <v-card>
-            <v-toolbar dense flat color="primary" dark>
-              <v-toolbar-title>従業員[変更]</v-toolbar-title>
-            </v-toolbar>
-            <v-card-text
-              :ref="(el) => (scrollTarget.employee = el)"
-              class="pa-4"
-            >
-              <v-form
-                :ref="(el) => (form.employee = el)"
-                :disabled="loading.employee"
-              >
-                <g-input-employee
-                  v-bind.sync="editModel.employee"
-                  edit-mode="UPDATE"
-                />
-              </v-form>
-            </v-card-text>
-            <v-card-actions class="justify-space-between">
-              <g-btn-cancel-icon
-                :disabled="loading.employee"
-                @click="dialog.employee = false"
-              />
-              <g-btn-submit-icon
-                :disabled="loading.employee"
-                :loading="loading.employee"
-                color="primary"
-                @click="submitEmployee"
-              />
-            </v-card-actions>
-          </v-card>
+          <g-card-submit-cancel
+            :dialog.sync="dialog.employee"
+            label="従業員"
+            edit-mode="UPDATE"
+            :loading="loading.employee"
+            @click:submit="submitEmployee"
+          >
+            <g-input-employee
+              v-bind.sync="editModel.employee"
+              edit-mode="UPDATE"
+            />
+          </g-card-submit-cancel>
         </v-dialog>
       </v-card>
       <v-row>

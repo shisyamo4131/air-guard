@@ -6,8 +6,7 @@ import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue
 import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GIconFavoriteSite from '~/components/molecules/icons/GIconFavoriteSite.vue'
-import GBtnCancelIcon from '~/components/molecules/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '~/components/molecules/btns/GBtnSubmitIcon.vue'
+import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -23,8 +22,7 @@ export default {
     GBtnRegistIcon,
     GInputSite,
     GIconFavoriteSite,
-    GBtnCancelIcon,
-    GBtnSubmitIcon,
+    GCardSubmitCancel,
   },
   /***************************************************************************
    * ASYNCDATA
@@ -51,10 +49,6 @@ export default {
         customer: this.$Customer(),
         site: this.$Site(),
       },
-      form: {
-        customer: null,
-        site: null,
-      },
       items: {
         sites: [],
       },
@@ -71,10 +65,6 @@ export default {
       },
       pageCount: {
         sites: 0,
-      },
-      scrollTarget: {
-        customer: null,
-        site: null,
       },
     }
   },
@@ -99,12 +89,6 @@ export default {
         this.editModel.customer.initialize(this.listeners.customer)
       } else {
         this.editModel.customer.initialize()
-        this.form.customer.resetValidation()
-        this.scrollTarget.customer.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: 'instant',
-        })
       }
     },
     'dialog.site'(v) {
@@ -112,12 +96,6 @@ export default {
         this.editModel.site.initialize({ customerId: this.docId })
       } else {
         this.editModel.site.initialize({ customerId: this.docId })
-        this.form.site.resetValidation()
-        this.scrollTarget.site.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: 'instant',
-        })
       }
     },
     'lazySearch.sites': {
@@ -167,7 +145,7 @@ export default {
       }
     },
     async submitCustomer() {
-      if (!this.validateCustomer()) return
+      // if (!this.validateCustomer()) return
       try {
         this.loading.customer = true
         await this.editModel.customer.update()
@@ -181,7 +159,7 @@ export default {
       }
     },
     async submitSite() {
-      if (!this.validateSite()) return
+      // if (!this.validateSite()) return
       try {
         this.loading.site = true
         const docRef = await this.editModel.site.create()
@@ -194,16 +172,6 @@ export default {
       } finally {
         this.loading.site = false
       }
-    },
-    validateCustomer() {
-      const result = this.form.customer.validate()
-      if (!result) alert('入力に不備があります。')
-      return result
-    },
-    validateSite() {
-      const result = this.form.site.validate()
-      if (!result) alert('入力に不備があります。')
-      return result
     },
   },
 }
@@ -263,37 +231,18 @@ export default {
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
           </template>
-          <v-card>
-            <v-toolbar dense flat color="primary" dark>
-              <v-toolbar-title>取引先[変更]</v-toolbar-title>
-            </v-toolbar>
-            <v-card-text
-              :ref="(el) => (scrollTarget.customer = el)"
-              class="pa-4"
-            >
-              <v-form
-                :ref="(el) => (form.customer = el)"
-                :disabled="loading.customer"
-              >
-                <g-input-customer
-                  v-bind.sync="editModel.customer"
-                  edit-mode="UPDATE"
-                />
-              </v-form>
-            </v-card-text>
-            <v-card-actions class="justify-space-between">
-              <g-btn-cancel-icon
-                :disabled="loading.customer"
-                @click="dialog.customer = false"
-              />
-              <g-btn-submit-icon
-                :disabled="loading.customer"
-                :loading="loading.customer"
-                color="primary"
-                @click="submitCustomer"
-              />
-            </v-card-actions>
-          </v-card>
+          <g-card-submit-cancel
+            :dialog.sync="dialog.customer"
+            label="取引先"
+            edit-mode="UPDATE"
+            :loading="loading.customer"
+            @click:submit="submitCustomer"
+          >
+            <g-input-customer
+              v-bind.sync="editModel.customer"
+              edit-mode="UPDATE"
+            />
+          </g-card-submit-cancel>
         </v-dialog>
       </v-card>
       <v-row>
@@ -342,38 +291,19 @@ export default {
                 <template #activator="{ attrs, on }">
                   <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
                 </template>
-                <v-card>
-                  <v-toolbar dense flat color="primary" dark>
-                    <v-toolbar-title>現場[登録]</v-toolbar-title>
-                  </v-toolbar>
-                  <v-card-text
-                    :ref="(el) => (scrollTarget.site = el)"
-                    class="pa-4"
-                  >
-                    <v-form
-                      :ref="(el) => (form.site = el)"
-                      :disabled="loading.site"
-                    >
-                      <g-input-site
-                        v-bind.sync="editModel.site"
-                        edit-mode="REGIST"
-                        hide-customer
-                      />
-                    </v-form>
-                  </v-card-text>
-                  <v-card-actions class="justify-space-between">
-                    <g-btn-cancel-icon
-                      :disabled="loading.site"
-                      @click="dialog.site = false"
-                    />
-                    <g-btn-submit-icon
-                      :disabled="loading.site"
-                      :loading="loading.site"
-                      color="primary"
-                      @click="submitSite"
-                    />
-                  </v-card-actions>
-                </v-card>
+                <g-card-submit-cancel
+                  :dialog.sync="dialog.site"
+                  label="現場"
+                  edit-mode="REGIST"
+                  :loading="loading.site"
+                  @click:submit="submitSite"
+                >
+                  <g-input-site
+                    v-bind.sync="editModel.site"
+                    edit-mode="REGIST"
+                    hide-customer
+                  />
+                </g-card-submit-cancel>
               </v-dialog>
             </v-toolbar>
             <g-data-table

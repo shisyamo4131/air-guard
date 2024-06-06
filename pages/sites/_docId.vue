@@ -1,6 +1,5 @@
 <script>
-import GBtnCancelIcon from '~/components/molecules/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '~/components/molecules/btns/GBtnSubmitIcon.vue'
+import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 export default {
   /***************************************************************************
@@ -10,7 +9,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GInputSite, GBtnCancelIcon, GBtnSubmitIcon },
+  components: { GInputSite, GCardSubmitCancel },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -33,14 +32,8 @@ export default {
       editModel: {
         site: this.$Site(),
       },
-      form: {
-        site: null,
-      },
       loading: {
         site: false,
-      },
-      scrollTarget: {
-        site: null,
       },
     }
   },
@@ -65,12 +58,6 @@ export default {
         this.editModel.site.initialize(this.listeners.site)
       } else {
         this.editModel.site.initialize()
-        this.form.site.resetValidation()
-        this.scrollTarget.site.scrollTo({
-          top: 0,
-          left: 0,
-          behavior: 'instant',
-        })
       }
     },
   },
@@ -87,7 +74,6 @@ export default {
    ***************************************************************************/
   methods: {
     async submitSite() {
-      if (!this.validateSite()) return
       try {
         this.loading.site = true
         await this.editModel.site.update()
@@ -99,11 +85,6 @@ export default {
       } finally {
         this.loading.site = false
       }
-    },
-    validateSite() {
-      const result = this.form.site.validate()
-      if (!result) alert('入力に不備があります。')
-      return result
     },
   },
 }
@@ -144,32 +125,19 @@ export default {
               <v-icon>mdi-pencil</v-icon>
             </v-btn>
           </template>
-          <v-card>
-            <v-toolbar dense flat color="primary" dark>
-              <v-toolbar-title>現場[変更]</v-toolbar-title>
-            </v-toolbar>
-            <v-card-text :ref="(el) => (scrollTarget.site = el)" class="pa-4">
-              <v-form :ref="(el) => (form.site = el)" :disabled="loading.site">
-                <g-input-site
-                  v-bind.sync="editModel.site"
-                  edit-mode="UPDATE"
-                  hide-customer
-                />
-              </v-form>
-            </v-card-text>
-            <v-card-actions class="justify-space-between">
-              <g-btn-cancel-icon
-                :disabled="loading.site"
-                @click="dialog.site = false"
-              />
-              <g-btn-submit-icon
-                :disabled="loading.site"
-                :loading="loading.site"
-                color="primary"
-                @click="submitSite"
-              />
-            </v-card-actions>
-          </v-card>
+          <g-card-submit-cancel
+            :dialog.sync="dialog.site"
+            label="現場"
+            edit-mode="UPDATE"
+            :loading="loading.site"
+            @click:submit="submitSite"
+          >
+            <g-input-site
+              v-bind.sync="editModel.site"
+              edit-mode="UPDATE"
+              hide-customer
+            />
+          </g-card-submit-cancel>
         </v-dialog>
       </v-card>
       <v-row>

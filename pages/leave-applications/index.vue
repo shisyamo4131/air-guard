@@ -6,8 +6,7 @@ import GInputLeaveApplication from '~/components/molecules/inputs/GInputLeaveApp
 import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
-import GBtnCancelIcon from '~/components/molecules/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '~/components/molecules/btns/GBtnSubmitIcon.vue'
+import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
 /**
  * ### pages.leave-applications-index
  * @shisyamo4131
@@ -30,8 +29,7 @@ export default {
     GDatePicker,
     GSelect,
     GTextField,
-    GBtnCancelIcon,
-    GBtnSubmitIcon,
+    GCardSubmitCancel,
   },
   /***************************************************************************
    * DATA
@@ -45,13 +43,11 @@ export default {
       },
       dates: [],
       editMode: 'REGIST',
-      form: null,
       items: [],
       listener: null,
       loading: false,
       model: this.$LeaveApplication(),
       pickerDate: undefined,
-      scrollTarget: null,
       search: {
         month: this.$dayjs().format('YYYY-MM'),
         status: 'approved',
@@ -130,11 +126,8 @@ export default {
         status: 'approved',
         settlementDate: this.$dayjs().format('YYYY-MM-DD'),
       })
-      this.form?.resetValidation()
-      this.scrollTarget?.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     },
     async submit() {
-      if (!this.validate()) return
       try {
         this.loading = true
         if (this.editMode === 'REGIST') await this.model.create()
@@ -148,11 +141,6 @@ export default {
       } finally {
         this.loading = false
       }
-    },
-    validate() {
-      const result = this.form.validate()
-      if (!result) alert('入力に不備があります。')
-      return result
     },
     onClickEdit(item) {
       this.model.initialize(item)
@@ -230,36 +218,19 @@ export default {
               v-on="on"
             />
           </template>
-          <v-card>
-            <v-toolbar dense flat color="primary" dark>
-              <v-toolbar-title>
-                {{ `休暇申請[${mode}]` }}
-              </v-toolbar-title>
-            </v-toolbar>
-            <v-card-text :ref="(el) => (scrollTarget = el)" class="pa-4">
-              <v-form
-                :ref="(el) => (form = el)"
-                :disabled="loading || editMode === 'DELETE'"
-              >
-                <g-input-leave-application
-                  v-bind.sync="model"
-                  :edit-mode="editMode"
-                />
-              </v-form>
-            </v-card-text>
-            <v-card-actions class="justify-space-between">
-              <g-btn-cancel-icon
-                :disabled="loading"
-                @click="dialog.editor = false"
-              />
-              <g-btn-submit-icon
-                :disabled="loading"
-                :loading="loading"
-                color="primary"
-                @click="submit"
-              />
-            </v-card-actions>
-          </v-card>
+          <g-card-submit-cancel
+            :dialog.sync="dialog.editor"
+            label="休暇申請"
+            :edit-mode="editMode"
+            :disabled="editMode === 'DELETE'"
+            :loading="loading"
+            @click:submit="submit"
+          >
+            <g-input-leave-application
+              v-bind.sync="model"
+              :edit-mode="editMode"
+            />
+          </g-card-submit-cancel>
         </v-dialog>
       </div>
       <g-data-table

@@ -5,8 +5,7 @@ import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GIconFavoriteCustomer from '~/components/molecules/icons/GIconFavoriteCustomer.vue'
-import GBtnCancelIcon from '~/components/molecules/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '~/components/molecules/btns/GBtnSubmitIcon.vue'
+import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -21,8 +20,7 @@ export default {
     GInputCustomer,
     GDataTable,
     GIconFavoriteCustomer,
-    GBtnCancelIcon,
-    GBtnSubmitIcon,
+    GCardSubmitCancel,
   },
   /***************************************************************************
    * DATA
@@ -34,7 +32,6 @@ export default {
       lazySearch: null,
       loading: false,
       model: this.$Customer(),
-      scrollTarget: null,
     }
   },
   /***************************************************************************
@@ -79,15 +76,11 @@ export default {
     },
     initialize() {
       this.model.initialize()
-      this.$refs.form.resetValidation()
-      if (!this.scrollTarget) return
-      this.scrollTarget.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     },
     onClickDetail(item) {
       this.$router.push(`/customers/${item.docId}`)
     },
     async submit() {
-      if (!this.validate()) return
       try {
         this.loading = true
         const docRef = await this.model.create()
@@ -104,11 +97,6 @@ export default {
     toggledFavorite(item) {
       item.favorite = !item.favorite
     },
-    validate() {
-      const result = this.$refs.form.validate()
-      if (!result) alert('入力に不備があります。')
-      return result
-    },
   },
 }
 </script>
@@ -121,25 +109,15 @@ export default {
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
         </template>
-        <v-card>
-          <v-toolbar dense flat color="primary" dark>
-            <v-toolbar-title>取引先[登録]</v-toolbar-title>
-          </v-toolbar>
-          <v-card-text :ref="(el) => (scrollTarget = el)" class="pa-4">
-            <v-form ref="form" :disabled="loading">
-              <g-input-customer v-bind.sync="model" edit-mode="REGIST" />
-            </v-form>
-          </v-card-text>
-          <v-card-actions class="justify-space-between">
-            <g-btn-cancel-icon :disabled="loading" @click="dialog = false" />
-            <g-btn-submit-icon
-              :disabled="loading"
-              :loading="loading"
-              color="primary"
-              @click="submit"
-            />
-          </v-card-actions>
-        </v-card>
+        <g-card-submit-cancel
+          :dialog.sync="dialog"
+          label="取引先"
+          edit-mode="REGIST"
+          :loading="loading"
+          @click:submit="submit"
+        >
+          <g-input-customer v-bind.sync="model" edit-mode="REGIST" />
+        </g-card-submit-cancel>
       </v-dialog>
     </v-toolbar>
     <v-container fluid>

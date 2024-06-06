@@ -46,15 +46,11 @@ export default class Autonumber extends FireModel {
   }
 
   initialize(item) {
-    Object.keys(props.props)
-      .filter((key) => !(key in this))
-      .forEach((key) => {
-        Object.defineProperty(this, key, {
-          value: props.props[key].default,
-          enumerable: true,
-          writable: true,
-        })
-      })
+    Object.keys(props.props).forEach((key) => {
+      const propDefault = props.props[key].default
+      this[key] =
+        typeof propDefault === 'function' ? propDefault() : propDefault
+    })
     super.initialize(item)
   }
 
