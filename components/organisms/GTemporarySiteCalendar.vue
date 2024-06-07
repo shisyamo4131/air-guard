@@ -12,6 +12,7 @@ import GComboboxDate from '../atoms/inputs/GComboboxDate.vue'
 import GDatePicker from '../atoms/pickers/GDatePicker.vue'
 import GBtnCancelIcon from '../molecules/btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '../molecules/btns/GBtnSubmitIcon.vue'
+import GDivMonthChooser from '../molecules/divs/GDivMonthChooser.vue'
 /**
  * ### GTemporarySiteCalendar
  * @author shisyamo4131
@@ -33,6 +34,7 @@ export default {
     GDatePicker,
     GBtnCancelIcon,
     GBtnSubmitIcon,
+    GDivMonthChooser,
   },
   /***************************************************************************
    * PROPS
@@ -109,9 +111,6 @@ export default {
       if (this.editMode === 'REGIST') return '登録'
       if (this.editMode === 'UPDATE') return '変更'
       return '削除'
-    },
-    month() {
-      return this.$dayjs(this.currentDate).format('YYYY-MM')
     },
   },
   /***************************************************************************
@@ -342,7 +341,7 @@ export default {
                 </v-col>
                 <v-col cols="6">
                   <g-numeric
-                    v-model="model.numberOfWorkers"
+                    v-model="model.requiredWorkers"
                     class="right-input"
                     label="人数"
                     required
@@ -376,23 +375,14 @@ export default {
         </v-card>
       </v-dialog>
     </v-card-title>
+    <v-container fluid class="py-0">
+      <g-div-month-chooser
+        v-model="currentDate"
+        @click:prev="$refs.calendar.prev()"
+        @click:next="$refs.calendar.next()"
+      />
+    </v-container>
     <v-container fluid>
-      <div class="d-flex mb-2 align-center" style="column-gap: 4px">
-        <v-btn
-          color="primary"
-          small
-          outlined
-          @click="currentDate = $dayjs().format('YYYY-MM-DD')"
-          >今月</v-btn
-        >
-        <v-btn icon @click="$refs.calendar.prev()"
-          ><v-icon>mdi-chevron-left</v-icon></v-btn
-        >
-        <span>{{ month }}</span>
-        <v-btn icon @click="$refs.calendar.next()"
-          ><v-icon>mdi-chevron-right</v-icon></v-btn
-        >
-      </div>
       <div :style="{ height: `${height ? parseInt(height) : undefined}px` }">
         <g-calendar
           ref="calendar"
@@ -412,7 +402,7 @@ export default {
                 size="16"
               >
                 <span class="white--text text-caption">
-                  {{ event.data.numberOfWorkers }}
+                  {{ event.data.requiredWorkers }}
                 </span>
               </v-avatar>
               <span v-else>

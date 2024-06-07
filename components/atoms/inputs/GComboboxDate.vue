@@ -25,6 +25,7 @@ export default {
   data() {
     return {
       dialog: false,
+      pickerDate: this.$dayjs().format('YYYY-MM-DD'),
     }
   },
   /***************************************************************************
@@ -39,6 +40,14 @@ export default {
         if (Array.isArray(v)) v.sort((a, b) => (a < b ? -1 : 1))
         this.$emit('input', v)
       },
+    },
+  },
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    dialog(v) {
+      if (!v) this.pickerDate = this.$dayjs().format('YYYY-MM-DD')
     },
   },
 }
@@ -64,7 +73,12 @@ export default {
         <template #activator="{ attrs, on }">
           <v-icon v-bind="attrs" color="primary" v-on="on">mdi-calendar</v-icon>
         </template>
-        <g-date-picker v-model="value" :multiple="multiple" no-title>
+        <g-date-picker
+          v-model="value"
+          :multiple="multiple"
+          no-title
+          :picker-date.sync="pickerDate"
+        >
           <v-spacer></v-spacer>
           <v-btn text color="primary" @click="dialog = false"> Cancel </v-btn>
           <v-btn text color="primary" @click="$refs.dialog.save(value)">

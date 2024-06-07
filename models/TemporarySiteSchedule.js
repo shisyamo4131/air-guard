@@ -8,7 +8,7 @@ const props = {
     workShift: { type: String, default: 'day', required: false },
     start: { type: String, default: '08:00', required: false },
     end: { type: String, default: '17:00', required: false },
-    numberOfWorkers: { type: Number, default: null, required: false },
+    requiredWorkers: { type: Number, default: null, required: false },
     qualification: { type: Boolean, default: false, required: false },
     status: { type: String, default: 'accepted', required: false },
     remarks: { type: String, default: '', required: false },

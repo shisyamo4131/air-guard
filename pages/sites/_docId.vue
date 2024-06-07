@@ -1,6 +1,7 @@
 <script>
 import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
+import GSiteOperationScheduleCalendar from '~/components/organisms/GSiteOperationScheduleCalendar.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -9,7 +10,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GInputSite, GCardSubmitCancel },
+  components: { GInputSite, GCardSubmitCancel, GSiteOperationScheduleCalendar },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -159,7 +160,7 @@ export default {
           </v-card>
         </v-col>
         <v-col cols="12" md="7">
-          <v-calendar />
+          <g-site-operation-schedule-calendar :site-id="docId" />
         </v-col>
       </v-row>
     </v-container>
