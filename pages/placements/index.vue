@@ -7,18 +7,7 @@
           <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
         </template>
         <g-card-submit-cancel :edit-mode="editMode" label="稼働予定登録">
-          <g-autocomplete-site label="現場">
-            <template #item="{ item }">
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ item.abbr }}
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ item.address }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </template>
-          </g-autocomplete-site>
+          <g-autocomplete-site label="現場" />
         </g-card-submit-cancel>
       </v-dialog>
     </div>
