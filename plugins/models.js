@@ -6,6 +6,7 @@ import Employee from '../models/Employee'
 import Outsourcer from '../models/Outsourcer'
 import LeaveApplication from '../models/LeaveApplication'
 import TemporarySiteSchedule from '../models/TemporarySiteSchedule'
+import Placement from '../models/Placement'
 import OperationResult from '../models/OperationResult'
 import SiteContract from '../models/SiteContract'
 
@@ -21,6 +22,7 @@ export default (context, inject) => {
     'TemporarySiteSchedule',
     (item) => new TemporarySiteSchedule(context, item)
   )
+  inject('Placement', (item) => new Placement(context, item))
   inject('OperationResult', (item) => new OperationResult(context, item))
   inject(
     'SiteContract',

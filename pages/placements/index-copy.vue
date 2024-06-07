@@ -6,19 +6,8 @@
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
         </template>
-        <g-card-submit-cancel :edit-mode="editMode" label="稼働予定登録">
-          <g-autocomplete-site label="現場">
-            <template #item="{ item }">
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ item.abbr }}
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ item.address }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-            </template>
-          </g-autocomplete-site>
+        <g-card-submit-cancel>
+          <g-autocomplete-site />
         </g-card-submit-cancel>
       </v-dialog>
     </div>
@@ -56,7 +45,6 @@ export default {
       dialog: {
         regist: false,
       },
-      editMode: 'REGIST',
       items: [],
       model: this.$Placement(),
     }
@@ -123,4 +111,57 @@ export default {
 }
 </script>
 
-<style></style>
+<style scoped>
+/* 列幅の全体設定 */
+.fixed-column ::v-deep th {
+  min-width: 120px;
+}
+
+/* ヘッダー1列目の設定 */
+.fixed-column ::v-deep th:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  background-color: white;
+  max-width: 100px;
+  min-width: 100px;
+  word-break: break-all;
+}
+
+/* 明細1列目の設定 */
+.fixed-column ::v-deep td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background-color: white;
+  max-width: 100px;
+  min-width: 100px;
+  word-break: break-all;
+}
+
+.fixed-column ::v-deep tr:hover td {
+  background-color: #eee;
+}
+
+/* ヘッダー2列目の設定 */
+.fixed-column ::v-deep th:nth-child(2) {
+  position: sticky;
+  left: 100px;
+  z-index: 3;
+  background-color: white;
+  max-width: 100px;
+  min-width: 100px;
+  word-break: break-all;
+}
+
+/* 明細2列目の設定 */
+.fixed-column ::v-deep td:nth-child(2) {
+  position: sticky;
+  left: 100px;
+  z-index: 1;
+  background-color: white;
+  max-width: 100px;
+  min-width: 100px;
+  word-break: break-all;
+}
+</style>

@@ -25,14 +25,14 @@ export default class Outsourcer extends FireModel {
   constructor(context, item) {
     super(context, item)
     this.collection = 'Outsourcers'
-    this.hasMany = [
-      {
-        collection: 'Sites',
-        field: 'customerId',
-        condition: '==',
-        type: 'collection',
-      },
-    ]
+    // this.hasMany = [
+    //   {
+    //     collection: 'Sites',
+    //     field: 'customerId',
+    //     condition: '==',
+    //     type: 'collection',
+    //   },
+    // ]
     this.tokenFields = ['abbr', 'abbrKana']
   }
 

@@ -5,8 +5,9 @@ import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
 import GInputLeaveApplication from '~/components/molecules/inputs/GInputLeaveApplication.vue'
 import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
-import GTextField from '~/components/atoms/inputs/GTextField.vue'
+// import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
+import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 /**
  * ### pages.leave-applications-index
  * @shisyamo4131
@@ -28,8 +29,9 @@ export default {
     GInputLeaveApplication,
     GDatePicker,
     GSelect,
-    GTextField,
+    // GTextField,
     GCardSubmitCancel,
+    GDialogMonthPicker,
   },
   /***************************************************************************
    * DATA
@@ -185,7 +187,7 @@ export default {
   <div>
     <v-container fluid>
       <div class="d-flex mb-4" style="gap: 8px 8px">
-        <v-dialog ref="month" v-model="dialog.monthPicker" width="290">
+        <!-- <v-dialog ref="month" v-model="dialog.monthPicker" width="290">
           <template #activator="{ attrs, on }">
             <g-text-field
               v-model="search.month"
@@ -199,7 +201,8 @@ export default {
             />
           </template>
           <g-date-picker v-model="search.month" type="month" no-title />
-        </v-dialog>
+        </v-dialog> -->
+        <g-dialog-month-picker v-model="search.month" />
         <!-- 2024-06-01 外部からの申請がないため、休暇申請は登録時に状態：承認で固定 -->
         <g-select
           v-model="search.status"
