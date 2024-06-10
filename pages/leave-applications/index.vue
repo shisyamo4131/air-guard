@@ -1,5 +1,5 @@
 <script>
-import { collection, onSnapshot, query, where } from 'firebase/firestore'
+import { where } from 'firebase/firestore'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
 import GInputLeaveApplication from '~/components/molecules/inputs/GInputLeaveApplication.vue'
@@ -99,25 +99,15 @@ export default {
       return await model.fetchDoc(employeeId)
     },
     subscribe() {
-      this.items.splice(0)
-      const colRef = collection(this.$firestore, 'LeaveApplications')
-      const q = query(
-        colRef,
-        where('status', '==', this.search.status),
-        where('months', 'array-contains', this.search.month)
+      this.items = this.model.subscribe(
+        undefined,
+        [
+          where('status', '==', this.search.status),
+          where('months', 'array-contains', this.search.month),
+        ],
+        async (item) =>
+          (item.employee = await this.getEmployee(item.employeeId))
       )
-      this.listener = onSnapshot(q, (snapshot) => {
-        snapshot.docChanges().forEach(async (change) => {
-          const item = change.doc.data()
-          const index = this.items.findIndex(
-            ({ docId }) => docId === item.docId
-          )
-          item.employee = await this.getEmployee(item.employeeId)
-          if (change.type === 'added') this.items.push(item)
-          if (change.type === 'modified') this.items.splice(index, 1, item)
-          if (change.type === 'removed') this.items.splice(index, 1)
-        })
-      })
     },
     initialize() {
       this.editMode = 'REGIST'
@@ -274,7 +264,9 @@ export default {
           <div v-if="item.dates.length === 1">
             {{ item.dates[0] }}
           </div>
-          <v-btn v-else depressed small @click="showDates(item)">確認</v-btn>
+          <v-btn v-else depressed small @click="showDates(item)">
+            {{ `${item.dates.length}日間` }}
+          </v-btn>
         </template>
         <template #[`item.status`]="{ item }">
           <v-chip small>{{ $LEAVE_APPLICATION_STATUS[item.status] }}</v-chip>

@@ -41,6 +41,7 @@ export default {
       label="休暇種別"
       :items="$LEAVE_APPLICATION_TYPE_ARRAY"
       :disabled="['rejected', 'withdraw'].includes(status)"
+      attach
       @input="$emit('update:type', $event)"
     />
     <g-autocomplete-employee
@@ -50,6 +51,7 @@ export default {
       item-text="abbr"
       item-value="docId"
       :disabled="['rejected', 'withdraw'].includes(status)"
+      attach
       @input="$emit('update:employeeId', $event)"
     />
     <g-combobox-date

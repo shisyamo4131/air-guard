@@ -12,12 +12,7 @@ export default {
 </script>
 
 <template>
-  <v-switch
-    class="mt-0 pt-2"
-    style="height: 66px"
-    v-bind="$attrs"
-    v-on="$listeners"
-  >
+  <v-switch v-bind="$attrs" v-on="$listeners">
     <template
       v-for="(_, scopedSlotName) in $scopedSlots"
       #[scopedSlotName]="slotData"

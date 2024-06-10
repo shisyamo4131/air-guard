@@ -315,7 +315,7 @@ export default {
                 ignore-surrogate-pair
               />
               <g-text-field v-model="model.address" label="住所" />
-              <g-combobox-date v-model="model.date" label="日にち" />
+              <g-combobox-date v-model="model.date" label="日付" />
               <v-radio-group v-model="model.workShift" row class="mt-0">
                 <v-radio value="day" label="日勤" />
                 <v-radio value="night" label="夜勤" />
@@ -349,7 +349,11 @@ export default {
                   />
                 </v-col>
                 <v-col cols="6">
-                  <g-switch v-model="model.qualification" label="要資格者" />
+                  <g-switch
+                    v-model="model.qualification"
+                    class="mt-1"
+                    label="要資格者"
+                  />
                 </v-col>
               </v-row>
               <g-textarea v-model="model.remarks" label="備考" hide-details />

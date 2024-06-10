@@ -11,7 +11,13 @@ export default {
    ***************************************************************************/
   props: {
     cacheItems: { type: Boolean, default: true, required: false },
-    filter: { type: Function, default: () => true, required: false },
+    filter: {
+      type: Function,
+      default: () => {
+        return true
+      },
+      required: false,
+    },
     itemValue: {
       type: [String, Array, Function],
       default: 'docId',
@@ -29,11 +35,6 @@ export default {
       lazySearch: null,
       loading: false,
     }
-  },
-  computed: {
-    filteredItems() {
-      return this.items.filter((item) => this.filter(item))
-    },
   },
   /***************************************************************************
    * WATCH
@@ -126,7 +127,8 @@ export default {
   <g-autocomplete
     v-bind="$attrs"
     :cache-items="multiple"
-    :items="filteredItems"
+    :filter="filter"
+    :items="items"
     :item-value="itemValue"
     :lazy-search.sync="lazySearch"
     :loading="loading"

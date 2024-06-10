@@ -27,7 +27,7 @@ export default {
   <div>
     <g-combobox-date
       :value="date"
-      label="日にち"
+      label="日付"
       required
       @input="$emit('update:date', $event)"
     />
@@ -73,6 +73,7 @@ export default {
       </v-col>
       <v-col cols="6">
         <g-switch
+          class="mt-1"
           :input-value="qualification"
           label="要資格者"
           @change="$emit('update:qualification', $event)"

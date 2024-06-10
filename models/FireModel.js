@@ -581,7 +581,7 @@ export default class FireModel {
    * @param {array} constraints
    * @returns Reference to the array in which the retrieved document data is stored.
    */
-  subscribe(ngram = undefined, constraints = []) {
+  subscribe(ngram = undefined, constraints = [], callBack = undefined) {
     this.unsubscribe()
     /* eslint-disable */
     console.info('Subscription of %s has been started.', this.collection)
@@ -596,9 +596,10 @@ export default class FireModel {
     const colRef = collection(this.#firestore, this.collection)
     const q = query(colRef, ...constraints, ...wheres)
     this.#listener = onSnapshot(q, (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
+      snapshot.docChanges().forEach(async (change) => {
         const item = change.doc.data()
         const index = this.#items.findIndex(({ docId }) => docId === item.docId)
+        if (callBack) await callBack(item)
         if (change.type === 'added') this.#items.push(item)
         if (change.type === 'modified') this.#items.splice(index, 1, item)
         if (change.type === 'removed') this.#items.splice(index, 1)
