@@ -1,13 +1,12 @@
 <script>
 import { where } from 'firebase/firestore'
-import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
 import GInputLeaveApplication from '~/components/molecules/inputs/GInputLeaveApplication.vue'
 import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
-// import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
+import GDataTableLeaveApplications from '~/components/molecules/tables/GDataTableLeaveApplications.vue'
 /**
  * ### pages.leave-applications-index
  * @shisyamo4131
@@ -24,14 +23,13 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GDataTable,
     GBtnRegistIcon,
     GInputLeaveApplication,
     GDatePicker,
     GSelect,
-    // GTextField,
     GCardSubmitCancel,
     GDialogMonthPicker,
+    GDataTableLeaveApplications,
   },
   /***************************************************************************
    * DATA
@@ -144,7 +142,7 @@ export default {
       this.editMode = 'DELETE'
       this.dialog.editor = true
     },
-    showDates(item) {
+    onClickShowDates(item) {
       this.dates = item.dates
       this.pickerDate = item.dates[0]
       this.dialog.datePicker = true
@@ -177,21 +175,6 @@ export default {
   <div>
     <v-container fluid>
       <div class="d-flex mb-4" style="gap: 8px 8px">
-        <!-- <v-dialog ref="month" v-model="dialog.monthPicker" width="290">
-          <template #activator="{ attrs, on }">
-            <g-text-field
-              v-model="search.month"
-              class="center-input"
-              style="min-width: 108px; max-width: 108px"
-              label="対象年月"
-              hide-details
-              v-bind="attrs"
-              readonly
-              v-on="on"
-            />
-          </template>
-          <g-date-picker v-model="search.month" type="month" no-title />
-        </v-dialog> -->
         <g-dialog-month-picker v-model="search.month" />
         <!-- 2024-06-01 外部からの申請がないため、休暇申請は登録時に状態：承認で固定 -->
         <g-select
@@ -226,89 +209,12 @@ export default {
           </g-card-submit-cancel>
         </v-dialog>
       </div>
-      <g-data-table
-        :actions="['edit', 'delete']"
-        :headers="[
-          { text: '申請日', value: 'requestDate', width: 120 },
-          { text: '申請者', value: 'employee.abbr' },
-          {
-            text: '対象日',
-            value: 'dates',
-            align: 'center',
-            sortable: false,
-          },
-          {
-            text: '状態',
-            value: 'status',
-            sortable: false,
-            align: 'center',
-          },
-          {
-            text: '決済日',
-            value: 'settlementDate',
-            align: 'center',
-            sortable: false,
-          },
-          {
-            text: '',
-            value: 'settlementActions',
-            align: 'right',
-            sortable: false,
-          },
-        ]"
+      <g-data-table-leave-applications
         :items="items"
         @click:edit="onClickEdit"
         @click:delete="onClickDelete"
-      >
-        <template #[`item.dates`]="{ item }">
-          <div v-if="item.dates.length === 1">
-            {{ item.dates[0] }}
-          </div>
-          <v-btn v-else depressed small @click="showDates(item)">
-            {{ `${item.dates.length}日間` }}
-          </v-btn>
-        </template>
-        <template #[`item.status`]="{ item }">
-          <v-chip small>{{ $LEAVE_APPLICATION_STATUS[item.status] }}</v-chip>
-        </template>
-        <!-- <template #[`item.settlementActions`]="{ item }">
-          <v-btn
-            :disabled="item.status !== 'unapproved'"
-            depressed
-            small
-            @click="onClickEdit(item)"
-            >変更</v-btn
-          >
-          <v-btn
-            :disabled="item.status !== 'unapproved'"
-            depressed
-            small
-            @click="onClickDelete(item)"
-            >削除</v-btn
-          >
-          <v-btn
-            :disabled="item.status !== 'unapproved'"
-            depressed
-            small
-            @click="onClickApprove(item)"
-            >承認</v-btn
-          >
-          <v-btn
-            :disabled="item.status !== 'unapproved'"
-            depressed
-            small
-            @click="onClickReject(item)"
-            >却下</v-btn
-          >
-          <v-btn
-            :disabled="item.status !== 'approved'"
-            depressed
-            small
-            @click="onClickWithdraw(item)"
-            >取下</v-btn
-          >
-        </template> -->
-      </g-data-table>
+        @click:show-dates="onClickShowDates"
+      />
       <v-dialog v-model="dialog.datePicker" width="290">
         <g-date-picker
           :value="dates"

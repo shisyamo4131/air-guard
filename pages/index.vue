@@ -3,11 +3,11 @@
     <!-- <v-row justify="center" align="center"> -->
     <v-row>
       <v-col cols="12">
+        <g-leave-application-table :length="5" flat outlined />
+      </v-col>
+      <v-col cols="12">
         <g-temporary-site-calendar flat outlined height="600" />
       </v-col>
-      <!-- <v-col cols="12" lg="6">
-        <g-leave-application-table flat outlined />
-      </v-col> -->
       <!-- <v-col cols="12">
         <v-card>
           <v-card-title> 売上推移 </v-card-title>
@@ -41,14 +41,14 @@
 
 <script>
 // import BChartSales from '~/components/molecules/charts/BChartSales.vue'
-// import GLeaveApplicationTable from '~/components/organisms/GLeaveApplicationTable.vue'
+import GLeaveApplicationTable from '~/components/organisms/GLeaveApplicationTable.vue'
 import GTemporarySiteCalendar from '~/components/organisms/GTemporarySiteCalendar.vue'
 
 export default {
   name: 'IndexPage',
   components: {
     // BChartSales,
-    // GLeaveApplicationTable,
+    GLeaveApplicationTable,
     GTemporarySiteCalendar,
   },
   data() {

@@ -45,6 +45,29 @@
   ],
   "fieldOverrides": [
     {
+      "collectionGroup": "EmployeeLeaveApplications",
+      "fieldPath": "docId",
+      "ttl": false,
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
       "collectionGroup": "PlacementDetails",
       "fieldPath": "date",
       "ttl": false,
