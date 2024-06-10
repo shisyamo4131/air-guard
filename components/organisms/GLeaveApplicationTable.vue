@@ -1,5 +1,6 @@
 <script>
 import { collectionGroup, onSnapshot, query, where } from 'firebase/firestore'
+import { get, ref } from 'firebase/database'
 /**
  * GLeaveApplicationTable
  * @author shisyamo4131
@@ -29,26 +30,15 @@ export default {
     }
   },
   /***************************************************************************
-   * COMPUTED
-   ***************************************************************************/
-  computed: {
-    min() {
-      return this.dates.length ? this.dates[0] : undefined
-    },
-    max() {
-      return this.dates.length ? this.dates[this.length - 1] : undefined
-    },
-  },
-  /***************************************************************************
    * WATCH
    ***************************************************************************/
   watch: {
     startAt: {
       handler(v) {
         const length = parseInt(this.length)
-        this.dates = [...Array(length)].map((_, i) =>
-          this.$dayjs(v).add(i, 'day').format('YYYY-MM-DD')
-        )
+        this.dates = Array.from({ length }, (_, i) => {
+          return this.$dayjs(v).add(i, 'day').format('YYYY-MM-DD')
+        })
         this.subscribe()
       },
       immediate: true,
@@ -64,6 +54,11 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    async getEmployee(docId) {
+      const dbRef = ref(this.$database, `Employees/${docId}`)
+      const snapshot = await get(dbRef)
+      return snapshot.exists() ? snapshot.val() : undefined
+    },
     subscribe() {
       this.items.splice(0)
       const colRef = collectionGroup(
@@ -72,8 +67,16 @@ export default {
       )
       const q = query(colRef, where('docId', 'in', this.dates))
       this.listener = onSnapshot(q, (querySnapshot) => {
-        querySnapshot.forEach((doc) => {
-          this.items.push(doc.data())
+        querySnapshot.docChanges().forEach(async (change) => {
+          const item = change.doc.data()
+          const index = this.items.findIndex(
+            ({ docId, employeeId }) =>
+              docId === item.docId && employeeId === item.employeeId
+          )
+          item.employee = await this.getEmployee(item.employeeId)
+          if (change.type === 'added') this.items.push(item)
+          if (change.type === 'modified') this.items.splice(index, 1, item)
+          if (change.type === 'removed') this.items.splice(index, 1)
         })
       })
     },
@@ -87,7 +90,7 @@ export default {
     <v-simple-table>
       <thead>
         <tr>
-          <th v-for="date of dates" :key="date">
+          <th v-for="date of dates" :key="date" style="min-width: 120px">
             {{ $dayjs(date).format('MM月DD日(ddd)') }}
           </th>
         </tr>
@@ -103,10 +106,7 @@ export default {
                 :key="index"
               >
                 <v-chip color="primary" label small>
-                  {{
-                    $store.getters['employees/get'](item.employeeId)
-                      ?.fullName || 'undefined'
-                  }}
+                  {{ item?.employee?.abbr || 'error' }}
                 </v-chip>
               </div>
             </div>
