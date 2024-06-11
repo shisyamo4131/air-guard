@@ -1,18 +1,16 @@
 <template>
   <v-container>
-    <v-sheet width="290">
-      <g-date-picker-multiple :value="value" @input="value = $event" />
-    </v-sheet>
+    <g-autocomplete-employee v-model="value" />
   </v-container>
 </template>
 
 <script>
-import GDatePickerMultiple from '~/components/atoms/pickers/GDatePickerMultiple.vue'
+import GAutocompleteEmployee from '~/components/atoms/inputs/GAutocompleteEmployee.vue'
 export default {
-  components: { GDatePickerMultiple },
+  components: { GAutocompleteEmployee },
   data() {
     return {
-      value: ['2024-06-01'],
+      value: 'DkGkmGm169Xrsk7o2ni6',
     }
   },
 }

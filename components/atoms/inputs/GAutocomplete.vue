@@ -18,6 +18,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      internalSearchInput: undefined,
       timerId: null,
     }
   },
@@ -25,24 +26,49 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
-    listeners() {
-      return {
-        ...this.$listeners,
-        'update:search-input': ($event) => {
-          this.$emit('update:search-input', $event)
-          clearTimeout(this.timerId)
-          this.timerId = setTimeout(() => {
-            this.$emit('update:lazy-search', $event)
-          }, this.delay)
-        },
-      }
+    // listeners() {
+    //   return {
+    //     ...this.$listeners,
+    //     'update:search-input': ($event) => {
+    //       this.$emit('update:search-input', $event)
+    //       clearTimeout(this.timerId)
+    //       this.timerId = setTimeout(() => {
+    //         this.$emit('update:lazy-search', $event)
+    //       }, this.delay)
+    //     },
+    //   }
+    // },
+  },
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    '$attrs.searchInput': {
+      handler(v) {
+        this.internalSearchInput = v
+      },
+      immediate: true,
+    },
+    internalSearchInput: {
+      handler(newVal, oldVal) {
+        if (newVal === oldVal) return
+        clearTimeout(this.timerId)
+        this.timerId = setTimeout(() => {
+          this.$emit('update:lazy-search', newVal)
+        }, this.delay)
+      },
+      immediate: true,
     },
   },
 }
 </script>
 
 <template>
-  <air-autocomplete v-bind="{ ...$props, ...$attrs }" v-on="listeners">
+  <air-autocomplete
+    v-bind="{ ...$props, ...$attrs }"
+    :search-input.sync="internalSearchInput"
+    v-on="$listeners"
+  >
     <template
       v-for="(_, scopedSlotName) in $scopedSlots"
       #[scopedSlotName]="slotData"

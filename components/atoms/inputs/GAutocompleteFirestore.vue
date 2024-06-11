@@ -31,6 +31,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      isInitSet: false,
       items: [],
       lazySearch: null,
       loading: false,
@@ -95,17 +96,26 @@ export default {
             this.items.push(item)
           }
         }
+        this.isInitSet = true
       },
       immediate: true,
     },
     lazySearch: {
       async handler(newVal, oldVal) {
+        if (this.isInitSet) {
+          this.isInitSet = false
+          return
+        }
         if (!this.model) return
         if (!newVal || newVal === oldVal) return
-        this.items.splice(0)
         this.loading = true
         try {
-          this.items = await this.model.fetchDocs(newVal)
+          const fetchItems = await this.model.fetchDocs(newVal)
+          fetchItems.forEach((item) => {
+            if (!this.items.some(({ docId }) => docId === item.docId)) {
+              this.items.push(item)
+            }
+          })
         } catch (err) {
           // eslint-disable-next-line
           console.error(err)
@@ -130,9 +140,9 @@ export default {
     :filter="filter"
     :items="items"
     :item-value="itemValue"
-    :lazy-search.sync="lazySearch"
     :loading="loading"
     :multiple="multiple"
+    @update:lazy-search="lazySearch = $event"
     v-on="$listeners"
   >
     <template

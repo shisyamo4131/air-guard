@@ -3,10 +3,11 @@ import { where } from 'firebase/firestore'
 import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
 import GInputLeaveApplication from '~/components/molecules/inputs/GInputLeaveApplication.vue'
 import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
-import GSelect from '~/components/atoms/inputs/GSelect.vue'
+// import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 import GDataTableLeaveApplications from '~/components/molecules/tables/GDataTableLeaveApplications.vue'
+import GAutocompleteEmployee from '~/components/atoms/inputs/GAutocompleteEmployee.vue'
 /**
  * ### pages.leave-applications-index
  * @shisyamo4131
@@ -26,10 +27,11 @@ export default {
     GBtnRegistIcon,
     GInputLeaveApplication,
     GDatePicker,
-    GSelect,
+    // GSelect,
     GCardSubmitCancel,
     GDialogMonthPicker,
     GDataTableLeaveApplications,
+    GAutocompleteEmployee,
   },
   /***************************************************************************
    * DATA
@@ -49,6 +51,7 @@ export default {
       model: this.$LeaveApplication(),
       pickerDate: undefined,
       search: {
+        employeeId: null,
         month: this.$dayjs().format('YYYY-MM'),
         status: 'approved',
       },
@@ -58,6 +61,13 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    filteredItems() {
+      return this.items.filter((item) => {
+        return (
+          !this.search.employeeId || item.employeeId === this.search.employeeId
+        )
+      })
+    },
     mode() {
       if (this.editMode === 'REGIST') return '登録'
       if (this.editMode === 'UPDATE') return '変更'
@@ -71,6 +81,12 @@ export default {
     'dialog.editor': {
       handler(v) {
         v || this.initialize()
+      },
+      immediate: true,
+    },
+    '$route.query.employeeId': {
+      handler(v) {
+        this.search.employeeId = v || null
       },
       immediate: true,
     },
@@ -177,13 +193,20 @@ export default {
       <div class="d-flex mb-4" style="gap: 8px 8px">
         <g-dialog-month-picker v-model="search.month" />
         <!-- 2024-06-01 外部からの申請がないため、休暇申請は登録時に状態：承認で固定 -->
-        <g-select
+        <!-- <g-select
           v-model="search.status"
           style="min-width: 108px; max-width: 108px"
           label="状態"
           :items="$LEAVE_APPLICATION_STATUS_ARRAY"
           disabled
           hide-details
+        /> -->
+        <g-autocomplete-employee
+          v-model="search.employeeId"
+          style="min-width: 168px; max-width: 168px"
+          clearable
+          hide-details
+          label="従業員"
         />
         <v-dialog v-model="dialog.editor" max-width="600" persistent scrollable>
           <template #activator="{ attrs, on }">
@@ -210,7 +233,7 @@ export default {
         </v-dialog>
       </div>
       <g-data-table-leave-applications
-        :items="items"
+        :items="filteredItems"
         @click:edit="onClickEdit"
         @click:delete="onClickDelete"
         @click:show-dates="onClickShowDates"

@@ -2,11 +2,11 @@
   <v-container fluid>
     <!-- <v-row justify="center" align="center"> -->
     <v-row>
-      <v-col cols="12">
-        <g-leave-application-table :length="5" flat outlined />
+      <v-col cols="12" md="6">
+        <g-launcher-leave-applications />
       </v-col>
-      <v-col cols="12">
-        <g-temporary-site-calendar flat outlined height="600" />
+      <v-col cols="12" md="6">
+        <g-temporary-site-calendar flat outlined height="360" />
       </v-col>
       <!-- <v-col cols="12">
         <v-card>
@@ -40,20 +40,21 @@
 </template>
 
 <script>
+import GLauncherLeaveApplications from '~/components/organisms/GLauncherLeaveApplications.vue'
 // import BChartSales from '~/components/molecules/charts/BChartSales.vue'
-import GLeaveApplicationTable from '~/components/organisms/GLeaveApplicationTable.vue'
 import GTemporarySiteCalendar from '~/components/organisms/GTemporarySiteCalendar.vue'
 
 export default {
   name: 'IndexPage',
   components: {
     // BChartSales,
-    GLeaveApplicationTable,
     GTemporarySiteCalendar,
+    GLauncherLeaveApplications,
   },
   data() {
     return {
       date: this.$dayjs().format('YYYY-MM-DD'),
+      tab: 0,
     }
   },
 }
