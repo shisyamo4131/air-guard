@@ -2,10 +2,10 @@
   <v-container fluid>
     <!-- <v-row justify="center" align="center"> -->
     <v-row>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" lg="4">
         <g-launcher-leave-applications />
       </v-col>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="6" lg="8">
         <g-temporary-site-calendar flat outlined height="360" />
       </v-col>
       <!-- <v-col cols="12">

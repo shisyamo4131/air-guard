@@ -5,7 +5,12 @@ const props = {
     name: { type: String, default: '', required: false },
     address: { type: String, default: '', required: false },
     date: { type: String, default: '', required: false },
-    workShift: { type: String, default: 'day', required: false },
+    workShift: {
+      type: String,
+      default: 'day',
+      validator: (v) => ['day', 'night'].includes(v),
+      required: false,
+    },
     start: { type: String, default: '08:00', required: false },
     end: { type: String, default: '17:00', required: false },
     requiredWorkers: { type: Number, default: null, required: false },
