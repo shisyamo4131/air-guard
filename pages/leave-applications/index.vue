@@ -1,5 +1,6 @@
 <script>
 import { where } from 'firebase/firestore'
+import { get, ref } from 'firebase/database'
 import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
 import GInputLeaveApplication from '~/components/molecules/inputs/GInputLeaveApplication.vue'
 import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
@@ -109,8 +110,9 @@ export default {
    ***************************************************************************/
   methods: {
     async getEmployee(employeeId) {
-      const model = this.$Employee()
-      return await model.fetchDoc(employeeId)
+      const dbRef = ref(this.$database, `Employees/${employeeId}`)
+      const snapshot = await get(dbRef)
+      return snapshot.exists() ? snapshot.val() : undefined
     },
     subscribe() {
       this.items = this.model.subscribe(

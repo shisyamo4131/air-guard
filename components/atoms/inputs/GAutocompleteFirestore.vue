@@ -43,8 +43,7 @@ export default {
   watch: {
     '$attrs.value': {
       async handler(newVal, oldVal) {
-        if (!this.model) return
-        if (!newVal || newVal === oldVal) return
+        if (!this.model || !newVal || newVal === oldVal) return
         const addItem = (item) => {
           if (!this.items.some(({ docId }) => docId === item.docId)) {
             this.items.push(item)
@@ -102,12 +101,10 @@ export default {
     },
     lazySearch: {
       async handler(newVal, oldVal) {
-        if (this.isInitSet) {
+        if (this.isInitSet || !this.model || !newVal || newVal === oldVal) {
           this.isInitSet = false
           return
         }
-        if (!this.model) return
-        if (!newVal || newVal === oldVal) return
         this.loading = true
         try {
           const fetchItems = await this.model.fetchDocs(newVal)

@@ -1,3 +1,4 @@
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import FireModel from './FireModel'
 
 const props = {
@@ -45,5 +46,29 @@ export default class LeaveApplication extends FireModel {
         typeof propDefault === 'function' ? propDefault() : propDefault
     })
     super.initialize(item)
+  }
+
+  async beforeCreate() {
+    const path = `Employees/${this.employeeId}/EmployeeLeaveApplications`
+    const colRef = collection(this.firestore, path)
+    const q = query(colRef, where('docId', 'in', this.dates))
+    const querySnapshot = await getDocs(q)
+    if (querySnapshot.empty) return
+    const dates = querySnapshot.docs.map((doc) => doc.ref.id)
+    throw new Error(`${dates}は別の休暇申請で受理しています。`)
+  }
+
+  async beforeUpdate() {
+    const path = `Employees/${this.employeeId}/EmployeeLeaveApplications`
+    const colRef = collection(this.firestore, path)
+    const q = query(
+      colRef,
+      where('docId', 'in', this.dates),
+      where('leaveApplicationId', '!=', this.docId)
+    )
+    const querySnapshot = await getDocs(q)
+    if (querySnapshot.empty) return
+    const dates = querySnapshot.docs.map((doc) => doc.ref.id)
+    throw new Error(`${dates}は別の休暇申請で受理しています。`)
   }
 }
