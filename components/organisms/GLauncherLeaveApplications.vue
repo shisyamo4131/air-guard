@@ -101,7 +101,7 @@ export default {
       v-model="tab"
       background-color="transparent"
       center-active
-      color="basil"
+      color="primary"
       grow
       show-arrows
     >
@@ -129,7 +129,7 @@ export default {
               >
                 <span
                   class="text-truncate"
-                  style="min-width: 84px; max-width: 84px"
+                  style="min-width: 72px; max-width: 72px"
                 >
                   {{ leaveApplication.employee.fullName }}
                 </span>

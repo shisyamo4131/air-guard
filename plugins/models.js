@@ -7,6 +7,8 @@ import Outsourcer from '../models/Outsourcer'
 import LeaveApplication from '../models/LeaveApplication'
 import TemporarySiteSchedule from '../models/TemporarySiteSchedule'
 import SiteOperationSchedule from '../models/SiteOperationSchedule'
+import Equipment from '../models/Equipment'
+import EquipmentReceiving from '../models/EquipmentReceiving'
 import OperationResult from '../models/OperationResult'
 import SiteContract from '../models/SiteContract'
 
@@ -26,6 +28,8 @@ export default (context, inject) => {
     'SiteOperationSchedule',
     (item) => new SiteOperationSchedule(context, item)
   )
+  inject('Equipment', (item) => new Equipment(context, item))
+  inject('EquipmentReceiving', (item) => new EquipmentReceiving(context, item))
   inject('OperationResult', (item) => new OperationResult(context, item))
   inject(
     'SiteContract',

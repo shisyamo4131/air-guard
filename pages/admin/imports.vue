@@ -44,7 +44,14 @@
 </template>
 
 <script>
-import { collection, getDocs, query, where } from 'firebase/firestore'
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  where,
+  writeBatch,
+} from 'firebase/firestore'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 export default {
@@ -52,7 +59,13 @@ export default {
   data() {
     return {
       selectedCollection: null,
-      collections: ['Customers', 'Sites', 'Employees', 'OperationResults'],
+      collections: [
+        'AttendanceRecords',
+        'Customers',
+        'Sites',
+        'Employees',
+        'OperationResults',
+      ],
       file: null,
       csvData: [],
       loading: false,
@@ -88,10 +101,10 @@ export default {
       })
     },
     async submit() {
-      const autonumber = this.$Autonumber()
+      // const autonumber = this.$Autonumber()
       try {
         this.loading = true
-        await autonumber.stop(this.selectedCollection)
+        // await autonumber.stop(this.selectedCollection)
         await this[`import${this.selectedCollection}`]()
         // eslint-disable-next-line
         console.info(`[imports.vue] インポート処理が正常に完了しました。`)
@@ -100,10 +113,64 @@ export default {
         console.error(err)
         alert(err.message)
       } finally {
-        await autonumber.refresh(this.selectedCollection)
-        await autonumber.start(this.selectedCollection)
+        // await autonumber.refresh(this.selectedCollection)
+        // await autonumber.start(this.selectedCollection)
         this.loading = false
       }
+    },
+    async importAttendanceRecords() {
+      const delAll = async () => {
+        const colRef = collection(this.$firestore, 'AttendanceRecords')
+        const snapshot = await getDocs(colRef)
+        const batchArray = []
+        snapshot.docs.forEach((doc, index) => {
+          if (index % 500 === 0) batchArray.push(writeBatch(this.$firestore))
+          batchArray[batchArray.length - 1].delete(doc.ref)
+        })
+        await Promise.all(batchArray.map(async (batch) => await batch.commit()))
+      }
+      await delAll()
+      const employeeIds = this.csvData.map(({ employeeId }) => employeeId)
+      const uniqueIds = [...new Set(employeeIds)]
+      const chunkedIds = uniqueIds.flatMap((_, i) =>
+        i % 30 ? [] : [uniqueIds.slice(i, i + 30)]
+      )
+      const getEmployees = async (chunkedIds) => {
+        const promises = chunkedIds.map(async (ids) => {
+          const colRef = collection(this.$firestore, 'Employees')
+          const q = query(colRef, where('code', 'in', ids))
+          const snapshot = await getDocs(q)
+          return snapshot.docs.map((doc) => doc.data())
+        })
+        const snapshots = await Promise.all(promises)
+        const result = []
+        snapshots.forEach((data) => result.push(...data))
+        return result
+      }
+      const employees = await getEmployees(chunkedIds)
+      const newItems = this.csvData.map((data) => {
+        data.employeeId = employees.find(
+          ({ code }) => code === data.employeeId
+        ).docId
+        data.scheduledWorkingTime = parseInt(data.scheduledWorkingTime)
+        data.statutoryOverTime = parseInt(data.statutoryOverTime)
+        data.nonStatutoryOverTime = parseInt(data.nonStatutoryOverTime)
+        data.holidayWorkingTime = parseInt(data.holidayWorkingTime)
+        data.midnightWorkingTime = parseInt(data.midnightWorkingTime)
+        data.scheduledWorkingDays = parseInt(data.scheduledWorkingDays)
+        data.statutoryWorkingDays = parseInt(data.statutoryWorkingDays)
+        data.holidayWorkingDays = parseInt(data.holidayWorkingDays)
+        data.absenceDays = parseInt(data.absenceDays)
+        data.annualVacationDays = parseInt(data.annualVacationDays)
+        return data
+      })
+      const batchArray = []
+      newItems.forEach((item, index) => {
+        if (index % 500 === 0) batchArray.push(writeBatch(this.$firestore))
+        const docRef = doc(collection(this.$firestore, 'AttendanceRecords'))
+        batchArray[batchArray.length - 1].set(docRef, item)
+      })
+      await Promise.all(batchArray.map(async (batch) => await batch.commit()))
     },
     chunkedArr(arr, size) {
       return arr.flatMap((_, i, a) =>

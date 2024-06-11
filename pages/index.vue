@@ -2,10 +2,13 @@
   <v-container fluid>
     <!-- <v-row justify="center" align="center"> -->
     <v-row>
-      <v-col cols="12" md="6" lg="4">
+      <v-col cols="12" md="8" lg="8">
+        <g-launcher-attendance-records />
+      </v-col>
+      <v-col cols="12" md="4" lg="4">
         <g-launcher-leave-applications />
       </v-col>
-      <v-col cols="12" md="6" lg="8">
+      <v-col cols="12">
         <g-temporary-site-calendar flat outlined height="360" />
       </v-col>
       <!-- <v-col cols="12">
@@ -40,6 +43,7 @@
 </template>
 
 <script>
+import GLauncherAttendanceRecords from '~/components/organisms/GLauncherAttendanceRecords.vue'
 import GLauncherLeaveApplications from '~/components/organisms/GLauncherLeaveApplications.vue'
 // import BChartSales from '~/components/molecules/charts/BChartSales.vue'
 import GTemporarySiteCalendar from '~/components/organisms/GTemporarySiteCalendar.vue'
@@ -50,6 +54,7 @@ export default {
     // BChartSales,
     GTemporarySiteCalendar,
     GLauncherLeaveApplications,
+    GLauncherAttendanceRecords,
   },
   data() {
     return {

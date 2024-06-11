@@ -1,3 +1,41 @@
+<script>
+import GDate from '~/components/atoms/inputs/GDate.vue'
+import GSelect from '~/components/atoms/inputs/GSelect.vue'
+import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
+import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
+/**
+ * ### GInputApplication
+ * @author shisayamo4131
+ */
+export default {
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
+  components: { GDate, GSelect, GTextarea, GDatePicker },
+  /***************************************************************************
+   * PROPS
+   ***************************************************************************/
+  props: {
+    editMode: {
+      type: String,
+      default: 'REGIST',
+      validator: (v) => ['REGIST', 'UPDATE', 'DELETE'].includes(v),
+      required: false,
+    },
+    requestDate: { type: undefined, default: null, required: false },
+    type: { type: undefined, default: null, required: false },
+    employeeId: { type: undefined, default: null, required: false },
+    date: { type: undefined, default: null, required: false },
+    reason: { type: undefined, default: null, required: false },
+    status: { type: undefined, default: null, required: false },
+    settlementDate: { type: undefined, default: null, required: false },
+    settlementUid: { type: undefined, default: null, required: false },
+    rejectReason: { type: undefined, default: null, required: false },
+    employees: { type: Array, default: () => [], required: false },
+  },
+}
+</script>
+
 <template>
   <v-row>
     <v-col cols="6">
@@ -47,33 +85,5 @@
     </v-col>
   </v-row>
 </template>
-
-<script>
-import GDate from '~/components/atoms/inputs/GDate.vue'
-import GSelect from '~/components/atoms/inputs/GSelect.vue'
-import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
-import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
-export default {
-  components: { GDate, GSelect, GTextarea, GDatePicker },
-  props: {
-    editMode: {
-      type: String,
-      default: 'REGIST',
-      validator: (v) => ['REGIST', 'UPDATE', 'DELETE'].includes(v),
-      required: false,
-    },
-    requestDate: { type: undefined, default: null, required: false },
-    type: { type: undefined, default: null, required: false },
-    employeeId: { type: undefined, default: null, required: false },
-    date: { type: undefined, default: null, required: false },
-    reason: { type: undefined, default: null, required: false },
-    status: { type: undefined, default: null, required: false },
-    settlementDate: { type: undefined, default: null, required: false },
-    settlementUid: { type: undefined, default: null, required: false },
-    rejectReason: { type: undefined, default: null, required: false },
-    employees: { type: Array, default: () => [], required: false },
-  },
-}
-</script>
 
 <style></style>
