@@ -136,4 +136,12 @@ export default {
   overflow: hidden !important;
   text-overflow: ellipsis !important;
 }
+
+/* v-data-tableのheaders.cellClassに設定 */
+.truncate-cell {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 0;
+}
 </style>

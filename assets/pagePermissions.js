@@ -8,6 +8,7 @@
  */
 module.exports = {
   'admin-autonumbers': ['admin', 'developer'],
+  'attendance-records': ['admin', 'developer'],
   'leave-applications-unapproved': ['admin'],
   customers: ['admin'],
   'customers-docId': ['admin'],

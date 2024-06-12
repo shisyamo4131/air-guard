@@ -23,6 +23,13 @@
     ]
   },
   {
+    "name": "分析",
+    "icon": "mdi-cube",
+    "lists": [
+      { "name": "勤怠実績", "to": "/attendance-records", "icon": "mdi-domain" }
+    ]
+  },
+  {
     "name": "実績管理",
     "icon": "mdi-cube",
     "lists": [

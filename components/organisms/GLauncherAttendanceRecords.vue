@@ -1,32 +1,3 @@
-<template>
-  <v-card>
-    <v-card-title class="g-card__title">
-      {{ `従業員別勤怠実績 [${month}]` }}
-    </v-card-title>
-    <v-card-text>
-      <g-data-table
-        :headers="headers"
-        fixed-header
-        height="360"
-        :items="items"
-        sort-by="employee.code"
-        :mobile-breakpoint="0"
-        :items-per-page="-1"
-      >
-        <template #[`item.nonStatutoryOverTime`]="{ item }">
-          {{ item.nonStatutoryOverTime / 60 }}
-        </template>
-        <template #[`item.holidayWorkingTime`]="{ item }">
-          {{ item.holidayWorkingTime / 60 }}
-        </template>
-        <template #[`item.overTimeTotal`]="{ item }">
-          {{ (item.nonStatutoryOverTime + item.holidayWorkingTime) / 60 }}
-        </template>
-      </g-data-table>
-    </v-card-text>
-  </v-card>
-</template>
-
 <script>
 import {
   collection,
@@ -100,5 +71,33 @@ export default {
   },
 }
 </script>
+
+<template>
+  <v-card>
+    <v-card-title class="g-card__title">
+      {{ `従業員別勤怠実績 [${month}]` }}
+    </v-card-title>
+    <v-card-text>
+      <g-data-table
+        :headers="headers"
+        fixed-header
+        :items="items"
+        sort-by="employee.code"
+        :mobile-breakpoint="0"
+        :items-per-page="-1"
+      >
+        <template #[`item.nonStatutoryOverTime`]="{ item }">
+          {{ item.nonStatutoryOverTime / 60 }}
+        </template>
+        <template #[`item.holidayWorkingTime`]="{ item }">
+          {{ item.holidayWorkingTime / 60 }}
+        </template>
+        <template #[`item.overTimeTotal`]="{ item }">
+          {{ (item.nonStatutoryOverTime + item.holidayWorkingTime) / 60 }}
+        </template>
+      </g-data-table>
+    </v-card-text>
+  </v-card>
+</template>
 
 <style></style>
