@@ -9,6 +9,7 @@ import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vu
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 import GDataTableLeaveApplications from '~/components/molecules/tables/GDataTableLeaveApplications.vue'
 import GAutocompleteEmployee from '~/components/atoms/inputs/GAutocompleteEmployee.vue'
+import GTextField from '~/components/atoms/inputs/GTextField.vue'
 /**
  * ### pages.leave-applications-index
  * @shisyamo4131
@@ -33,6 +34,7 @@ export default {
     GDialogMonthPicker,
     GDataTableLeaveApplications,
     GAutocompleteEmployee,
+    GTextField,
   },
   /***************************************************************************
    * DATA
@@ -193,7 +195,18 @@ export default {
   <div>
     <v-container fluid>
       <div class="d-flex mb-4" style="gap: 8px 8px">
-        <g-dialog-month-picker v-model="search.month" />
+        <g-dialog-month-picker v-model="search.month">
+          <template #activator="{ attrs, on }">
+            <g-text-field
+              class="center-input"
+              style="min-width: 96px; max-width: 96px"
+              v-bind="attrs"
+              label="年月"
+              hide-details
+              v-on="on"
+            />
+          </template>
+        </g-dialog-month-picker>
         <!-- 2024-06-01 外部からの申請がないため、休暇申請は登録時に状態：承認で固定 -->
         <!-- <g-select
           v-model="search.status"

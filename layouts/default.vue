@@ -1,6 +1,6 @@
 <template>
   <v-app :style="{ background: $vuetify.theme.themes.light.background }">
-    <g-navigation-drawer v-model="drawer" app fixed bottom />
+    <g-navigation-drawer v-model="drawer" app fixed bottom temporary />
     <v-app-bar app color="primary" dark dense fixed flat>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <v-toolbar-title>Air Guard</v-toolbar-title>

@@ -2,7 +2,6 @@
 import GBtnCancelIcon from '../btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '../btns/GBtnSubmitIcon.vue'
 import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
-import GTextField from '~/components/atoms/inputs/GTextField.vue'
 /**
  * ### GDialogMonthPicker
  * @author shisyamo4131
@@ -11,7 +10,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GDatePicker, GBtnCancelIcon, GBtnSubmitIcon, GTextField },
+  components: { GDatePicker, GBtnCancelIcon, GBtnSubmitIcon },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -69,15 +68,12 @@ export default {
     width="290"
   >
     <template #activator="{ attrs, on }">
-      <g-text-field
-        v-bind="{ ...$attrs, ...attrs }"
-        :value="value"
-        class="center-input"
-        style="min-width: 96px; max-width: 96px"
-        hide-details
-        label="年月"
-        readonly
-        v-on="{ ...$listeners, ...on }"
+      <slot
+        name="activator"
+        v-bind="{
+          attrs: { ...attrs, readOnly: true, value },
+          on,
+        }"
       />
     </template>
     <g-date-picker

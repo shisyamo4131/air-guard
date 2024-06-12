@@ -23,6 +23,7 @@ export default {
     return {
       fetchedEmployee: [],
       items: [],
+      loading: false,
       month: this.$dayjs().format('YYYY-MM'),
       page: 1,
       pageCount: 1,
@@ -35,20 +36,25 @@ export default {
     height() {
       const vMain = this.$vuetify.breakpoint.height - 48
       const mainContainerPadding = 12 * 2
-      const titleBar = 48 + 16
+      const toolbar = 48 * 2 + 16
       const cardTextPadding = 16 * 2
       const footer = 68
-      return vMain - mainContainerPadding - titleBar - cardTextPadding - footer
+      return vMain - mainContainerPadding - toolbar - cardTextPadding - footer
     },
     itemsPerPage() {
       return parseInt(this.height / 48) - 1
     },
   },
   /***************************************************************************
-   * MOUNTED
+   * WATCH
    ***************************************************************************/
-  mounted() {
-    this.fetch()
+  watch: {
+    month: {
+      handler() {
+        this.fetch()
+      },
+      immediate: true,
+    },
   },
   /***************************************************************************
    * METHODS
@@ -69,14 +75,25 @@ export default {
       this.items.splice(0)
       const colRef = collection(this.$firestore, 'AttendanceRecords')
       const q = query(colRef, where('month', '==', this.month))
-      const querySnapshot = await getDocs(q)
-      querySnapshot.docs.forEach(async (doc) => {
-        const item = doc.data()
-        item.nonStatutoryOverTime /= 60
-        item.holidayWorkingTime /= 60
-        item.employee = await this.getEmployee(item.employeeId)
-        this.items.push(item)
-      })
+      this.loading = true
+      try {
+        const querySnapshot = await getDocs(q)
+        querySnapshot.docs.forEach(async (doc) => {
+          const item = doc.data()
+          item.nonStatutoryOverTime /= 60
+          item.holidayWorkingTime /= 60
+          item.overTimeTotal =
+            item.nonStatutoryOverTime + item.holidayWorkingTime
+          item.employee = await this.getEmployee(item.employeeId)
+          this.items.push(item)
+        })
+      } catch (err) {
+        // eslint-disable-next-line
+        console.error(err)
+        alert(err.message)
+      } finally {
+        this.loading = false
+      }
     },
   },
 }
@@ -88,14 +105,28 @@ export default {
       <v-toolbar-title class="g-card__title">
         {{ `従業員別勤怠実績` }}
       </v-toolbar-title>
+      <template #extension>
+        <g-dialog-month-picker v-model="month">
+          <template #activator="{ attrs, on }">
+            <v-text-field
+              class="center-input"
+              style="min-width: 96px; max-width: 96px"
+              v-bind="attrs"
+              label="年月"
+              hide-details
+              v-on="on"
+            />
+          </template>
+        </g-dialog-month-picker>
+      </template>
     </v-toolbar>
-    <g-dialog-month-picker />
     <v-card flat outlined>
       <v-card-text>
         <g-data-table-attendance-records
           :height="height"
           :items="items"
           :items-per-page="itemsPerPage"
+          :loading="loading"
           :mobile-breakpoint="0"
           :page.sync="page"
           @page-count="pageCount = $event"
