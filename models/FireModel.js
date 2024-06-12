@@ -561,7 +561,7 @@ export default class FireModel {
    * @param {array} constraints
    * @returns An array of document data retrieved from firestore.
    */
-  async fetchDocs(ngram = undefined, constraints = []) {
+  async fetchDocs(ngram = undefined, constraints = [], callBack = undefined) {
     const grams = this.convertToGrams(ngram)
     const colRef = collection(this.#firestore, this.collection)
     const wheres = grams.map((gram) => {
@@ -570,7 +570,14 @@ export default class FireModel {
     const q = query(colRef, ...constraints, ...wheres)
     const snapshot = await getDocs(q)
     if (snapshot.empty) return []
-    return snapshot.docs.map((doc) => doc.data())
+    // return snapshot.docs.map((doc) => doc.data())
+    const result = []
+    snapshot.docs.forEach(async (doc) => {
+      const item = doc.data()
+      if (callBack) await callBack(item)
+      result.push(item)
+    })
+    return result
   }
 
   /**

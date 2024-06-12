@@ -1,5 +1,5 @@
 <script>
-import { collection, getDocs, query, where } from 'firebase/firestore'
+import { where } from 'firebase/firestore'
 import { get, ref } from 'firebase/database'
 import GDataTableAttendanceRecords from '~/components/molecules/tables/GDataTableAttendanceRecords.vue'
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
@@ -25,6 +25,7 @@ export default {
       items: [],
       loading: false,
       month: this.$dayjs().format('YYYY-MM'),
+      model: this.$AttendanceRecord(),
       page: 1,
       pageCount: 1,
     }
@@ -60,33 +61,38 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
-    async getEmployee(employeeId) {
-      const fethced = this.fetchedEmployee.find(
-        ({ docId }) => docId === employeeId
-      )
-      if (fethced) return fethced
-      const dbRef = ref(this.$database, `Employees/${employeeId}`)
-      const snapshot = await get(dbRef)
-      if (!snapshot.exists()) return undefined
-      this.fetchedEmployee.push({ docId: employeeId, ...snapshot.val() })
-      return snapshot.val()
-    },
     async fetch() {
-      this.items.splice(0)
-      const colRef = collection(this.$firestore, 'AttendanceRecords')
-      const q = query(colRef, where('month', '==', this.month))
+      const callBack = async (item) => {
+        try {
+          const fetched = this.fetchedEmployee.find(
+            ({ docId }) => docId === item.employeeId
+          )
+          if (fetched) {
+            item.employee = fetched
+          } else {
+            const dbRef = ref(this.$database, `Employees/${item.employeeId}`)
+            const snapshot = await get(dbRef)
+            if (!snapshot.exists()) {
+              item.employee = { fullName: 'error', code: 'error' }
+            } else {
+              const employeeData = { docId: item.employeeId, ...snapshot.val() }
+              this.fetchedEmployee.push(employeeData)
+              item.employee = employeeData
+            }
+          }
+        } catch (err) {
+          // eslint-disable-next-line
+          console.error('Error fetching employee data:', err)
+          item.employee = { fullName: 'error', code: 'error' }
+        }
+      }
       this.loading = true
       try {
-        const querySnapshot = await getDocs(q)
-        querySnapshot.docs.forEach(async (doc) => {
-          const item = doc.data()
-          item.nonStatutoryOverTime /= 60
-          item.holidayWorkingTime /= 60
-          item.overTimeTotal =
-            item.nonStatutoryOverTime + item.holidayWorkingTime
-          item.employee = await this.getEmployee(item.employeeId)
-          this.items.push(item)
-        })
+        this.items = await this.model.fetchDocs(
+          undefined,
+          [where('month', '==', this.month)],
+          callBack
+        )
       } catch (err) {
         // eslint-disable-next-line
         console.error(err)

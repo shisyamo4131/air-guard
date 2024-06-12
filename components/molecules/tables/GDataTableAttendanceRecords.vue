@@ -136,13 +136,13 @@ export default {
       {{ `${item.scheduledWorkingDays} 日` }}
     </template>
     <template #[`item.nonStatutoryOverTime`]="{ item }">
-      {{ `${item.nonStatutoryOverTime.toFixed(1)} H` }}
+      {{ `${(item.nonStatutoryOverTime / 60).toFixed(1)} H` }}
     </template>
     <template #[`item.holidayWorkingTime`]="{ item }">
-      {{ `${item.holidayWorkingTime.toFixed(1)} H` }}
+      {{ `${(item.holidayWorkingTime / 60).toFixed(1)} H` }}
     </template>
     <template #[`item.overTimeTotal`]="{ item }">
-      {{ `${item.overTimeTotal.toFixed(1)} H` }}
+      {{ `${(item.overTimeTotal / 60).toFixed(1)} H` }}
     </template>
   </g-data-table>
 </template>

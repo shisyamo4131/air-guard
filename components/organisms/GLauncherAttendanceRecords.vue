@@ -1,17 +1,18 @@
 <script>
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from 'firebase/firestore'
-import GDataTable from '../atoms/tables/GDataTable.vue'
+import { limit, orderBy, where } from 'firebase/firestore'
+import { get, ref } from 'firebase/database'
+import GDataTableAttendanceRecords from '../molecules/tables/GDataTableAttendanceRecords.vue'
 export default {
-  components: { GDataTable },
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
+  components: { GDataTableAttendanceRecords },
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
   data() {
     return {
+      fetchedEmployee: [],
       headers: [
         { text: 'CODE', value: 'employee.code', width: 96 },
         { text: '従業員', value: 'employee.fullName', sortable: false },
@@ -39,34 +40,69 @@ export default {
         {
           text: '合計',
           value: 'overTimeTotal',
-          sortable: false,
           align: 'right',
           width: 120,
         },
       ],
       items: [],
+      loading: false,
+      model: this.$AttendanceRecord(),
       month: this.$dayjs().format('YYYY-MM'),
     }
   },
+  /***************************************************************************
+   * MOUNTED
+   ***************************************************************************/
   mounted() {
     this.fetch()
   },
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
   methods: {
-    async getEmployee(employeeId) {
-      const docRef = doc(this.$firestore, `Employees/${employeeId}`)
-      const snapshot = await getDoc(docRef)
-      return snapshot.exists() ? snapshot.data() : undefined
-    },
     async fetch() {
-      this.items.splice(0)
-      const colRef = collection(this.$firestore, 'AttendanceRecords')
-      const q = query(colRef, where('month', '==', this.month))
-      const querySnapshot = await getDocs(q)
-      querySnapshot.docs.forEach(async (doc) => {
-        const item = doc.data()
-        item.employee = await this.getEmployee(item.employeeId)
-        this.items.push(item)
-      })
+      const callBack = async (item) => {
+        try {
+          const fetched = this.fetchedEmployee.find(
+            ({ docId }) => docId === item.employeeId
+          )
+          if (fetched) {
+            item.employee = fetched
+          } else {
+            const dbRef = ref(this.$database, `Employees/${item.employeeId}`)
+            const snapshot = await get(dbRef)
+            if (!snapshot.exists()) {
+              item.employee = { fullName: 'error', code: 'error' }
+            } else {
+              const employeeData = { docId: item.employeeId, ...snapshot.val() }
+              this.fetchedEmployee.push(employeeData)
+              item.employee = employeeData
+            }
+          }
+        } catch (err) {
+          // eslint-disable-next-line
+          console.error('Error fetching employee data:', err)
+          item.employee = { fullName: 'error', code: 'error' }
+        }
+      }
+      this.loading = true
+      try {
+        this.items = await this.model.fetchDocs(
+          undefined,
+          [
+            where('month', '==', this.month),
+            orderBy('overTimeTotal', 'desc'),
+            limit(5),
+          ],
+          callBack
+        )
+      } catch (err) {
+        // eslint-disable-next-line
+        console.error(err)
+        alert(err.message)
+      } finally {
+        this.loading = false
+      }
     },
   },
 }
@@ -75,27 +111,19 @@ export default {
 <template>
   <v-card>
     <v-card-title class="g-card__title">
-      {{ `従業員別勤怠実績 [${month}]` }}
+      {{ `時間外TOP5 [${month}]` }}
+      <v-spacer />
+      <v-btn icon color="primary" @click="$router.push('attendance-records')"
+        ><v-icon>mdi-open-in-new</v-icon></v-btn
+      >
     </v-card-title>
     <v-card-text>
-      <g-data-table
-        :headers="headers"
-        fixed-header
+      <g-data-table-attendance-records
         :items="items"
-        sort-by="employee.code"
         :mobile-breakpoint="0"
-        :items-per-page="-1"
-      >
-        <template #[`item.nonStatutoryOverTime`]="{ item }">
-          {{ item.nonStatutoryOverTime / 60 }}
-        </template>
-        <template #[`item.holidayWorkingTime`]="{ item }">
-          {{ item.holidayWorkingTime / 60 }}
-        </template>
-        <template #[`item.overTimeTotal`]="{ item }">
-          {{ (item.nonStatutoryOverTime + item.holidayWorkingTime) / 60 }}
-        </template>
-      </g-data-table>
+        sort-by="overTimeTotal"
+        sort-desc
+      />
     </v-card-text>
   </v-card>
 </template>
