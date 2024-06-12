@@ -1,5 +1,6 @@
 import User from '../models/User'
 import Autonumber from '../models/Autonumber'
+import AttendanceRecord from '../models/AttendanceRecord'
 import Customer from '../models/Customer'
 import Site from '../models/Site'
 import Employee from '../models/Employee'
@@ -15,6 +16,7 @@ import SiteContract from '../models/SiteContract'
 export default (context, inject) => {
   inject('User', (item) => new User(context, item))
   inject('Autonumber', (item) => new Autonumber(context, item))
+  inject('AttendanceRecord', (item) => new AttendanceRecord(context, item))
   inject('Customer', (item) => new Customer(context, item))
   inject('Site', (item) => new Site(context, item))
   inject('Employee', (item) => new Employee(context, item))

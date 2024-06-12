@@ -162,13 +162,18 @@ export default {
         data.holidayWorkingDays = parseInt(data.holidayWorkingDays)
         data.absenceDays = parseInt(data.absenceDays)
         data.annualVacationDays = parseInt(data.annualVacationDays)
-        return data
+        const model = this.$AttendanceRecord(data)
+        return model
       })
       const batchArray = []
       newItems.forEach((item, index) => {
         if (index % 500 === 0) batchArray.push(writeBatch(this.$firestore))
-        const docRef = doc(collection(this.$firestore, 'AttendanceRecords'))
-        batchArray[batchArray.length - 1].set(docRef, item)
+        // const docRef = doc(collection(this.$firestore, 'AttendanceRecords'))
+        const docRef = doc(
+          this.$firestore,
+          `AttendanceRecords/${item.employeeId + item.month}`
+        )
+        batchArray[batchArray.length - 1].set(docRef, { ...item })
       })
       await Promise.all(batchArray.map(async (batch) => await batch.commit()))
     },
