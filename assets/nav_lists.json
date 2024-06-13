@@ -12,6 +12,12 @@
     "lists": []
   },
   {
+    "name": "スポット現場稼働予定",
+    "icon": "mdi-home",
+    "to": "/temporary-site-schedules",
+    "lists": []
+  },
+  {
     "name": "マスタ管理",
     "icon": "mdi-cube",
     "lists": [

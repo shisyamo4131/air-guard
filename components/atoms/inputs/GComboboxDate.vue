@@ -87,6 +87,14 @@ export default {
         </g-date-picker>
       </v-dialog>
     </template>
+    <template v-if="multiple" #selection="{ item, index }">
+      <v-chip v-if="index === 0">
+        <span>{{ item }}</span>
+      </v-chip>
+      <span v-if="index === 1" class="grey--text text-caption">
+        (+{{ value.length - 1 }} others)
+      </span>
+    </template>
   </g-combobox>
 </template>
 

@@ -1,17 +1,15 @@
 <template>
   <v-container>
-    <g-autocomplete-employee v-model="value" />
+    <g-temporary-site-calendar />
   </v-container>
 </template>
 
 <script>
-import GAutocompleteEmployee from '~/components/atoms/inputs/GAutocompleteEmployee.vue'
+import GTemporarySiteCalendar from '~/components/organisms/GTemporarySiteCalendar.vue'
 export default {
-  components: { GAutocompleteEmployee },
+  components: { GTemporarySiteCalendar },
   data() {
-    return {
-      value: 'DkGkmGm169Xrsk7o2ni6',
-    }
+    return {}
   },
 }
 </script>
