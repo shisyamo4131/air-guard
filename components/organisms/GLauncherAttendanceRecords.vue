@@ -13,37 +13,6 @@ export default {
   data() {
     return {
       fetchedEmployee: [],
-      headers: [
-        { text: 'CODE', value: 'employee.code', width: 96 },
-        { text: '従業員', value: 'employee.fullName', sortable: false },
-        {
-          text: '所定労働日数',
-          value: 'scheduledWorkingDays',
-          sortable: false,
-          align: 'right',
-          width: 120,
-        },
-        {
-          text: '法定外残業時間',
-          value: 'nonStatutoryOverTime',
-          sortable: false,
-          align: 'right',
-          width: 120,
-        },
-        {
-          text: '休日出勤時間',
-          value: 'holidayWorkingTime',
-          sortable: false,
-          align: 'right',
-          width: 120,
-        },
-        {
-          text: '合計',
-          value: 'overTimeTotal',
-          align: 'right',
-          width: 120,
-        },
-      ],
       items: [],
       loading: false,
       model: this.$AttendanceRecord(),
@@ -120,6 +89,7 @@ export default {
     <v-card-text>
       <g-data-table-attendance-records
         :items="items"
+        :loading="loading"
         :mobile-breakpoint="0"
         sort-by="overTimeTotal"
         sort-desc
