@@ -1,17 +1,9 @@
 <template>
-  <v-container>
-    <g-temporary-site-calendar />
-  </v-container>
+  <div>sandbox</div>
 </template>
 
 <script>
-import GTemporarySiteCalendar from '~/components/organisms/GTemporarySiteCalendar.vue'
-export default {
-  components: { GTemporarySiteCalendar },
-  data() {
-    return {}
-  },
-}
+export default {}
 </script>
 
 <style></style>

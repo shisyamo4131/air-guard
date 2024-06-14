@@ -15,9 +15,6 @@ const props = {
     remarks: { type: String, default: '', required: false },
     customerId: { type: String, default: '', required: false },
     favorite: { type: Boolean, default: true, required: false },
-    /* スポットとして登録される現場専用 */
-    isTemporary: { type: Boolean, default: false, required: false }, // The site is temporary if true.
-    dates: { type: Array, default: () => [], required: false }, // For registing schedules when regist the temporary site.
   },
 }
 export { props }

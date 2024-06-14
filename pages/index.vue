@@ -2,14 +2,14 @@
   <v-container fluid>
     <!-- <v-row justify="center" align="center"> -->
     <v-row>
+      <v-col cols="12">
+        <g-launcher-temporary-site-schedules flat outlined height="504" />
+      </v-col>
       <v-col cols="12" md="8" lg="8">
-        <g-launcher-attendance-records />
+        <g-launcher-attendance-records flat outlined />
       </v-col>
       <v-col cols="12" md="4" lg="4">
-        <g-launcher-leave-applications />
-      </v-col>
-      <v-col cols="12">
-        <g-temporary-site-calendar flat outlined height="360" />
+        <g-launcher-leave-applications flat outlined />
       </v-col>
       <!-- <v-col cols="12">
         <v-card>
@@ -46,13 +46,13 @@
 import GLauncherAttendanceRecords from '~/components/organisms/GLauncherAttendanceRecords.vue'
 import GLauncherLeaveApplications from '~/components/organisms/GLauncherLeaveApplications.vue'
 // import BChartSales from '~/components/molecules/charts/BChartSales.vue'
-import GTemporarySiteCalendar from '~/components/organisms/GTemporarySiteCalendar.vue'
+import GLauncherTemporarySiteSchedules from '~/components/organisms/GLauncherTemporarySiteSchedules.vue'
 
 export default {
   name: 'IndexPage',
   components: {
     // BChartSales,
-    GTemporarySiteCalendar,
+    GLauncherTemporarySiteSchedules,
     GLauncherLeaveApplications,
     GLauncherAttendanceRecords,
   },

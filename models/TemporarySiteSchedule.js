@@ -17,6 +17,7 @@ const props = {
     qualification: { type: Boolean, default: false, required: false },
     status: { type: String, default: 'accepted', required: false },
     remarks: { type: String, default: '', required: false },
+    dates: { type: Array, default: () => [], required: false },
   },
 }
 export { props }
@@ -24,6 +25,7 @@ export { props }
 /**
  * ## TemporarySiteSchedule
  * @author shisyamo4131
+ * @create 2024-06-14
  */
 export default class TemporarySiteSchedule extends FireModel {
   constructor(context, item) {
