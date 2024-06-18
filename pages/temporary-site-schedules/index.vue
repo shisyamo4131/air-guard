@@ -1,16 +1,15 @@
 <script>
-import { where } from 'firebase/firestore'
-import GCalendar from '~/components/atoms/calendars/GCalendar.vue'
-import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
-import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
-import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
-import GInputTemporarySiteSchedule from '~/components/molecules/inputs/GInputTemporarySiteSchedule.vue'
-import GIconEdit from '~/components/atoms/icons/GIconEdit.vue'
 /**
  * ### pages.TemporarySiteScheduleIndex
  * @author shisyamo4131
- * @create 2024-06-14
+ * @create 2024-06-18
  */
+import { where } from 'firebase/firestore'
+import GCalendar from '~/components/atoms/calendars/GCalendar.vue'
+import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
+import GDialogSiteOperationScheduleBulkRegister from '~/components/organisms/GDialogSiteOperationScheduleBulkRegister.vue'
+import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
+import GDialogSiteOperationSchedules from '~/components/organisms/GDialogSiteOperationSchedules.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -20,62 +19,67 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GDialogMonthPicker,
-    GBtnRegistIcon,
-    GCardSubmitCancel,
-    GInputTemporarySiteSchedule,
     GCalendar,
-    GIconEdit,
+    GBtnRegistIcon,
+    GDialogSiteOperationScheduleBulkRegister,
+    GDialogMonthPicker,
+    GDialogSiteOperationSchedules,
   },
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      bulkRegist: false,
-      dialog: {
-        editor: false,
-        list: false,
+      currentDate: this.$dayjs().format('YYYY-MM-DD'),
+      items: {
+        schedules: [],
+        sites: [],
       },
-      editMode: 'REGIST',
-      items: [],
-      loading: false,
-      model: this.$TemporarySiteSchedule(),
-      month: this.$dayjs().format('YYYY-MM'),
-      remove: false,
+      model: {
+        site: this.$Site(),
+        schedule: this.$SiteOperationSchedule(),
+      },
+      popUp: false,
+      register: false,
       selectedDate: null,
     }
   },
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
   computed: {
-    dayEvents() {
-      return this.events.filter(({ start }) => start === this.selectedDate)
-    },
     events() {
-      return this.items.map((item) => {
+      return this.items.schedules.map((item) => {
+        const site =
+          this.items.sites.find(({ docId }) => docId === item.siteId) ||
+          this.$Site()
         return {
-          name: item.name,
+          name: site ? site.name : 'error',
           start: item.date,
           color: item.workShift === 'day' ? 'blue' : 'red',
-          item,
+          site,
+          schedule: item,
         }
       })
     },
-    height() {
-      const vMain = this.$vuetify.breakpoint.height
-      const appBarHeight = 48
-      const containerPadding = 12 * 2
-      const toolbarHeight = 48 * 2
-      const toolbarMargin = 16
-      return (
-        vMain - appBarHeight - containerPadding - toolbarHeight - toolbarMargin
-      )
+    month: {
+      get() {
+        return this.$dayjs(this.currentDate).format('YYYY-MM')
+      },
+      set(v) {
+        this.currentDate = v + '-01'
+      },
     },
     min() {
-      return this.$dayjs(this.month + '01').format('YYYY-MM-DD')
+      return this.$dayjs(this.currentDate)
+        .startOf('month')
+        .startOf('week')
+        .format('YYYY-MM-DD')
     },
     max() {
-      return this.$dayjs(this.month + '01')
+      return this.$dayjs(this.currentDate)
         .endOf('month')
+        .endOf('week')
         .format('YYYY-MM-DD')
     },
   },
@@ -83,190 +87,107 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
-    'dialog.editor'(v) {
-      v || this.initialize()
-    },
-    month: {
-      handler(v) {
-        this.subscribe()
+    currentDate: {
+      handler(newVal, oldVal) {
+        if (newVal === oldVal) return
+        this.subscribeSchedule()
       },
       immediate: true,
     },
+    popUp(v) {
+      if (!v) this.selectedDate = null
+    },
+  },
+  /***************************************************************************
+   * MOUNTED
+   ***************************************************************************/
+  mounted() {
+    this.subscribeSites()
   },
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.model.unsubscribe()
+    this.model.site.unsubscribe()
+    this.model.schedule.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    initialize() {
-      this.editMode = 'REGIST'
-      this.bulkRegist = true
-      this.remove = false
-      this.model.initialize()
-    },
-    onClickRegist(date) {
-      this.editMode = 'REGIST'
-      this.bulkRegist = false
-      this.model.date = date
-      this.dialog.editor = true
-    },
-    onClickEdit(item) {
-      this.editMode = 'UPDATE'
-      this.model.initialize(item)
-      this.dialog.editor = true
-    },
     onClickDate(date) {
-      const eventsCount = this.items.filter((item) => item.date === date).length
-      if (!eventsCount) {
-        this.onClickRegist(date)
-      } else {
-        this.selectedDate = date
-        this.dialog.list = true
-      }
+      this.selectedDate = date
+      this.popUp = true
     },
-    async regist() {
-      if (this.bulkRegist) {
-        const promises = this.model.dates.map((date) => {
-          const model = this.$TemporarySiteSchedule(this.model)
-          model.date = date
-          return model.create()
-        })
-        await Promise.all(promises)
-      } else {
-        await this.model.create()
-      }
+    onClickPopUpRegist() {
+      this.model.schedule.initialize({ date: this.selectedDate })
+      this.register = true
     },
-    async submit() {
-      this.loading = true
-      try {
-        if (this.editMode === 'REGIST') await this.regist()
-        if (this.editMode === 'UPDATE') await this.update()
-        this.dialog.editor = false
-        this.dialog.list = false
-      } catch (err) {
-        // eslint-disable-next-line
-        console.error(err)
-        alert(err.message)
-      } finally {
-        this.loading = false
-      }
-    },
-    subscribe() {
-      this.items = this.model.subscribe(undefined, [
-        where('date', '>=', this.min),
-        where('date', '<=', this.max),
+    subscribeSites() {
+      this.items.sites = this.model.site.subscribe(undefined, [
+        where('temporary', '==', true),
       ])
     },
-    async update() {
-      if (this.remove) {
-        await this.model.delete()
-      } else {
-        await this.model.update()
-      }
+    subscribeSchedule() {
+      this.items.schedules = this.model.schedule.subscribe(undefined, [
+        where('date', '>=', this.min),
+        where('date', '<=', this.max),
+        where('temporary', '==', true),
+      ])
     },
   },
 }
 </script>
 
 <template>
-  <v-container fluid>
-    <v-toolbar class="mb-4" dense flat>
-      <v-toolbar-title class="g-card__title">
-        {{ `スポット現場稼働予定` }}
-      </v-toolbar-title>
-      <v-dialog v-model="dialog.editor" max-width="480" persistent scrollable>
-        <template #activator="{ attrs, on }">
-          <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
-        </template>
-        <g-card-submit-cancel
-          label="スポット現場稼働予定"
-          :dialog.sync="dialog.editor"
-          :edit-mode="editMode"
-          :loading="loading"
-          @click:submit="submit"
+  <v-container>
+    <v-card
+      v-bind="$attrs"
+      :height="$vuetify.breakpoint.height - 48 - 24"
+      v-on="$listeners"
+    >
+      <v-card-title class="g-card__title">
+        スポット現場稼働予定表
+        <g-dialog-site-operation-schedule-bulk-register
+          v-model="register"
+          max-width="480"
+          :default-date="selectedDate"
+          as-temporary
+          :selectable-sites="items.sites"
         >
-          <g-input-temporary-site-schedule
-            v-bind.sync="model"
-            :edit-mode="editMode"
-            :bulk="editMode === 'REGIST' && bulkRegist"
-          />
-          <v-checkbox
-            v-if="editMode !== 'REGIST'"
-            v-model="remove"
-            label="この予定を削除する"
-          />
-        </g-card-submit-cancel>
-      </v-dialog>
-      <template #extension>
+          <template #activator="{ attrs, on }">
+            <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
+          </template>
+        </g-dialog-site-operation-schedule-bulk-register>
+      </v-card-title>
+      <v-container class="pt-0" style="height: calc(100% - 68px)">
         <g-dialog-month-picker v-model="month">
           <template #activator="{ attrs, on }">
             <v-text-field
-              class="center-input"
-              style="min-width: 96px; max-width: 96px"
               v-bind="attrs"
+              class="center-input mb-2"
+              style="min-width: 96px; max-width: 96px"
               label="年月"
               hide-details
               v-on="on"
             />
           </template>
         </g-dialog-month-picker>
-      </template>
-    </v-toolbar>
-    <div :style="{ height: `${height}px` }">
-      <g-calendar
-        :events="events"
-        @click:event="onClickEdit($event.event.item)"
-        @click:date="onClickDate($event.date)"
-      />
-    </div>
-    <v-dialog
-      v-model="dialog.list"
+        <g-calendar
+          :events="events"
+          style="height: calc(100% - 56px)"
+          @click:date="onClickDate($event.date)"
+        >
+        </g-calendar>
+      </v-container>
+    </v-card>
+    <g-dialog-site-operation-schedules
+      v-model="popUp"
       max-width="480"
-      scrollable
-      transition="dialog-bottom-transition"
-    >
-      <v-card>
-        <v-card-title class="pa-0">
-          <v-toolbar dense flat>
-            <v-toolbar-title>
-              {{ selectedDate }}
-            </v-toolbar-title>
-            <v-spacer />
-            <g-btn-regist-icon
-              color="primary"
-              @click="onClickRegist(selectedDate)"
-            />
-          </v-toolbar>
-        </v-card-title>
-        <v-card-text>
-          <template v-for="(event, index) of dayEvents">
-            <v-list-item :key="`item-${index}`">
-              <v-list-item-action>
-                <div>{{ event.item.start }}</div>
-                <div>{{ event.item.end }}</div>
-              </v-list-item-action>
-              <v-list-item-content>
-                <v-list-item-title>
-                  {{ event.item.name }}
-                </v-list-item-title>
-                <v-list-item-subtitle>
-                  {{ event.item.address }}
-                </v-list-item-subtitle>
-              </v-list-item-content>
-              <v-list-item-action>
-                <g-icon-edit @click="onClickEdit(event.item)" />
-              </v-list-item-action>
-            </v-list-item>
-            <v-divider :key="`divider-${index}`" />
-          </template>
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+      :date="selectedDate"
+      :events="events"
+      @click:regist="onClickPopUpRegist"
+    />
   </v-container>
 </template>
 

@@ -18,6 +18,8 @@ const props = {
     workers: { type: Array, default: () => [], required: false },
     outsourcers: { type: Array, default: () => [], required: false },
     remarks: { type: String, default: '', required: false },
+    // for searching only the site schedules created as temporary.
+    temporary: { type: Boolean, default: false, required: false },
   },
 }
 export { props }
@@ -31,16 +33,6 @@ export default class SiteOperationSchedule extends FireModel {
     super(context, item)
     // this.collection = 'Placements'
     this.tokenFields = []
-    Object.defineProperties(this, {
-      month: {
-        enumerable: true,
-        get() {
-          if (!this.date) return ''
-          return this.date.substring(0, 7)
-        },
-        set(v) {},
-      },
-    })
   }
 
   get collection() {

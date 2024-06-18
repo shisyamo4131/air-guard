@@ -8,6 +8,7 @@ export default {}
 <template>
   <v-date-picker
     v-bind="$attrs"
+    color="primary"
     locale="ja-jp"
     :day-format="(date) => new Date(date).getDate()"
     first-day-of-week="1"

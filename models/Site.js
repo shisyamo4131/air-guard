@@ -15,6 +15,10 @@ const props = {
     remarks: { type: String, default: '', required: false },
     customerId: { type: String, default: '', required: false },
     favorite: { type: Boolean, default: true, required: false },
+    // for bulk create.
+    temporary: { type: Boolean, default: false, required: false },
+    defaultDates: { type: Array, default: () => [], required: false },
+    defaultSchedule: { type: Object, default: () => ({}), required: false },
   },
 }
 export { props }

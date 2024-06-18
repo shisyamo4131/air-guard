@@ -3,7 +3,11 @@
     <!-- <v-row justify="center" align="center"> -->
     <v-row>
       <v-col cols="12">
-        <g-launcher-temporary-site-schedules flat outlined height="504" />
+        <g-launcher-temporary-site-operation-schedules
+          flat
+          outlined
+          height="504"
+        />
       </v-col>
       <v-col cols="12" md="8" lg="8">
         <g-launcher-attendance-records flat outlined />
@@ -46,13 +50,13 @@
 import GLauncherAttendanceRecords from '~/components/organisms/GLauncherAttendanceRecords.vue'
 import GLauncherLeaveApplications from '~/components/organisms/GLauncherLeaveApplications.vue'
 // import BChartSales from '~/components/molecules/charts/BChartSales.vue'
-import GLauncherTemporarySiteSchedules from '~/components/organisms/GLauncherTemporarySiteSchedules.vue'
+import GLauncherTemporarySiteOperationSchedules from '~/components/organisms/GLauncherTemporarySiteOperationSchedules.vue'
 
 export default {
   name: 'IndexPage',
   components: {
     // BChartSales,
-    GLauncherTemporarySiteSchedules,
+    GLauncherTemporarySiteOperationSchedules,
     GLauncherLeaveApplications,
     GLauncherAttendanceRecords,
   },

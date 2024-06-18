@@ -79,8 +79,8 @@ export default {
           no-title
           :picker-date.sync="pickerDate"
         >
-          <v-spacer></v-spacer>
           <v-btn text color="primary" @click="dialog = false"> Cancel </v-btn>
+          <v-spacer />
           <v-btn text color="primary" @click="$refs.dialog.save(value)">
             OK
           </v-btn>

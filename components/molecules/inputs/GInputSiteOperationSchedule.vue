@@ -1,4 +1,26 @@
 <script>
+/**
+ * ### GInputSiteOperationSchedule
+ *
+ * 現場の稼働予定を入力するためのコンポーネントです。
+ * GDialogSiteOperationScheduleBulkRegisterで使用できるように、
+ * 日付の入力コンポーネントを非表示にする機能が実装されています。
+ *
+ * 機能の詳細：
+ * - `props.hideDate`をtrueにすると日付の入力コンポーネントが非表示になります。
+ *
+ * @component
+ * @example
+ * <GInputSiteOperationSchedule
+ *   v-bind.sync="model"
+ *   :edit-mode="editMode"
+ *   hide-date
+ * />
+ *
+ * @props {Boolean} hideDate - 日付を非表示にします
+ *
+ * @author shisyamo4131
+ */
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
@@ -6,11 +28,6 @@ import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import { props } from '~/models/SiteOperationSchedule'
 import EditMode from '~/components/mixins/GMixinEditMode'
-
-/**
- * ### GInputSiteOperationSchedule
- * @author shisyamo4131
- */
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -20,12 +37,16 @@ export default {
    * PROPS
    ***************************************************************************/
   mixins: [props, EditMode],
+  props: {
+    hideDate: { type: Boolean, default: false, required: false },
+  },
 }
 </script>
 
 <template>
   <div>
     <g-combobox-date
+      v-if="!hideDate"
       :value="date"
       label="日付"
       required

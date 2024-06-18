@@ -44,6 +44,7 @@
  * 5. 'status' as the field to be boolean
  *
  * @update 2024-02-27 tokenMap に使用できないサロゲートペア文字列を排除するように修正。
+ *         2024-06-17 subscribeで、collectionパスに「/」が含まれている場合はcollectionGroupを使用するように修正。
  */
 
 import {
@@ -600,7 +601,13 @@ export default class FireModel {
     const wheres = grams.map((gram) => {
       return where(`tokenMap.${gram}`, '==', true)
     })
-    const colRef = collection(this.#firestore, this.collection)
+    // const colRef = collection(this.#firestore, this.collection)
+    const colRef = this.collection.includes('/')
+      ? collectionGroup(
+          this.#firestore,
+          this.collection.substring(this.collection.lastIndexOf('/') + 1)
+        )
+      : collection(this.#firestore, this.collection)
     const q = query(colRef, ...constraints, ...wheres)
     this.#listener = onSnapshot(q, (snapshot) => {
       snapshot.docChanges().forEach(async (change) => {

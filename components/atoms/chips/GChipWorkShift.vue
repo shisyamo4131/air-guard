@@ -49,8 +49,8 @@ export default {
 
 <template>
   <v-chip v-bind="$attrs" :color="color" v-on="$listeners"
-    ><v-icon v-bind="$attrs" left>{{ `mdi-${icon}` }}</v-icon
-    >{{ $WORK_SHIFT[workShift] }}</v-chip
+    ><v-icon left>{{ `mdi-${icon}` }}</v-icon
+    >{{ $WORK_SHIFT[value] }}</v-chip
   >
 </template>
 

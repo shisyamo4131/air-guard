@@ -116,6 +116,7 @@ export default {
 .right-input input {
   text-align: right;
 }
+
 .g-card__title:before {
   content: '';
   position: absolute;
@@ -135,6 +136,34 @@ export default {
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+}
+
+/* SITE-OPERATION-SCHEDULE */
+.g-list-item--site-operation-schedule-day > .v-list-item__content,
+.g-list-item--site-operation-schedule-night > .v-list-item__content {
+  padding-left: 12px;
+}
+
+.g-list-item--site-operation-schedule-day > .v-list-item__content::before,
+.g-list-item--site-operation-schedule-night > .v-list-item__content::before {
+  content: '';
+  position: absolute;
+  left: 60px;
+  /*bottom: -15px; /*線の上下位置*/
+  display: inline-block;
+  width: 4px; /*線の長さ*/
+  height: 36px; /*線の太さ*/
+  /* -webkit-transform: translateX(-50%);
+  /* transform: translateX(-50%); /*位置調整*/
+  border-radius: 2px; /*線の丸み*/
+}
+
+.g-list-item--site-operation-schedule-day > .v-list-item__content::before {
+  background-color: #2196f3; /*線の色*/
+}
+
+.g-list-item--site-operation-schedule-night > .v-list-item__content::before {
+  background-color: #f44336; /*線の色*/
 }
 
 /* v-data-tableのheaders.cellClassに設定 */

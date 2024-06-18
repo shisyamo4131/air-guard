@@ -3,7 +3,7 @@ import { where } from 'firebase/firestore'
 import GCalendar from '../atoms/calendars/GCalendar.vue'
 import GDivMonthChooser from '../molecules/divs/GDivMonthChooser.vue'
 /**
- * ### GTemporarySiteCalendar
+ * ### GLauncherTemporarySiteOperationSchedules
  * @author shisyamo4131
  * @create 2024-06-14
  */
@@ -28,7 +28,7 @@ export default {
     return {
       currentDate: this.$dayjs().format('YYYY-MM-DD'),
       items: [],
-      model: this.$TemporarySiteSchedule(),
+      model: this.$SiteOperationSchedule(),
       type: 'month',
     }
   },
@@ -44,13 +44,15 @@ export default {
       return this.items.reduce((acc, i) => {
         const date = i.date
         if (!(date in acc)) acc[date] = { day: 0, night: 0, total: 0 }
-        acc[date].day += this.items.filter(
-          (item) => item.workShift === 'day' && item.date === date
-        ).length
-        acc[date].night += this.items.filter(
-          (item) => item.workShift === 'night' && item.date === date
-        ).length
-        acc[date].total = acc[date].day + acc[date].night
+        acc[date][i.workShift] += i.requiredWorkers
+        acc[date][i.total] += i.requiredWorkders
+        // acc[date].day += this.items.filter(
+        //   (item) => item.workShift === 'day' && item.date === date
+        // ).length
+        // acc[date].night += this.items.filter(
+        //   (item) => item.workShift === 'night' && item.date === date
+        // ).length
+        // acc[date].total = acc[date].day + acc[date].night
         return acc
       }, {})
     },
@@ -95,6 +97,7 @@ export default {
       this.items = this.model.subscribe(undefined, [
         where('date', '>=', this.min),
         where('date', '<=', this.max),
+        where('temporary', '==', true),
       ])
     },
   },
