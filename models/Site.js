@@ -1,3 +1,8 @@
+/**
+ * ## Site
+ * @author shisyamo4131
+ * @update 2024-06-19   favoriteの初期値をfalseに修正
+ */
 import FireModel from './FireModel'
 
 const props = {
@@ -14,7 +19,7 @@ const props = {
     status: { type: String, default: 'active', required: false },
     remarks: { type: String, default: '', required: false },
     customerId: { type: String, default: '', required: false },
-    favorite: { type: Boolean, default: true, required: false },
+    favorite: { type: Boolean, default: false, required: false },
     // for bulk create.
     temporary: { type: Boolean, default: false, required: false },
     defaultDates: { type: Array, default: () => [], required: false },
@@ -23,10 +28,6 @@ const props = {
 }
 export { props }
 
-/**
- * ## Site
- * @author shisyamo4131
- */
 export default class Site extends FireModel {
   constructor(context, item) {
     super(context, item)
