@@ -613,7 +613,7 @@ export default class FireModel {
       snapshot.docChanges().forEach(async (change) => {
         const item = change.doc.data()
         const index = this.#items.findIndex(({ docId }) => docId === item.docId)
-        if (callBack) await callBack(item)
+        if (change.type !== 'removed' && callBack) await callBack(item)
         if (change.type === 'added') this.#items.push(item)
         if (change.type === 'modified') this.#items.splice(index, 1, item)
         if (change.type === 'removed') this.#items.splice(index, 1)

@@ -1,5 +1,10 @@
 <script>
-import { collection, getDocs, query, where } from 'firebase/firestore'
+/**
+ * ### pages.SitesIndex
+ * @author shisyamo4131
+ * @update 2024-06-19   リアルタイムリスナーによる一覧表示に変更し、検索文字列がない場合にスポット現場を表示
+ */
+import { doc, getDoc, where } from 'firebase/firestore'
 import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
@@ -25,8 +30,10 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      customers: [],
       dialog: false,
+      fetched: {
+        customers: [],
+      },
       items: [],
       lazySearch: null,
       loading: false,
@@ -47,59 +54,44 @@ export default {
     lazySearch: {
       handler(newVal, oldVal) {
         if (newVal === oldVal) return
-        this.fetchDocs()
+        this.subscribe()
       },
       immediate: true,
     },
   },
   /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.model.unsubscribe()
+  },
+  /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    async fetchCustomers(sites) {
-      const newCustomerIds = [
-        ...new Set(sites.map((item) => item.customerId)),
-      ].filter(
-        (id) => !this.customers.some((customer) => customer.docId === id)
-      )
-
-      const chunkedIds = newCustomerIds.flatMap((_, i, arr) =>
-        i % 30 ? [] : [arr.slice(i, i + 30)]
-      )
-      const promises = chunkedIds.map(async (ids) => {
-        const colRef = collection(this.$firestore, 'Customers')
-        const q = query(colRef, where('docId', 'in', ids))
-        const querySnapshot = await getDocs(q)
-        return querySnapshot.docs.map((doc) => doc.data())
-      })
-
-      const querySnapshots = await Promise.all(promises)
-      querySnapshots.forEach((data) => this.customers.push(...data))
-    },
-    async fetchDocs() {
-      this.items.splice(0)
-      this.loading = true
-      try {
-        const ngram = this.lazySearch || undefined
-        const constraints = this.lazySearch
-          ? []
-          : [where('favorite', '==', true)]
-        const fetchedItems = await this.model.fetchDocs(ngram, constraints)
-        if (!fetchedItems.length) return
-        await this.fetchCustomers(fetchedItems)
-        fetchedItems.forEach((item) => {
-          item.customer = this.customers.find(
-            (customer) => customer.docId === item.customerId
-          )
-        })
-        this.items = fetchedItems
-      } catch (err) {
-        // eslint-disable-next-line
-        console.error(err)
-        alert(err.message)
-      } finally {
-        this.loading = false
+    subscribe() {
+      const setCustomer = async (item) => {
+        const fetched = this.fetched.customers.find(
+          ({ docId }) => docId === item.customerId
+        )
+        if (fetched) {
+          item.customer = fetched
+        } else {
+          const docRef = doc(this.$firestore, `Customers/${item.customerId}`)
+          const snapshot = await getDoc(docRef)
+          if (!snapshot.exists)
+            throw new Error(
+              'Could not find customer document. id:',
+              item.customerId
+            )
+          item.customer = snapshot.data()
+          this.fetched.customers.push(snapshot.data())
+        }
       }
+      const [ngram, constraints] = this.lazySearch
+        ? [this.lazySearch, []]
+        : [undefined, [where('temporary', '==', true)]]
+      this.items = this.model.subscribe(ngram, constraints, setCustomer)
     },
     initialize() {
       this.model.initialize()
@@ -108,8 +100,8 @@ export default {
       this.$router.push(`/sites/${item.docId}`)
     },
     async submit() {
+      this.loading = true
       try {
-        this.loading = true
         const docRef = await this.model.create()
         this.dialog = false
         this.$router.push(`/sites/${docRef.id}`)
@@ -154,18 +146,12 @@ export default {
           { text: '住所', value: 'address' },
         ]"
         :items="items"
-        :loading="loading"
-        :no-data-text="
-          lazySearch
-            ? '該当する現場が登録されていません。'
-            : 'お気に入りに登録されている現場がありません。'
-        "
         @click:detail="onClickDetail"
       >
         <template #[`item.name`]="{ item }">
-          <v-icon v-if="item.favorite" color="yellow darken-2" small left
-            >mdi-star</v-icon
-          >{{ item.abbr }}
+          <v-icon v-if="item.temporary" color="green darken-1" small left
+            >mdi-exclamation-thick</v-icon
+          >{{ `${item.temporary ? item.name : item.abbr}` }}
         </template>
       </g-data-table>
     </v-container>
