@@ -94,7 +94,7 @@ export default {
    ***************************************************************************/
   methods: {
     subscribe() {
-      this.items = this.model.subscribe(undefined, [
+      this.items = this.model.subscribeGroup(undefined, [
         where('date', '>=', this.min),
         where('date', '<=', this.max),
         where('temporary', '==', true),

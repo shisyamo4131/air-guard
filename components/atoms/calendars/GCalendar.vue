@@ -13,6 +13,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    color: { type: String, default: 'primary', required: false },
     dayFormat: {
       type: Function,
       default: (timestamp) => new Date(timestamp.date).getDate(),

@@ -129,7 +129,7 @@ export default {
       ])
     },
     subscribeSchedule() {
-      this.items.schedules = this.model.schedule.subscribe(undefined, [
+      this.items.schedules = this.model.schedule.subscribeGroup(undefined, [
         where('date', '>=', this.min),
         where('date', '<=', this.max),
         where('temporary', '==', true),

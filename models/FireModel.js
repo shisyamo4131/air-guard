@@ -45,6 +45,9 @@
  *
  * @update 2024-02-27 tokenMap に使用できないサロゲートペア文字列を排除するように修正。
  *         2024-06-17 subscribeで、collectionパスに「/」が含まれている場合はcollectionGroupを使用するように修正。
+ *         2024-06-19 subscribeGroupを実装
+ *                    -> 2024-06-17の修正の結果、配下のサブコレクション内のみの読み込みができなくなってしまった。
+ *                    -> subscribeGroupを実装し、subscribeへの修正を元に戻した。
  */
 
 import {
@@ -582,12 +585,11 @@ export default class FireModel {
   }
 
   /**
-   * Starts a subscription to a document that matches the criteria given
-   * in the argument constraints and returns a function to unsubscribe.
-   * You can add conditions by tokenMap by giving a string to the argument ngram.
-   * @param {string} ngram
-   * @param {array} constraints
-   * @returns Reference to the array in which the retrieved document data is stored.
+   * コレクションへのリアルタイムリスナーを開始します。
+   * 終了するにはunsubscribe()を実行してください。
+   * @param {string} ngram - 検索文字列
+   * @param {array} constraints - クエリーに引き渡す抽出条件の配列
+   * @returns 取得したドキュメントデータが格納されている配列への参照
    */
   subscribe(ngram = undefined, constraints = [], callBack = undefined) {
     this.unsubscribe()
@@ -601,13 +603,44 @@ export default class FireModel {
     const wheres = grams.map((gram) => {
       return where(`tokenMap.${gram}`, '==', true)
     })
-    // const colRef = collection(this.#firestore, this.collection)
-    const colRef = this.collection.includes('/')
-      ? collectionGroup(
-          this.#firestore,
-          this.collection.substring(this.collection.lastIndexOf('/') + 1)
-        )
-      : collection(this.#firestore, this.collection)
+    const colRef = collection(this.#firestore, this.collection)
+    const q = query(colRef, ...constraints, ...wheres)
+    this.#listener = onSnapshot(q, (snapshot) => {
+      snapshot.docChanges().forEach(async (change) => {
+        const item = change.doc.data()
+        const index = this.#items.findIndex(({ docId }) => docId === item.docId)
+        if (change.type !== 'removed' && callBack) await callBack(item)
+        if (change.type === 'added') this.#items.push(item)
+        if (change.type === 'modified') this.#items.splice(index, 1, item)
+        if (change.type === 'removed') this.#items.splice(index, 1)
+      })
+    })
+    return this.#items
+  }
+
+  /**
+   * コレクショングループのリアルタイムリスナーを開始します。
+   * 終了する場合はunsubscribe()を実行してください。
+   * @param {string} ngram - 検索文字列
+   * @param {array} constraints - クエリーに引き渡す抽出条件の配列
+   * @returns 取得したドキュメントデータが格納されている配列への参照
+   */
+  subscribeGroup(ngram = undefined, constraints = [], callBack = undefined) {
+    this.unsubscribe()
+    const collectionId = this.collection.includes('/')
+      ? this.collection.substring(this.collection.lastIndexOf('/') + 1)
+      : this.collection
+    /* eslint-disable */
+    console.info('Subscription of %s Group has been started.', collectionId)
+    if (ngram) console.table(ngram)
+    console.table(constraints)
+    /* eslint-enable */
+    this.#items.splice(0)
+    const grams = this.convertToGrams(ngram)
+    const wheres = grams.map((gram) => {
+      return where(`tokenMap.${gram}`, '==', true)
+    })
+    const colRef = collectionGroup(this.#firestore, collectionId)
     const q = query(colRef, ...constraints, ...wheres)
     this.#listener = onSnapshot(q, (snapshot) => {
       snapshot.docChanges().forEach(async (change) => {

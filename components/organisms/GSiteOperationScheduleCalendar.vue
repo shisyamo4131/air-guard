@@ -1,20 +1,20 @@
 <script>
 import { where } from 'firebase/firestore'
-import GCalendar from '../atoms/calendars/GCalendar.vue'
 import GBtnRegistIcon from '../molecules/btns/GBtnRegistIcon.vue'
 import GCardSubmitCancel from '../molecules/cards/GCardSubmitCancel.vue'
 import GInputSiteOperationSchedule from '../molecules/inputs/GInputSiteOperationSchedule.vue'
 import GDivMonthChooser from '../molecules/divs/GDivMonthChooser.vue'
+import GCalendarSiteOperationScheduleSummary from '../molecules/calendars/GCalendarSiteOperationScheduleSummary.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GCalendar,
     GBtnRegistIcon,
     GCardSubmitCancel,
     GInputSiteOperationSchedule,
     GDivMonthChooser,
+    GCalendarSiteOperationScheduleSummary,
   },
   /***************************************************************************
    * PROPS
@@ -68,7 +68,7 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
-    currentDate(newVal, oldVal) {
+    from(newVal, oldVal) {
       if (newVal === oldVal) return
       this.subscribe()
     },
@@ -93,6 +93,18 @@ export default {
       this.model.initialize({ siteId: this.siteId })
     },
     onClickEdit(item) {
+      this.editMode = 'UPDATE'
+      this.model.initialize(item)
+      this.dialog = true
+    },
+    onClickSchedule({ date, workShift }) {
+      const item = this.items.find((item) => {
+        return item.date === date && item.workShift === workShift
+      })
+      if (!item) {
+        alert('スケジュールオブジェクトの取得に失敗しました。')
+        return
+      }
       this.editMode = 'UPDATE'
       this.model.initialize(item)
       this.dialog = true
@@ -123,7 +135,7 @@ export default {
 </script>
 
 <template>
-  <v-card>
+  <v-card v-bind="$attrs" v-on="$listeners">
     <v-card-title class="g-card__title">
       稼働予定表
       <v-dialog v-model="dialog" max-width="360">
@@ -137,7 +149,7 @@ export default {
         </template>
         <g-card-submit-cancel
           label="稼働予定"
-          :dialog="dialog"
+          :dialog.sync="dialog"
           :edit-mode="editMode"
           :loading="loading"
           @click:cancel="dialog = false"
@@ -157,53 +169,15 @@ export default {
         @click:next="$refs.calendar.next()"
       />
     </v-container>
-    <v-container fluid>
-      <g-calendar ref="calendar" v-model="currentDate" color="primary">
-        <template #day="{ date }">
-          <div class="schedule-container">
-            <div class="shift-container">
-              <v-avatar
-                v-if="schedules[date]?.day"
-                style="cursor: pointer"
-                size="24"
-                color="blue"
-                class="white--text"
-                @click="onClickEdit(schedules[date].day.item)"
-              >
-                {{ schedules[date].day.requiredWorkers }}
-              </v-avatar>
-            </div>
-            <div class="shift-container">
-              <v-avatar
-                v-if="schedules[date]?.night"
-                style="cursor: pointer"
-                size="24"
-                color="red"
-                class="white--text"
-                @click="onClickEdit(schedules[date].night.item)"
-              >
-                {{ schedules[date].night.requiredWorkers }}
-              </v-avatar>
-            </div>
-          </div>
-        </template>
-      </g-calendar>
+    <v-container fluid style="height: calc(100% - 104px)">
+      <g-calendar-site-operation-schedule-summary
+        ref="calendar"
+        v-model="currentDate"
+        :items="items"
+        @click:schedule="onClickSchedule"
+      />
     </v-container>
   </v-card>
 </template>
 
-<style scoped>
-/* GSiteOperationScheduleCalendar */
-.schedule-container {
-  display: flex;
-  justify-content: space-between;
-  height: 48px;
-}
-
-.shift-container {
-  width: 45%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-</style>
+<style></style>

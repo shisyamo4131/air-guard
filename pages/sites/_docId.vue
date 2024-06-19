@@ -160,7 +160,7 @@ export default {
           </v-card>
         </v-col>
         <v-col cols="12" md="7">
-          <g-site-operation-schedule-calendar :site-id="docId" />
+          <g-site-operation-schedule-calendar :site-id="docId" height="612" />
         </v-col>
       </v-row>
     </v-container>
