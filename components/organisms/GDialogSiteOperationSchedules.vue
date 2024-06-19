@@ -1,4 +1,5 @@
 <script>
+import GDatePicker from '../atoms/pickers/GDatePicker.vue'
 /**
  * ### GDialogSiteOperationSchedules
  *
@@ -10,7 +11,7 @@
  * - このコンポーネントでは新規の現場稼働予定を入力するための機能を提供しません。
  * - 一覧表示されている現場稼働予定をクリック（タップ）すると、当該予定の詳細情報を表示します。
  * - 詳細表示画面で「編集」ボタンをクリック（タップ）すると、当該予定の編集画面を表示します。
- * - 編集画面では当該予定の情報を編集・更新することができます。
+ * - 編集画面では当該予定の情報を編集・更新・複製することができます。
  * - 編集・更新が完了すると、詳細画面に戻ります。
  *
  * @component
@@ -25,6 +26,7 @@
  *
  * @author shisyamo4131
  * @create 2024-06-18
+ * @update 2024-06-19   複製機能を追加。
  */
 import GInputSiteOperationSchedule from '../molecules/inputs/GInputSiteOperationSchedule.vue'
 import GListItemSiteOperationSchedule from '../molecules/lists/GListItemSiteOperationSchedule.vue'
@@ -37,6 +39,7 @@ export default {
     GInputSiteOperationSchedule,
     GListItemSiteOperationSchedule,
     GSimpleTableSiteOperationSchedule,
+    GDatePicker,
   },
   /***************************************************************************
    * PROPS
@@ -51,6 +54,12 @@ export default {
   data() {
     return {
       dialog: false,
+      duplicator: {
+        dialog: false,
+        date: '',
+        pickerDate: undefined,
+        snackbar: false,
+      },
       formRef: null,
       loading: false,
       model: this.$SiteOperationSchedule(),
@@ -146,6 +155,13 @@ export default {
       newVal || this.initialize()
       this.$emit('input', newVal)
     },
+    'duplicator.dialog'(newVal, oldVal) {
+      if (newVal === oldVal) return
+      if (!newVal) {
+        this.duplicator.date = ''
+        this.duplicator.pickerDate = this.date
+      }
+    },
   },
   /***************************************************************************
    * METHODS
@@ -189,6 +205,22 @@ export default {
       const result = this.formRef.validate()
       if (!result) alert('入力に不備があります。')
       return result
+    },
+    async duplicate() {
+      this.model.initialize(this.selectedEvent.schedule)
+      this.model.date = this.duplicator.date
+      this.loading = true
+      try {
+        await this.model.create()
+        this.duplicator.dialog = false
+        this.duplicator.snackbar = true
+      } catch (err) {
+        // eslint-disable-next-line
+        console.error(err)
+        alert(err.message)
+      } finally {
+        this.loading = false
+      }
     },
   },
 }
@@ -249,6 +281,39 @@ export default {
           </v-window-item>
           <v-window-item :value="2">
             <g-simple-table-site-operation-schedule :event="selectedEvent" />
+            <v-container>
+              <v-dialog v-model="duplicator.dialog" max-width="290">
+                <template #activator="{ attrs, on }">
+                  <v-btn v-bind="attrs" block color="primary" text v-on="on"
+                    ><v-icon left small>mdi-content-copy</v-icon
+                    >この予定を複製する</v-btn
+                  >
+                </template>
+                <g-date-picker
+                  v-model="duplicator.date"
+                  no-title
+                  :picker-date.sync="duplicator.pickerDate"
+                  :show-current="false"
+                >
+                  <v-btn
+                    color="primary"
+                    :disabled="loading"
+                    text
+                    @click="duplicator.dialog = false"
+                    >CANCEL</v-btn
+                  >
+                  <v-spacer />
+                  <v-btn
+                    :disabled="!duplicator.date || loading"
+                    color="primary"
+                    :loading="loading"
+                    text
+                    @click="duplicate"
+                    >OK</v-btn
+                  >
+                </g-date-picker>
+              </v-dialog>
+            </v-container>
           </v-window-item>
           <v-window-item :value="3">
             <v-card-text class="pa-4">
@@ -267,6 +332,9 @@ export default {
           </v-window-item>
         </v-window>
       </v-card-text>
+      <v-snackbar v-model="duplicator.snackbar" centered
+        >複製しました。</v-snackbar
+      >
     </v-card>
   </v-dialog>
 </template>
