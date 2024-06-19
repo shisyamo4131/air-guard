@@ -32,7 +32,11 @@ export default {
       editMode: 'REGIST',
       items: [],
       loading: false,
-      model: this.$SiteOperationSchedule(),
+      // model: this.$SiteOperationSchedule(),
+      model: {
+        site: this.$Site(),
+        schedule: this.$SiteOperationSchedule(),
+      },
     }
   },
   /***************************************************************************
@@ -76,9 +80,10 @@ export default {
       v || this.initialize()
     },
     siteId: {
-      handler(newVal, oldVal) {
+      async handler(newVal, oldVal) {
         if (newVal === oldVal) return
-        this.model.siteId = newVal
+        await this.model.site.fetch(newVal)
+        this.model.schedule.siteId = newVal
         this.subscribe()
       },
       immediate: true,
@@ -90,11 +95,11 @@ export default {
   methods: {
     initialize() {
       this.editMode = 'REGIST'
-      this.model.initialize({ siteId: this.siteId })
+      this.model.schedule.initialize({ siteId: this.siteId })
     },
     onClickEdit(item) {
       this.editMode = 'UPDATE'
-      this.model.initialize(item)
+      this.model.schedule.initialize(item)
       this.dialog = true
     },
     onClickSchedule({ date, workShift }) {
@@ -106,15 +111,16 @@ export default {
         return
       }
       this.editMode = 'UPDATE'
-      this.model.initialize(item)
+      this.model.schedule.initialize(item)
       this.dialog = true
     },
     async submit() {
       this.loading = true
+      this.model.schedule.temporary = this.model.site.temporary
       try {
-        if (this.editMode === 'REGIST') await this.model.create()
-        if (this.editMode === 'UPDATE') await this.model.update()
-        if (this.editMode === 'DELETE') await this.model.delete()
+        if (this.editMode === 'REGIST') await this.model.schedule.create()
+        if (this.editMode === 'UPDATE') await this.model.schedule.update()
+        if (this.editMode === 'DELETE') await this.model.schedule.delete()
         this.dialog = false
       } catch (err) {
         // eslint-disable-next-line
@@ -125,7 +131,7 @@ export default {
       }
     },
     subscribe() {
-      this.items = this.model.subscribe(undefined, [
+      this.items = this.model.schedule.subscribe(undefined, [
         where('date', '>=', this.from),
         where('date', '<=', this.to),
       ])
@@ -156,7 +162,7 @@ export default {
           @click:submit="submit"
         >
           <g-input-site-operation-schedule
-            v-bind.sync="model"
+            v-bind.sync="model.schedule"
             :edit-mode="editMode"
           />
         </g-card-submit-cancel>
