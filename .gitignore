@@ -95,3 +95,4 @@ sw.*
 saved-data/
 .firebaserc
 .secret*
+.firebase/
