@@ -119,7 +119,7 @@ export default {
       }
     },
     subscribe() {
-      this.items = this.model.schedule.subscribeAsEvents({
+      this.items = this.model.schedule.subscribeAsEvent({
         from: this.from,
         to: this.to,
       })

@@ -17,8 +17,58 @@ const props = {
 export { props }
 
 /**
- * ### LeaveApplication
- * @author shisyamo4131
+ * LeaveApplication.js
+ * @version 1.0.0
+ * @date 2024-06-20
+ * @autor shisyamo4131
+ *
+ * 概要:
+ * LeaveApplicationクラスは、従業員の休暇申請を管理するためのモデルクラスです。
+ * FireModelクラスを継承し、Firestoreとの連携やCRUD操作を簡素化します。
+ * LeaveApplicationドキュメントは休暇対象日の分だけ、Employees/${docId}/EmployeeLeaveApplicationsに複製されます。
+ * EmployeeLeaveApplicationsドキュメントにはdocIdとして休暇対象日、親のドキュメントIDとしてleaveApplicationIdが付与されます。
+ *
+ * 主な機能:
+ * - Firestoreコレクション 'LeaveApplications' に対するCRUD操作
+ * - 休暇申請のバリデーション機能
+ * - 休暇申請の日付に関する情報を取得する機能
+ *
+ * 使用例:
+ * ---------------------------------------------------------------
+ * import { firestore, auth } from '@/plugins/firebase';
+ * import LeaveApplication from '@/models/LeaveApplication';
+ *
+ * const leaveApplication = new LeaveApplication({ firestore, auth }, { employeeId: 'sampleEmployee', dates: ['2024-06-20'] });
+ * leaveApplication.create().then(docRef => {
+ *   console.log('Document created with ID: ', docRef.id);
+ * });
+ * ---------------------------------------------------------------
+ *
+ * props設定:
+ * このクラスで管理するプロパティは、props.propsの中でvueコンポーネントのpropsのルールに合わせて定義しています。
+ * これにより、Mixinsを利用することでクラスに依存するコンポーネントのpropsを一元管理できます。
+ *
+ * injectの利用:
+ * Nuxtのinjectを利用してコンポーネントからのアクセスを容易にすることも可能です。
+ * plugins/models.js:
+ * ---------------------------------------------------------------
+ * import LeaveApplication from '../models/LeaveApplication'
+ *
+ * export default (context, inject) => {
+ *   const firebase = {
+ *     firestore: context.app.$firestore,
+ *     auth: context.app.$auth,
+ *   }
+ *   inject('LeaveApplication', (item) => new LeaveApplication(firebase, item))
+ * }
+ * ---------------------------------------------------------------
+ *
+ * 更新履歴:
+ * 2024-06-20 - 初版作成
+ *
+ * 注意事項:
+ * このクラスはNuxt.jsのコンテキストに依存しないよう設計されていますが、
+ * FirestoreとAuthenticationインスタンスを渡す必要があります。
  */
 
 export default class LeaveApplication extends FireModel {

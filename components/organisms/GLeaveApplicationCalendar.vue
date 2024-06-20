@@ -1,5 +1,5 @@
 <script>
-import { collection, onSnapshot, query, where } from 'firebase/firestore'
+import { where } from 'firebase/firestore'
 import GCalendar from '../atoms/calendars/GCalendar.vue'
 /**
  * ### GLeaveApplicationCalendar
@@ -22,8 +22,10 @@ export default {
   data() {
     return {
       items: [],
-      listener: null,
-      value: this.$dayjs().format('YYYY-MM-DD'),
+      model: {
+        child: this.$EmployeeLeaveApplication(),
+      },
+      currentDate: this.$dayjs().format('YYYY-MM-DD'),
     }
   },
   /***************************************************************************
@@ -36,11 +38,24 @@ export default {
           name: this.$LEAVE_APPLICATION_TYPE[item.type],
           start: new Date(item.docId),
           color: 'secondary',
+          data: item,
         }
       })
     },
     month() {
-      return this.$dayjs(this.value).format('YYYY-MM')
+      return this.$dayjs(this.currentDate).format('YYYY-MM')
+    },
+    from() {
+      return this.$dayjs(this.currentDate)
+        .startOf('month')
+        .startOf('week')
+        .format('YYYY-MM-DD')
+    },
+    to() {
+      return this.$dayjs(this.currentDate)
+        .endOf('month')
+        .endOf('week')
+        .format('YYYY-MM-DD')
     },
   },
   /***************************************************************************
@@ -48,38 +63,33 @@ export default {
    ***************************************************************************/
   watch: {
     employeeId: {
-      handler(v) {
+      handler(newVal, oldVal) {
+        if (newVal === oldVal) return
+        this.model.child.employeeId = newVal
         this.subscribe()
       },
       immediate: true,
+    },
+    from(newVal, oldVal) {
+      if (newVal === oldVal) return
+      this.subscribe()
     },
   },
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    if (this.listener) this.listener()
+    this.model.child.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
     subscribe() {
-      this.items.splice(0)
-      const collectionId = `Employees/${this.employeeId}/EmployeeLeaveApplications`
-      const colRef = collection(this.$firestore, collectionId)
-      const q = query(colRef, where('months', 'array-contains', this.month))
-      this.listener = onSnapshot(q, (snapshot) => {
-        snapshot.docChanges().forEach((change) => {
-          const item = change.doc.data()
-          const index = this.items.findIndex(
-            ({ docId }) => docId === change.doc.data().docId
-          )
-          if (change.type === 'added') this.items.push(item)
-          if (change.type === 'modified') this.items.splice(index, 1, item)
-          if (change.type === 'removed') this.items.splice(index, 1)
-        })
-      })
+      this.items = this.model.child.subscribe(undefined, [
+        where('docId', '>=', this.from),
+        where('docId', '<=', this.to),
+      ])
     },
   },
 }
@@ -90,6 +100,13 @@ export default {
     <v-card-title class="g-card__title"> 休暇申請 </v-card-title>
     <v-container fluid>
       <div class="d-flex mb-2 align-center" style="column-gap: 4px">
+        <v-btn
+          color="primary"
+          small
+          outlined
+          @click="currentDate = $dayjs().format('YYYY-MM-DD')"
+          >今月</v-btn
+        >
         <v-btn icon @click="$refs.calendar.prev()"
           ><v-icon>mdi-chevron-left</v-icon></v-btn
         >
@@ -97,19 +114,11 @@ export default {
         <v-btn icon @click="$refs.calendar.next()"
           ><v-icon>mdi-chevron-right</v-icon></v-btn
         >
-        <v-btn
-          class="ml-auto"
-          color="primary"
-          small
-          outlined
-          @click="value = $dayjs().format('YYYY-MM-DD')"
-          >今月</v-btn
-        >
       </div>
       <div style="height: 480px">
         <g-calendar
           ref="calendar"
-          v-model="value"
+          v-model="currentDate"
           color="primary"
           :events="events"
         />

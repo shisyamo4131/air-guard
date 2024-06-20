@@ -87,7 +87,7 @@ export default {
    ***************************************************************************/
   methods: {
     subscribe() {
-      this.items = this.model.subscribeGroupAsEvents({
+      this.items = this.model.subscribeGroupAsEvent({
         from: this.from,
         to: this.to,
         temporary: true,

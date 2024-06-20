@@ -13,7 +13,7 @@
  * - カレンダー用イベントへの変換機能
  * - 稼働予定のバリデーション機能
  * - 同一日・同一勤務区分の稼働予定は登録できないように制限されています。
- * - subscribeAsEvents、subscribeGroupAsEventsを利用することで、v-calenderのイベントとして使用できるオブジェクトの配列への参照が返されます。
+ * - subscribeAsEvent、subscribeGroupAsEventを利用することで、v-calenderのイベントとして使用できるオブジェクトの配列への参照が返されます。
  *
  * 使用例:
  * ---------------------------------------------------------------
@@ -152,7 +152,7 @@ export default class SiteOperationSchedule extends FireModel {
    * @param {*} temporary - trueにするとスポット現場の稼働予定のみを取得
    * @returns 取得したドキュメントデータをカレンダー用のイベントに変換したオブジェクトが格納されている配列への参照
    */
-  subscribeAsEvents(
+  subscribeAsEvent(
     { from, to, temporary } = {
       from: undefined,
       to: undefined,
@@ -173,7 +173,7 @@ export default class SiteOperationSchedule extends FireModel {
    * @param {*} temporary - trueにするとスポット現場の稼働予定のみを取得
    * @returns 取得したドキュメントデータをカレンダー用のイベントに変換したオブジェクトが格納されている配列への参照
    */
-  subscribeGroupAsEvents(
+  subscribeGroupAsEvent(
     { from, to, temporary } = {
       from: undefined,
       to: undefined,

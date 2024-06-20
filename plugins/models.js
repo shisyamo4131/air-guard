@@ -6,6 +6,7 @@ import Site from '../models/Site'
 import Employee from '../models/Employee'
 import Outsourcer from '../models/Outsourcer'
 import LeaveApplication from '../models/LeaveApplication'
+import EmployeeLeaveApplication from '../models/EmployeeLeaveApplication'
 import SiteOperationSchedule from '../models/SiteOperationSchedule'
 import Equipment from '../models/Equipment'
 import EquipmentReceiving from '../models/EquipmentReceiving'
@@ -25,6 +26,10 @@ export default (context, inject) => {
   inject('Employee', (item) => new Employee(firebase, item))
   inject('Outsourcer', (item) => new Outsourcer(firebase, item))
   inject('LeaveApplication', (item) => new LeaveApplication(firebase, item))
+  inject(
+    'EmployeeLeaveApplication',
+    (item) => new EmployeeLeaveApplication(firebase, item)
+  )
   inject(
     'SiteOperationSchedule',
     (item) => new SiteOperationSchedule(firebase, item)

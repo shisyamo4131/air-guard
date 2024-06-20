@@ -4,7 +4,6 @@ import { get, ref } from 'firebase/database'
 import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
 import GInputLeaveApplication from '~/components/molecules/inputs/GInputLeaveApplication.vue'
 import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
-// import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 import GDataTableLeaveApplications from '~/components/molecules/tables/GDataTableLeaveApplications.vue'
@@ -29,7 +28,6 @@ export default {
     GBtnRegistIcon,
     GInputLeaveApplication,
     GDatePicker,
-    // GSelect,
     GCardSubmitCancel,
     GDialogMonthPicker,
     GDataTableLeaveApplications,
@@ -114,7 +112,9 @@ export default {
     async getEmployee(employeeId) {
       const dbRef = ref(this.$database, `Employees/${employeeId}`)
       const snapshot = await get(dbRef)
-      return snapshot.exists() ? snapshot.val() : undefined
+      if (!snapshot.exists())
+        throw new Error('Could not find employee document. id is ', employeeId)
+      return snapshot.val()
     },
     subscribe() {
       this.items = this.model.subscribe(
@@ -123,8 +123,10 @@ export default {
           where('status', '==', this.search.status),
           where('months', 'array-contains', this.search.month),
         ],
-        async (item) =>
-          (item.employee = await this.getEmployee(item.employeeId))
+        async (item) => {
+          item.employee = await this.getEmployee(item.employeeId)
+          return item
+        }
       )
     },
     initialize() {
@@ -248,7 +250,7 @@ export default {
         </v-dialog>
       </div>
       <g-data-table-leave-applications
-        :items="filteredItems"
+        :items="items"
         @click:edit="onClickEdit"
         @click:delete="onClickDelete"
         @click:show-dates="onClickShowDates"

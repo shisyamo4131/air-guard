@@ -402,7 +402,11 @@ export default class FireModel {
       })
       await this.afterCreate()
       console.info(
-        FireModel.getConsoleMessage('CREATE_DOC_SUCCESS', this.collection)
+        FireModel.getConsoleMessage(
+          'CREATE_DOC_SUCCESS',
+          this.collection,
+          docRef.id
+        )
       )
       return docRef
     } catch (err) {
@@ -695,7 +699,13 @@ export default class FireModel {
         FireModel.getErrorMessage('SUBSCRIBE_DOC_CALLED_NO_DOCID')
       )
     }
-    console.info(FireModel.getConsoleMessage('SUBSCRIBE_DOC_CALLED', docId))
+    console.info(
+      FireModel.getConsoleMessage(
+        'SUBSCRIBE_DOC_CALLED',
+        this.collection,
+        docId
+      )
+    )
     try {
       this.unsubscribe()
       const docRef = doc(this.#firestore, `${this.collection}/${docId}`)
