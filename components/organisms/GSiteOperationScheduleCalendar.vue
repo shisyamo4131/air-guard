@@ -36,6 +36,7 @@ export default {
         site: this.$Site(),
         schedule: this.$SiteOperationSchedule(),
       },
+      removeSchedule: false,
     }
   },
   /***************************************************************************
@@ -83,6 +84,7 @@ export default {
     initialize() {
       this.editMode = 'REGIST'
       this.model.schedule.initialize({ siteId: this.siteId })
+      this.removeSchedule = false
     },
     onClickSchedule({ date, workShift }) {
       const item = this.items.find((item) => {
@@ -101,8 +103,12 @@ export default {
       this.model.schedule.temporary = this.model.site.temporary
       try {
         if (this.editMode === 'REGIST') await this.model.schedule.create()
-        if (this.editMode === 'UPDATE') await this.model.schedule.update()
-        if (this.editMode === 'DELETE') await this.model.schedule.delete()
+        // if (this.editMode === 'UPDATE') await this.model.schedule.update()
+        // if (this.editMode === 'DELETE') await this.model.schedule.delete()
+        if (this.editMode === 'UPDATE' && !this.removeSchedule)
+          await this.model.schedule.update()
+        if (this.editMode === 'UPDATE' && this.removeSchedule)
+          await this.model.schedule.delete()
         this.dialog = false
       } catch (err) {
         // eslint-disable-next-line
@@ -146,6 +152,12 @@ export default {
           <g-input-site-operation-schedule
             v-bind.sync="model.schedule"
             :edit-mode="editMode"
+          />
+          <v-checkbox
+            v-if="editMode != 'REGIST'"
+            v-model="removeSchedule"
+            label="この予定を削除する"
+            color="error"
           />
         </g-card-submit-cancel>
       </v-dialog>
