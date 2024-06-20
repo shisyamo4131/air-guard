@@ -39,13 +39,13 @@ export { props }
  * @author shisyamo4131
  */
 export default class Autonumber extends FireModel {
-  constructor(context, item) {
+  constructor(context, item = {}) {
     super(context, item)
     this.collection = 'Autonumbers'
     this.tokenFields = ['collectionId']
   }
 
-  initialize(item) {
+  initialize(item = {}) {
     Object.keys(props.props).forEach((key) => {
       const propDefault = props.props[key].default
       this[key] =

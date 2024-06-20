@@ -55,6 +55,7 @@
  * 2024-06-20 - メッセージ定数とヘルパー関数の追加
  *
  * 注意事項:
+ * このクラスはNuxt.jsのコンテキストに依存しないよう設計されていますが、
  * FirestoreとAuthenticationインスタンスを渡す必要があります。
  */
 /* eslint-disable */
@@ -291,7 +292,7 @@ export default class FireModel {
    * @param {object} item
    * @returns
    */
-  initialize(item) {
+  initialize(item = {}) {
     this.docId = null
     this.createAt = null
     this.createDate = null

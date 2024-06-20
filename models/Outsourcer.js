@@ -22,7 +22,7 @@ export { props }
  * @author shisyamo4131
  */
 export default class Outsourcer extends FireModel {
-  constructor(context, item) {
+  constructor(context, item = {}) {
     super(context, item)
     this.collection = 'Outsourcers'
     // this.hasMany = [
@@ -36,7 +36,7 @@ export default class Outsourcer extends FireModel {
     this.tokenFields = ['abbr', 'abbrKana']
   }
 
-  initialize(item) {
+  initialize(item = {}) {
     Object.keys(props.props).forEach((key) => {
       const propDefault = props.props[key].default
       this[key] =

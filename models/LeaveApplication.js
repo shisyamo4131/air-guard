@@ -22,7 +22,7 @@ export { props }
  */
 
 export default class LeaveApplication extends FireModel {
-  constructor(context, item) {
+  constructor(context, item = {}) {
     super(context, item)
     this.collection = 'LeaveApplications'
     Object.defineProperties(this, {
@@ -39,7 +39,7 @@ export default class LeaveApplication extends FireModel {
     })
   }
 
-  initialize(item) {
+  initialize(item = {}) {
     Object.keys(props.props).forEach((key) => {
       const propDefault = props.props[key].default
       this[key] =

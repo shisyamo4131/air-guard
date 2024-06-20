@@ -35,7 +35,7 @@ export { props }
  * @author shisyamo4131
  */
 export default class OperationResult extends FireModel {
-  constructor(context, item) {
+  constructor(context, item = {}) {
     super(context, item)
     this.collection = 'OperationResults'
     // this.hasMany = [
@@ -58,7 +58,7 @@ export default class OperationResult extends FireModel {
     })
   }
 
-  initialize(item) {
+  initialize(item = {}) {
     Object.keys(props.props).forEach((key) => {
       const propDefault = props.props[key].default
       this[key] =

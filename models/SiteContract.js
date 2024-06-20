@@ -65,7 +65,7 @@ export default class SiteContract extends FireModel {
     })
   }
 
-  initialize(item) {
+  initialize(item = {}) {
     Object.keys(props.props).forEach((key) => {
       const propDefault = props.props[key].default
       this[key] =

@@ -20,7 +20,7 @@ export default class OperationResultEmployee {
     this.initialize(item)
   }
 
-  initialize(item) {
+  initialize(item = {}) {
     Object.keys(props.props).forEach((key) => {
       const propDefault = props.props[key].default
       this[key] =

@@ -14,13 +14,13 @@ export { props }
  * @author shisyamo4131
  */
 export default class EquipmentReceiving extends FireModel {
-  constructor(context, item) {
+  constructor(context, item = {}) {
     super(context, item)
     this.collection = 'EquipmentReceivings'
     this.tokenFields = []
   }
 
-  initialize(item) {
+  initialize(item = {}) {
     Object.keys(props.props).forEach((key) => {
       const propDefault = props.props[key].default
       this[key] =
