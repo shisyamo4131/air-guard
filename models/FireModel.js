@@ -94,31 +94,77 @@ export default class FireModel {
     Object.defineProperties(this, {
       tokenMap: {
         enumerable: true,
-        get() {
-          if (!this.#tokenFields.length) return null
-          const arr = []
-          this.#tokenFields.forEach((fieldName) => {
-            if (fieldName in this && !!this[fieldName]) {
-              /* 2024-02-27 サロゲートペア文字と一部の記号を排除するように修正 */
-              // const target = this[fieldName].replace(/\s+/g, '')
-              const target = this[fieldName].replace(
-                /[\uD800-\uDBFF]|[\uDC00-\uDFFF]|~|\*|\[|\]|\s+/g,
-                ''
-              )
-              for (let i = 0; i <= target.length - 1; i++) {
-                arr.push([target.substring(i, i + 1), true])
-              }
-              for (let i = 0; i <= target.length - 2; i++) {
-                arr.push([target.substring(i, i + 2), true])
-              }
-            }
-          })
-          const result = Object.fromEntries(arr)
-          return result
-        },
-        set(v) {},
+        get: this.#generateTokenMap.bind(this),
+        set: this.#setTokenMap.bind(this),
       },
     })
+  }
+
+  /**
+   * Generates a token map based on tokenFields.
+   * @returns {object} token map
+   */
+  #generateTokenMap() {
+    if (!this.#tokenFields.length) return null
+    const arr = []
+    this.#tokenFields.forEach((fieldName) => {
+      if (fieldName in this && this[fieldName]) {
+        const target = this[fieldName].replace(
+          /[\uD800-\uDBFF]|[\uDC00-\uDFFF]|~|\*|\[|\]|\s+/g,
+          ''
+        )
+        for (let i = 0; i < target.length; i++) {
+          arr.push([target.substring(i, i + 1), true])
+        }
+        for (let i = 0; i < target.length - 1; i++) {
+          arr.push([target.substring(i, i + 2), true])
+        }
+      }
+    })
+    return Object.fromEntries(arr)
+  }
+
+  /**
+   * Sets the tokenMap property.
+   * @param {object} value - The value to set for tokenMap
+   */
+  #setTokenMap(value) {
+    // No-op setter to avoid errors during initialization.
+    // This can be customized if needed to handle specific logic.
+  }
+
+  /**
+   * Sets timestamps and UID for the document.
+   */
+  #setTimestampsAndUID() {
+    this.createAt = this.dateUtc.getTime()
+    this.createDate = this.dateJst.toLocaleString()
+    this.updateAt = this.dateUtc.getTime()
+    this.updateDate = this.dateJst.toLocaleString()
+    this.uid = this.#auth?.currentUser?.uid || 'unknown'
+  }
+
+  /**
+   * Handles the autonumber logic during a transaction.
+   * @param {object} transaction - Firestore transaction
+   * @param {object} item - Document data
+   */
+  async #handleAutonum(transaction, item) {
+    const autonumRef = doc(this.#firestore, `Autonumbers/${this.collection}`)
+    const autonumDoc = await transaction.get(autonumRef)
+    if (autonumDoc.exists() && autonumDoc.data().status) {
+      const num = autonumDoc.data().current + 1
+      const length = autonumDoc.data().length
+      const newCode = (Array(length).join('0') + num).slice(-length)
+      const maxCode = Array(length + 1).join('0')
+      if (newCode === maxCode) {
+        throw new Error(
+          FireModel.getErrorMessage('NO_MORE_DOCUMENT', this.collection)
+        )
+      }
+      item[autonumDoc.data().field] = newCode
+      transaction.update(autonumRef, { current: num })
+    }
   }
 
   static getErrorMessage(key, ...params) {
@@ -294,32 +340,11 @@ export default class FireModel {
       const colRef = collection(this.#firestore, this.collection)
       const docRef = docId ? doc(colRef, docId) : doc(colRef)
       this.docId = docRef.id
-      this.createAt = this.dateUtc.getTime()
-      this.createDate = this.dateJst.toLocaleString()
-      this.updateAt = this.dateUtc.getTime()
-      this.updateDate = this.dateJst.toLocaleString()
-      this.uid = this.#auth?.currentUser?.uid || 'unknown'
+      this.#setTimestampsAndUID()
       await this.beforeCreate()
       const { ...item } = this
       await runTransaction(this.#firestore, async (transaction) => {
-        const autonumRef = doc(
-          this.#firestore,
-          `Autonumbers/${this.collection}`
-        )
-        const autonumDoc = await transaction.get(autonumRef)
-        if (autonumDoc.exists() && autonumDoc.data().status) {
-          const num = autonumDoc.data().current + 1
-          const length = autonumDoc.data().length
-          const newCode = (Array(length).join('0') + num).slice(-length)
-          const maxCode = Array(length + 1).join('0')
-          if (newCode === maxCode) {
-            throw new Error(
-              FireModel.getErrorMessage('NO_MORE_DOCUMENT', this.collection)
-            )
-          }
-          item[autonumDoc.data().field] = newCode
-          transaction.update(autonumRef, { current: num })
-        }
+        await this.#handleAutonum(transaction, item)
         transaction.set(docRef, item)
       })
       await this.afterCreate()
@@ -345,9 +370,7 @@ export default class FireModel {
     }
     console.info(FireModel.getConsoleMessage('FETCH_DOC_CALLED', docId))
     try {
-      const colRef = collection(this.#firestore, this.collection)
-      const docRef = doc(colRef, docId)
-      const docSnap = await getDoc(docRef)
+      const docSnap = await this.#getDocumentSnapshot(docId)
       if (!docSnap.exists()) {
         console.warn(
           FireModel.getConsoleMessage('FETCH_DOC_NO_DOCUMENT', docId)
@@ -363,6 +386,17 @@ export default class FireModel {
   }
 
   /**
+   * Retrieves a document snapshot from Firestore.
+   * @param {string} docId - Document ID
+   * @returns {object} Document snapshot
+   */
+  async #getDocumentSnapshot(docId) {
+    const colRef = collection(this.#firestore, this.collection)
+    const docRef = doc(colRef, docId)
+    return await getDoc(docRef)
+  }
+
+  /**
    * 現在プロパティにセットされている値で、ドキュメントを更新します。
    * @returns 更新したドキュメントへの参照
    */
@@ -372,11 +406,8 @@ export default class FireModel {
       if (!this.docId) {
         throw new Error(FireModel.getErrorMessage('UPDATE_REQUIRES_DOCID'))
       }
-      const colRef = collection(this.#firestore, this.collection)
-      const docRef = doc(colRef, this.docId)
-      this.updateAt = this.dateUtc.getTime()
-      this.updateDate = this.dateJst.toLocaleString()
-      this.uid = this.#auth?.currentUser?.uid || 'unknown'
+      const docRef = this.#getDocumentReference()
+      this.#setTimestampsAndUID()
       await this.beforeUpdate()
       const { createAt, createDate, ...item } = this
       await updateDoc(docRef, item)
@@ -393,6 +424,15 @@ export default class FireModel {
       console.error(err.message)
       throw err
     }
+  }
+
+  /**
+   * Retrieves the document reference for the current document.
+   * @returns {object} Document reference
+   */
+  #getDocumentReference() {
+    const colRef = collection(this.#firestore, this.collection)
+    return doc(colRef, this.docId)
   }
 
   /**
@@ -414,8 +454,7 @@ export default class FireModel {
           )
         )
       }
-      const colRef = collection(this.#firestore, this.collection)
-      const docRef = doc(colRef, this.docId)
+      const docRef = this.#getDocumentReference()
       await this.beforeDelete()
       await deleteDoc(docRef)
       await this.afterDelete()
@@ -434,9 +473,8 @@ export default class FireModel {
   }
 
   /**
-   * hasManyプロパティに定義されたリレーションにもとづく子ドキュメントが
-   * 存在するかどうかを返します。
-   * @returns 子ドキュメントが存在すれば対象のhasManyオブジェクトを、存在しなければfalseを返します。
+   * Checks if the current document has child documents based on the hasMany property.
+   * @returns {object|boolean} Child item if exists, otherwise false
    */
   async #hasChild() {
     for (const item of this.#hasMany) {
@@ -505,31 +543,28 @@ export default class FireModel {
     if (constraints.length) console.table(constraints)
     try {
       this.#items.splice(0)
-      const grams = this.convertToGrams(ngram)
-      const wheres = grams.map((gram) => {
-        return where(`tokenMap.${gram}`, '==', true)
-      })
-      const colRef = collection(this.#firestore, this.collection)
-      const q = query(colRef, ...constraints, ...wheres)
+      const q = this.#createQuery(ngram, constraints)
       this.#listener = onSnapshot(q, async (snapshot) => {
-        for (const change of snapshot.docChanges()) {
-          const item = convert
-            ? await convert(change.doc.data())
-            : change.doc.data()
-          item.docId = change.doc.id
-          const index = this.#items.findIndex(
-            ({ docId }) => docId === item.docId
-          )
-          if (change.type === 'added') this.#items.push(item)
-          if (change.type === 'modified') this.#items.splice(index, 1, item)
-          if (change.type === 'removed') this.#items.splice(index, 1)
-        }
+        await this.#handleDocChanges(snapshot, convert)
       })
       return this.#items
     } catch (err) {
       console.error(err.message)
       throw err
     }
+  }
+
+  /**
+   * Creates a Firestore query based on the provided ngram and constraints.
+   * @param {string} ngram - Ngram string
+   * @param {array} constraints - Query constraints
+   * @returns {object} Firestore query
+   */
+  #createQuery(ngram, constraints) {
+    const grams = this.convertToGrams(ngram)
+    const wheres = grams.map((gram) => where(`tokenMap.${gram}`, '==', true))
+    const colRef = collection(this.#firestore, this.collection)
+    return query(colRef, ...constraints, ...wheres)
   }
 
   /**
@@ -553,30 +588,47 @@ export default class FireModel {
     if (constraints.length) console.table(constraints)
     try {
       this.#items.splice(0)
-      const grams = this.convertToGrams(ngram)
-      const wheres = grams.map((gram) => {
-        return where(`tokenMap.${gram}`, '==', true)
-      })
-      const colRef = collectionGroup(this.#firestore, collectionId)
-      const q = query(colRef, ...constraints, ...wheres)
+      const q = this.#createGroupQuery(collectionId, ngram, constraints)
       this.#listener = onSnapshot(q, async (snapshot) => {
-        for (const change of snapshot.docChanges()) {
-          const item = convert
-            ? await convert(change.doc.data())
-            : change.doc.data()
-          const index = this.#items.findIndex(
-            ({ docId }) => docId === item.docId
-          )
-          if (change.type === 'added') this.#items.push(item)
-          if (change.type === 'modified') this.#items.splice(index, 1, item)
-          if (change.type === 'removed') this.#items.splice(index, 1)
-        }
+        await this.#handleDocChanges(snapshot, convert)
       })
       return this.#items
     } catch (err) {
       console.error(err.message)
       throw err
     }
+  }
+
+  /**
+   * Handles document changes from a Firestore snapshot.
+   * @param {object} snapshot - Firestore snapshot
+   * @param {function} convert - Function to convert document data
+   */
+  async #handleDocChanges(snapshot, convert) {
+    for (const change of snapshot.docChanges()) {
+      const item = convert
+        ? await convert(change.doc.data())
+        : change.doc.data()
+      item.docId = change.doc.id
+      const index = this.#items.findIndex(({ docId }) => docId === item.docId)
+      if (change.type === 'added') this.#items.push(item)
+      if (change.type === 'modified') this.#items.splice(index, 1, item)
+      if (change.type === 'removed') this.#items.splice(index, 1)
+    }
+  }
+
+  /**
+   * Creates a Firestore collection group query based on the provided ngram and constraints.
+   * @param {string} collectionId - Collection ID
+   * @param {string} ngram - Ngram string
+   * @param {array} constraints - Query constraints
+   * @returns {object} Firestore query
+   */
+  #createGroupQuery(collectionId, ngram, constraints) {
+    const grams = this.convertToGrams(ngram)
+    const wheres = grams.map((gram) => where(`tokenMap.${gram}`, '==', true))
+    const colRef = collectionGroup(this.#firestore, collectionId)
+    return query(colRef, ...constraints, ...wheres)
   }
 
   /**
@@ -619,17 +671,16 @@ export default class FireModel {
   }
 
   /**
-   * Returns an array of divided string from query text.
-   * Returns empty array if the query text is null, undefined or
-   * not string.
-   * @param {string} val query text.
-   * @returns An array of divided string from query text.
+   * Retrieves an array of divided string from query text.
+   * Returns an empty array if the query text is null, undefined or not a string.
+   * @param {string} val - Query text
+   * @returns {array} An array of divided string from query text
    */
   convertToGrams(val) {
     // Return empty array if query text is null or undefined.
     if (!val) return []
     // Return empty array if the 'search' is not string.
-    if (!(typeof val === 'string')) return []
+    if (typeof val !== 'string') return []
     // Get divided string array from query text.
     const target = val.replace(
       /[\uD800-\uDBFF]|[\uDC00-\uDFFF]|~|\*|\[|\]|\s+/g,
@@ -642,7 +693,6 @@ export default class FireModel {
       return sum
     }, [])
     // Delete duplicated element.
-    const result = [...new Set(divided)]
-    return result
+    return [...new Set(divided)]
   }
 }
