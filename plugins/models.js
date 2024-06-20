@@ -13,23 +13,27 @@ import OperationResult from '../models/OperationResult'
 import SiteContract from '../models/SiteContract'
 
 export default (context, inject) => {
-  inject('User', (item) => new User(context, item))
-  inject('Autonumber', (item) => new Autonumber(context, item))
-  inject('AttendanceRecord', (item) => new AttendanceRecord(context, item))
-  inject('Customer', (item) => new Customer(context, item))
-  inject('Site', (item) => new Site(context, item))
-  inject('Employee', (item) => new Employee(context, item))
-  inject('Outsourcer', (item) => new Outsourcer(context, item))
-  inject('LeaveApplication', (item) => new LeaveApplication(context, item))
+  const firebase = {
+    firestore: context.app.$firestore,
+    auth: context.app.$auth,
+  }
+  inject('User', (item) => new User(firebase, item))
+  inject('Autonumber', (item) => new Autonumber(firebase, item))
+  inject('AttendanceRecord', (item) => new AttendanceRecord(firebase, item))
+  inject('Customer', (item) => new Customer(firebase, item))
+  inject('Site', (item) => new Site(firebase, item))
+  inject('Employee', (item) => new Employee(firebase, item))
+  inject('Outsourcer', (item) => new Outsourcer(firebase, item))
+  inject('LeaveApplication', (item) => new LeaveApplication(firebase, item))
   inject(
     'SiteOperationSchedule',
-    (item) => new SiteOperationSchedule(context, item)
+    (item) => new SiteOperationSchedule(firebase, item)
   )
-  inject('Equipment', (item) => new Equipment(context, item))
-  inject('EquipmentReceiving', (item) => new EquipmentReceiving(context, item))
-  inject('OperationResult', (item) => new OperationResult(context, item))
+  inject('Equipment', (item) => new Equipment(firebase, item))
+  inject('EquipmentReceiving', (item) => new EquipmentReceiving(firebase, item))
+  inject('OperationResult', (item) => new OperationResult(firebase, item))
   inject(
     'SiteContract',
-    (siteId, item) => new SiteContract(context, siteId, item)
+    (siteId, item) => new SiteContract(firebase, siteId, item)
   )
 }

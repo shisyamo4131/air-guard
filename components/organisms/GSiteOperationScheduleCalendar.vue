@@ -1,5 +1,5 @@
 <script>
-import { where } from 'firebase/firestore'
+// import { where } from 'firebase/firestore'
 import GBtnRegistIcon from '../molecules/btns/GBtnRegistIcon.vue'
 import GCardSubmitCancel from '../molecules/cards/GCardSubmitCancel.vue'
 import GInputSiteOperationSchedule from '../molecules/inputs/GInputSiteOperationSchedule.vue'
@@ -32,7 +32,6 @@ export default {
       editMode: 'REGIST',
       items: [],
       loading: false,
-      // model: this.$SiteOperationSchedule(),
       model: {
         site: this.$Site(),
         schedule: this.$SiteOperationSchedule(),
@@ -55,18 +54,6 @@ export default {
         .endOf('week')
         .format('YYYY-MM-DD')
     },
-    schedules() {
-      return this.items.reduce((acc, item) => {
-        const date = item.date
-        const workShift = item.workShift
-        if (!acc[date]) acc[date] = {}
-        acc[date][workShift] = {
-          requiredWorkers: item.requiredWorkers,
-          item,
-        }
-        return acc
-      }, {})
-    },
   },
   /***************************************************************************
    * WATCH
@@ -82,7 +69,7 @@ export default {
     siteId: {
       async handler(newVal, oldVal) {
         if (newVal === oldVal) return
-        await this.model.site.fetch(newVal)
+        await this.model.site.fetchDoc(newVal)
         this.model.schedule.siteId = newVal
         this.subscribe()
       },
@@ -97,11 +84,6 @@ export default {
       this.editMode = 'REGIST'
       this.model.schedule.initialize({ siteId: this.siteId })
     },
-    onClickEdit(item) {
-      this.editMode = 'UPDATE'
-      this.model.schedule.initialize(item)
-      this.dialog = true
-    },
     onClickSchedule({ date, workShift }) {
       const item = this.items.find((item) => {
         return item.date === date && item.workShift === workShift
@@ -111,7 +93,7 @@ export default {
         return
       }
       this.editMode = 'UPDATE'
-      this.model.schedule.initialize(item)
+      this.model.schedule.initialize(item.schedule)
       this.dialog = true
     },
     async submit() {
@@ -131,10 +113,10 @@ export default {
       }
     },
     subscribe() {
-      this.items = this.model.schedule.subscribe(undefined, [
-        where('date', '>=', this.from),
-        where('date', '<=', this.to),
-      ])
+      this.items = this.model.schedule.subscribeAsEvents({
+        from: this.from,
+        to: this.to,
+      })
     },
   },
 }

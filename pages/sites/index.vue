@@ -70,28 +70,25 @@ export default {
    ***************************************************************************/
   methods: {
     subscribe() {
-      const setCustomer = async (item) => {
+      const convert = async (data) => {
         const fetched = this.fetched.customers.find(
-          ({ docId }) => docId === item.customerId
+          ({ docId }) => docId === data.customerId
         )
-        if (fetched) {
-          item.customer = fetched
-        } else {
-          const docRef = doc(this.$firestore, `Customers/${item.customerId}`)
-          const snapshot = await getDoc(docRef)
-          if (!snapshot.exists)
-            throw new Error(
-              'Could not find customer document. id:',
-              item.customerId
-            )
-          item.customer = snapshot.data()
-          this.fetched.customers.push(snapshot.data())
-        }
+        if (fetched) return { ...data, customer: fetched }
+        const docRef = doc(this.$firestore, `Customers/${data.customerId}`)
+        const snapshot = await getDoc(docRef)
+        if (!snapshot.exists())
+          throw new Error(
+            'Could not find customer document. id:',
+            data.customerId
+          )
+        this.fetched.customers.push(snapshot.data())
+        return { ...data, customer: snapshot.data() }
       }
       const [ngram, constraints] = this.lazySearch
         ? [this.lazySearch, []]
         : [undefined, [where('temporary', '==', true)]]
-      this.items = this.model.subscribe(ngram, constraints, setCustomer)
+      this.items = this.model.subscribe(ngram, constraints, convert)
     },
     initialize() {
       this.model.initialize()

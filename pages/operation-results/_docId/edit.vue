@@ -18,7 +18,7 @@ export default {
   async asyncData({ app, route }) {
     const docId = route.params.docId
     const model = app.$OperationResult()
-    await model.fetch(docId)
+    await model.fetchDoc(docId)
     return { docId, model }
   },
 }

@@ -30,28 +30,25 @@ export default {
    ***************************************************************************/
   methods: {
     async fetch() {
-      const callBack = async (item) => {
-        try {
-          const fetched = this.fetchedEmployee.find(
-            ({ docId }) => docId === item.employeeId
+      const convert = async (data) => {
+        const getEmployee = async (employeeId) => {
+          const employee = this.fetchedEmployee.find(
+            ({ docId }) => docId === employeeId
           )
-          if (fetched) {
-            item.employee = fetched
-          } else {
-            const dbRef = ref(this.$database, `Employees/${item.employeeId}`)
-            const snapshot = await get(dbRef)
-            if (!snapshot.exists()) {
-              item.employee = { fullName: 'error', code: 'error' }
-            } else {
-              const employeeData = { docId: item.employeeId, ...snapshot.val() }
-              this.fetchedEmployee.push(employeeData)
-              item.employee = employeeData
-            }
-          }
+          if (employee) return employee
+          const dbRef = ref(this.$database, `Employees/${employeeId}`)
+          const snapshot = await get(dbRef)
+          if (!snapshot.exists())
+            throw new Error(`Could not find employee. id: `, employeeId)
+          return snapshot.val()
+        }
+        try {
+          data.employee = await getEmployee(data.employeeId)
+          return data
         } catch (err) {
           // eslint-disable-next-line
           console.error('Error fetching employee data:', err)
-          item.employee = { fullName: 'error', code: 'error' }
+          data.employee = { fullName: 'error', code: 'error' }
         }
       }
       this.loading = true
@@ -63,7 +60,7 @@ export default {
             orderBy('overTimeTotal', 'desc'),
             limit(5),
           ],
-          callBack
+          convert
         )
       } catch (err) {
         // eslint-disable-next-line

@@ -1,5 +1,5 @@
 <script>
-import { where } from 'firebase/firestore'
+// import { where } from 'firebase/firestore'
 import GCalendar from '../atoms/calendars/GCalendar.vue'
 import GDivMonthChooser from '../molecules/divs/GDivMonthChooser.vue'
 /**
@@ -46,24 +46,17 @@ export default {
         if (!(date in acc)) acc[date] = { day: 0, night: 0, total: 0 }
         acc[date][i.workShift] += i.requiredWorkers
         acc[date][i.total] += i.requiredWorkders
-        // acc[date].day += this.items.filter(
-        //   (item) => item.workShift === 'day' && item.date === date
-        // ).length
-        // acc[date].night += this.items.filter(
-        //   (item) => item.workShift === 'night' && item.date === date
-        // ).length
-        // acc[date].total = acc[date].day + acc[date].night
         return acc
       }, {})
     },
-    min() {
+    from() {
       const result = this.$dayjs(this.currentDate)
         .startOf('month')
         .startOf('week')
         .format('YYYY-MM-DD')
       return result
     },
-    max() {
+    to() {
       const result = this.$dayjs(this.currentDate)
         .endOf('month')
         .endOf('week')
@@ -94,11 +87,11 @@ export default {
    ***************************************************************************/
   methods: {
     subscribe() {
-      this.items = this.model.subscribeGroup(undefined, [
-        where('date', '>=', this.min),
-        where('date', '<=', this.max),
-        where('temporary', '==', true),
-      ])
+      this.items = this.model.subscribeGroupAsEvents({
+        from: this.from,
+        to: this.to,
+        temporary: true,
+      })
     },
   },
 }
