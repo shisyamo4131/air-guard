@@ -1,10 +1,52 @@
 /**
  * FireModel.js
+ * @version 1.0.0
+ * @date 2024-06-20
  * @author shisyamo4131
- * @update 2024-06-20   各種メッセージを定数にし、メッセージヘルパー関数を用意。
- *                      メッセージの出力にヘルパーを使うよう統一。
+ *
+ * 概要:
+ * FireModelクラスは、Firestoreを使用したCRUD操作を簡素化するための基底クラスです。
+ * このクラスを継承することで、各種モデルに対して共通のデータ操作ロジックを提供します。
+ * また、リアルタイムリスニングや自動ナンバリング機能も備えています。
+ *
+ * 主な機能:
+ * - ドキュメントの作成、更新、削除、読み込み
+ * - hasManyプロパティによる関連データの削除制御
+ * - トークンフィールドによる疑似全文検索
+ * - Firestoreトランザクションによる自動ナンバリング
+ * - Firestoreのリアルタイムリスニング
+ *
+ * 使用例:
+ * ---------------------------------------------------------------
+ * export default class Customer extends FireModel {
+ *   constructor(firestore, auth, item) {
+ *     super({ firestore, auth }, item);
+ *     this.collection = 'customers';
+ *     this.tokenFields = ['name', 'email'];
+ *     this.hasMany = [{ collection: 'sites', field: 'customerId', condition: '==', type: 'collection' }];
+ *     this.name = item.name || null;
+ *     this.email = item.email || null;
+ *   }
+ * }
+ *
+ * import { firestore, auth } from '@/plugins/firebase';
+ * import Customer from '@/models/Customer';
+ *
+ * const customer = new Customer(firestore, auth, { name: 'Sample', email: 'sample@example.com' });
+ * customer.create().then(docRef => {
+ *   console.log('Document created with ID: ', docRef.id);
+ * });
+ * ---------------------------------------------------------------
+ *
+ * 更新履歴:
+ * 2024-02-27 - トークンマップ生成ロジックの改善
+ * 2024-06-17 - subscribeメソッドのcollectionGroup対応
+ * 2024-06-20 - メッセージ定数とヘルパー関数の追加
+ *
+ * 注意事項:
+ * このクラスはNuxt.jsのコンテキストに依存しないよう設計されていますが、
+ * FirestoreとAuthenticationインスタンスを渡す必要があります。
  */
-
 /* eslint-disable */
 
 import {
