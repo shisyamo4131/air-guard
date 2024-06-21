@@ -80,6 +80,7 @@ export default {
               item.employee = employeeData
             }
           }
+          return item
         } catch (err) {
           // eslint-disable-next-line
           console.error('Error fetching employee data:', err)

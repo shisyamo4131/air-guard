@@ -12,16 +12,6 @@ export default {
    ***************************************************************************/
   components: { GDataTable },
   /***************************************************************************
-   * PROPS
-   ***************************************************************************/
-  props: {
-    sortBy: {
-      type: [String, Array],
-      default: 'employee.code',
-      required: false,
-    },
-  },
-  /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
@@ -120,7 +110,8 @@ export default {
   <g-data-table
     v-bind="$attrs"
     :headers="headers"
-    :sort-by="sortBy"
+    sort-by="overTimeTotal"
+    sort-desc
     v-on="$listeners"
   >
     <template #[`item.employee.code`]="{ item }">

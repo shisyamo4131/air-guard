@@ -68,7 +68,7 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
-    currentDate: {
+    from: {
       handler(newVal, oldVal) {
         if (newVal === oldVal) return
         this.subscribe()

@@ -2,17 +2,17 @@
   <v-container fluid>
     <!-- <v-row justify="center" align="center"> -->
     <v-row>
-      <v-col cols="12">
+      <v-col cols="12" lg="4" xl="3">
         <g-launcher-temporary-site-operation-schedules
           flat
           outlined
           height="504"
         />
       </v-col>
-      <v-col cols="12" md="8" lg="8">
+      <v-col cols="12" lg="8" xl="5">
         <g-launcher-attendance-records flat outlined />
       </v-col>
-      <v-col cols="12" md="4" lg="4">
+      <v-col cols="12" lg="4" xl="4">
         <g-launcher-leave-applications flat outlined />
       </v-col>
       <!-- <v-col cols="12">
