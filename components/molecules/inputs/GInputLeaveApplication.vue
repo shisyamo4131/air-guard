@@ -24,6 +24,9 @@ export default {
    * PROPS
    ***************************************************************************/
   mixins: [props, EditMode],
+  props: {
+    hideEmployee: { type: Boolean, default: false, required: false },
+  },
 }
 </script>
 
@@ -45,6 +48,7 @@ export default {
       @input="$emit('update:type', $event)"
     />
     <g-autocomplete-employee
+      v-if="!hideEmployee"
       :value="employeeId"
       label="従業員"
       required

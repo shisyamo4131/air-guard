@@ -1,15 +1,23 @@
 <script>
-import { where } from 'firebase/firestore'
-import GCalendar from '../atoms/calendars/GCalendar.vue'
 /**
  * ### GLeaveApplicationCalendar
  * @author shisyamo4131
  */
+import { where } from 'firebase/firestore'
+import GCalendar from '../atoms/calendars/GCalendar.vue'
+import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
+import GDialogLoading from '../molecules/dialogs/GDialogLoading.vue'
+import GDialogEditorLeaveApplication from './GDialogEditorLeaveApplication.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GCalendar },
+  components: {
+    GCalendar,
+    GDialogEditorLeaveApplication,
+    GBtnRegistIcon,
+    GDialogLoading,
+  },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -21,8 +29,11 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      editor: false,
       items: [],
+      loading: false,
       model: {
+        parent: this.$LeaveApplication(),
         child: this.$EmployeeLeaveApplication(),
       },
       currentDate: this.$dayjs().format('YYYY-MM-DD'),
@@ -91,13 +102,53 @@ export default {
         where('docId', '<=', this.to),
       ])
     },
+    onClickRegist() {
+      this.model.parent.initialize({
+        employeeId: this.employeeId,
+        requestDate: this.$dayjs().format('YYYY-MM-DD'),
+      })
+      this.$refs.editor.initialize({
+        item: this.model.parent,
+        editMode: 'REGIST',
+      })
+      this.editor = true
+    },
+    async onClickUpdate(data) {
+      this.loading = true
+      try {
+        const parentId = data.leaveApplicationId
+        await this.model.parent.fetchDoc(parentId)
+        this.$refs.editor.initialize({
+          item: this.model.parent,
+          editMode: 'UPDATE',
+        })
+        this.editor = true
+      } catch (err) {
+        // eslint-disable-next-line
+        console.error(err)
+        alert(err.message)
+      } finally {
+        this.loading = false
+      }
+    },
   },
 }
 </script>
 
 <template>
   <v-card v-bind="$attrs" v-on="$listeners">
-    <v-card-title class="g-card__title"> 休暇申請 </v-card-title>
+    <v-card-title class="g-card__title"
+      >休暇申請
+      <g-dialog-editor-leave-application ref="editor" v-model="editor">
+        <template #activator="{ attrs }">
+          <g-btn-regist-icon
+            v-bind="attrs"
+            color="primary"
+            @click="onClickRegist"
+          />
+        </template>
+      </g-dialog-editor-leave-application>
+    </v-card-title>
     <v-container fluid>
       <div class="d-flex mb-2 align-center" style="column-gap: 4px">
         <v-btn
@@ -121,9 +172,11 @@ export default {
           v-model="currentDate"
           color="primary"
           :events="events"
+          @click:event="onClickUpdate($event.event.data)"
         />
       </div>
     </v-container>
+    <g-dialog-loading v-model="loading" />
   </v-card>
 </template>
 

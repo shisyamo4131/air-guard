@@ -5,7 +5,7 @@
  * @update 2024-06-19   リアルタイムリスナーによる一覧表示に変更し、検索文字列がない場合にスポット現場を表示
  */
 import { doc, getDoc, where } from 'firebase/firestore'
-import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
+import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'

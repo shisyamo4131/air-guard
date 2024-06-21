@@ -38,7 +38,7 @@
 
 <script>
 import draggable from 'vuedraggable'
-import GChipWorkShift from '../molecules/chips/GChipWorkShift.vue'
+import GChipWorkShift from '../atoms/chips/GChipWorkShift.vue'
 import GDataTablePlacements from '../molecules/tables/GDataTablePlacements.vue'
 import GPlacementEmployeeChip from './GPlacementEmployeeChip.vue'
 import GPlacementSiteCard from './GPlacementSiteCard.vue'

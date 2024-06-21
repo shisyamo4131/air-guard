@@ -6,7 +6,7 @@
  */
 import { where } from 'firebase/firestore'
 import GCalendar from '~/components/atoms/calendars/GCalendar.vue'
-import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
+import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GDialogSiteOperationScheduleBulkRegister from '~/components/organisms/GDialogSiteOperationScheduleBulkRegister.vue'
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 import GDialogSiteOperationSchedules from '~/components/organisms/GDialogSiteOperationSchedules.vue'

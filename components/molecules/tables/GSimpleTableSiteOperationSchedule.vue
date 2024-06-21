@@ -18,7 +18,7 @@
  */
 import dayjs from 'dayjs'
 import ja from 'dayjs/locale/ja'
-import GChipWorkShift from '../chips/GChipWorkShift.vue'
+import GChipWorkShift from '../../atoms/chips/GChipWorkShift.vue'
 export default {
   components: { GChipWorkShift },
   /***************************************************************************

@@ -27,7 +27,7 @@
 
 <script>
 import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
-import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
+import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
 // import { where } from 'firebase/firestore'
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'

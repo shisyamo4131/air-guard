@@ -39,8 +39,8 @@
 
 <script>
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
-import GBtnCancelIcon from '~/components/molecules/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '~/components/molecules/btns/GBtnSubmitIcon.vue'
+import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
+import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
 import GNavigationDrawer from '~/components/organisms/GNavigationDrawer.vue'
 export default {
   name: 'DefaultLayout',

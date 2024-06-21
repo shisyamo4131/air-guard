@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import GChipEmployee from '../molecules/chips/GChipEmployee.vue'
+import GChipEmployee from '../atoms/chips/GChipEmployee.vue'
 export default {
   components: { GChipEmployee },
   props: {

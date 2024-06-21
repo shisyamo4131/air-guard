@@ -1,29 +1,38 @@
 <script>
 /**
- * A Chip component for displaying employee's simple information.
+ * ### GChipEmployee
+ * 社員の簡易情報を表示するChipコンポーネントです。
  *
- * - Show 'mdi-circle-double' before label if licensed property is true.
- * - Show 'mdi-star' after label if continuous property is true.
- * - Show 'mdi-alert-circle' after the label, set the v-chip color to ERROR, and display the error content in a tooltip.
+ * - licensedプロパティがtrueの場合、ラベルの前に'mdi-circle-double'アイコンを表示します。
+ * - continuousプロパティがtrueの場合、ラベルの後に'mdi-star'アイコンを表示します。
+ * - errorsプロパティにエラーが含まれる場合、ラベルの後に'mdi-alert-circle'アイコンを表示し、Chipの色をERRORに設定して、ツールチップにエラー内容を表示します。
  *
- * ### PROPS
+ * @component
+ * @example
+ * <GChipEmployee :docId="employeeId" :errors="errorList" :licensed="true" :continuous="false" />
  *
- * | name       | type    | default   | required | description             |
- * | ---------- | ------- | --------- | -------- | ----------------------- |
- * | errors     | array   | []        | false    |                         |
- * | licensed   | boolean | false     | false    | Show 'licensed-icon'.   |
- * | continuous | boolean | false     | false    | Show 'continuous-icon'. |
- * | docId      | string  |           | true     | Employee doc-id.        |
+ * @props {Array} errors - エラーメッセージの配列
+ * @props {Boolean} licensed - ライセンスがあるかどうか
+ * @props {Boolean} continuous - 連続勤務かどうか
+ * @props {String} docId - 社員のドキュメントID
  *
- * @author shisyamo4131
+ * @version 1.0.0
+ * @date 2024-06-21
+ * @autor shisyamo4131
  */
 export default {
+  /***************************************************************************
+   * PROPS
+   ***************************************************************************/
   props: {
     docId: { type: String, required: true },
     errors: { type: Array, default: () => [], required: false },
     licensed: { type: Boolean, default: false, required: false },
     continuous: { type: Boolean, default: false, required: false },
   },
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
   computed: {
     abbr() {
       const employee = this.$store.getters['masters/Employee'](this.docId)

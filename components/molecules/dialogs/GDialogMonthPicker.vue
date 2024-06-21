@@ -1,22 +1,35 @@
 <script>
 /**
  * ### GDialogMonthPicker
- * @author shisyamo4131
+ * 月選択用のダイアログピッカーコンポーネントです。
+ *
+ * @component
+ * @example
+ * <GDialogMonthPicker v-model="selectedMonth" />
+ *
+ * @props {String} value - v-modelバインディング用の月データ
+ *
+ * @version 1.0.0
+ * @date 2024-06-21
+ * @autor shisyamo4131
  */
-import GBtnCancelIcon from '../btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '../btns/GBtnSubmitIcon.vue'
+import GBtnCancelIcon from '../../atoms/btns/GBtnCancelIcon.vue'
+import GBtnSubmitIcon from '../../atoms/btns/GBtnSubmitIcon.vue'
 import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
+
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: { GDatePicker, GBtnCancelIcon, GBtnSubmitIcon },
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
     value: { type: String, default: undefined, required: false },
   },
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -27,6 +40,7 @@ export default {
       internalValue: undefined,
     }
   },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
@@ -41,6 +55,7 @@ export default {
       },
     },
   },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/

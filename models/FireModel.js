@@ -109,7 +109,8 @@ export default class FireModel {
     DELETE_CALLED: 'delete()が呼び出されました。ドキュメントIDは%sです。',
     DELETE_DOC_SUCCESS:
       '%sコレクションからドキュメントが正常に削除されました。ドキュメントIDは%sです。',
-    FETCH_DOC_CALLED: 'fetchDoc()が呼び出されました。ドキュメントIDは%sです。',
+    FETCH_DOC_CALLED:
+      '%sコレクションに対してfetchDoc()が呼び出されました。ドキュメントIDは%sです。',
     FETCH_DOC_NO_DOCUMENT:
       'ドキュメントID: %s に該当するドキュメントが存在しませんでした。',
     FETCH_DOC_SUCCESS:
@@ -425,7 +426,9 @@ export default class FireModel {
     if (!docId) {
       throw new Error(FireModel.getErrorMessage('FETCH_DOC_CALLED_NO_DOCID'))
     }
-    console.info(FireModel.getConsoleMessage('FETCH_DOC_CALLED', docId))
+    console.info(
+      FireModel.getConsoleMessage('FETCH_DOC_CALLED', this.collection, docId)
+    )
     try {
       const docSnap = await this.#getDocumentSnapshot(docId)
       if (!docSnap.exists()) {

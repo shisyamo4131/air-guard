@@ -1,6 +1,6 @@
 <script>
 // import { where } from 'firebase/firestore'
-import GBtnRegistIcon from '../molecules/btns/GBtnRegistIcon.vue'
+import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
 import GCardSubmitCancel from '../molecules/cards/GCardSubmitCancel.vue'
 import GInputSiteOperationSchedule from '../molecules/inputs/GInputSiteOperationSchedule.vue'
 import GDivMonthChooser from '../molecules/divs/GDivMonthChooser.vue'

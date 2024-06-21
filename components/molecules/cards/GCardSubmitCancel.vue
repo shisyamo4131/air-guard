@@ -28,23 +28,30 @@
  * @props {String} label - タイトル
  * @props {Boolean} loading - 処理中であることを表すブール値
  *
- * @author shisyamo4131
- * @update 2024-06-15   Add 'btn-cancel' and 'btn-submit' slot for replaceing.
- *         2024-06-18   dialogの値が変更される都度、initialize()が実行されるように修正。
- *                      -> 機能によってはdialogが開かれた際にデータモデルを初期化するケースがあるため。
+ * @version 1.0.0
+ * @date 2024-06-21
+ * @autor shisyamo4131
+ *
+ * 更新履歴:
+ * 2024-06-15 - Add 'btn-cancel' and 'btn-submit' slot for replacing.
+ * 2024-06-18 - dialogの値が変更される都度、initialize()が実行されるように修正。
+ *              -> 機能によってはdialogが開かれた際にデータモデルを初期化するケースがあるため。
  */
-import GBtnCancelIcon from '../btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '../btns/GBtnSubmitIcon.vue'
+import GBtnCancelIcon from '../../atoms/btns/GBtnCancelIcon.vue'
+import GBtnSubmitIcon from '../../atoms/btns/GBtnSubmitIcon.vue'
 import EditMode from '~/components/mixins/GMixinEditMode'
+
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: { GBtnCancelIcon, GBtnSubmitIcon },
+
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
   mixins: [EditMode],
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -54,6 +61,7 @@ export default {
     label: { type: String, default: undefined, required: false },
     loading: { type: Boolean, default: false, required: false },
   },
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -63,23 +71,23 @@ export default {
       scrollTargetRef: null,
     }
   },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/
   watch: {
     dialog(v) {
-      /* 2024-06-18 modified */
-      // v || this.initialize()
       this.initialize()
     },
   },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
     initialize() {
       this.formRef?.resetValidation()
-      this.scrollTargetRef?.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+      this.scrollTargetRef?.scrollTo?.({ top: 0, left: 0, behavior: 'instant' })
     },
     onClickCancel() {
       this.$emit('click:cancel')
@@ -91,7 +99,9 @@ export default {
     },
     validate() {
       const result = this.formRef?.validate() || false
-      if (!result) alert('入力に不備があります。')
+      if (!result) {
+        alert('入力に不備があります。')
+      }
       return result
     },
   },
@@ -135,4 +145,6 @@ export default {
   </v-card>
 </template>
 
-<style></style>
+<style>
+/* 必要に応じてスタイルを追加 */
+</style>

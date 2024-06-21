@@ -1,5 +1,5 @@
 <script>
-import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
+import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputOutsourcer from '~/components/molecules/inputs/GInputOutsourcer.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'

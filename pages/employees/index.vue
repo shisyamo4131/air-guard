@@ -1,6 +1,6 @@
 <script>
 import { where } from 'firebase/firestore'
-import GBtnRegistIcon from '~/components/molecules/btns/GBtnRegistIcon.vue'
+import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
