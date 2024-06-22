@@ -33,10 +33,6 @@ export default {
         const leaveApplications = this.leaveApplications.filter(
           ({ docId }) => docId === date
         )
-        // const dateString = this.$dayjs(date).format('MM月DD日')
-        // const dayString =
-        //   this.$DAY_OF_WEEK_JA[this.$dayjs(date).format('ddd')].short
-        // const dateJp = `${dateString}（${dayString}）`
         const dateJp = this.$dayjs(date).locale(ja).format('MM月DD日（ddd）')
         acc[date] = {
           date,
@@ -101,6 +97,7 @@ export default {
 <template>
   <v-card>
     <v-card-title class="g-card__title">休暇申請</v-card-title>
+    <v-card-subtitle>今日から3日間の休暇申請を表示します。</v-card-subtitle>
     <v-tabs
       v-model="tab"
       background-color="transparent"
