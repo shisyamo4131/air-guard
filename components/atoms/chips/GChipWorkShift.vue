@@ -17,14 +17,15 @@
  * - 勤務区分が "night" の場合は赤色のChipと月のアイコンを表示します。
  *
  * 使用例:
- * <GChipWorkShift :workShift="'day'" />
- * <GChipWorkShift :workShift="'night'" />
+ * <GChipWorkShift :value="'day'" />
+ * <GChipWorkShift :value="'night'" />
  *
  * props設定:
- * - workShift: 勤務区分を表す文字列。"day" または "night" のいずれかを指定します。
+ * - value: 勤務区分を表す文字列。"day" または "night" のいずれかを指定します。
  *
  * 更新履歴:
  * 2024-06-18 - 初版作成
+ * 2024-06-22 - props.workShiftで受け取り、表示にvalueを使っていた。valueで統一。
  */
 
 export default {
@@ -32,7 +33,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
-    workShift: {
+    value: {
       type: String,
       validator: (v) => ['day', 'night'].includes(v), // 勤務区分が "day" または "night" であることを検証
       required: true,
@@ -44,11 +45,11 @@ export default {
   computed: {
     // 勤務区分に基づいてChipの色を返す
     color() {
-      return this.workShift === 'day' ? 'blue white--text' : 'red white--text'
+      return this.value === 'day' ? 'blue white--text' : 'red white--text'
     },
     // 勤務区分に基づいてアイコン名を返す
     icon() {
-      return this.workShift === 'day' ? 'weather-sunny' : 'weather-night'
+      return this.value === 'day' ? 'weather-sunny' : 'weather-night'
     },
   },
 }

@@ -86,11 +86,13 @@ export default class FireModel {
       "%sコレクションのコンストラクタでエラーが発生しました。hasManyプロパティが正しく設定されていません。conditionプロパティの値は'=='または'array-contains'のみ可能です。",
     NO_MORE_DOCUMENT: 'これ以上%sコレクションにドキュメントを追加できません。',
     UPDATE_REQUIRES_DOCID:
-      'update()にはdocIdプロパティが必要です。まずfetchDoc()を呼び出してください。',
+      'update()にはdocIdプロパティが必要です。まずfetch()を呼び出してください。',
     DELETE_REQUIRES_DOCID:
       'delete()にはdocIdプロパティが必要です。まずfetch()を呼び出してください。',
     COULD_NOT_DELETE_CHILD_EXIST:
       '関連するドキュメントが%sコレクションに存在するために削除できません。',
+    FETCH_CALLED_NO_DOCID:
+      'fetch()が呼び出されましたがドキュメントIDが指定されていません。',
     FETCH_DOC_CALLED_NO_DOCID:
       'fetchDoc()が呼び出されましたがドキュメントIDが指定されていません。',
     SUBSCRIBE_DOC_CALLED_NO_DOCID:
@@ -109,13 +111,19 @@ export default class FireModel {
     DELETE_CALLED: 'delete()が呼び出されました。ドキュメントIDは%sです。',
     DELETE_DOC_SUCCESS:
       '%sコレクションからドキュメントが正常に削除されました。ドキュメントIDは%sです。',
+    FETCH_CALLED:
+      '%sコレクションに対してfetch()が呼び出されました。ドキュメントIDは%sです。',
+    FETCH_NO_DOCUMENT:
+      'ドキュメントID: %s に該当するドキュメントが存在しませんでした。',
+    FETCH_SUCCESS:
+      'ドキュメントの読み込みに成功し、取得したデータをモデルにセットしました。',
     FETCH_DOC_CALLED:
       '%sコレクションに対してfetchDoc()が呼び出されました。ドキュメントIDは%sです。',
     FETCH_DOC_NO_DOCUMENT:
       'ドキュメントID: %s に該当するドキュメントが存在しませんでした。',
-    FETCH_DOC_SUCCESS:
-      'ドキュメントの読み込みに成功し、取得したデータをモデルにセットしました。',
+    FETCH_DOC_SUCCESS: 'ドキュメントの取得に成功しました。',
     FETCH_DOCS_CALLED: '%sコレクションに対してfetchDocs()が呼び出されました。',
+    FETCH_DOCS_SUCCESS: '%s件のドキュメントを正常に取得しました。',
     SUBSCRIBE_CALLED: '%sコレクションへのsubscription()が呼び出されました。',
     SUBSCRIBE_GROUP_CALLED:
       '%sコレクションへのsubscriptionGroup()が呼び出されました。',
@@ -417,8 +425,34 @@ export default class FireModel {
   }
 
   /**
-   * 指定されたドキュメントIDに該当するドキュメントを取得し、
-   * モデルの該当するプロパティに値をセットします。
+   * 指定されたドキュメントIDに該当するドキュメントを取得して、
+   * モデルのプロパティに該当するデータをセットします。
+   * @param {string} docId - 取得するドキュメントのID
+   * @returns
+   */
+  async fetch(docId = undefined) {
+    if (!docId) {
+      throw new Error(FireModel.getErrorMessage('FETCH_CALLED_NO_DOCID'))
+    }
+    console.info(
+      FireModel.getConsoleMessage('FETCH_CALLED', this.collection, docId)
+    )
+    try {
+      const docSnap = await this.#getDocumentSnapshot(docId)
+      if (!docSnap.exists()) {
+        console.warn(FireModel.getConsoleMessage('FETCH_NO_DOCUMENT', docId))
+        return
+      }
+      this.initialize(docSnap.data())
+      console.info(FireModel.getConsoleMessage('FETCH_SUCCESS'))
+    } catch (err) {
+      console.error(err.message)
+      throw err
+    }
+  }
+
+  /**
+   * 指定されたドキュメントIDに該当するドキュメントを取得して返します。
    * @param {string} docId - 取得するドキュメントのID
    * @returns
    */
@@ -437,8 +471,8 @@ export default class FireModel {
         )
         return
       }
-      this.initialize(docSnap.data())
       console.info(FireModel.getConsoleMessage('FETCH_DOC_SUCCESS'))
+      return docSnap.data()
     } catch (err) {
       console.error(err.message)
       throw err
@@ -578,6 +612,9 @@ export default class FireModel {
         const item = convert ? await convert(doc.data()) : doc.data()
         result.push(item)
       }
+      console.info(
+        FireModel.getConsoleMessage('FETCH_DOCS_SUCCESS', snapshot.docs.length)
+      )
       return result
     } catch (err) {
       console.error(err.message)

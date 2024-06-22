@@ -1,5 +1,4 @@
 <script>
-import GDatePicker from '../atoms/pickers/GDatePicker.vue'
 /**
  * ### GDialogSiteOperationSchedules
  *
@@ -27,7 +26,10 @@ import GDatePicker from '../atoms/pickers/GDatePicker.vue'
  * @author shisyamo4131
  * @create 2024-06-18
  * @update 2024-06-19   複製機能を追加。
+ *         2024-06-22   dayjsのlocaleの変更方法がグローバルになっていたのをローカルに変更。
  */
+import ja from 'dayjs/locale/ja'
+import GDatePicker from '../atoms/pickers/GDatePicker.vue'
 import GInputSiteOperationSchedule from '../molecules/inputs/GInputSiteOperationSchedule.vue'
 import GListItemSiteOperationSchedule from '../molecules/lists/GListItemSiteOperationSchedule.vue'
 import GSimpleTableSiteOperationSchedule from '../molecules/tables/GSimpleTableSiteOperationSchedule.vue'
@@ -125,12 +127,11 @@ export default {
       return this.events.filter((event) => event.start === this.date)
     },
     title() {
-      const dayjs = require('dayjs')
-      const ja = require('dayjs/locale/ja')
-      dayjs.locale(ja)
       switch (this.window) {
-        case 1:
-          return dayjs(this.date).format('M月D日（ddd）')
+        case 1: {
+          if (!this.date) return ''
+          return this.$dayjs(this.date).locale(ja).format('M月D日（ddd）')
+        }
         case 2:
           return this.selectedEvent?.site?.name || ''
         case 3:

@@ -161,7 +161,11 @@ export default class SiteOperationSchedule extends FireModel {
   ) {
     const constraints = [where('date', '>=', from), where('date', '<=', to)]
     if (temporary) constraints.push(where('temporary', '==', true))
-    const items = super.subscribe(undefined, constraints, this.convertToEvent)
+    const items = super.subscribe(
+      undefined,
+      constraints,
+      this.convertToEvent.bind(this)
+    )
     return items
   }
 
@@ -185,12 +189,12 @@ export default class SiteOperationSchedule extends FireModel {
     const items = super.subscribeGroup(
       undefined,
       constraints,
-      this.convertToEvent
+      this.convertToEvent.bind(this)
     )
     return items
   }
 
-  convertToEvent = async (data) => {
+  async convertToEvent(data) {
     const getSite = async (siteId) => {
       const site = this.#fetchedSites.find(({ docId }) => docId === siteId)
       if (site) return site

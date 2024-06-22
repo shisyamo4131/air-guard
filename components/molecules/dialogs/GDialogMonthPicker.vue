@@ -86,7 +86,7 @@ export default {
       <slot
         name="activator"
         v-bind="{
-          attrs: { ...attrs, readOnly: true, value },
+          attrs: { ...attrs, readonly: true, value },
           on,
         }"
       />

@@ -1,12 +1,13 @@
 <script>
 import { collectionGroup, onSnapshot, query, where } from 'firebase/firestore'
 import { get, ref } from 'firebase/database'
-import dayjs from 'dayjs'
-import ja from 'dayjs/locale/ja'
 /**
  * ### GLauncherLeaveApplications
  * @author shisyamo4131
+ * @create 2024-06-17
+ * @update 2024-06-22   dayjsのlocaleの変更方法がグローバルになっていたのをローカルに変更。
  */
+import ja from 'dayjs/locale/ja'
 export default {
   /***************************************************************************
    * DATA
@@ -24,7 +25,7 @@ export default {
   computed: {
     dates() {
       return Array.from({ length: 3 }, (_, index) => {
-        return dayjs().add(index, 'day').format('YYYY-MM-DD')
+        return this.$dayjs().add(index, 'day').format('YYYY-MM-DD')
       })
     },
     items() {
@@ -32,7 +33,11 @@ export default {
         const leaveApplications = this.leaveApplications.filter(
           ({ docId }) => docId === date
         )
-        const dateJp = dayjs(date).format('MM月DD日(ddd)')
+        // const dateString = this.$dayjs(date).format('MM月DD日')
+        // const dayString =
+        //   this.$DAY_OF_WEEK_JA[this.$dayjs(date).format('ddd')].short
+        // const dateJp = `${dateString}（${dayString}）`
+        const dateJp = this.$dayjs(date).locale(ja).format('MM月DD日（ddd）')
         acc[date] = {
           date,
           dateJp,
@@ -46,7 +51,6 @@ export default {
    * MOUNTED
    ***************************************************************************/
   mounted() {
-    dayjs.locale(ja)
     this.subscribe()
   },
   /***************************************************************************

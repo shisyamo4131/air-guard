@@ -1,11 +1,11 @@
 <script>
-// import { where } from 'firebase/firestore'
 import GCalendar from '../atoms/calendars/GCalendar.vue'
-import GDivMonthChooser from '../molecules/divs/GDivMonthChooser.vue'
+import GDialogMonthPicker from '../molecules/dialogs/GDialogMonthPicker.vue'
 /**
  * ### GLauncherTemporarySiteOperationSchedules
  * @author shisyamo4131
  * @create 2024-06-14
+ * @update 2024-06-21   年月選択コンポーネントを変更。
  */
 export default {
   /***************************************************************************
@@ -13,7 +13,7 @@ export default {
    ***************************************************************************/
   components: {
     GCalendar,
-    GDivMonthChooser,
+    GDialogMonthPicker,
   },
   /***************************************************************************
    * PROPS
@@ -63,6 +63,14 @@ export default {
         .format('YYYY-MM-DD')
       return result
     },
+    month: {
+      get() {
+        return this.$dayjs(this.currentDate).format('YYYY-MM')
+      },
+      set(v) {
+        this.currentDate = v + '-01'
+      },
+    },
   },
   /***************************************************************************
    * WATCH
@@ -90,7 +98,6 @@ export default {
       this.items = this.model.subscribeGroupAsEvent({
         from: this.from,
         to: this.to,
-        temporary: true,
       })
     },
   },
@@ -109,13 +116,19 @@ export default {
         ><v-icon>mdi-open-in-new</v-icon></v-btn
       >
     </v-card-title>
-
     <v-container fluid class="py-0">
-      <g-div-month-chooser
-        v-model="currentDate"
-        @click:prev="$refs.calendar.prev()"
-        @click:next="$refs.calendar.next()"
-      />
+      <g-dialog-month-picker v-model="month">
+        <template #activator="{ attrs, on }">
+          <v-text-field
+            v-bind="attrs"
+            class="center-input"
+            style="min-width: 96px; max-width: 96px"
+            label="年月"
+            hide-details
+            v-on="on"
+          />
+        </template>
+      </g-dialog-month-picker>
     </v-container>
     <v-container fluid>
       <div :style="{ height: `${height ? parseInt(height) : undefined}px` }">

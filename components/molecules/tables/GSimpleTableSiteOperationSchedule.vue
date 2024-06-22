@@ -15,8 +15,8 @@
  *
  * @author shisyamo4131
  * @create 2024-06-18
+ * @update 2024-06-22   dayjsのlocaleの変更方法がグローバルになっていたのをローカルに変更。
  */
-import dayjs from 'dayjs'
 import ja from 'dayjs/locale/ja'
 import GChipWorkShift from '../../atoms/chips/GChipWorkShift.vue'
 export default {
@@ -37,8 +37,7 @@ export default {
     date() {
       const date = this.event?.schedule?.date || undefined
       if (!date) return 'error'
-      return dayjs(date).format('YYYY年MM月DD日（ddd）')
-      // return this.event?.schedule?.date || 'error'
+      return this.$dayjs(date).locale(ja).format('YYYY年MM月DD日（ddd）')
     },
     end() {
       return this.event?.schedule?.end || 'error'
@@ -61,9 +60,6 @@ export default {
     workShift() {
       return this.event?.schedule?.workShift || 'error'
     },
-  },
-  created() {
-    dayjs.locale(ja)
   },
 }
 </script>
@@ -90,7 +86,7 @@ export default {
       <tr>
         <td><v-icon left small>mdi-account-clock</v-icon>勤務区分</td>
         <td>
-          <g-chip-work-shift :work-shift="workShift" small />
+          <g-chip-work-shift :value="workShift" small />
         </td>
       </tr>
       <tr>

@@ -36,6 +36,37 @@ const CUSTOMER_STATUS_ARRAY = [
   { value: 'expired', text: '契約終了' },
 ]
 
+const DAY_OF_WEEK_JA = {
+  Sun: {
+    short: '日',
+    long: '日曜日',
+  },
+  Mon: {
+    short: '月',
+    long: '月曜日',
+  },
+  Tue: {
+    short: '火',
+    long: '火曜日',
+  },
+  Wed: {
+    short: '水',
+    long: '水曜日',
+  },
+  Thu: {
+    short: '木',
+    long: '木曜日',
+  },
+  Fri: {
+    short: '金',
+    long: '金曜日',
+  },
+  Sat: {
+    short: '土',
+    long: '土曜日',
+  },
+}
+
 const DEADLINE = {
   '05': '5日',
   10: '10日',
@@ -165,6 +196,7 @@ export default (context, inject) => {
   inject('CHAR_REGEXP_ARRAY', CHAR_REGEXP_ARRAY)
   inject('CUSTOMER_STATUS', CUSTOMER_STATUS)
   inject('CUSTOMER_STATUS_ARRAY', CUSTOMER_STATUS_ARRAY)
+  inject('DAY_OF_WEEK_JA', DAY_OF_WEEK_JA)
   inject('OUTSOURCER_STATUS', OUTSOURCER_STATUS)
   inject('OUTSOURCER_STATUS_ARRAY', OUTSOURCER_STATUS_ARRAY)
   inject('DEADLINE', DEADLINE)
