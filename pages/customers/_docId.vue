@@ -47,7 +47,7 @@ export default {
     <v-container fluid>
       <v-row>
         <v-col cols="12">
-          <g-customer-card v-bind="model" />
+          <g-customer-card v-bind="model" flat outlined />
         </v-col>
         <v-col cols="12" md="5">
           <g-map-card :value="model.address1" flat outlined height="600" />
