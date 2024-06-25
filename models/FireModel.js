@@ -15,6 +15,7 @@
  * - トークンフィールドによる疑似全文検索
  * - Firestoreトランザクションによる自動ナンバリング
  * - Firestoreのリアルタイムリスニング
+ * - ドキュメントへのタイムスタンプの自動追加
  *
  * 使用例:
  * ---------------------------------------------------------------
@@ -49,10 +50,14 @@
  * - `status`: 採番の有効/無効を示すブール値。
  * - 番号が最大値に達すると、新しいドキュメントを作成できません。
  *
+ * タイムスタンプの自動追加:
+ * #addTimestampsをtrueにすると、追加・更新されるドキュメントにタイムスタンプが追加されます。
+ *
  * 更新履歴:
  * 2024-02-27 - トークンマップ生成ロジックの改善
  * 2024-06-17 - subscribeメソッドのcollectionGroup対応
  * 2024-06-20 - メッセージ定数とヘルパー関数の追加
+ * 2024-06-24 - タイムスタンプを既定で付与するのではなく、#addTimestampsプロパティによって切り替えられるように変更
  *
  * 注意事項:
  * このクラスはNuxt.jsのコンテキストに依存しないよう設計されていますが、
@@ -131,13 +136,12 @@ export default class FireModel {
       '%sコレクションドキュメントへのsubscriptionDoc()が呼び出されました。ドキュメントIDは%sです。',
     UNSUBSCRIBE_CALLED: 'unsubscribe()が呼び出されました。',
     UNSUBSCRIBE_SUCCESS: 'リアルタイムリスナーが正常に解除されました。',
-    UNSUBSCRIBE_NO_LISTENER:
-      '解除するリアルタイムリスナーが存在しませんでした。',
   }
 
   #firestore
   #collection
   #auth
+  #addTimestamps = true // trueにするとドキュメントにタイムスタンプを記録します。
   #hasMany = []
   #tokenFields = []
   #listener = null // A listener for subscription.
@@ -303,11 +307,13 @@ export default class FireModel {
    */
   initialize(item = {}) {
     this.docId = null
-    this.createAt = null
-    this.createDate = null
-    this.updateAt = null
-    this.updateDate = null
-    this.uid = null
+    if (this.#addTimestamps) {
+      this.createAt = null
+      this.createDate = null
+      this.updateAt = null
+      this.updateDate = null
+      this.uid = null
+    }
     if (!item) return
     Object.keys(item).forEach((key) => {
       if (key in this) {
@@ -402,7 +408,7 @@ export default class FireModel {
       const colRef = collection(this.#firestore, this.collection)
       const docRef = docId ? doc(colRef, docId) : doc(colRef)
       this.docId = docRef.id
-      this.#setTimestampsAndUID()
+      if (this.#addTimestamps) this.#setTimestampsAndUID()
       await this.beforeCreate()
       const { ...item } = this
       await runTransaction(this.#firestore, async (transaction) => {
@@ -501,7 +507,7 @@ export default class FireModel {
         throw new Error(FireModel.getErrorMessage('UPDATE_REQUIRES_DOCID'))
       }
       const docRef = this.#getDocumentReference()
-      this.#setTimestampsAndUID()
+      if (this.#addTimestamps) this.#setTimestampsAndUID()
       await this.beforeUpdate()
       const { createAt, createDate, ...item } = this
       await updateDoc(docRef, item)
@@ -762,12 +768,10 @@ export default class FireModel {
    * Unsubscribe to firestore documents.
    */
   unsubscribe() {
-    console.info(FireModel.getConsoleMessage('UNSUBSCRIBE_CALLED'))
     if (this.#listener) {
+      console.info(FireModel.getConsoleMessage('UNSUBSCRIBE_CALLED'))
       this.#listener()
       console.info(FireModel.getConsoleMessage('UNSUBSCRIBE_SUCCESS'))
-    } else {
-      console.warn(FireModel.getConsoleMessage('UNSUBSCRIBE_NO_LISTENER'))
     }
     this.#listener = null
     this.#items.splice(0)

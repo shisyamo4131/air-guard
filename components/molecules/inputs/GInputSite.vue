@@ -5,16 +5,19 @@ import { props } from '~/models/Site'
 import EditMode from '~/components/mixins/GMixinEditMode'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
+import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 
 /**
  * ### GInputSite
  * @author shisyamo4131
+ * 更新履歴:
+ * 2024-06-24 - SiteモデルがCustomerオブジェクトを持つようになったことによる修正
  */
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GDate, GSelect, GTextField, GAutocompleteCustomer },
+  components: { GDate, GSelect, GTextField, GAutocompleteCustomer, GTextarea },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -29,10 +32,11 @@ export default {
   <div>
     <g-autocomplete-customer
       v-if="!hideCustomer"
-      :value="customerId"
+      :value="customer"
       label="取引先"
       required
-      @input="$emit('update:customerId', $event)"
+      return-object
+      @input="$emit('update:customer', $event)"
     />
     <g-text-field
       :value="name"
@@ -68,22 +72,33 @@ export default {
       required
       @input="$emit('update:address', $event)"
     />
-    <g-date
-      :value="startAt"
-      label="開始日"
-      @input="$emit('update:startAt', $event)"
-    />
-    <g-date
-      :value="endAt"
-      label="終了日"
-      @input="$emit('update:endAt', $event)"
-    />
+    <v-row>
+      <v-col cols="6">
+        <g-date
+          :value="startAt"
+          label="開始日"
+          @input="$emit('update:startAt', $event)"
+        />
+      </v-col>
+      <v-col cols="6">
+        <g-date
+          :value="endAt"
+          label="終了日"
+          @input="$emit('update:endAt', $event)"
+        />
+      </v-col>
+    </v-row>
     <g-select
       :value="securityType"
       label="警備種別"
       :items="$SECURITY_TYPE_ARRAY"
       required
       @input="$emit('update:securityType', $event)"
+    />
+    <g-textarea
+      :value="remarks"
+      label="備考"
+      @input="$emit('update:remarks', $event)"
     />
   </div>
 </template>

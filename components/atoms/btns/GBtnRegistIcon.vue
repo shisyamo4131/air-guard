@@ -9,7 +9,7 @@
  *
  * @version 1.0.0
  * @date 2024-06-21
- * @autor shisyamo4131
+ * @author shisyamo4131
  *
  * 概要:
  * 登録操作を表すアイコンボタンです。Vuetifyのv-btnとカスタムアイコンコンポーネント

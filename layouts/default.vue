@@ -172,4 +172,14 @@ export default {
   text-overflow: ellipsis;
   max-width: 0;
 }
+
+.flex-table {
+  display: flex;
+  flex-grow: 1;
+  width: 100%;
+}
+
+.flex-table > div {
+  width: 100%;
+}
 </style>

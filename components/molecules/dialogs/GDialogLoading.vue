@@ -3,7 +3,7 @@
  * ### GDialogLoading
  * @version 1.0.0
  * @date 2024-06-20
- * @autor shisyamo4131
+ * @author shisyamo4131
  *
  * 概要:
  * GDialogLoadingコンポーネントは、データを読み込んでいる最中であることをユーザーに通知するための

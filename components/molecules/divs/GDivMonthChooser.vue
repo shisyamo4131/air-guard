@@ -13,7 +13,7 @@ import GIconPrev from '~/components/atoms/icons/GIconPrev.vue'
  *
  * @version 1.0.0
  * @date 2024-06-21
- * @autor shisyamo4131
+ * @author shisyamo4131
  */
 export default {
   /***************************************************************************

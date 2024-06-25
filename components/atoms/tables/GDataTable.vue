@@ -7,7 +7,7 @@ import GIconDetail from '~/components/atoms/icons/GIconDetail.vue'
  * ## GDataTable
  * @version 1.0.0
  * @date 2024-06-21
- * @autor shisyamo4131
+ * @author shisyamo4131
  *
  * 概要:
  * GDataTableコンポーネントは、Vuetifyのv-data-tableを拡張し、カスタムアクション（編集、削除、詳細）を提供します。

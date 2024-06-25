@@ -2,7 +2,7 @@
  * SiteOperationSchedule.js
  * @version 1.0.0
  * @date 2024-06-20
- * @autor shisyamo4131
+ * @author shisyamo4131
  *
  * 概要:
  * SiteOperationScheduleクラスは、現場の稼働予定を管理するためのモデルクラスです。

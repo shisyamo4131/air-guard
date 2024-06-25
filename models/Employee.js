@@ -2,7 +2,7 @@
  * Employee.js
  * @version 1.0.0
  * @date 2024-06-20
- * @autor shisyamo4131
+ * @author shisyamo4131
  *
  * 概要:
  * Employeeクラスは、従業員情報を管理するためのモデルクラスです。

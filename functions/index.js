@@ -9,7 +9,7 @@ exports.role = require('./modules/role')
 exports.leaveApplications = require('./modules/leave-applications')
 exports.employees = require('./modules/employees')
 
-// exports.customers = require('./modules/customers')
+exports.customers = require('./modules/customers')
 exports.sites = require('./modules/sites')
 
 // exports.operationResults = require('./modules/operation-results')

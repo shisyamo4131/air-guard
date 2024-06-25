@@ -1,20 +1,18 @@
 const { onDocumentUpdated } = require('firebase-functions/v2/firestore')
+const { info } = require('firebase-functions/logger')
 const { isDocumentChanged, syncDocuments } = require('./utils')
 
-exports.onUpdate = onDocumentUpdated('Customers/{docId}', async (event) => {
-  /* Sync to Sites. */
-  await syncCustomerToSites(event)
-})
-
 /**
- * 取引先ドキュメントの内容を現場ドキュメントに同期させます。
- * 同期対象のデータに変更がない場合、処理は中断されます。
- * @param {object} event onDocumentUpdatedトリガーのeventオブジェクトです。
- * @returns
+ * Firestoreドキュメントの更新トリガー。
+ * Customerドキュメントが更新された際に、内容に変更がある場合は
+ * 関連するSitesコレクションのドキュメントを同期します。
+ *
+ * @param {object} event - onDocumentUpdatedトリガーのイベントオブジェクト
  */
-async function syncCustomerToSites(event) {
-  /* Return if there are no change. */
-  if (!isDocumentChanged(event)) return
-  /* Create synchronize data. */
-  await syncDocuments('Sites', 'customer', event.data.after.data())
-}
+exports.onUpdate = onDocumentUpdated('Customers/{docId}', async (event) => {
+  // ドキュメント内容に変更があった場合のみ同期を行います。
+  if (isDocumentChanged(event)) {
+    info('Customerドキュメントが更新されました。')
+    await syncDocuments('Sites', 'customer', event.data.after.data())
+  }
+})

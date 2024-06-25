@@ -14,7 +14,7 @@
  *
  * @version 1.0.0
  * @date 2024-06-21
- * @autor shisyamo4131
+ * @author shisyamo4131
  *
  * 概要:
  * GComboboxDateコンポーネントは、カレンダーピッカーを使用して日付を選択するための

@@ -1,19 +1,17 @@
 <template>
   <v-container>
-    <g-combobox-date v-model="value" multiple />
-    {{ value }}
+    <v-row>
+      <v-col cols="6">
+        <g-customer-sites customer-id="eD2htQ5XV6btjfgvMd0R" />
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
 <script>
-import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
+import GCustomerSites from '~/components/organisms/GCustomerSitesCard.vue'
 export default {
-  components: { GComboboxDate },
-  data() {
-    return {
-      value: ['2024-06-01'],
-    }
-  },
+  components: { GCustomerSites },
 }
 </script>
 

@@ -2,7 +2,7 @@
  * Customer.js
  * @version 1.0.0
  * @date 2024-06-20
- * @autor shisyamo4131
+ * @author shisyamo4131
  *
  * 概要:
  * Customerクラスは、取引先情報を管理するためのモデルクラスです。
@@ -70,7 +70,6 @@ const props = {
     depositMonth: { type: Number, default: 1, required: false },
     depositDate: { type: String, default: '99', required: false },
     remarks: { type: String, default: '', required: false },
-    favorite: { type: Boolean, default: false, required: false },
   },
 }
 export { props }
@@ -86,7 +85,7 @@ export default class Customer extends FireModel {
     this.hasMany = [
       {
         collection: 'Sites',
-        field: 'customerId',
+        field: 'customer.docId',
         condition: '==',
         type: 'collection',
       },

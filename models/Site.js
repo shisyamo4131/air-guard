@@ -2,7 +2,7 @@
  * Site.js
  * @version 1.0.0
  * @date 2024-06-20
- * @autor shisyamo4131
+ * @author shisyamo4131
  *
  * 概要:
  * Siteクラスは、現場情報を管理するためのモデルクラスです。
@@ -45,6 +45,7 @@
  *
  * 更新履歴:
  * 2024-06-20 - 初版作成
+ * 2024-06-24 - 取引先情報をオブジェクトとして保有できるように修正
  *
  * 注意事項:
  * このクラスはNuxt.jsのコンテキストに依存しないよう設計されていますが、
@@ -65,7 +66,8 @@ const props = {
     securityType: { type: String, default: '', required: false },
     status: { type: String, default: 'active', required: false },
     remarks: { type: String, default: '', required: false },
-    customerId: { type: String, default: '', required: false },
+    // customerId: { type: String, default: '', required: false },
+    customer: { type: Object, default: null, required: false },
     favorite: { type: Boolean, default: false, required: false },
     // for bulk create.
     temporary: { type: Boolean, default: false, required: false },
