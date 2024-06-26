@@ -147,7 +147,7 @@ export default {
         <slot name="extension" />
       </template>
     </v-toolbar>
-    <v-container fluid class="d-flex flex-grow-1 overflow-y-hidden pt-0">
+    <v-container fluid class="d-flex flex-grow-1 overflow-y-hidden">
       <v-card class="d-flex flex-grow-1" outlined>
         <!-- slot: default -->
         <slot

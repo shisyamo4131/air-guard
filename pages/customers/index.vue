@@ -1,4 +1,14 @@
 <script>
+/**
+ * ### pages.CustomerIndex
+ *
+ * 取引先情報の一覧ページです。
+ * 取引先情報（Customers）はVuexから取得します。
+ *
+ * @author shisyamo4131
+ * @create
+ * @update
+ */
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import GDialogEditorCustomer from '~/components/molecules/dialogs/GDialogEditorCustomer.vue'
