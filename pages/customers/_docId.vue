@@ -44,7 +44,7 @@ export default {
 <template>
   <div>
     <v-breadcrumbs :items="breadcrumbs" />
-    <v-container fluid>
+    <v-container>
       <v-row>
         <v-col cols="12">
           <g-customer-card v-bind="model" flat outlined />
