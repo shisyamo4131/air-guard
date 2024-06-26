@@ -29,6 +29,20 @@
       ]
     },
     {
+      "collectionGroup": "EmployeeLeaveApplications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "docId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "leaveApplicationId",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "Employees",
       "queryScope": "COLLECTION",
       "fields": [
@@ -53,6 +67,20 @@
         {
           "fieldPath": "date",
           "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Sites",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "customer.docId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "code",
+          "order": "DESCENDING"
         }
       ]
     },
@@ -121,6 +149,29 @@
     {
       "collectionGroup": "SiteMonthlySales",
       "fieldPath": "month",
+      "ttl": false,
+      "indexes": [
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "DESCENDING",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "arrayConfig": "CONTAINS",
+          "queryScope": "COLLECTION"
+        },
+        {
+          "order": "ASCENDING",
+          "queryScope": "COLLECTION_GROUP"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "SiteOperationSchedules",
+      "fieldPath": "date",
       "ttl": false,
       "indexes": [
         {

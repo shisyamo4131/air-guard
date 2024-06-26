@@ -26,10 +26,18 @@
         "destination": "/index.html"
       }
     ],
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "_comment": "2024-06-25 デプロイ後に`Uncaught SyntaxError: Unexpected token '<'`が発生。firebase-tools@13.11.4のバグと推測。13.11.2にDGしてキャッシュ制御を追加して回避。",
+    "headers": [
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Controls",
+            "value": "no-cache"
+          }
+        ]
+      }
     ]
   },
   "emulators": {
