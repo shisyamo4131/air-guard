@@ -128,7 +128,10 @@ export default {
 </script>
 
 <template>
-  <div class="d-flex flex-column" :style="{ height: `${templateHeight}px` }">
+  <v-container
+    class="d-flex flex-column"
+    :style="{ height: `${templateHeight}px` }"
+  >
     <!-- HEADER -->
     <v-toolbar class="flex-grow-0" :color="toolbarColor" flat>
       <!-- slot: prepend-search -->
@@ -169,7 +172,7 @@ export default {
         <v-pagination v-model="page" :length="pageCount" />
       </v-container>
     </v-footer>
-  </div>
+  </v-container>
 </template>
 
 <style></style>
