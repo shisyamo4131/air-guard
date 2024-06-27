@@ -9,6 +9,12 @@
  *
  * @author shisyamo4131
  * @create 2024-06-26
+ *
+ * 更新履歴:
+ * 2024-06-27 - 最新の10件をasyncDataで取得するように変更し、検索TextFieldの入力状態に応じて
+ *              使用するitemsを切り替えるように修正。
+ *            - 最新10件の表示中は取引先・ステータスの絞り込みコンポーネントを非表示に。
+ *              代わりに最新10件を表示していることを通知するように修正。
  */
 import { limit, orderBy } from 'firebase/firestore'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
@@ -36,15 +42,37 @@ export default {
     GAutocompleteCustomer,
   },
   /***************************************************************************
+   * ASYNCDATA
+   ***************************************************************************/
+  asyncData({ app }) {
+    const recent = {
+      items: [],
+      listener: app.$Site(),
+    }
+    recent.items = recent.listener.subscribe(undefined, [
+      orderBy('code', 'desc'),
+      limit(10),
+    ])
+    return { recent }
+  },
+  /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
       customerId: '',
+      fetched: {
+        items: [],
+        listener: this.$Site(),
+      },
       includeExpired: false,
       items: [],
       model: this.$Site(),
-      search: null,
+      search: {
+        value: null,
+        customerId: '',
+        includeExpired: false,
+      },
     }
   },
   /***************************************************************************
@@ -52,18 +80,20 @@ export default {
    ***************************************************************************/
   computed: {
     filteredItems() {
-      return this.items
-        .filter((item) => this.includeExpired || item.status === 'active')
-        .filter(
-          (item) => !this.customerId || item.customer.docId === this.customerId
-        )
+      return this.fetched.items.filter((item) => {
+        const customerId = this.search.customerId
+        const isActive = this.search.includeExpired || item.status === 'active'
+        const isCustomerMatch =
+          !customerId || item.customer.docId === customerId
+        return isActive && isCustomerMatch
+      })
     },
   },
   /***************************************************************************
    * WATCH
    ***************************************************************************/
   watch: {
-    search: {
+    'search.value': {
       handler(newVal, oldVal) {
         if (newVal === oldVal) return
         this.subscribe()
@@ -71,39 +101,31 @@ export default {
       immediate: true,
     },
   },
-  activated() {
-    console.log('activated')
-  },
-  deactivated() {
-    console.log('deactivated')
-  },
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   destroyed() {
-    this.model.unsubscribe()
+    this.fetched.listener.unsubscribe()
+    this.recent.listener.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
     subscribe() {
-      this.loading = true
-      if (!this.search) {
-        this.items = this.model.subscribe(undefined, [
-          orderBy('code', 'desc'),
-          limit(10),
-        ])
-      } else {
-        this.items = this.model.subscribe(this.search)
-      }
+      if (!this.search.value) return
+      this.fetched.items = this.fetched.listener.subscribe(this.search.value)
     },
   },
 }
 </script>
 
 <template>
-  <g-template-index extend :items="filteredItems" :lazy-search.sync="search">
+  <g-template-index
+    extend
+    :items="search.value ? filteredItems : recent.items"
+    :lazy-search.sync="search.value"
+  >
     <template #append-search>
       <g-dialog-editor-site
         @submit:complete="$router.push(`/sites/${$event.item.docId}`)"
@@ -117,12 +139,18 @@ export default {
       </g-dialog-editor-site>
     </template>
     <template #extension>
+      <div v-if="!search.value" class="flex-grow-1">
+        <v-alert class="mb-0" dense type="info" text
+          >最近登録された10件を表示しています。</v-alert
+        >
+      </div>
       <div
+        v-else
         class="d-flex align-center flex-nowrap flex-grow-1"
         style="gap: 12px"
       >
         <g-autocomplete-customer
-          v-model="customerId"
+          v-model="search.customerId"
           class="flex-grow-1"
           clearable
           solo-inverted
@@ -132,7 +160,7 @@ export default {
           placeholder="取引先"
         />
         <g-switch
-          v-model="includeExpired"
+          v-model="search.includeExpired"
           class="flex-grow-0"
           label="稼働終了を含める"
           hide-details

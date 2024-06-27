@@ -61,10 +61,20 @@ export default {
       }
       return result
     },
+    /**
+     * keepAliveを適用するページを制御します。
+     * - $route.pathを参照し、表示しているページのカテゴリに応じてキャッシュするページを切り替えます。
+     */
     keepAlivePages() {
-      const result = ['SitesIndex']
-      // const result = []
-      return result
+      const topLevelPath = this.$route.path.split('/').slice(0, 2).join('/')
+      switch (topLevelPath) {
+        case '/customers':
+          return ['CustomersIndex', 'CustomerDetail']
+        case '/sites':
+          return ['SitesIndex', 'SiteDetail']
+        default:
+          return []
+      }
     },
   },
   watch: {
