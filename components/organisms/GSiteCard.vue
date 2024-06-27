@@ -39,7 +39,7 @@ export default {
 
 <template>
   <v-card v-bind="$attrs" v-on="$listeners">
-    <v-card-title class="g-card__title"
+    <v-card-title class="g-card__title text-truncate d-block"
       >{{ name }}
       <v-chip v-if="status === 'expired'" color="red" label x-small outlined>
         {{ `${$CUSTOMER_STATUS[status]}` }}
@@ -67,6 +67,13 @@ export default {
         <g-input-site v-bind="attrs" v-on="on" />
       </template>
     </g-dialog-editor-site>
+    <v-card-text>
+      <v-chip-group column>
+        <v-chip color="primary" label outlined
+          ><v-icon left>mdi-domain</v-icon>{{ customer?.abbr || '' }}</v-chip
+        >
+      </v-chip-group>
+    </v-card-text>
   </v-card>
 </template>
 

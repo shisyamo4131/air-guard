@@ -170,7 +170,7 @@ export default {
     <v-expand-transition>
       <div v-show="!internalSearch && !!items.length" class="py-0 px-4">
         <v-alert class="mb-0" dense type="info" text
-          >最近登録された10件を表示しています。</v-alert
+          >最新の10件を表示しています。</v-alert
         >
       </div>
     </v-expand-transition>
