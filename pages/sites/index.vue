@@ -9,12 +9,7 @@
  *
  * @author shisyamo4131
  * @create 2024-06-26
- *
- * 更新履歴:
- * 2024-06-27 - 最新の10件をasyncDataで取得するように変更し、検索TextFieldの入力状態に応じて
- *              使用するitemsを切り替えるように修正。
- *            - 最新10件の表示中は取引先・ステータスの絞り込みコンポーネントを非表示に。
- *              代わりに最新10件を表示していることを通知するように修正。
+ * @version 1.0.0
  */
 import { limit, orderBy } from 'firebase/firestore'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
@@ -60,18 +55,15 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      customerId: '',
       fetched: {
         items: [],
         listener: this.$Site(),
       },
-      includeExpired: false,
-      items: [],
       model: this.$Site(),
       search: {
-        value: null,
         customerId: '',
         includeExpired: false,
+        value: null,
       },
     }
   },
@@ -141,7 +133,7 @@ export default {
     <template #extension>
       <div v-if="!search.value" class="flex-grow-1">
         <v-alert class="mb-0" dense type="info" text
-          >最近登録された10件を表示しています。</v-alert
+          >最新の10件を表示しています。</v-alert
         >
       </div>
       <div

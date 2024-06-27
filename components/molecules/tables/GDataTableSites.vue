@@ -29,7 +29,10 @@ export default {
       } else {
         return [
           { text: 'CODE', value: 'code', width: 84 },
-          { text: '略称', value: 'abbr', cellClass: 'truncate-cell' },
+          {
+            text: '略称',
+            value: 'abbr',
+          },
         ]
       }
     },
@@ -45,9 +48,32 @@ export default {
     v-on="$listeners"
   >
     <template #[`item.name`]="{ item }">
-      <div>{{ item.name }}</div>
-      <div class="text-caption grey--text text--darken-1">
-        {{ item.customer.abbr }}
+      <div class="d-flex">
+        <div class="align-self-center">
+          <v-icon v-if="item.status === 'active'" color="green" left x-small
+            >mdi-play</v-icon
+          ><v-icon v-else color="red" left x-small>mdi-stop</v-icon>
+        </div>
+        <div>
+          <div>
+            {{ item.name }}
+          </div>
+          <div class="text-caption grey--text text--darken-1">
+            {{ item.customer.abbr }}
+          </div>
+        </div>
+      </div>
+    </template>
+    <template #[`item.abbr`]="{ item }">
+      <div class="d-flex">
+        <div class="align-self-center">
+          <v-icon v-if="item.status === 'active'" color="green" left x-small
+            >mdi-play</v-icon
+          ><v-icon v-else color="red" left x-small>mdi-stop</v-icon>
+        </div>
+        <div>
+          {{ item.abbr }}
+        </div>
       </div>
     </template>
   </g-data-table>
