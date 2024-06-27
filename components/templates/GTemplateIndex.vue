@@ -45,6 +45,10 @@
  * @create 2024-06-25
  * @author shisyamo4131
  *
+ * 更新履歴:
+ * 2024-06-27 - ページネーションをv-footerからv-containerに変更。
+ *              これに伴ってメインコンテナの高さの計算方法を変更。
+ *
  * 更新予定:
  * - VDataTableのitemsPerPageを変更できるようにしたい。
  * - VToolbarのextension機能を利用するかもしれない。
@@ -72,7 +76,6 @@ export default {
   data() {
     return {
       appbarHeight: 48,
-      footerHeight: 80,
       internalLazySearch: null,
       internalSearch: null,
       page: 1,
@@ -98,7 +101,7 @@ export default {
     },
     templateHeight() {
       const viewHeight = this.$vuetify.breakpoint.height
-      return viewHeight - this.appbarHeight - this.footerHeight
+      return viewHeight - this.appbarHeight
     },
     toolbarColor() {
       return this.$vuetify.theme.themes.light.background
@@ -161,17 +164,9 @@ export default {
         />
       </v-card>
     </v-container>
-    <!-- FOOTER -->
-    <v-footer
-      class="px-6 pb-3 pt-0"
-      app
-      :color="$vuetify.theme.themes.light.background"
-      style="display: block"
-    >
-      <v-container>
-        <v-pagination v-model="page" :length="pageCount" />
-      </v-container>
-    </v-footer>
+    <v-container class="flex-grow-0">
+      <v-pagination v-model="page" :length="pageCount" />
+    </v-container>
   </v-container>
 </template>
 
