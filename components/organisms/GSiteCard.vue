@@ -1,8 +1,8 @@
 <script>
 /**
- * ### GCustomerCard
+ * ### GSiteCard
  *
- * 取引先情報を表示・編集するためのCardコンポーネントです。
+ * 現場情報を表示・編集するためのCardコンポーネントです。
  *
  * 機能詳細:
  * - propsはモデルで定義されているものを使用しています。
@@ -11,14 +11,14 @@
  * @create 2024-06-27
  * @version 1.0.0
  */
-import GDialogEditorCustomer from '../molecules/dialogs/GDialogEditorCustomer.vue'
-import GInputCustomer from '../molecules/inputs/GInputCustomer.vue'
-import { props } from '~/models/Customer'
+import GDialogEditorSite from '../molecules/dialogs/GDialogEditorSite.vue'
+import GInputSite from '../molecules/inputs/GInputSite.vue'
+import { props } from '~/models/Site'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GDialogEditorCustomer, GInputCustomer },
+  components: { GDialogEditorSite, GInputSite },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -28,7 +28,7 @@ export default {
    ***************************************************************************/
   methods: {
     onClickEdit() {
-      this.$refs[`customer-editor`].open({
+      this.$refs[`site-editor`].open({
         item: this.$props,
         editMode: 'UPDATE',
       })
@@ -40,33 +40,15 @@ export default {
 <template>
   <v-card v-bind="$attrs" v-on="$listeners">
     <v-card-title class="g-card__title"
-      >{{ name1 }}
+      >{{ name }}
       <v-chip v-if="status === 'expired'" color="red" label x-small outlined>
         {{ `${$CUSTOMER_STATUS[status]}` }}
       </v-chip>
     </v-card-title>
     <v-card-subtitle>
-      {{ name2 }}
+      {{ abbr }}
     </v-card-subtitle>
-    <v-card-text>
-      <v-chip-group column>
-        <v-chip color="blue" label small outlined>
-          {{ `${$DEADLINE[deadline]}締め` }}
-        </v-chip>
-        <v-chip color="green" label small outlined>
-          {{ `${depositMonth}ヶ月後 ${$DEADLINE[depositDate]}回収` }}
-        </v-chip>
-        <v-chip color="red" label small outlined
-          ><v-icon x-small left>mdi-phone</v-icon>
-          {{ `${tel}` }}
-        </v-chip>
-        <v-chip v-if="fax" color="brown" label small outlined
-          ><v-icon x-small left>mdi-fax</v-icon>
-          {{ `${fax}` }}
-        </v-chip>
-      </v-chip-group>
-    </v-card-text>
-    <g-dialog-editor-customer ref="customer-editor">
+    <g-dialog-editor-site ref="site-editor">
       <template #activator="{ attrs }">
         <v-btn
           v-bind="attrs"
@@ -82,9 +64,9 @@ export default {
         </v-btn>
       </template>
       <template #default="{ attrs, on }">
-        <g-input-customer v-bind="attrs" v-on="on" />
+        <g-input-site v-bind="attrs" v-on="on" />
       </template>
-    </g-dialog-editor-customer>
+    </g-dialog-editor-site>
   </v-card>
 </template>
 
