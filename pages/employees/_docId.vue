@@ -116,7 +116,12 @@ export default {
           />
         </v-col>
         <v-col cols="12" md="7">
-          <g-leave-application-calendar :employee-id="docId" flat outlined />
+          <g-leave-application-calendar
+            :employee-id="docId"
+            flat
+            outlined
+            height="612"
+          />
         </v-col>
       </v-row>
     </v-container>

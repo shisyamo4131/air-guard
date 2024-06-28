@@ -136,7 +136,7 @@ export default {
 </script>
 
 <template>
-  <v-card v-bind="$attrs" v-on="$listeners">
+  <v-card v-bind="$attrs" class="d-flex flex-column" v-on="$listeners">
     <v-card-title class="g-card__title"
       >休暇申請
       <g-dialog-editor-leave-application ref="editor" v-model="editor">
@@ -149,7 +149,7 @@ export default {
         </template>
       </g-dialog-editor-leave-application>
     </v-card-title>
-    <v-container fluid>
+    <v-container fluid class="d-flex flex-column flex-grow-1">
       <div class="d-flex mb-2 align-center" style="column-gap: 4px">
         <v-btn
           color="primary"
@@ -166,7 +166,7 @@ export default {
           ><v-icon>mdi-chevron-right</v-icon></v-btn
         >
       </div>
-      <div style="height: 480px">
+      <div class="flex-grow-1">
         <g-calendar
           ref="calendar"
           v-model="currentDate"
