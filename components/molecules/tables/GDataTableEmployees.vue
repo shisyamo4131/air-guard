@@ -47,8 +47,10 @@ export default {
         return [{ text: '氏名', value: 'fullName' }]
       }
       return [
-        { text: 'CODE', value: 'code' },
+        { text: 'CODE', value: 'code', width: 84 },
         { text: '氏名', value: 'fullName' },
+        { text: '住所', value: 'address', sortable: false },
+        { text: '連絡先', value: 'mobile', sortable: false, width: 156 },
       ]
     },
   },
@@ -77,6 +79,22 @@ export default {
           <div>{{ `${item.lastName} ${item.firstName}` }}</div>
         </div>
       </div>
+    </template>
+    <template #[`item.address`]="{ item }">
+      <div class="d-flex">
+        <div class="align-self-center">
+          <v-icon x-small color="red" left>mdi-map-marker</v-icon>
+        </div>
+        <div>
+          <div>{{ item.address1 }}</div>
+          <div class="text-caption grey--text text--darken-1">
+            {{ item.address2 }}
+          </div>
+        </div>
+      </div>
+    </template>
+    <template #[`item.mobile`]="{ item }">
+      <v-icon x-small left>mdi-cellphone</v-icon>{{ item.mobile }}
     </template>
   </g-data-table>
 </template>
