@@ -1,6 +1,7 @@
 <script>
 import GMapCard from '~/components/organisms/GMapCard.vue'
 import GSiteCard from '~/components/organisms/GSiteCard.vue'
+import GSiteContractsTimeline from '~/components/organisms/GSiteContractsTimeline.vue'
 import GSiteOperationScheduleCalendar from '~/components/organisms/GSiteOperationScheduleCalendar.vue'
 export default {
   /***************************************************************************
@@ -14,6 +15,7 @@ export default {
     GSiteOperationScheduleCalendar,
     GMapCard,
     GSiteCard,
+    GSiteContractsTimeline,
   },
   /***************************************************************************
    * ASYNCDATA
@@ -63,6 +65,9 @@ export default {
             flat
             outlined
           />
+        </v-col>
+        <v-col cols="12">
+          <g-site-contracts-timeline flat outlined :site-id="docId" />
         </v-col>
       </v-row>
     </v-container>

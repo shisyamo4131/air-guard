@@ -12,7 +12,7 @@
  * @props {Boolean} multiple - 複数選択の許可
  * @props {Boolean} required - 必須入力設定
  *
- * @version 1.0.0
+ * @version 1.1.0
  * @date 2024-06-21
  * @author shisyamo4131
  *
@@ -31,6 +31,7 @@
  *
  * 更新履歴:
  * 2024-06-21 - 初版作成
+ * 2024-06-29 - (v1.1.0) props.allowedDatesを用意し、date-pickerに適用。
  */
 import GDatePicker from '../pickers/GDatePicker.vue'
 import GDatePickerMultiple from '../pickers/GDatePickerMultiple.vue'
@@ -44,21 +45,10 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
-    disabled: {
-      type: Boolean,
-      default: false,
-      required: false,
-    },
-    multiple: {
-      type: Boolean,
-      default: false,
-      required: false,
-    },
-    required: {
-      type: Boolean,
-      default: false,
-      required: false,
-    },
+    allowedDates: { type: Function, default: null, required: false },
+    disabled: { type: Boolean, default: false, required: false },
+    multiple: { type: Boolean, default: false, required: false },
+    required: { type: Boolean, default: false, required: false },
   },
   /***************************************************************************
    * DATA
@@ -158,6 +148,7 @@ export default {
     <component
       :is="component"
       v-model="value"
+      :allowed-dates="allowedDates"
       :multiple="multiple"
       no-title
       :picker-date.sync="pickerDate"

@@ -32,6 +32,13 @@
  * 更新履歴:
  * 2024-06-15 - 'btn-cancel'と'btn-submit'スロットを追加して置き換え可能に。
  * 2024-06-24 - 削除フラグを追加し、click:submitイベントがeditModeを伴うように変更。
+ * 2024-06-29 - initialize()のタイミングをdialogの終了時だけではなく、開閉時に変更。
+ *              dialogで編集モードから追加モードで開きなおすとvalidationエラーが初期化されない。
+ *              `props.dialog`がfalseになったタイミングでinitialize()を実行していたが、
+ *              外部コンポーネントで管理しているデータモデルの初期化がinitialize()の後で実行されるケースがあるため。
+ *              [NOTE]
+ *              Inputコンポーネントの初期化タイミングはデリケートなので外部コンポーネントから
+ *              初期化関数自体をコールするように実装を見直すべき。
  */
 import GBtnCancelIcon from '../../atoms/btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '../../atoms/btns/GBtnSubmitIcon.vue'
@@ -75,7 +82,8 @@ export default {
      * - falseに更新されたらmethods.initialize()を実行します。
      */
     dialog(v) {
-      v || this.initialize()
+      // v || this.initialize()
+      this.initialize()
     },
   },
 

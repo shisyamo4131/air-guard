@@ -10,10 +10,15 @@
  * - ドキュメントを追加する場合はactivatorスロットを使用して、onスロットプロパティをそのまま使用可能です。
  * - ドキュメントを変更・削除するためにdialogを開く必要がある場合はopenメソッドを使用します。
  * - openメソッドは編集対象データの規定値としてitem、編集モードとしてeditModeを受け付けます。
+ * - データを編集するためのInputコンポーネントはdefaultスロットに配置します。
+ * - defaultスロットは`attrs`、`on`を提供します。
  * - `submit`メソッドでデータの登録、更新、削除を非同期で実行し、完了後にダイアログを閉じます。
  * - フォームの状態やエラーは内部で管理され、ロード中の表示やエラーメッセージの表示も行います。
  * - submit処理に成功すると`submit:complete`イベントをemitします。
  * - submit処理に失敗すると`submit:error`イベントをemitします。
+ *
+ * 注意事項:
+ * - 編集対象データのプロパティにネストされたオブジェクトを含む場合、Inputコンポーネントがemitするupdateイベントの名前は`-`で区切られている必要があります。
  *
  * @component
  * @example
@@ -27,9 +32,14 @@
  * </GDialogEditor>
  * @props {String} label - ダイアログのタイトル
  *
- * @version 1.0.0
+ * @version 1.0.1
  * @date 2024-06-24
  * @author shisyamo4131
+ *
+ * 更新履歴:
+ * 2024-06-29 - defaultスロットプロパティ`on`について、モデルが保有するプロパティが
+ *              ネストされたオブジェクトであった場合に、最上位以外のプロパティについての
+ *              updateイベントを生成できていなかったのを修正。
  */
 
 import GCardSubmitCancel from '../cards/GCardSubmitCancel.vue'
@@ -71,12 +81,49 @@ export default {
       }
     },
     on() {
-      return {
-        ...Object.keys(this.model || {}).reduce((acc, i) => {
-          acc[`update:${i}`] = ($event) => (this.model[i] = $event)
-          return acc
-        }, {}),
+      /**
+       * 引数で受け取ったオブジェクトのプロパティをすべて列挙して配列で返します。
+       * ネストされたプロパティに対応するため、再帰的に呼び出されます。
+       */
+      const getAllProperties = (obj, prefix = '') => {
+        let properties = []
+        for (const key in obj) {
+          if (Object.hasOwn(obj, key)) {
+            const propName = prefix ? `${prefix}.${key}` : key
+            properties.push(propName)
+            if (typeof obj[key] === 'object' && obj[key] !== null) {
+              properties = properties.concat(
+                getAllProperties(obj[key], propName)
+              )
+            }
+          }
+        }
+        return properties
       }
+      // modelのネストされたものも含めたすべてのプロパティを配列として取得します。
+      const props = getAllProperties(this.model)
+      return props.reduce((acc, i) => {
+        /**
+         * すべてのプロパティに対するupdateイベントを生成します。
+         * - updateイベントの`:`以降はドットを受け付けないため`-'に置換します。
+         */
+        acc[`update:${i.replace(/\./g, '-')}`] = ($event) => {
+          const keys = i.split('.')
+          let current = this.model
+          keys.slice(0, -1).forEach((key) => {
+            if (!current[key]) current[key] = {}
+            current = current[key]
+          })
+          current[keys[keys.length - 1]] = $event
+        }
+        return acc
+      }, {})
+      // return {
+      //   ...Object.keys(this.model || {}).reduce((acc, i) => {
+      //     acc[`update:${i}`] = ($event) => (this.model[i] = $event)
+      //     return acc
+      //   }, {}),
+      // }
     },
   },
   /***************************************************************************
