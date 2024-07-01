@@ -1,6 +1,6 @@
 /**
  * Employee.js
- * @version 1.0.0
+ * @version 1.1.0
  * @date 2024-06-20
  * @author shisyamo4131
  *
@@ -44,6 +44,8 @@
  * ---------------------------------------------------------------
  *
  * 更新履歴:
+ * version 1.1.0 - 2024-07-01
+ * - 血液型（bloodType）を追加
  * 2024-06-20 - 初版作成
  *
  * 注意事項:
@@ -71,6 +73,12 @@ const props = {
     leaveReason: { type: String, default: '', required: false },
     isForeigner: { type: Boolean, default: false, required: false },
     nationality: { type: String, default: '', required: false },
+    bloodType: {
+      type: String,
+      default: '-',
+      validator: (v) => ['A', 'B', 'O', 'AB', '-'].includes(v),
+      required: false,
+    },
     status: { type: String, default: 'active', required: false },
     remarks: { type: String, default: '', required: false },
   },

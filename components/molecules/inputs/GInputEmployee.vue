@@ -1,5 +1,6 @@
 <script>
 import GDate from '~/components/atoms/inputs/GDate.vue'
+import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
@@ -8,15 +9,28 @@ import { props } from '~/models/Employee'
 
 /**
  * ## InputEmployee
- * Employee用INPUT
+ *
+ * Employee用Inputコンポーネント
  *
  * @author shisyamo4131
+ * @version 1.1.0
+ *
+ * 更新履歴:
+ * version 1.1.0 - 2024-07-01
+ * - 血液型を追加
  */
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextField, GTextarea, ARenderlessZipcode, GSwitch, GDate },
+  components: {
+    GTextField,
+    GTextarea,
+    ARenderlessZipcode,
+    GSwitch,
+    GDate,
+    GSelect,
+  },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -32,53 +46,100 @@ export default {
       disabled
       @input="$emit('update:code', $event)"
     />
-    <g-text-field
-      :value="lastName"
-      label="氏"
+    <v-row dense>
+      <v-col cols="12" md="6">
+        <g-text-field
+          :value="lastName"
+          label="氏"
+          required
+          @input="$emit('update:lastName', $event)"
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <g-text-field
+          :value="firstName"
+          label="名"
+          @input="$emit('update:firstName', $event)"
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <g-text-field
+          :value="lastNameKana"
+          label="氏カナ"
+          required
+          hint="検索に使用されます"
+          ignore-surrogate-pair
+          input-type="katakana"
+          @input="$emit('update:lastNameKana', $event)"
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <g-text-field
+          :value="firstNameKana"
+          label="名カナ"
+          required
+          hint="検索に使用されます"
+          ignore-surrogate-pair
+          input-type="katakana"
+          @input="$emit('update:firstNameKana', $event)"
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <g-text-field
+          :value="abbr"
+          label="略称"
+          required
+          hint="検索に使用されます"
+          ignore-surrogate-pair
+          counter
+          maxlength="5"
+          @input="$emit('update:abbr', $event)"
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <g-date
+          :value="hireDate"
+          label="入社日"
+          required
+          @input="$emit('update:hireDate', $event)"
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-radio-group
+          class="mt-0 mb-2"
+          :value="gender"
+          row
+          @change="$emit('update:gender', $event)"
+        >
+          <v-radio label="男性" value="male" />
+          <v-radio label="女性" value="female" />
+        </v-radio-group>
+      </v-col>
+      <v-col cols="12" md="6">
+        <g-switch
+          class="mt-0 mb-2"
+          :input-value="isForeigner"
+          label="外国籍"
+          @change="$emit('update:isForeigner', $event)"
+        />
+      </v-col>
+    </v-row>
+    <v-expand-transition>
+      <g-text-field
+        v-show="isForeigner"
+        :value="nationality"
+        label="国籍"
+        :required="isForeigner"
+        @input="$emit('update:nationality', $event)"
+      />
+    </v-expand-transition>
+    <g-select
+      :value="bloodType"
+      label="血液型"
+      :items="['A', 'B', 'O', 'AB', '-']"
       required
-      @input="$emit('update:lastName', $event)"
+      @input="$emit('update:bloodType', $event)"
     />
-    <g-text-field
-      :value="firstName"
-      label="名"
-      @input="$emit('update:firstName', $event)"
-    />
-    <g-text-field
-      :value="lastNameKana"
-      label="氏カナ"
-      required
-      hint="検索に使用されます"
-      ignore-surrogate-pair
-      input-type="katakana"
-      @input="$emit('update:lastNameKana', $event)"
-    />
-    <g-text-field
-      :value="firstNameKana"
-      label="名カナ"
-      required
-      hint="検索に使用されます"
-      ignore-surrogate-pair
-      input-type="katakana"
-      @input="$emit('update:firstNameKana', $event)"
-    />
-    <g-text-field
-      :value="abbr"
-      label="略称"
-      required
-      hint="検索に使用されます"
-      ignore-surrogate-pair
-      counter
-      maxlength="5"
-      @input="$emit('update:abbr', $event)"
-    />
-    <v-radio-group
-      :value="gender"
-      :row="$vuetify.breakpoint.mdAndUp"
-      @change="$emit('update:gender', $event)"
-    >
-      <v-radio label="男性" value="male" />
-      <v-radio label="女性" value="female" />
-    </v-radio-group>
     <a-renderless-zipcode
       :value="zipcode"
       @input="$emit('update:zipcode', $event)"
@@ -111,26 +172,6 @@ export default {
       input-type="tel"
       @input="$emit('update:mobile', $event)"
     />
-    <g-date
-      :value="hireDate"
-      label="入社日"
-      required
-      @input="$emit('update:hireDate', $event)"
-    />
-    <g-switch
-      :input-value="isForeigner"
-      label="外国籍"
-      @change="$emit('update:isForeigner', $event)"
-    />
-    <v-expand-transition>
-      <g-text-field
-        v-show="isForeigner"
-        :value="nationality"
-        label="国籍"
-        :required="isForeigner"
-        @input="$emit('update:nationality', $event)"
-      />
-    </v-expand-transition>
     <g-date
       :value="leaveDate"
       label="退職日"

@@ -9,7 +9,11 @@
  *
  * @author shisyamo4131
  * @create 2024-06-28
- * @version 1.0.0
+ * @version 1.1.0
+ *
+ * 更新履歴:
+ * version 1.1.0 - 2024-07-01
+ * - 入社日を表示
  */
 import GDialogEditorEmployee from '../molecules/dialogs/GDialogEditorEmployee.vue'
 import GInputEmployee from '../molecules/inputs/GInputEmployee.vue'
@@ -52,6 +56,13 @@ export default {
     <v-card-subtitle>
       {{ fullNameKana }}
     </v-card-subtitle>
+    <v-card-text>
+      <v-chip-group column>
+        <v-chip color="blue" label small outlined>
+          {{ `${hireDate} 入社` }}
+        </v-chip>
+      </v-chip-group>
+    </v-card-text>
     <g-dialog-editor-employee ref="employee-editor">
       <template #activator="{ attrs }">
         <v-btn
