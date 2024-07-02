@@ -6,9 +6,9 @@
  * 提供される関数:
  * 1. isDocumentChanged(event) - Firestoreドキュメントの内容に変更があったかどうかを判定します。
  * 2. syncDocuments(collectionId, field, data) - 非正規化されたドキュメントデータを指定のフィールドで同期します。
+ * 3. removeDependentDocuments(path, collectionIds) - 指定されたパスの指定されたコレクション内のドキュメントを削除します。
  *
  * 使用例:
- *
  * isDocumentChanged(event)
  * - 引数としてonDocumentUpdatedトリガーのイベントオブジェクトを受け取り、ドキュメントの内容が変更されたかどうかを返します。
  * - 変更検出時には、ドキュメントに含まれるupdateAt、updateDate、uidは無視されます。
@@ -16,18 +16,24 @@
  * syncDocuments(collectionId, field, data)
  * - 引数としてコレクションID、フィールド名、同期するデータオブジェクトを受け取り、指定されたフィールドでドキュメントを同期します。
  *
+ * removeDependentDocuments(path, collectionIds)
+ * - 引数として削除対象のコレクションが存在するパス、削除対象コレクション名の配列を受け取ります。
+ *
  * @module utils
- * @version 1.0.0
+ * @version 1.1.0
  * @date 2024-06-21
  * @author shisyamo4131
  *
  * 更新履歴:
- * 2024-06-21 - 初版作成
+ * version 1.1.0 - 2024-07-02
+ * - removeDependentDocumentsを追加
+ * version 1.0.0 - 2024-06-21 - 初版作成
  */
 
 const { getFirestore } = require('firebase-admin/firestore')
 const { info, error } = require('firebase-functions/logger')
 const firestore = getFirestore()
+const BATCH_LIMIT = 500
 
 /**
  * Firestoreドキュメントの内容に変更があったかどうかを返します。
@@ -92,5 +98,24 @@ exports.syncDocuments = async (collectionId, field, data) => {
       stack: err.stack,
     })
     throw err
+  }
+}
+
+exports.removeDependentDocuments = async (path, collectionIds) => {
+  for (const collectionId of collectionIds) {
+    try {
+      const colRef = firestore.collection(`${path}/${collectionId}`)
+      const snapshots = await colRef.get()
+      const batchArray = []
+      snapshots.docs.forEach((doc, index) => {
+        if (index % BATCH_LIMIT === 0) batchArray.push(firestore.batch())
+        batchArray[batchArray.length - 1].delete(doc.ref)
+      })
+      await Promise.all(batchArray.map((batch) => batch.commit()))
+      info(`Documents in ${collectionId} deleted.`)
+    } catch (err) {
+      error(`Error deleting ${collectionId}.`, err)
+      throw err // Rethrow error to be caught by the caller
+    }
   }
 }

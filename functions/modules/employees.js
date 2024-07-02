@@ -1,3 +1,20 @@
+/**
+ * ### employees.js
+ *
+ * 概要:
+ * FirestoreのEmployeesコレクションドキュメントの更新をトリガーとする処理を定義しています。
+ *
+ * 機能詳細:
+ * - ドキュメントの作成・更新時、インデックス用データとしてRealtime Databaseに一部のデータを同期します。
+ * - ドキュメントの削除時、依存するサブコレクションドキュメントを削除します。
+ *
+ * 依存するサブコレクション:
+ * - EmployeeMedicalCheckups
+ *
+ * @author shisyamo4131
+ * @create 2024-07-02
+ * @version 1.0.0
+ */
 const {
   onDocumentUpdated,
   onDocumentCreated,
@@ -5,6 +22,7 @@ const {
 } = require('firebase-functions/v2/firestore')
 const { getDatabase } = require('firebase-admin/database')
 const { log, error } = require('firebase-functions/logger')
+const { removeDependentDocuments } = require('./utils')
 const database = getDatabase()
 
 const updateDatabase = async (docId, data) => {
@@ -50,4 +68,7 @@ exports.onDelete = onDocumentDeleted('Employees/{docId}', async (event) => {
   const docId = event.params.docId
   log(`Employee document deleted with docId ${docId}`)
   await removeDatabaseEntry(docId)
+  await removeDependentDocuments(`Employees/${docId}`, [
+    'EmployeeMedicalCheckups',
+  ])
 })

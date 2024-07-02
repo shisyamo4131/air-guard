@@ -4,6 +4,7 @@ import AttendanceRecord from '../models/AttendanceRecord'
 import Customer from '../models/Customer'
 import Site from '../models/Site'
 import Employee from '../models/Employee'
+import EmployeeMedicalCheckup from '../models/EmployeeMedicalCheckup'
 import Outsourcer from '../models/Outsourcer'
 import LeaveApplication from '../models/LeaveApplication'
 import EmployeeLeaveApplication from '../models/EmployeeLeaveApplication'
@@ -24,6 +25,10 @@ export default (context, inject) => {
   inject('Customer', (item) => new Customer(firebase, item))
   inject('Site', (item) => new Site(firebase, item))
   inject('Employee', (item) => new Employee(firebase, item))
+  inject(
+    'EmployeeMedicalCheckup',
+    (item) => new EmployeeMedicalCheckup(firebase, item)
+  )
   inject('Outsourcer', (item) => new Outsourcer(firebase, item))
   inject('LeaveApplication', (item) => new LeaveApplication(firebase, item))
   inject(

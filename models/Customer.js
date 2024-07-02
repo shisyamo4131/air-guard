@@ -1,8 +1,5 @@
 /**
- * Customer.js
- * @version 1.0.0
- * @date 2024-06-20
- * @author shisyamo4131
+ * ### Customer.js
  *
  * 概要:
  * Customerクラスは、取引先情報を管理するためのモデルクラスです。
@@ -42,6 +39,10 @@
  *   inject('Customer', (item) => new Customer(firebase, item))
  * }
  * ---------------------------------------------------------------
+ *
+ * @version 1.0.0
+ * @date 2024-06-20
+ * @author shisyamo4131
  *
  * 更新履歴:
  * 2024-06-20 - 初版作成
