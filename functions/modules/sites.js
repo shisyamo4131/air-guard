@@ -28,10 +28,19 @@ exports.onCreate = onDocumentCreated('Sites/{docId}', async (event) => {
 
 /**
  * Triggered when a Site document is deleted.
- * Deletes all related site schedules.
+ * Deletes all related collection.
+ * - SiteContracts
+ * - SiteSchedules
  */
 exports.onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
   const docId = event.params.docId
+  try {
+    log(`Deleting site contracts for site: ${docId}`)
+    await deleteSiteContracts(docId)
+    log(`Site contracts deleted successfully for site: ${docId}`)
+  } catch (err) {
+    error(`Error deleting site contracts for site: ${docId}`, err)
+  }
   try {
     log(`Deleting site schedules for site: ${docId}`)
     await deleteSiteSchedules(docId)
@@ -97,6 +106,23 @@ async function deleteSiteSchedules(siteId) {
     log(`Site schedules deleted for site: ${siteId}`)
   } catch (err) {
     error(`Error deleting site schedules for site: ${siteId}`, err)
+    throw err // Rethrow error to be caught by the caller
+  }
+}
+
+async function deleteSiteContracts(siteId) {
+  const colRef = firestore.collection(`Sites/${siteId}/SiteContracts`)
+  const snapshots = await colRef.get()
+  const batchArray = []
+  try {
+    snapshots.docs.forEach((doc, index) => {
+      if (index % BATCH_LIMIT === 0) batchArray.push(firestore.batch())
+      batchArray[batchArray.length - 1].delete(doc.ref)
+    })
+    await Promise.all(batchArray.map((batch) => batch.commit()))
+    log(`Site contracts deleted for site: ${siteId}`)
+  } catch (err) {
+    error(`Error deleting site contracts for site: ${siteId}`, err)
     throw err // Rethrow error to be caught by the caller
   }
 }
