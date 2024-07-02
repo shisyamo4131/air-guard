@@ -9,14 +9,18 @@
  *
  * @author shisyamo4131
  * @create 2024-06-26
- * @version 1.0.0
+ * @version 1.1.0
+ *
+ * 更新履歴:
+ * version 1.1.0 - 2024-07-02
+ *  - GDialogEditorの仕様変更に伴う改修。
  */
 import { limit, orderBy } from 'firebase/firestore'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
-import GDialogEditorSite from '~/components/molecules/dialogs/GDialogEditorSite.vue'
+import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
 import GDataTableSites from '~/components/molecules/tables/GDataTableSites.vue'
 import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
 export default {
@@ -32,7 +36,7 @@ export default {
     GBtnRegistIcon,
     GInputSite,
     GSwitch,
-    GDialogEditorSite,
+    GDialogEditor,
     GDataTableSites,
     GAutocompleteCustomer,
   },
@@ -119,7 +123,9 @@ export default {
     :lazy-search.sync="search.value"
   >
     <template #append-search>
-      <g-dialog-editor-site
+      <g-dialog-editor
+        model-id="Site"
+        label="現場"
         @submit:complete="$router.push(`/sites/${$event.item.docId}`)"
       >
         <template #activator="{ attrs, on }">
@@ -128,7 +134,7 @@ export default {
         <template #default="{ attrs, on }">
           <g-input-site v-bind="attrs" v-on="on" />
         </template>
-      </g-dialog-editor-site>
+      </g-dialog-editor>
     </template>
     <template #extension>
       <div v-if="!search.value" class="flex-grow-1">

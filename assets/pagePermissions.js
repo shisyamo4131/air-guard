@@ -28,5 +28,4 @@ module.exports = {
   'operation-resuls-docId': ['admin'],
   'operation-resuls-docId-edit': ['admin'],
   imports: ['admin', 'developer'],
-  placements: ['admin'],
 }

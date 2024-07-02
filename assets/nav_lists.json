@@ -43,12 +43,6 @@
     ]
   },
   {
-    "name": "配置管理",
-    "icon": "mdi-home",
-    "to": "/placements",
-    "lists": []
-  },
-  {
     "name": "管理",
     "icon": "mdi-wrench-cog",
     "lists": [

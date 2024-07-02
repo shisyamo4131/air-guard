@@ -9,16 +9,20 @@
  *
  * @author shisyamo4131
  * @create 2024-06-27
- * @version 1.0.0
+ * @version 1.1.0
+ *
+ * 更新履歴:
+ * version 1.1.0 - 2024-07-02
+ *  - GDialogEditorの仕様変更に伴う改修。
  */
-import GDialogEditorSite from '../molecules/dialogs/GDialogEditorSite.vue'
+import GDialogEditor from '../molecules/dialogs/GDialogEditor.vue'
 import GInputSite from '../molecules/inputs/GInputSite.vue'
 import { props } from '~/models/Site'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GDialogEditorSite, GInputSite },
+  components: { GDialogEditor, GInputSite },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -48,7 +52,7 @@ export default {
     <v-card-subtitle>
       {{ abbr }}
     </v-card-subtitle>
-    <g-dialog-editor-site ref="site-editor">
+    <g-dialog-editor ref="site-editor" model-id="Site" label="現場">
       <template #activator="{ attrs }">
         <v-btn
           v-bind="attrs"
@@ -66,7 +70,7 @@ export default {
       <template #default="{ attrs, on }">
         <g-input-site v-bind="attrs" v-on="on" />
       </template>
-    </g-dialog-editor-site>
+    </g-dialog-editor>
     <v-card-text>
       <v-chip-group column>
         <v-chip color="primary" label outlined

@@ -4,13 +4,17 @@
  *
  * @author shisyamo4131
  * @create 2024-06-28
- * @version 1.0.0
+ * @version 1.1.0
+ *
+ * 更新履歴:
+ * version 1.1.0 - 2024-07-02
+ *  - GDialogEditorの仕様変更に伴う改修。
  */
 import { where } from 'firebase/firestore'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import GDataTableEmployees from '~/components/molecules/tables/GDataTableEmployees.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
-import GDialogEditorEmployee from '~/components/molecules/dialogs/GDialogEditorEmployee.vue'
+import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 export default {
@@ -25,7 +29,7 @@ export default {
     GTemplateIndex,
     GDataTableEmployees,
     GSwitch,
-    GDialogEditorEmployee,
+    GDialogEditor,
     GBtnRegistIcon,
     GInputEmployee,
   },
@@ -87,14 +91,14 @@ export default {
 <template>
   <g-template-index :items="items" extend :search.sync="search">
     <template #append-search>
-      <g-dialog-editor-employee>
+      <g-dialog-editor model-id="Employee" label="従業員">
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
         </template>
         <template #default="{ attrs, on }">
           <g-input-employee v-bind="attrs" v-on="on" />
         </template>
-      </g-dialog-editor-employee>
+      </g-dialog-editor>
     </template>
     <template #extension>
       <g-switch v-model="includesExpired" hide-details label="退職者を含める" />

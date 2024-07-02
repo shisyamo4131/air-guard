@@ -7,14 +7,18 @@
  *
  * @author shisyamo4131
  * @create
- * @update
+ * @version 1.1.0
+ *
+ * 更新履歴:
+ * version 1.1.0 - 2024-07-02
+ *  - GDialogEditorの仕様変更に伴う改修。
  */
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
-import GDialogEditorCustomer from '~/components/molecules/dialogs/GDialogEditorCustomer.vue'
 import GDataTableCustomers from '~/components/molecules/tables/GDataTableCustomers.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
+import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -26,10 +30,10 @@ export default {
   components: {
     GBtnRegistIcon,
     GInputCustomer,
-    GDialogEditorCustomer,
     GDataTableCustomers,
     GTemplateIndex,
     GSwitch,
+    GDialogEditor,
   },
   /***************************************************************************
    * DATA
@@ -55,7 +59,9 @@ export default {
 <template>
   <g-template-index extend :items="items">
     <template #append-search>
-      <g-dialog-editor-customer
+      <g-dialog-editor
+        label="取引先"
+        model-id="Customer"
         @submit:complete="$router.push(`/customers/${$event.item.docId}`)"
       >
         <template #activator="{ attrs, on }">
@@ -64,7 +70,7 @@ export default {
         <template #default="{ attrs, on }">
           <g-input-customer v-bind="attrs" v-on="on" />
         </template>
-      </g-dialog-editor-customer>
+      </g-dialog-editor>
     </template>
     <template #extension>
       <g-switch

@@ -9,16 +9,20 @@
  *
  * @author shisyamo4131
  * @create 2024-06-27
- * @version 1.0.0
+ * @version 1.1.0
+ *
+ * 更新履歴:
+ * version 1.1.0 - 2024-07-02
+ *  - GDialogEditorの仕様変更に伴う改修。
  */
-import GDialogEditorCustomer from '../molecules/dialogs/GDialogEditorCustomer.vue'
 import GInputCustomer from '../molecules/inputs/GInputCustomer.vue'
+import GDialogEditor from '../molecules/dialogs/GDialogEditor.vue'
 import { props } from '~/models/Customer'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GDialogEditorCustomer, GInputCustomer },
+  components: { GInputCustomer, GDialogEditor },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -66,7 +70,7 @@ export default {
         </v-chip>
       </v-chip-group>
     </v-card-text>
-    <g-dialog-editor-customer ref="customer-editor">
+    <g-dialog-editor ref="customer-editor" model-id="Customer">
       <template #activator="{ attrs }">
         <v-btn
           v-bind="attrs"
@@ -84,7 +88,7 @@ export default {
       <template #default="{ attrs, on }">
         <g-input-customer v-bind="attrs" v-on="on" />
       </template>
-    </g-dialog-editor-customer>
+    </g-dialog-editor>
   </v-card>
 </template>
 

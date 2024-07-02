@@ -13,19 +13,22 @@
  *
  * @author shisyamo4131
  * @create 2024-06-29
- * @version 1.0.0
+ * @version 1.1.0
  *
+ * 更新履歴:
+ * version 1.1.0 - 2024-07-02
+ *  - GDialogEditorの仕様変更に伴う改修。
  */
 import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
 import GCardSiteContract from '../molecules/cards/GCardSiteContract.vue'
-import GDialogEditorSiteContract from '../molecules/dialogs/GDialogEditorSiteContract.vue'
+import GDialogEditor from '../molecules/dialogs/GDialogEditor.vue'
 import GInputSiteContract from '../molecules/inputs/GInputSiteContract.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GDialogEditorSiteContract,
+    GDialogEditor,
     GBtnRegistIcon,
     GInputSiteContract,
     GCardSiteContract,
@@ -95,7 +98,12 @@ export default {
   <v-card v-bind="$attrs" v-on="$listeners">
     <v-card-title class="g-card__title">
       取極
-      <g-dialog-editor-site-contract ref="editor" :default-item="{ siteId }">
+      <g-dialog-editor
+        ref="editor"
+        :default-item="{ siteId }"
+        label="取極"
+        model-id="SiteContract"
+      >
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon
             class="ml-auto"
@@ -111,7 +119,7 @@ export default {
             v-on="on"
           />
         </template>
-      </g-dialog-editor-site-contract>
+      </g-dialog-editor>
     </v-card-title>
     <v-card-text>
       <v-timeline :dense="$vuetify.breakpoint.mobile">

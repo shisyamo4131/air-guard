@@ -22,17 +22,20 @@
  * @slots
  * スロットはありません。
  *
- * @version 1.0.0
+ * @version 1.1.0
  * @create 2024-06-25
  * @author shisyamo4131
  *
+ * 更新履歴:
+ * version 1.1.0 - 2024-07-02
+ *  - GDialogEditorの仕様変更に伴う改修。
  */
 import { limit, orderBy, where } from 'firebase/firestore'
 import GDataTable from '../atoms/tables/GDataTable.vue'
 import GTextFieldSearch from '../molecules/inputs/GTextFieldSearch.vue'
 import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
 import GInputSite from '../molecules/inputs/GInputSite.vue'
-import GDialogEditorSite from '../molecules/dialogs/GDialogEditorSite.vue'
+import GDialogEditor from '../molecules/dialogs/GDialogEditor.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -42,7 +45,7 @@ export default {
     GDataTable,
     GBtnRegistIcon,
     GInputSite,
-    GDialogEditorSite,
+    GDialogEditor,
   },
   /***************************************************************************
    * PROPS
@@ -152,7 +155,11 @@ export default {
         :delay="delay"
         :lazy-value.sync="internalLazySearch"
       />
-      <g-dialog-editor-site :default-item="{ customer }">
+      <g-dialog-editor
+        :default-item="{ customer }"
+        model-id="Site"
+        label="現場"
+      >
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon
             :disabled="loading.customer || !customer.docId"
@@ -165,7 +172,7 @@ export default {
         <template #default="{ attrs, on }">
           <g-input-site v-bind="attrs" v-on="on" />
         </template>
-      </g-dialog-editor-site>
+      </g-dialog-editor>
     </v-toolbar>
     <v-expand-transition>
       <div v-show="!internalSearch && !!items.length" class="py-0 px-4">
