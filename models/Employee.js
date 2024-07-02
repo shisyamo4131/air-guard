@@ -1,8 +1,5 @@
 /**
- * Employee.js
- * @version 1.1.0
- * @date 2024-06-20
- * @author shisyamo4131
+ * ### Employee.js
  *
  * 概要:
  * Employeeクラスは、従業員情報を管理するためのモデルクラスです。
@@ -43,7 +40,14 @@
  * }
  * ---------------------------------------------------------------
  *
+ * @author shisyamo4131
+ * @date 2024-06-20
+ * @version 1.2.0
+ *
  * 更新履歴:
+ * version 1.2.0 - 2024-07-02
+ * - 生年月日、書類郵送先住所を追加
+ * - 送付先住所が個別指定されなければ住所を送付先住所に複製
  * version 1.1.0 - 2024-07-01
  * - 血液型（bloodType）を追加
  * 2024-06-20 - 初版作成
@@ -63,9 +67,14 @@ const props = {
     firstNameKana: { type: String, default: null, required: false },
     abbr: { type: String, default: null, required: false },
     gender: { type: String, default: 'male', required: false },
+    birth: { type: String, default: '', required: false },
     zipcode: { type: String, default: '', required: false },
     address1: { type: String, default: '', required: false },
     address2: { type: String, default: '', required: false },
+    hasSendAddress: { type: Boolean, default: false, required: false },
+    sendZipcode: { type: String, default: '', required: false },
+    sendAddress1: { type: String, default: '', required: false },
+    sendAddress2: { type: String, default: '', required: false },
     tel: { type: String, default: '', required: false },
     mobile: { type: String, default: '', required: false },
     hireDate: { type: String, default: '', required: false },
@@ -154,6 +163,12 @@ export default class Employee extends FireModel {
     return new Promise((resolve) => {
       if (!this.isForeigner) this.nationality = ''
       if (!this.leaveDate) this.leaveReason = ''
+      // 送付先住所がなければ登録住所を送付先住所に複製
+      if (!this.hasSendAddress) {
+        this.sendZipcode = this.zipcode
+        this.sendAddress1 = this.address1
+        this.sendAddress2 = this.address2
+      }
       return resolve()
     })
   }
@@ -166,6 +181,12 @@ export default class Employee extends FireModel {
     return new Promise((resolve) => {
       if (!this.isForeigner) this.nationality = ''
       if (!this.leaveDate) this.leaveReason = ''
+      // 送付先住所がなければ登録住所を送付先住所に複製
+      if (!this.hasSendAddress) {
+        this.sendZipcode = this.zipcode
+        this.sendAddress1 = this.address1
+        this.sendAddress2 = this.address2
+      }
       return resolve()
     })
   }

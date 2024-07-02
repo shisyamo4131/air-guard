@@ -1,4 +1,19 @@
 <script>
+import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
+/**
+ * ## InputEmployee
+ *
+ * Employee用Inputコンポーネント
+ *
+ * @author shisyamo4131
+ * @version 1.2.0
+ *
+ * 更新履歴:
+ * version 1.2.0 - 2024-07-02
+ * - 生年月日を追加
+ * version 1.1.0 - 2024-07-01
+ * - 血液型を追加
+ */
 import GDate from '~/components/atoms/inputs/GDate.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
@@ -6,19 +21,6 @@ import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
 import { props } from '~/models/Employee'
-
-/**
- * ## InputEmployee
- *
- * Employee用Inputコンポーネント
- *
- * @author shisyamo4131
- * @version 1.1.0
- *
- * 更新履歴:
- * version 1.1.0 - 2024-07-01
- * - 血液型を追加
- */
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -30,6 +32,7 @@ export default {
     GSwitch,
     GDate,
     GSelect,
+    GComboboxDate,
   },
   /***************************************************************************
    * PROPS
@@ -97,23 +100,12 @@ export default {
         />
       </v-col>
       <v-col cols="12" md="6">
-        <g-date
+        <g-combobox-date
           :value="hireDate"
           label="入社日"
           required
           @input="$emit('update:hireDate', $event)"
         />
-      </v-col>
-      <v-col cols="12" md="6">
-        <v-radio-group
-          class="mt-0 mb-2"
-          :value="gender"
-          row
-          @change="$emit('update:gender', $event)"
-        >
-          <v-radio label="男性" value="male" />
-          <v-radio label="女性" value="female" />
-        </v-radio-group>
       </v-col>
       <v-col cols="12" md="6">
         <g-switch
@@ -123,16 +115,35 @@ export default {
           @change="$emit('update:isForeigner', $event)"
         />
       </v-col>
+      <v-col cols="12" md="6">
+        <g-text-field
+          :value="nationality"
+          label="国籍"
+          :required="isForeigner"
+          :disabled="!isForeigner"
+          @input="$emit('update:nationality', $event)"
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <g-combobox-date
+          :value="birth"
+          label="生年月日"
+          required
+          @input="$emit('update:birth', $event)"
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-radio-group
+          class="mt-1 mb-2"
+          :value="gender"
+          row
+          @change="$emit('update:gender', $event)"
+        >
+          <v-radio label="男性" value="male" />
+          <v-radio label="女性" value="female" />
+        </v-radio-group>
+      </v-col>
     </v-row>
-    <v-expand-transition>
-      <g-text-field
-        v-show="isForeigner"
-        :value="nationality"
-        label="国籍"
-        :required="isForeigner"
-        @input="$emit('update:nationality', $event)"
-      />
-    </v-expand-transition>
     <g-select
       :value="bloodType"
       label="血液型"
