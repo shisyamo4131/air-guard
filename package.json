@@ -25,6 +25,7 @@
     "@nuxtjs/pwa": "^3.3.5",
     "air-vuetify": "^0.13.3",
     "axios-jsonp": "^1.0.4",
+    "browser-image-compression": "^2.0.2",
     "chart.js": "^2.9.3",
     "core-js": "^3.25.3",
     "cross-env": "^7.0.3",

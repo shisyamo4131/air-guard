@@ -94,7 +94,13 @@ import {
 import { connectDatabaseEmulator, getDatabase } from 'firebase/database'
 import { connectAuthEmulator, getAuth } from 'firebase/auth'
 import { connectFunctionsEmulator, getFunctions } from 'firebase/functions'
-import { connectStorageEmulator, getStorage } from 'firebase/storage'
+import {
+  connectStorageEmulator,
+  getDownloadURL,
+  getStorage,
+  ref,
+  uploadBytesResumable,
+} from 'firebase/storage'
 
 const firebaseConfig = require(`@/.env.${process.env.NODE_ENV}.js`)
 
@@ -128,6 +134,88 @@ export default (context, inject) => {
     connectDatabaseEmulator(inDatabase, 'localhost', 9000)
     connectStorageEmulator(inStorage, 'localhost', 9199)
   }
+  const fileUploader = (file, path, metadata) => {
+    return new Promise((resolve, reject) => {
+      // Upload file and metadata to the object 'images/mountains.jpg'
+      const storageRef = ref(inStorage, path)
+      const uploadTask = uploadBytesResumable(storageRef, file, metadata)
+      // Listen for state changes, errors, and completion of the upload.
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+          console.info('Upload is ' + progress + '% done') // eslint-disable-line
+          switch (snapshot.state) {
+            case 'paused':
+              console.info('Upload is paused') // eslint-disable-line
+              break
+            case 'running':
+              console.info('Upload is running') // eslint-disable-line
+              break
+          }
+        },
+        (error) => {
+          // A full list of error codes is available at
+          // https://firebase.google.com/docs/storage/web/handle-errors
+          switch (error.code) {
+            case 'storage/unauthorized':
+              // User doesn't have permission to access the object
+              break
+            case 'storage/canceled':
+              // User canceled the upload
+              break
+            // ...
+            case 'storage/unknown':
+              // Unknown error occurred, inspect error.serverResponse
+              break
+          }
+          reject(error)
+        },
+        () => {
+          // Upload completed successfully, now we can get the download URL
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            console.log('File available at', downloadURL) // eslint-disable-line
+            resolve(downloadURL)
+          })
+        }
+      )
+    })
+  }
+
+  const getFileUrl = (path) => {
+    return new Promise((resolve, reject) => {
+      // Create a reference to the file we want to download
+      const storageRef = ref(inStorage, path)
+      getDownloadURL(storageRef)
+        .then((url) => {
+          resolve(url)
+        })
+        .catch((error) => {
+          // A full list of error codes is available at
+          // https://firebase.google.com/docs/storage/web/handle-errors
+          switch (error.code) {
+            case 'storage/object-not-found':
+              // File doesn't exist
+              break
+            case 'storage/unauthorized':
+              // User doesn't have permission to access the object
+              break
+            case 'storage/canceled':
+              // User canceled the upload
+              break
+
+            // ...
+
+            case 'storage/unknown':
+              // Unknown error occurred, inspect the server response
+              break
+          }
+          resolve(undefined)
+        })
+    })
+  }
 
   /* inject */
   inject('firebase', firebaseApp)
@@ -137,6 +225,8 @@ export default (context, inject) => {
   inject('database', inDatabase)
   inject('storage', inStorage)
   inject('vapidKey', inVapidKey)
+  inject('fileUploader', fileUploader)
+  inject('getFileUrl', getFileUrl)
 }
 
 function verifyConfiguration() {

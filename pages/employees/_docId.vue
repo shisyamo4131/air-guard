@@ -4,6 +4,7 @@ import GLeaveApplicationCalendar from '~/components/organisms/GLeaveApplicationC
 // import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
 import GMapCard from '~/components/organisms/GMapCard.vue'
 import GEmployeeCard from '~/components/organisms/GEmployeeCard.vue'
+// import AFileUploader from '~/components/atoms/renderless/AFileUploader.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -18,6 +19,7 @@ export default {
     // GCardSubmitCancel,
     GMapCard,
     GEmployeeCard,
+    // AFileUploader,
   },
   /***************************************************************************
    * ASYNCDATA

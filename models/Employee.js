@@ -42,30 +42,39 @@
  *
  * @author shisyamo4131
  * @date 2024-06-20
- * @version 1.2.0
+ * @version 1.3.0
  *
  * 更新履歴:
+ * version 1.3.0 - 2024-07-03
+ *  - updateImgRef()を実装
+ *
  * version 1.2.0 - 2024-07-02
- * - 生年月日、書類郵送先住所を追加
- * - 送付先住所が個別指定されなければ住所を送付先住所に複製
+ *  - 生年月日、書類郵送先住所を追加
+ *  - 送付先住所が個別指定されなければ住所を送付先住所に複製
+ *  - fullName、fullNameKanaをpropsに定義
+ *  - fullName、fullNameKanaへの値のセットをObject.definePropertiesから、prepareData()に移動
+ *    -> コンポーネントのMixinsでpropsを読み込んだ際にfullName、fullNameKanaも読み込ませるため。
+ *
  * version 1.1.0 - 2024-07-01
  * - 血液型（bloodType）を追加
+ *
  * 2024-06-20 - 初版作成
  *
  * 注意事項:
  * このクラスはNuxt.jsのコンテキストに依存しないよう設計されていますが、
  * FirestoreとAuthenticationインスタンスを渡す必要があります。
  */
+import { doc, updateDoc } from 'firebase/firestore'
 import FireModel from './FireModel'
 
-const props = {
+export const props = {
   props: {
-    code: { type: String, default: null, required: false },
-    lastName: { type: String, default: null, required: false },
-    firstName: { type: String, default: null, required: false },
-    lastNameKana: { type: String, default: null, required: false },
-    firstNameKana: { type: String, default: null, required: false },
-    abbr: { type: String, default: null, required: false },
+    code: { type: String, default: '', required: false },
+    lastName: { type: String, default: '', required: false },
+    firstName: { type: String, default: '', required: false },
+    lastNameKana: { type: String, default: '', required: false },
+    firstNameKana: { type: String, default: '', required: false },
+    abbr: { type: String, default: '', required: false },
     gender: { type: String, default: 'male', required: false },
     birth: { type: String, default: '', required: false },
     zipcode: { type: String, default: '', required: false },
@@ -90,9 +99,12 @@ const props = {
     },
     status: { type: String, default: 'active', required: false },
     remarks: { type: String, default: '', required: false },
+    imgRef: { type: String, default: '', required: false },
+    // Prepared by function.
+    fullName: { type: String, default: '', required: false },
+    fullNameKana: { type: String, default: '', required: false },
   },
 }
-export { props }
 
 export default class Employee extends FireModel {
   constructor(context, item = {}) {
@@ -119,24 +131,6 @@ export default class Employee extends FireModel {
       },
     ]
     this.tokenFields = ['lastNameKana', 'firstNameKana', 'abbr']
-    Object.defineProperties(this, {
-      fullName: {
-        enumerable: true,
-        get() {
-          if (!this.firstName || !this.lastName) return ''
-          return `${this.lastName} ${this.firstName}`
-        },
-        set(v) {},
-      },
-      fullNameKana: {
-        enumerable: true,
-        get() {
-          if (!this.firstNameKana || !this.lastNameKana) return ''
-          return `${this.lastNameKana} ${this.firstNameKana}`
-        },
-        set(v) {},
-      },
-    })
     this.initialize(item)
   }
 
@@ -161,15 +155,8 @@ export default class Employee extends FireModel {
    */
   beforeCreate() {
     return new Promise((resolve) => {
-      if (!this.isForeigner) this.nationality = ''
-      if (!this.leaveDate) this.leaveReason = ''
-      // 送付先住所がなければ登録住所を送付先住所に複製
-      if (!this.hasSendAddress) {
-        this.sendZipcode = this.zipcode
-        this.sendAddress1 = this.address1
-        this.sendAddress2 = this.address2
-      }
-      return resolve()
+      this.prepareData()
+      resolve()
     })
   }
 
@@ -179,15 +166,44 @@ export default class Employee extends FireModel {
    */
   beforeUpdate() {
     return new Promise((resolve) => {
-      if (!this.isForeigner) this.nationality = ''
-      if (!this.leaveDate) this.leaveReason = ''
-      // 送付先住所がなければ登録住所を送付先住所に複製
-      if (!this.hasSendAddress) {
-        this.sendZipcode = this.zipcode
-        this.sendAddress1 = this.address1
-        this.sendAddress2 = this.address2
-      }
-      return resolve()
+      this.prepareData()
+      resolve()
     })
+  }
+
+  prepareData() {
+    this.imgRef = `/images/employees/${this.code}.jpg`
+    this.fullName =
+      this.lastName && this.firstName
+        ? `${this.lastName} ${this.firstName}`
+        : ''
+    this.fullNameKana =
+      this.lastNameKana && this.firstNameKana
+        ? `${this.lastNameKana} ${this.firstNameKana}`
+        : ''
+    if (!this.isForeigner) this.nationality = ''
+    if (!this.leaveDate) this.leaveReason = ''
+    // 送付先住所がなければ登録住所を送付先住所に複製
+    if (!this.hasSendAddress) {
+      this.sendZipcode = this.zipcode
+      this.sendAddress1 = this.address1
+      this.sendAddress2 = this.address2
+    }
+  }
+
+  /**
+   * 従業員ドキュメントのイメージファイルパスを更新します。
+   * @param {string} docId - 従業員ID
+   * @param {string} url - イメージファイルのフルパス
+   */
+  async updateImgRef(docId, url) {
+    const docRef = doc(this.firestore, `Employees/${docId}`)
+    try {
+      await updateDoc(docRef, { imgRef: url })
+    } catch (err) {
+      // eslint-disable-next-line
+      console.error(err)
+      throw err
+    }
   }
 }

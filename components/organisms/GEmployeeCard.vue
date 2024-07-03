@@ -9,7 +9,7 @@
  *
  * @author shisyamo4131
  * @create 2024-06-28
- * @version 1.1.0
+ * @version 2.1.0
  *
  * 更新履歴:
  * version 2.0.0 - 2024-07-02
@@ -38,8 +38,7 @@ export default {
    ***************************************************************************/
   mixins: [props],
   props: {
-    fullName: { type: String, default: '', required: false },
-    fullNameKana: { type: String, default: '', required: false },
+    docId: { type: String, required: true },
   },
   /***************************************************************************
    * DATA

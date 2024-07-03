@@ -306,7 +306,7 @@ export default class FireModel {
    * @returns
    */
   initialize(item = {}) {
-    this.docId = null
+    this.docId = ''
     if (this.#addTimestamps) {
       this.createAt = null
       this.createDate = null
