@@ -7,6 +7,10 @@
  * @author shisyamo4131
  * @create 2024-07-02
  * @version 1.0.0
+ *
+ * 更新履歴:
+ * version 1.0.1 - 2027-07-03
+ *  - 血液型が正常に表示されていなかったのを修正。
  */
 import ja from 'dayjs/locale/ja'
 import { props } from '~/models/Employee'
@@ -64,7 +68,7 @@ export default {
       </tr>
       <tr>
         <td>血液型</td>
-        <td>未登録</td>
+        <td>{{ bloodType }}</td>
       </tr>
     </tbody>
   </v-simple-table>
