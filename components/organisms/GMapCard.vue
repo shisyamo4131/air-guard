@@ -13,10 +13,12 @@
  * @slots
  * スロットはありません。
  *
- * @version 1.0.0
- * @create 2024-06-25
  * @author shisyamo4131
+ * @version 1.0.1
  *
+ * 更新履歴:
+ * version 1.0.1 - 2024-07-03
+ *  - v-card-titleのクラスに`d-block`、`text-truncate`を設定。
  */
 export default {
   /***************************************************************************
@@ -30,7 +32,9 @@ export default {
 
 <template>
   <v-card class="d-flex flex-column" v-bind="$attrs" v-on="$listeners">
-    <v-card-title class="g-card__title">{{ value }}</v-card-title>
+    <v-card-title class="g-card__title d-block text-truncate">{{
+      value
+    }}</v-card-title>
     <v-card-text class="d-flex flex-grow-1">
       <iframe
         :src="`https://maps.google.com/maps?output=embed&q=${value}&t=m&hl=ja&z=12`"
