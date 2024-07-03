@@ -15,11 +15,12 @@ import { props } from '~/models/EmployeeMedicalCheckup'
 import EditMode from '~/components/mixins/GMixinEditMode'
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
+import GTextField from '~/components/atoms/inputs/GTextField.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GSelect, GTextarea, GComboboxDate, GNumeric },
+  components: { GSelect, GTextarea, GComboboxDate, GNumeric, GTextField },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -29,34 +30,57 @@ export default {
 
 <template>
   <div>
-    <g-combobox-date
-      :value="employeeId"
-      label="受診日"
-      required
-      @input="$emit('update:employeeId', $event)"
-    />
-    <g-select
-      :value="type"
-      label="申請区分"
-      :items="['entry', 'regular']"
-      required
-      @input="$emit('update:type', $event)"
-    />
-    <g-numeric
-      :value="bloodPressure.top"
-      label="血圧（上）"
-      required
-      @input="$emit('update:bloodPressure-top', $event)"
-    />
-    <g-numeric
-      :value="bloodPressure.bottom"
-      label="血圧（下）"
-      required
-      @input="$emit('update:bloodPressure-bottom', $event)"
-    />
+    <v-row dense>
+      <v-col cols="12" md="6">
+        <g-combobox-date
+          :value="date"
+          label="受診日"
+          required
+          @input="$emit('update:date', $event)"
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <g-select
+          :value="type"
+          label="受診区分"
+          :items="[
+            { text: '入社時', value: 'entry' },
+            { text: '法定検診', value: 'regular' },
+          ]"
+          required
+          attach
+          @input="$emit('update:type', $event)"
+        />
+      </v-col>
+      <v-col cols="12">
+        <g-text-field
+          :value="agency"
+          label="受診機関"
+          required
+          @input="$emit('update:agency', $event)"
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <g-numeric
+          :value="bloodPressure.top"
+          label="血圧（上）"
+          required
+          @input="$emit('update:bloodPressure-top', $event)"
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <g-numeric
+          :value="bloodPressure.bottom"
+          label="血圧（下）"
+          required
+          @input="$emit('update:bloodPressure-bottom', $event)"
+        />
+      </v-col>
+    </v-row>
     <g-textarea
       :value="remarks"
       label="備考"
+      hide-details
       @input="$emit('update:remarks', $event)"
     />
   </div>

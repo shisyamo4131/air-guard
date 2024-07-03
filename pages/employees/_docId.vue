@@ -1,10 +1,17 @@
 <script>
-// import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
+/**
+ * ### pages.EmployeeDetail
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ *
+ * 更新履歴:
+ * version 1.0.1 - 2024-07-03
+ *  - 健康診断履歴（EmployeeMedicalCheckups）へのリアルタイムリスナーを実装。EmployeeCardに引き渡すように。
+ */
 import GLeaveApplicationCalendar from '~/components/organisms/GLeaveApplicationCalendar.vue'
-// import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
 import GMapCard from '~/components/organisms/GMapCard.vue'
 import GEmployeeCard from '~/components/organisms/GEmployeeCard.vue'
-// import AFileUploader from '~/components/atoms/renderless/AFileUploader.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -14,23 +21,25 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    // GInputEmployee,
     GLeaveApplicationCalendar,
-    // GCardSubmitCancel,
     GMapCard,
     GEmployeeCard,
-    // AFileUploader,
   },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
   asyncData({ app, route }) {
     const docId = route.params.docId
+    const items = {
+      medicalCheckups: [],
+    }
     const listeners = {
       employee: app.$Employee(),
+      medicalCheckup: app.$EmployeeMedicalCheckup({ employeeId: docId }),
     }
     listeners.employee.subscribeDoc(docId)
-    return { docId, listeners }
+    items.medicalCheckups = listeners.medicalCheckup.subscribe()
+    return { docId, listeners, items }
   },
   /***************************************************************************
    * DATA
@@ -104,10 +113,15 @@ export default {
 <template>
   <div>
     <v-breadcrumbs :items="breadcrumbs" />
-    <v-container fluid>
+    <v-container>
       <v-row>
         <v-col cols="12">
-          <g-employee-card v-bind="listeners.employee" flat outlined />
+          <g-employee-card
+            v-bind="listeners.employee"
+            flat
+            outlined
+            :medical-checkups="items.medicalCheckups"
+          />
         </v-col>
         <v-col cols="12" md="5">
           <g-map-card

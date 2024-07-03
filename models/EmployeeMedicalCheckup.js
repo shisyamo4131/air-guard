@@ -25,6 +25,7 @@ const props = {
       validator: (v) => ['entry', 'regular'].includes(v),
       required: false,
     },
+    agency: { type: String, default: '', required: false },
     bloodPressure: {
       type: Object,
       default: () => {
@@ -40,13 +41,13 @@ const props = {
 }
 export { props }
 
-export default class MedicalCheckup extends FireModel {
+export default class EmployeeMedicalCheckup extends FireModel {
   constructor(context, item = {}) {
     super(context, item)
   }
 
   get collection() {
-    return `Employees/${this.employeeId}/MedicalCheckups`
+    return `Employees/${this.employeeId}/EmployeeMedicalCheckups`
   }
 
   set collection(v) {}

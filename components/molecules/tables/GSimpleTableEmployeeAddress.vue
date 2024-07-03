@@ -33,7 +33,7 @@ export default {
         <td>{{ address2 }}</td>
       </tr>
       <tr>
-        <td>送付先住所</td>
+        <td>送付先</td>
         <td>
           {{ hasSendAddress ? '上記と異なる' : '登録住所' }}
         </td>
