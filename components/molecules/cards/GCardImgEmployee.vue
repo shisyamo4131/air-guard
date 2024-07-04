@@ -27,7 +27,6 @@ export default {
   data() {
     return {
       noImage: require('@/static/now-printing.png'),
-      imgDir: '/images/employees',
       src: null,
     }
   },
