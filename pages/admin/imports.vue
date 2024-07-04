@@ -1,336 +1,247 @@
-<template>
-  <g-template-default label="import">
-    <template #default>
-      <v-container fluid>
-        <v-card>
-          <v-card-title>import</v-card-title>
-          <v-card-text>
-            <v-form ref="form">
-              <v-row>
-                <v-col>
-                  <g-select
-                    v-model="selectedCollection"
-                    :items="collections"
-                    label="collection"
-                    required
-                  />
-                </v-col>
-                <v-col>
-                  <v-file-input
-                    v-model="file"
-                    label="file"
-                    outlined
-                    dense
-                    :rules="[(v) => !!v || 'required.']"
-                  />
-                </v-col>
-              </v-row>
-            </v-form>
-            <v-data-table :headers="headers" :items="csvData" />
-          </v-card-text>
-          <v-card-actions class="justify-end">
-            <v-btn
-              color="primary"
-              :disabled="loading"
-              :loading="loading"
-              @click="submit"
-              >submit</v-btn
-            >
-          </v-card-actions>
-        </v-card>
-      </v-container>
-    </template>
-  </g-template-default>
-</template>
-
 <script>
-import {
-  collection,
-  // doc,
-  getDocs,
-  query,
-  where,
-  // writeBatch,
-} from 'firebase/firestore'
-import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
-import GSelect from '~/components/atoms/inputs/GSelect.vue'
+/**
+ * ### pages.Imports
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ *
+ * 更新履歴:
+ * version 1.0.0 - 2024-07-04
+ *  - 初版作成
+ */
+import { ref, update } from 'firebase/database'
 export default {
-  components: { GTemplateDefault, GSelect },
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
+  components: {
+    FileChip: {
+      render(createElement) {
+        if (this.$attrs.disabled) {
+          return createElement(
+            `VChip`,
+            {
+              attrs: { ...this.$attrs, color: 'secondary', label: true },
+            },
+            this.$slots.default
+          )
+        } else {
+          return createElement(
+            `VChip`,
+            {
+              attrs: { ...this.$attrs, color: 'secondary', label: true },
+            },
+            [
+              createElement(
+                'VIcon',
+                { attrs: { small: true, left: true } },
+                'mdi-check'
+              ),
+              this.$slots.default,
+            ]
+          )
+        }
+      },
+    },
+  },
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
   data() {
     return {
-      selectedCollection: null,
-      collections: [
-        'AttendanceRecords',
-        'Customers',
-        'Sites',
-        'Employees',
-        'OperationResults',
+      allowedFiles: [
+        { name: 'customers.txt', collectionId: 'Customers' },
+        { name: 'sites.txt', collectionId: 'Sites' },
+        { name: 'employees.txt', collectionId: 'Employees' },
       ],
-      file: null,
-      csvData: [],
+      files: [],
+      filesRule: (v) =>
+        !v.length ||
+        v.every(({ name }) =>
+          this.allowedFiles.some((file) => file.name === name)
+        ) ||
+        'インポートできないファイルが含まれています。',
       loading: false,
+      processingText: null,
+      snackbar: false,
+      step: 1,
     }
   },
-  computed: {
-    headers() {
-      if (!this.csvData.length) return []
-      const result = Object.keys(this.csvData[0])
-        .map((key) => {
-          return { text: key, value: key }
-        })
-        .filter((item, index) => index < 5)
-      return result
-    },
-  },
-  watch: {
-    async file(v) {
-      if (!v) return
-      this.csvData = await this.readCsv()
-    },
-  },
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
   methods: {
-    readCsv() {
-      return new Promise((resolve) => {
-        this.$papa.parse(this.file, {
+    /**
+     * 引数で指定されたファイルが、`data.allowedFiles`で定義されているかどうかを
+     * 返します。
+     *
+     * @return 定義されていればtrueを、されていなければfalseを返します。
+     */
+    fileIsAllowed(file) {
+      return this.allowedFiles.map((item) => item.name).includes(file.name)
+    },
+    /**
+     * `data.files`配列内のすべてのファイルオブジェクトが`data.allowedFiles`に
+     * 定義されているかを返します。
+     *
+     * @return 定義されていない要素が1つでもあればfalseを、そうでなければtrueを返します。
+     */
+    allFilesAllowed() {
+      return this.files.every(({ name }) =>
+        this.allowedFiles.some((file) => file.name === name)
+      )
+    },
+    /**
+     * divにファイルがドロップされた時の処理です。
+     * - 既定のイベント、親への伝播をキャンセルします。
+     * - `data.files`を初期化し、ファイルオブジェクトのみを`data.files`に格納します。
+     */
+    onDrop(e) {
+      e.preventDefault()
+      e.stopPropagation()
+      // this.isDragging = false;
+      // D&Dが複数回行われるケースに対応するため、一旦`data.files`を初期化
+      this.files.splice(0)
+      /**
+       * D&Dによって受け取るデータはvalueをファイルオブジェクトとしたkey-valueオブジェクト。
+       * keyが数値であればvalueはファイルオブジェクトなので、これを抜き出して`data.files`に追加する
+       */
+      const _files = e.dataTransfer.files
+      for (const file in _files) {
+        if (!isNaN(file)) this.files.push(_files[file])
+      }
+    },
+    /**
+     * 引数に指定されたファイルオブジェクトを読み込み、データを配列で返す。
+     */
+    readCsv(file) {
+      return new Promise((resolve, reject) => {
+        this.$papa.parse(file, {
           header: true,
           skipEmptyLines: true,
-          complete: function (results) {
-            return resolve(results.data)
-          },
+          complete: (results) => resolve(results.data),
+          error: (err) => reject(err),
         })
       })
     },
+    /**
+     * 引数に指定されたファイルオブジェクトから、`data.allowedFiles`で定義されている
+     * オブジェクトを検索し、該当するものがあればコレクションIDを返します。
+     *
+     * @return 指定されたファイルのインポート先コレクション名
+     */
+    getCollectionId(file) {
+      const result = this.allowedFiles.find((item) => item.name === file.name)
+      return result?.collectionId || undefined
+    },
     async submit() {
-      // const autonumber = this.$Autonumber()
+      this.loading = true
       try {
-        this.loading = true
-        // await autonumber.stop(this.selectedCollection)
-        await this[`import${this.selectedCollection}`]()
-        // eslint-disable-next-line
-        console.info(`[imports.vue] インポート処理が正常に完了しました。`)
+        for (const file of this.files) {
+          const csvData = await this.readCsv(file)
+          const collectionId = this.getCollectionId(file)
+          if (!collectionId)
+            throw new Error('コレクションIDが取得できませんでした。')
+          this.processingText = `${collectionId}をインポートしています。`
+          const updates = csvData.reduce((acc, i) => {
+            Object.keys(i).forEach((key) => {
+              acc[`/AirGuard/${collectionId}/${i.code}/${key}`] = i[key]
+            })
+            return acc
+          }, {})
+          await update(ref(this.$database), updates)
+        }
+        this.snackbar = true
+        this.step = 1
+        this.files.splice(0)
       } catch (err) {
         // eslint-disable-next-line
         console.error(err)
         alert(err.message)
       } finally {
-        // await autonumber.refresh(this.selectedCollection)
-        // await autonumber.start(this.selectedCollection)
         this.loading = false
+        this.processingText = null
       }
-    },
-    async importAttendanceRecords() {
-      const model = this.$AttendanceRecord()
-      await model.importFromAirGuard(this.csvData)
-      // const delAll = async () => {
-      //   const colRef = collection(this.$firestore, 'AttendanceRecords')
-      //   const snapshot = await getDocs(colRef)
-      //   const batchArray = []
-      //   snapshot.docs.forEach((doc, index) => {
-      //     if (index % 500 === 0) batchArray.push(writeBatch(this.$firestore))
-      //     batchArray[batchArray.length - 1].delete(doc.ref)
-      //   })
-      //   await Promise.all(batchArray.map(async (batch) => await batch.commit()))
-      // }
-      // await delAll()
-      // const employeeIds = this.csvData.map(({ employeeId }) => employeeId)
-      // const uniqueIds = [...new Set(employeeIds)]
-      // const chunkedIds = uniqueIds.flatMap((_, i) =>
-      //   i % 30 ? [] : [uniqueIds.slice(i, i + 30)]
-      // )
-      // const getEmployees = async (chunkedIds) => {
-      //   const promises = chunkedIds.map(async (ids) => {
-      //     const colRef = collection(this.$firestore, 'Employees')
-      //     const q = query(colRef, where('code', 'in', ids))
-      //     const snapshot = await getDocs(q)
-      //     return snapshot.docs.map((doc) => doc.data())
-      //   })
-      //   const snapshots = await Promise.all(promises)
-      //   const result = []
-      //   snapshots.forEach((data) => result.push(...data))
-      //   return result
-      // }
-      // const employees = await getEmployees(chunkedIds)
-      // const newItems = this.csvData.map((data) => {
-      //   data.employeeId = employees.find(
-      //     ({ code }) => code === data.employeeId
-      //   ).docId
-      //   data.scheduledWorkingTime = parseInt(data.scheduledWorkingTime)
-      //   data.statutoryOverTime = parseInt(data.statutoryOverTime)
-      //   data.nonStatutoryOverTime = parseInt(data.nonStatutoryOverTime)
-      //   data.holidayWorkingTime = parseInt(data.holidayWorkingTime)
-      //   data.midnightWorkingTime = parseInt(data.midnightWorkingTime)
-      //   data.scheduledWorkingDays = parseInt(data.scheduledWorkingDays)
-      //   data.statutoryWorkingDays = parseInt(data.statutoryWorkingDays)
-      //   data.holidayWorkingDays = parseInt(data.holidayWorkingDays)
-      //   data.absenceDays = parseInt(data.absenceDays)
-      //   data.annualVacationDays = parseInt(data.annualVacationDays)
-      //   const model = this.$AttendanceRecord(data)
-      //   return model
-      // })
-      // const batchArray = []
-      // newItems.forEach((item, index) => {
-      //   if (index % 500 === 0) batchArray.push(writeBatch(this.$firestore))
-      //   // const docRef = doc(collection(this.$firestore, 'AttendanceRecords'))
-      //   const docRef = doc(
-      //     this.$firestore,
-      //     `AttendanceRecords/${item.employeeId + item.month}`
-      //   )
-      //   batchArray[batchArray.length - 1].set(docRef, { ...item })
-      // })
-      // await Promise.all(batchArray.map(async (batch) => await batch.commit()))
-    },
-    chunkedArr(arr, size) {
-      return arr.flatMap((_, i, a) =>
-        i % size ? [] : [arr.slice(i, i + size)]
-      )
-    },
-    async getExistDocsFromArray(arr, collectionId, field) {
-      /* eslint-disable */
-      console.info(
-        `[imports.vue] ${collectionId}からドキュメントを取得します。`
-      )
-      console.info(arr)
-      const chunkedIds = this.chunkedArr(arr, 10)
-      const result = []
-      for (const arr of chunkedIds) {
-        const colRef = collection(this.$firestore, collectionId)
-        const q = query(colRef, where(field, 'in', arr))
-        const querySnapshot = await getDocs(q)
-        if (!querySnapshot.empty)
-          result.push(...querySnapshot.docs.map((doc) => doc.data()))
-      }
-      console.info(
-        `[imports.vue] ${collectionId}から${result.length}件のドキュメントを取得しました。`
-      )
-      /* eslint-enable */
-      return result
-    },
-    async importCustomers() {
-      const existDocs = await this.getExistDocsFromArray(
-        this.csvData.map(({ code }) => code),
-        'Customers',
-        'code'
-      )
-      const promises = []
-      for (const data of this.csvData) {
-        const model = this.$Customer()
-        data.depositMonth = Number(data.depositMonth)
-        const existDoc = existDocs.find(({ code }) => code === data.code)
-        if (existDoc) {
-          model.initialize({ ...data, docId: existDoc.docId })
-          promises.push(model.update())
-        } else {
-          model.initialize(data)
-          promises.push(model.create())
-        }
-      }
-      await Promise.all(promises)
-    },
-    async importSites() {
-      const customerCodes = [
-        ...new Set(this.csvData.map(({ customerCode }) => customerCode)),
-      ]
-      const customers = await this.getExistDocsFromArray(
-        customerCodes,
-        'Customers',
-        'code'
-      )
-      if (customers.length !== customerCodes.length) {
-        const customerNotExist = this.csvData.filter((data) => {
-          return !customers.some(({ code }) => code === data.customerCode)
-        })
-        // eslint-disable-next-line
-        console.table(customerNotExist)
-        throw new Error(
-          'CSVデータに取引先が未登録である現場が含まれています。処理を中断します。'
-        )
-      }
-      const existDocs = await this.getExistDocsFromArray(
-        this.csvData.map(({ code }) => code),
-        'Sites',
-        'code'
-      )
-      const promises = []
-      for (const data of this.csvData) {
-        const model = this.$Site()
-        data.customer = customers.find(({ code }) => code === data.customerCode)
-        const existDoc = existDocs.find(({ code }) => code === data.code)
-        if (existDoc) {
-          model.initialize({ ...data, docId: existDoc.docId })
-          promises.push(model.update())
-        } else {
-          model.initialize(data)
-          promises.push(model.create())
-        }
-      }
-      await Promise.all(promises)
-    },
-    async importEmployees() {
-      const existDocs = await this.getExistDocsFromArray(
-        this.csvData.map(({ code }) => code),
-        'Employees',
-        'code'
-      )
-      const promises = []
-      for (const data of this.csvData) {
-        const model = this.$Employee()
-        const existDoc = existDocs.find(({ code }) => code === data.code)
-        if (existDoc) {
-          model.initialize({ ...data, docId: existDoc.docId })
-          promises.push(model.update())
-        } else {
-          model.initialize(data)
-          promises.push(model.create())
-        }
-      }
-      await Promise.all(promises)
-    },
-    async importOperationResults() {
-      const siteCodes = [
-        ...new Set(this.csvData.map(({ siteCode }) => siteCode)),
-      ]
-      const sites = await this.getExistDocsFromArray(siteCodes, 'Sites', 'code')
-      if (sites.length !== siteCodes.length) {
-        const siteNotExist = this.csvData.filter((data) => {
-          return !sites.some(({ code }) => code === data.siteCode)
-        })
-        // eslint-disable-next-line
-        console.table(siteNotExist)
-        throw new Error(
-          'CSVデータに現場が未登録である稼働実績が含まれています。処理を中断します。'
-        )
-      }
-      const existDocs = await this.getExistDocsFromArray(
-        this.csvData.map(({ code }) => code),
-        'OperationResults',
-        'code'
-      )
-      const promises = []
-      for (const data of this.csvData) {
-        const model = this.$OperationResult()
-        data.site = sites.find(({ code }) => code === data.siteCode)
-        data.sales = Number(data.sales)
-        data.workers = {}
-        data.workersQualified = {}
-        data.workers.normal = Number(data.workersNormal)
-        data.workers.half = Number(data.workersHalf)
-        data.workers.canceled = Number(data.workersCanceled)
-        data.workersQualified.normal = Number(data.workersQualifiedNormal)
-        data.workersQualified.half = Number(data.workersQualifiedHalf)
-        data.workersQualified.canceled = Number(data.workersQualifiedCanceled)
-        const existDoc = existDocs.find(({ code }) => code === data.code)
-        if (existDoc) {
-          model.initialize({ ...data, docId: existDoc.docId })
-          promises.push(model.update())
-        } else {
-          model.initialize(data)
-          promises.push(model.create())
-        }
-      }
-      await Promise.all(promises)
     },
   },
 }
 </script>
+
+<template>
+  <v-container>
+    <v-card>
+      <v-card-title>MS-Accessデータインポート</v-card-title>
+      <v-card-text>
+        <p>
+          MS-Access版AirGuardから出力されたCSVデータを、RealtimeDatabaseにインポートします。<br />
+          データは`AirGuard/{collectionId}/{code}`以下に保存され、以下の条件を満たす場合、Cloud
+          Functionsによって自動的にFirestoreの各種ドキュメントと同期されます。
+        </p>
+        <ul>
+          <li>`AirGuard/{collectionId}/{code}/docId`が存在する場合</li>
+        </ul>
+        <p>
+          docIdが存在しない場合は同期処理が行われません。別途、データ同期設定にて処理してください。
+        </p>
+      </v-card-text>
+      <v-container>
+        <v-stepper v-model="step" vertical>
+          <v-stepper-step step="1"> ファイル選択 </v-stepper-step>
+          <v-stepper-content step="1">
+            <div @dragover.prevent @drop="onDrop">
+              <v-file-input v-model="files" multiple :rules="[filesRule]" />
+            </div>
+            <div class="d-flex flex-wrap pa-5" style="gap: 12px">
+              <file-chip
+                v-for="(file, index) of files"
+                :key="index"
+                :disabled="!fileIsAllowed(file)"
+                >{{ file.name }}</file-chip
+              >
+            </div>
+            <v-card-actions class="justify-end">
+              <v-btn
+                color="primary"
+                :disabled="!allFilesAllowed || !files.length"
+                @click="step++"
+                >次へ</v-btn
+              >
+            </v-card-actions>
+          </v-stepper-content>
+
+          <v-stepper-step step="2"> 確認 </v-stepper-step>
+          <v-stepper-content step="2">
+            <v-card-subtitle>
+              以下のファイルをインポートします。
+            </v-card-subtitle>
+            <div class="d-flex flex-wrap pa-5" style="gap: 12px">
+              <file-chip v-for="(file, index) of files" :key="index">
+                {{ file.name }}
+              </file-chip>
+            </div>
+            <v-progress-linear
+              :indeterminate="loading"
+              color="yellow darken-2"
+            ></v-progress-linear>
+            <v-subheader>{{ processingText }}</v-subheader>
+            <v-card-actions class="justify-space-between">
+              <v-btn @click="step--">戻る</v-btn>
+              <v-btn
+                color="primary"
+                :disabled="loading"
+                :loading="loading"
+                @click="submit"
+                >実行</v-btn
+              >
+            </v-card-actions>
+          </v-stepper-content>
+        </v-stepper>
+      </v-container>
+    </v-card>
+    <v-snackbar v-model="snackbar" centered>
+      インポート処理が完了しました。
+    </v-snackbar>
+  </v-container>
+</template>
 
 <style></style>
