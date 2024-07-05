@@ -6,6 +6,9 @@ setGlobalOptions({ region: 'asia-northeast1' })
 
 exports.auth = require('./modules/auth')
 exports.role = require('./modules/role')
+
+exports.airGuard = require('./modules/air-guard')
+
 exports.leaveApplications = require('./modules/leave-applications')
 exports.employees = require('./modules/employees')
 
