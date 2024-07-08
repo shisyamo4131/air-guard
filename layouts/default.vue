@@ -185,6 +185,9 @@ export default {
   max-width: 0;
 }
 
+/**
+ * 親コンテナにdisplay: flexとheightが指定されていること。
+ */
 .flex-table {
   display: flex;
   flex-grow: 1;

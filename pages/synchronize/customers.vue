@@ -3,66 +3,89 @@
     <v-card outlined>
       <v-card-title> 取引先情報同期設定 </v-card-title>
       <v-card-text> 取引先情報の同期設定を行います。 </v-card-text>
-      <v-stepper v-model="step" vertical flat>
-        <v-stepper-step step="1"> 未同期データの選択 </v-stepper-step>
-        <v-stepper-content step="1">
-          <g-data-table
-            v-model="selectedUnsync"
-            :headers="[
-              { text: 'CODE', value: 'code' },
-              { text: '取引先名1', value: 'name1' },
-              { text: '取引先名2', value: 'name2' },
-            ]"
-            height="240"
-            :items="items.unsync"
-            item-key="code"
-            show-select
-            single-select
-          />
-          <v-card-actions class="justify-end">
-            <v-btn
-              color="primary"
-              :disabled="!selectedUnsync.length"
-              @click="step++"
-              >次へ</v-btn
+      <v-window v-model="step">
+        <v-window-item>
+          <v-card>
+            <v-card-text
+              class="d-flex overflow-hidden"
+              :style="{ height: `${$vuetify.breakpoint.height - 272}px` }"
             >
-          </v-card-actions>
-        </v-stepper-content>
-        <v-stepper-step step="2"> 同期先データの選択 </v-stepper-step>
-        <v-stepper-content step="2">
-          <g-data-table
-            v-model="selectedToSync"
-            :headers="[
-              { text: 'CODE', value: 'code' },
-              { text: '取引先名1', value: 'name1' },
-              { text: '取引先名2', value: 'name2' },
-            ]"
-            height="240"
-            :items="unsyncedCustomers"
-            item-key="code"
-            :show-select="!asNewItem"
-            single-select
-          />
-          <div class="d-flex">
-            <v-checkbox
-              v-model="asNewItem"
-              class="ml-auto"
-              label="新規データとして同期する"
-            />
-          </div>
-          <v-card-actions class="justify-space-between">
-            <v-btn @click="step--">戻る</v-btn>
-            <v-btn
-              color="primary"
-              :disabled="!selectedToSync.length && !asNewItem"
-              @click="step++"
-              >次へ</v-btn
+              <g-data-table
+                v-model="selectedUnsync"
+                class="flex-table"
+                disable-sort
+                :headers="[
+                  { text: 'CODE', value: 'code' },
+                  { text: '取引先名1', value: 'name1' },
+                  { text: '取引先名2', value: 'name2' },
+                ]"
+                :items="items.unsync"
+                item-key="code"
+                show-select
+                single-select
+                :page.sync="page.unsync"
+                @page-count="pageCount.unsync = $event"
+              />
+            </v-card-text>
+            <div class="text-center">
+              <v-pagination v-model="page.unsync" :length="pageCount.unsync" />
+            </div>
+            <v-card-actions class="justify-end">
+              <v-btn
+                color="primary"
+                :disabled="!selectedUnsync.length"
+                @click="step++"
+                >次へ</v-btn
+              >
+            </v-card-actions>
+          </v-card>
+        </v-window-item>
+        <v-window-item>
+          <v-card>
+            <v-card-text
+              class="d-flex overflow-hidden"
+              :style="{ height: `${$vuetify.breakpoint.height - 380}px` }"
             >
-          </v-card-actions>
-        </v-stepper-content>
-        <v-stepper-step step="3"> 確認 </v-stepper-step>
-        <v-stepper-content step="3">
-          <div class="d-flex flex-column mb-4">
+              <g-data-table
+                v-model="selectedToSync"
+                class="flex-table"
+                disable-sort
+                :headers="[
+                  { text: 'CODE', value: 'code' },
+                  { text: '取引先名1', value: 'name1' },
+                  { text: '取引先名2', value: 'name2' },
+                ]"
+                :items="unsyncedCustomers"
+                item-key="code"
+                :show-select="!asNewItem"
+                single-select
+                :page.sync="page.toSync"
+                @page-count="pageCount.toSync = $event"
+              />
+            </v-card-text>
+            <div class="text-center">
+              <v-pagination v-model="page.toSync" :length="pageCount.toSync" />
+            </div>
+            <v-card-text class="d-flex">
+              <v-checkbox
+                v-model="asNewItem"
+                class="ml-auto"
+                label="新規データとして同期する"
+              />
+            </v-card-text>
+            <v-card-actions class="justify-space-between">
+              <v-btn @click="step--">戻る</v-btn>
+              <v-btn
+                color="primary"
+                :disabled="!selectedToSync.length && !asNewItem"
+                @click="step++"
+                >次へ</v-btn
+              >
+            </v-card-actions>
+          </v-card>
+        </v-window-item>
+        <v-window-item>
+          <v-container class="d-flex flex-column mb-4">
             <v-card outlined>
               <v-subheader>同期元</v-subheader>
               <v-simple-table v-if="selectedUnsync.length">
@@ -107,7 +130,7 @@
                 >新規データとして作成します。</v-alert
               >
             </v-card>
-          </div>
+          </v-container>
           <v-card-actions class="justify-space-between">
             <v-btn :disabled="loading" @click="step--">戻る</v-btn>
             <v-btn
@@ -118,8 +141,8 @@
               >実行</v-btn
             >
           </v-card-actions>
-        </v-stepper-content>
-      </v-stepper>
+        </v-window-item>
+      </v-window>
     </v-card>
   </v-container>
 </template>
@@ -167,9 +190,17 @@ export default {
     return {
       asNewItem: false,
       loading: false,
+      page: {
+        toSync: 1,
+        unsync: 1,
+      },
+      pageCount: {
+        toSync: 1,
+        unsync: 1,
+      },
       selectedUnsync: [],
       selectedToSync: [],
-      step: 1,
+      step: 0,
     }
   },
   computed: {
@@ -191,11 +222,13 @@ export default {
   },
   methods: {
     initialize() {
-      this.step = 1
+      this.step = 0
       this.selectedUnsync.splice(0)
       this.selectedToSync.splice(0)
       this.asNewItem = false
       this.loading = false
+      this.page.unsync = 1
+      this.page.toSync = 1
     },
     async syncToExist(code, docId) {
       const dbRef = ref(this.$database, `AirGuard/Customers/${code}`)
@@ -222,7 +255,7 @@ export default {
         console.error(err)
         alert(err.message)
       } finally {
-        this.loading = true
+        this.loading = false
       }
     },
   },
