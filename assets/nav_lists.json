@@ -43,6 +43,11 @@
     ]
   },
   {
+    "name": "同期設定",
+    "icon": "mdi-wrench-cog",
+    "lists": [{ "name": "取引先同期設定", "to": "/synchronize/customers" }]
+  },
+  {
     "name": "管理",
     "icon": "mdi-wrench-cog",
     "lists": [

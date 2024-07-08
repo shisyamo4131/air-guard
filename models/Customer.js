@@ -40,12 +40,13 @@
  * }
  * ---------------------------------------------------------------
  *
- * @version 1.0.0
- * @date 2024-06-20
+ * @version 1.1.0
+ * @create 2024-06-20
  * @author shisyamo4131
  *
  * 更新履歴:
- * 2024-06-20 - 初版作成
+ * version 1.1.0 - 2024-07-08 - AirGuard(MS)との同期済みフラグとして`sync`を追加
+ * version 1.0.0 - 2024-06-20 - 初版作成
  *
  * 注意事項:
  * このクラスはNuxt.jsのコンテキストに依存しないよう設計されていますが、
@@ -71,6 +72,7 @@ const props = {
     depositMonth: { type: Number, default: 1, required: false },
     depositDate: { type: String, default: '99', required: false },
     remarks: { type: String, default: '', required: false },
+    sync: { type: Boolean, default: false, required: false },
   },
 }
 export { props }

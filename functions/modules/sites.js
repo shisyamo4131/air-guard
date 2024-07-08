@@ -4,7 +4,7 @@ const {
 } = require('firebase-functions/v2/firestore')
 const { getFirestore } = require('firebase-admin/firestore')
 const { log, error } = require('firebase-functions/logger')
-const { removeDependentCollections } = require('./utils')
+const { removeDependentDocuments } = require('./utils')
 const firestore = getFirestore()
 
 const BATCH_LIMIT = 500
@@ -37,7 +37,7 @@ exports.onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
   const docId = event.params.docId
   try {
     log(`Deleting all dependent documents for site: ${docId}`)
-    await removeDependentCollections(docId, [
+    await removeDependentDocuments(docId, [
       'SiteContracts',
       'SiteOperationSchedules',
     ])

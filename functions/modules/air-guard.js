@@ -11,7 +11,8 @@
  * 注意事項:
  * - 更新トリガーでデータの更新を監視し、更新されたデータがdocIdを保有していればFirestoreドキュメントと同期します。
  * - RealtimeDatabaseの各データのdocIdはアプリ側から更新します。（Firestoreドキュメントとの関連付けを行う）
- * - つまり、docIdがないデータはFirestoreドキュメントと同期されません。
+ * - 同期時、`sync`プロパティは強制的にtrueに更新されます。-> Firestore側から同期済みデータを判断するため。
+ * - docIdがないデータはFirestoreドキュメントと同期されません。
  * - 上記を理由に、作成トリガーでの処理はありません。
  * - RealtimeDatabaseのデータが削除されてもFirestoreドキュメントには影響させません。
  *
@@ -19,8 +20,10 @@
  * @version 1.0.0
  *
  * 更新履歴:
- * version 1.0.0 - 2024-07-05
- *  - 初版作成
+ * version 1.1.0 - 2024-07-08 - Customerモデルの`sync`プロパティ追加に伴ってcustomerUpdatedを更新
+ *                              -> `sync`を強制的にtrueに更新するように変更。
+ *
+ * version 1.0.0 - 2024-07-05 - 初版作成
  *
  * NOTE:
  * - RealtimeDatabaseのデータをFirestoreドキュメントのオブジェクトに変換するコードを切り分けられるか。
@@ -67,6 +70,7 @@ exports.customerUpdated = onValueUpdated(
         depositMonth: parseInt(data.depositMonth),
         depositDate: data.depositDate,
         remarks: data.remarks,
+        sync: true,
       }
       const docRef = firestore.collection('Customers').doc(docId)
       await docRef.set(item, { merge: true })
