@@ -1,15 +1,270 @@
+<script>
+/**
+ * ### pages.synchronize/customers
+ *
+ * 概要:
+ * Realtime DatabaseのAirGuard/Customersに取り込まれているデータが
+ * FirestoreのCustomersドキュメントと同期されるように設定する画面です。
+ *
+ * 機能詳細:
+ * - Realtime DatabaseのAirGuard/Customers下のデータについて、同期設定が行われていないものを一覧表示します。
+ * - ユーザーから選択された上記データの同期先ドキュメントをユーザーが選択します。
+ * - 同期先ドキュメントは`sync`プロパティがfalseのもののみ、一覧表示されます。
+ * - 同期先ドキュメントは新規登録させることも可能です。
+ * - `sync`プロパティがfalseである既存ドキュメントが存在しない場合のみ、
+ *   同期設定が行われていないデータを一括で新規登録することが可能です。
+ *
+ * 注意事項:
+ * - 一度同期処理が行われると、同期前の状態に戻すことはできません。
+ *   -> 同期解除の機能を実装するかどうか、要検討。
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ *
+ * 更新履歴:
+ * version 1.0.0 - 2024-07-09 - 初版作成
+ */
+import {
+  equalTo,
+  onChildAdded,
+  onChildChanged,
+  onChildRemoved,
+  orderByChild,
+  query,
+  ref,
+  update,
+} from 'firebase/database'
+import { collection, doc, onSnapshot } from 'firebase/firestore'
+import GDataTable from '~/components/atoms/tables/GDataTable.vue'
+import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
+export default {
+  /***************************************************************************
+   * NAME
+   ***************************************************************************/
+  name: 'SynchronizeCustomers',
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
+  components: { GDataTable, GTemplateFixed },
+  /***************************************************************************
+   * ASYNCDATA
+   ***************************************************************************/
+  asyncData({ app }) {
+    const items = {
+      unsync: [],
+    }
+    const listeners = {
+      added: null,
+      changed: null,
+      removed: null,
+    }
+    const dbRef = ref(app.$database, 'AirGuard/Customers')
+    const q = query(dbRef, orderByChild('docId'), equalTo(null))
+    listeners.added = onChildAdded(q, (data) => {
+      items.unsync.push(data.val())
+    })
+    listeners.changed = onChildChanged(q, (data) => {
+      const index = items.unsync.findIndex((item) => item.code === data.key)
+      if (index !== -1) items.unsync.splice(index, 1, data.val())
+    })
+    listeners.removed = onChildRemoved(q, (data) => {
+      const index = items.unsync.findIndex((item) => item.code === data.key)
+      if (index !== -1) items.unsync.splice(index, 1)
+    })
+    return { items, listeners }
+  },
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
+  data() {
+    return {
+      asNewItem: false,
+      loading: false,
+      page: {
+        toSync: 1,
+        unsync: 1,
+      },
+      pageCount: {
+        toSync: 1,
+        unsync: 1,
+      },
+      selectedUnsync: [],
+      selectedToSync: [],
+      snackbar: false,
+      step: 0,
+    }
+  },
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
+  computed: {
+    unsyncedCustomers() {
+      return this.$store.state.customers.items.filter(
+        (item) => item.sync === false
+      )
+    },
+  },
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    asNewItem(v) {
+      if (v) this.selectedToSync.splice(0)
+    },
+  },
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.listeners.added()
+    this.listeners.changed()
+    this.listeners.removed()
+  },
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    initialize() {
+      this.step = 0
+      this.selectedUnsync.splice(0)
+      this.selectedToSync.splice(0)
+      this.asNewItem = false
+      this.loading = false
+      this.page.unsync = 1
+      this.page.toSync = 1
+    },
+    /**
+     * 同期設定を行います。
+     * - 実際の同期処理はCloud Functionsで行われます。
+     * - Cloud FunctionsのonValueChangedトリガーを起動させるため、
+     *   AirGuard/Customers/{code}/docIdに同期対象のFirestoreドキュメントidを設定します。
+     * - ドキュメントを新規に作成する場合、空作成したドキュメントのidを使用します。
+     * - 処理後にAutonumberを更新します。同期処理自体がCloud Functionsで行われるため、
+     *   リアルタイムリスナーを利用して同期処理の完了を監視します。
+     */
+    async submit() {
+      this.loading = true
+      try {
+        /**
+         * 新規にドキュメントを作成する場合は自動生成されたidを、
+         * 既存ドキュメントが指定されている場合は当該ドキュメントのidを取得
+         */
+        const docId = this.asNewItem
+          ? doc(collection(this.$firestore, 'Customers')).id
+          : this.selectedToSync[0].docId
+
+        /**
+         * ドキュメントが同期された直後にAutonumberを更新するため、
+         * ドキュメントに対するリアルタイムリスナーをセット
+         * Autonumberの更新が終わり次第、リスナーをデタッチ
+         */
+        const docListener = onSnapshot(
+          doc(this.$firestore, `Customers/${docId}`),
+          async (snapshot) => {
+            await this.$Autonumber().refresh('Customers')
+            docListener()
+          }
+        )
+
+        /* 新規にドキュメントを作成する場合は空作成 */
+        if (this.asNewItem) {
+          await this.$Customer().create({ docId, useAutonum: false })
+        }
+
+        /* 同期設定対象データへの参照を取得 */
+        const code = this.selectedUnsync[0].code
+        const dbRef = ref(this.$database, `AirGuard/Customers/${code}`)
+
+        /* 同期設定対象データのdocIdを更新 */
+        await update(dbRef, { docId })
+
+        /* 画面を初期化し、処理完了をアナウンス */
+        this.initialize()
+        this.snackbar = true
+      } catch (err) {
+        // eslint-disable-next-line
+        console.error(err)
+        alert(err.message)
+      } finally {
+        this.loading = false
+      }
+    },
+    /**
+     * 同期設定が行われていないAirGuard/Customersデータをすべて新規ドキュメントとして
+     * Firestoreに登録し、同期設定を行います。
+     */
+    async forceRegist() {
+      const result = window.confirm(
+        'すべての取引先を強制的に登録します。よろしいですか？'
+      )
+      if (!result) return
+      this.loading = true
+      try {
+        /**
+         * codeを既定した状態でドキュメントを空作成し、作成したドキュメントのidを
+         * 配列で取得
+         */
+        const docIds = await Promise.all(
+          this.items.unsync.map(async (item) => {
+            const docRef = await this.$Customer({ code: item.code }).create({
+              useAutonum: false,
+            })
+            return docRef.id
+          })
+        )
+        /**
+         * 同期設定が行われていないデータについて空作成したドキュメントのidを
+         * 紐づける
+         * - 先に取得したドキュメントidの配列とインデックスで参照
+         */
+        const updates = this.items.unsync.reduce((acc, i, index) => {
+          acc[`/AirGuard/Customers/${i.code}/docId`] = docIds[index]
+          return acc
+        }, {})
+
+        /* データベースを更新 */
+        await update(ref(this.$database), updates)
+
+        /**
+         * Autonumberを更新
+         * - 空作成時にcodeを既定しているので、Cloud Functionsからの同期処理を
+         *   待つ必要はない
+         */
+        await this.$Autonumber().refresh('Customers')
+        this.initialize()
+        this.snackbar = true
+      } catch (err) {
+        // eslint-disable-next-line
+        console.error(err)
+        alert(err.message)
+      } finally {
+        this.loading = false
+      }
+    },
+  },
+}
+</script>
+
 <template>
-  <v-container>
-    <v-card outlined>
+  <g-template-fixed v-slot="{ height }">
+    <v-card outlined :height="height" class="d-flex flex-column">
       <v-card-title> 取引先情報同期設定 </v-card-title>
       <v-card-text> 取引先情報の同期設定を行います。 </v-card-text>
-      <v-window v-model="step">
-        <v-window-item>
-          <v-card>
-            <v-card-text
-              class="d-flex overflow-hidden"
-              :style="{ height: `${$vuetify.breakpoint.height - 272}px` }"
-            >
+      <v-window v-model="step" style="height: 100%">
+        <v-window-item style="height: inherit">
+          <v-card class="d-flex flex-column" style="height: inherit">
+            <v-card-text class="text-end">
+              <v-btn
+                color="primary"
+                :disabled="!!unsyncedCustomers.length || !items.unsync.length"
+                :loading="loading"
+                outlined
+                small
+                @click="forceRegist"
+                >すべての取引先を強制的に登録</v-btn
+              >
+            </v-card-text>
+            <v-card-text class="d-flex flex-grow-1 overflow-hidden">
               <g-data-table
                 v-model="selectedUnsync"
                 class="flex-table"
@@ -144,122 +399,8 @@
         </v-window-item>
       </v-window>
     </v-card>
-  </v-container>
+    <v-snackbar v-model="snackbar" centered> 処理が完了しました。 </v-snackbar>
+  </g-template-fixed>
 </template>
-
-<script>
-import {
-  equalTo,
-  onChildAdded,
-  onChildChanged,
-  onChildRemoved,
-  orderByChild,
-  query,
-  ref,
-  update,
-} from 'firebase/database'
-import GDataTable from '~/components/atoms/tables/GDataTable.vue'
-export default {
-  name: 'SynchronizeCustomers',
-  components: { GDataTable },
-  asyncData({ app }) {
-    const items = {
-      unsync: [],
-    }
-    const listeners = {
-      added: null,
-      changed: null,
-      removed: null,
-    }
-    const dbRef = ref(app.$database, 'AirGuard/Customers')
-    const q = query(dbRef, orderByChild('docId'), equalTo(null))
-    listeners.added = onChildAdded(q, (data) => {
-      items.unsync.push(data.val())
-    })
-    listeners.changed = onChildChanged(q, (data) => {
-      const index = items.unsync.findIndex((item) => item.code === data.key)
-      if (index !== -1) items.unsync.splice(index, 1, data.val())
-    })
-    listeners.removed = onChildRemoved(q, (data) => {
-      const index = items.unsync.findIndex((item) => item.code === data.key)
-      if (index !== -1) items.unsync.splice(index, 1)
-    })
-    return { items, listeners }
-  },
-  data() {
-    return {
-      asNewItem: false,
-      loading: false,
-      page: {
-        toSync: 1,
-        unsync: 1,
-      },
-      pageCount: {
-        toSync: 1,
-        unsync: 1,
-      },
-      selectedUnsync: [],
-      selectedToSync: [],
-      step: 0,
-    }
-  },
-  computed: {
-    unsyncedCustomers() {
-      return this.$store.state.customers.items.filter(
-        (item) => item.sync === false
-      )
-    },
-  },
-  watch: {
-    asNewItem(v) {
-      if (v) this.selectedToSync.splice(0)
-    },
-  },
-  destroyed() {
-    this.listeners.added()
-    this.listeners.changed()
-    this.listeners.removed()
-  },
-  methods: {
-    initialize() {
-      this.step = 0
-      this.selectedUnsync.splice(0)
-      this.selectedToSync.splice(0)
-      this.asNewItem = false
-      this.loading = false
-      this.page.unsync = 1
-      this.page.toSync = 1
-    },
-    async syncToExist(code, docId) {
-      const dbRef = ref(this.$database, `AirGuard/Customers/${code}`)
-      await update(dbRef, { docId })
-    },
-    async syncToNewItem() {
-      const model = this.$Customer(this.selectedUnsync[0])
-      const docRef = await model.create()
-      await this.syncToExist(this.selectedUnsync[0].code, docRef.id)
-    },
-    async submit() {
-      this.loading = true
-      try {
-        if (this.asNewItem) {
-          await this.syncToNewItem()
-        } else {
-          const code = this.selectedUnsync[0].code
-          const docId = this.selectedToSync[0].docId
-          await this.syncToExist(code, docId)
-        }
-        this.initialize()
-      } catch (err) {
-        // eslint-disable-next-line
-        console.error(err)
-        alert(err.message)
-      } finally {
-        this.loading = false
-      }
-    },
-  },
-}
-</script>
 
 <style></style>
