@@ -17,9 +17,10 @@
  * - RealtimeDatabaseのデータが削除されてもFirestoreドキュメントには影響させません。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.1
  *
  * 更新履歴:
+ * version 1.1.1 - 2024-07-09 - Customerとの同期時、`code`が同期されていなかったのを修正。
  * version 1.1.0 - 2024-07-08 - Customerモデルの`sync`プロパティ追加に伴ってcustomerUpdatedを更新
  *                              -> `sync`を強制的にtrueに更新するように変更。
  *
@@ -56,6 +57,7 @@ exports.customerUpdated = onValueUpdated(
       }
       info(`[air-guard.js] Firestoreドキュメントと同期します。`, { docId })
       const item = {
+        code: data.code,
         name1: data.name1,
         name2: data.name2,
         abbr: data.abbr,
