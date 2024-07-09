@@ -9,11 +9,11 @@
  *
  * @author shisyamo4131
  * @create 2024-06-27
- * @version 1.1.0
+ * @version 1.1.1
  *
  * 更新履歴:
- * version 1.1.0 - 2024-07-02
- *  - GDialogEditorの仕様変更に伴う改修。
+ * version 1.1.1 - 2024-07-09 - GDialogEditorのlabelプロパティをセット
+ * version 1.1.0 - 2024-07-02 - GDialogEditorの仕様変更に伴う改修。
  */
 import GInputCustomer from '../molecules/inputs/GInputCustomer.vue'
 import GDialogEditor from '../molecules/dialogs/GDialogEditor.vue'
@@ -70,7 +70,7 @@ export default {
         </v-chip>
       </v-chip-group>
     </v-card-text>
-    <g-dialog-editor ref="customer-editor" model-id="Customer">
+    <g-dialog-editor ref="customer-editor" label="取引先" model-id="Customer">
       <template #activator="{ attrs }">
         <v-btn
           v-bind="attrs"
