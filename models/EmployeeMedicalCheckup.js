@@ -12,6 +12,13 @@
  * @author shisyamo4131
  * @create 2024-07-02
  * @version 1.0.0
+ *
+ * 更新履歴:
+ * version 1.0.1 - 2024-07-09
+ *  - FireModelのcreate()の仕様変更に伴う修正。
+ *
+ * version 1.0.0 - 2024-07-02
+ *  - 初版作成
  */
 import FireModel from './FireModel'
 
@@ -63,6 +70,8 @@ export default class EmployeeMedicalCheckup extends FireModel {
 
   create() {
     const docId = this.date
-    super.create(docId)
+    /* 2024-07-09 FireModelの変更に伴って修正 */
+    // super.create(docId)
+    super.create({ docId })
   }
 }

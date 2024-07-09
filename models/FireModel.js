@@ -1,8 +1,5 @@
 /**
  * FireModel.js
- * @version 1.0.0
- * @date 2024-06-20
- * @author shisyamo4131
  *
  * 概要:
  * FireModelクラスは、Firestoreを使用したCRUD操作を簡素化するための基底クラスです。
@@ -53,7 +50,13 @@
  * タイムスタンプの自動追加:
  * #addTimestampsをtrueにすると、追加・更新されるドキュメントにタイムスタンプが追加されます。
  *
+ * @author shisyamo4131
+ * @version 2.0.0
+ *
  * 更新履歴:
+ * version 2.0.0 - 2024-07-09
+ *  - [破壊的] create()の引数をオブジェクトに変更し、自動採番の適用を選択できるように修正。
+ *
  * 2024-02-27 - トークンマップ生成ロジックの改善
  * 2024-06-17 - subscribeメソッドのcollectionGroup対応
  * 2024-06-20 - メッセージ定数とヘルパー関数の追加
@@ -76,6 +79,7 @@ import {
   onSnapshot,
   query,
   runTransaction,
+  setDoc,
   updateDoc,
   where,
 } from 'firebase/firestore'
@@ -394,16 +398,16 @@ export default class FireModel {
 
   /**
    * モデルのプロパティに設定された値でコレクションにドキュメントを追加するメソッド
-   * @param {string} docId 追加するドキュメントのID。指定しない場合、自動生成される。
+   * @param {string} docId - 追加するドキュメントのID。指定しない場合、自動生成されます。
+   * @param {boolean} useAutonum - falseにすると自動採番を行いません。規定値はtrueです。
    * @returns 追加されたドキュメントの参照を解決するプロミス
    */
-  async create(docId = undefined) {
-    console.info(
-      FireModel.getConsoleMessage(
-        docId ? 'CREATE_CALLED' : 'CREATE_CALLED_NO_DOCID',
-        docId
-      )
-    )
+  async create({ docId = undefined, useAutonum = true } = {}) {
+    if (docId) {
+      console.log(FireModel.getConsoleMessage('CREATE_CALLED'))
+    } else {
+      console.log(FireModel.getConsoleMessage('CREATE_CALLED_NO_DOCID'))
+    }
     try {
       const colRef = collection(this.#firestore, this.collection)
       const docRef = docId ? doc(colRef, docId) : doc(colRef)
@@ -411,10 +415,14 @@ export default class FireModel {
       if (this.#addTimestamps) this.#setTimestampsAndUID()
       await this.beforeCreate()
       const { ...item } = this
-      await runTransaction(this.#firestore, async (transaction) => {
-        await this.#handleAutonum(transaction, item)
-        transaction.set(docRef, item)
-      })
+      if (useAutonum) {
+        await runTransaction(this.#firestore, async (transaction) => {
+          await this.#handleAutonum(transaction, item)
+          transaction.set(docRef, item)
+        })
+      } else {
+        await setDoc(docRef, item)
+      }
       await this.afterCreate()
       console.info(
         FireModel.getConsoleMessage(

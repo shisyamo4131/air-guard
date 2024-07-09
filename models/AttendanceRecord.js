@@ -1,3 +1,13 @@
+/**
+ * ## AttendanceRecord
+ * @author shisyamo4131
+ * @version 1.0.0
+ *
+ * 更新履歴:
+ * version 1.0.1 - 2024-07-09
+ *  - FireModelのcreate()の仕様変更に伴う修正
+ */
+
 import {
   collection,
   doc,
@@ -26,10 +36,6 @@ const props = {
 }
 export { props }
 
-/**
- * ## AttendanceRecord
- * @author shisyamo4131
- */
 export default class AttendanceRecord extends FireModel {
   constructor(context, item = {}) {
     super(context, item)
@@ -55,7 +61,9 @@ export default class AttendanceRecord extends FireModel {
   }
 
   async create() {
-    await super.create(this.employeeId + this.month)
+    /* 2024-07-09 FireModelの変更に伴って修正 */
+    // await super.create(this.employeeId + this.month)
+    await super.create({ docId: this.employeeId + this.month })
   }
 
   async importFromAirGuard(data) {
