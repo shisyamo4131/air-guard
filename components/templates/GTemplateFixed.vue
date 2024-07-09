@@ -18,6 +18,9 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    containerHeight() {
+      return this.templateHeight - 24
+    },
     /**
      * テンプレートの高さを計算して返します。
      */
@@ -38,7 +41,7 @@ export default {
     class="overflow-y-auto"
     :style="{ height: `${templateHeight}px` }"
   >
-    <slot name="default" v-bind="{ height: templateHeight }">
+    <slot name="default" v-bind="{ height: containerHeight }">
       <v-card>
         <v-card-text>
           プロジェクトのフィックスッドレイアウトテンプレートです。<br />
