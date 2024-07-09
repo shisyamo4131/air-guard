@@ -40,11 +40,12 @@
  * }
  * ---------------------------------------------------------------
  *
- * @version 1.1.0
+ * @version 1.1.1
  * @create 2024-06-20
  * @author shisyamo4131
  *
  * 更新履歴:
+ * version 1.1.1 - 2024-07-09 - propsにdocIdを追加
  * version 1.1.0 - 2024-07-08 - AirGuard(MS)との同期済みフラグとして`sync`を追加
  * version 1.0.0 - 2024-06-20 - 初版作成
  *
@@ -57,6 +58,7 @@ import FireModel from './FireModel'
 
 const props = {
   props: {
+    docId: { type: String, default: '', required: false },
     code: { type: String, default: '', required: false },
     name1: { type: String, default: '', required: false },
     name2: { type: String, default: '', required: false },
