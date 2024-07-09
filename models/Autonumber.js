@@ -1,3 +1,27 @@
+/**
+ * ### Autonumber
+ *
+ * 概要:
+ * 自動採番管理データモデルです。
+ * FireModelはドキュメント登録時に、対象のコレクション名をドキュメントIDとするAutonumberドキュメントを参照し
+ * 該当するドキュメントが存在すると、自動採番を行います。
+ *
+ * | property     | type    | default | required | description |
+ * | ------------ | ------- | ------- | -------- | ----------- |
+ * | collectionId | string  | null    | true     |             |
+ * | current      | number  | 0       | true     |             |
+ * | length       | number  | null    | true     |             |
+ * | field        | string  | 'code'  | true     |             |
+ * | status       | boolean | true    | true     |             |
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ *
+ * 更新履歴:
+ * version 1.0.1 - 2024-07-09
+ *  - FireModelのcreate()の仕様変更に伴う修正。
+ */
+
 import {
   collection,
   doc,
@@ -20,24 +44,6 @@ const props = {
   },
 }
 export { props }
-
-/**
- * ### Autonumber
- * 自動採番管理データモデルです。
- * FireModelはドキュメント登録時に、対象のコレクション名をドキュメントIDとする
- * Autonumberドキュメントを参照します。
- * よって、AutonumberドキュメントのIDはコレクション名と一致している必要があります。
- *
- * | property     | type    | default | required | description |
- * | ------------ | ------- | ------- | -------- | ----------- |
- * | collectionId | string  | null    | true     |             |
- * | current      | number  | 0       | true     |             |
- * | length       | number  | null    | true     |             |
- * | field        | string  | 'code'  | true     |             |
- * | status       | boolean | true    | true     |             |
- *
- * @author shisyamo4131
- */
 export default class Autonumber extends FireModel {
   constructor(context, item = {}) {
     super(context, item)
@@ -66,7 +72,9 @@ export default class Autonumber extends FireModel {
 
   // 登録時、ドキュメントIDはコレクション名とします。
   async create() {
-    await super.create(this.collectionId)
+    /* 2024-07-09 Firemodelのcreate()の仕様変更に伴う修正 */
+    // await super.create(this.collectionId)
+    await super.create({ docId: this.collectionId })
   }
 
   // 変更時、ドキュメントIDとコレクション名が一致していなければなりません。
