@@ -54,8 +54,8 @@
  * @version 2.0.0
  *
  * 更新履歴:
- * version 2.0.0 - 2024-07-09
- *  - [破壊的] create()の引数をオブジェクトに変更し、自動採番の適用を選択できるように修正。
+ * version 2.0.0 - 2024-07-09 - [破壊的] create()の引数をオブジェクトに変更し、自動採番の適用を選択できるように修正。
+ *                            - create()でdocIdが指定されていた場合に、正しくコンソールが出力されていないかったのを修正。
  *
  * 2024-02-27 - トークンマップ生成ロジックの改善
  * 2024-06-17 - subscribeメソッドのcollectionGroup対応
@@ -404,7 +404,7 @@ export default class FireModel {
    */
   async create({ docId = undefined, useAutonum = true } = {}) {
     if (docId) {
-      console.log(FireModel.getConsoleMessage('CREATE_CALLED'))
+      console.log(FireModel.getConsoleMessage('CREATE_CALLED', docId))
     } else {
       console.log(FireModel.getConsoleMessage('CREATE_CALLED_NO_DOCID'))
     }
