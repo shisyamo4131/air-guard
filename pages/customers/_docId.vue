@@ -1,7 +1,23 @@
 <script>
-import GCustomerCard from '~/components/organisms/GCustomerCard.vue'
-import GCustomerSites from '~/components/organisms/GCustomerSitesCard.vue'
-import GMapCard from '~/components/organisms/GMapCard.vue'
+import { limit, orderBy, where } from 'firebase/firestore'
+/**
+ * ### pages.CustomerDetail
+ *
+ * 取引先の詳細画面です。
+ *
+ * #### 更新履歴
+ * - version 1.0.0 - 2024-07-10 - 初版作成
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ */
+import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
+import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
+import GCardCustomer from '~/components/molecules/cards/GCardCustomer.vue'
+import GCardSites from '~/components/molecules/cards/GCardSites.vue'
+import GCardMap from '~/components/molecules/cards/GCardMap.vue'
+import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
+import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -10,7 +26,15 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GCustomerSites, GMapCard, GCustomerCard },
+  components: {
+    GCardSites,
+    GCardMap,
+    GCardCustomer,
+    GTemplateDetail,
+    GDialogEditor,
+    GInputCustomer,
+    GInputSite,
+  },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -19,6 +43,25 @@ export default {
     const model = app.$Customer()
     model.subscribeDoc(docId)
     return { docId, model }
+  },
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
+  data() {
+    return {
+      items: {
+        sites: [],
+      },
+      lazySearch: {
+        sites: null,
+      },
+      listeners: {
+        sites: this.$Site(),
+      },
+      showLast: {
+        sites: false,
+      },
+    }
   },
   /***************************************************************************
    * COMPUTED
@@ -33,37 +76,106 @@ export default {
     },
   },
   /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    'lazySearch.sites': {
+      handler(newVal, oldVal) {
+        if (newVal === oldVal) return
+        if (!newVal) {
+          this.items.sites = this.listeners.sites.subscribe(undefined, [
+            where('customer.docId', '==', this.docId),
+            orderBy('code', 'desc'),
+            limit(10),
+          ])
+          this.showLast.sites = true
+        } else {
+          this.items.sites = this.listeners.sites.subscribe(newVal, [
+            where('customer.docId', '==', this.docId),
+            orderBy('code', 'desc'),
+          ])
+          this.showLast.sites = false
+        }
+      },
+      immediate: true,
+    },
+  },
+  /***************************************************************************
    * DESTROYED
    ***************************************************************************/
   destroyed() {
     this.model.unsubscribe()
   },
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    onClickEdit() {
+      const item = JSON.parse(JSON.stringify(this.model))
+      const editMode = 'UPDATE'
+      this.$refs[`customer-editor`].open({ item, editMode })
+    },
+    onSubmitComplete(event) {
+      if (event.editMode === 'DELETE') {
+        this.$router.replace(`/customers`)
+      }
+    },
+    onClickRegistSite() {
+      const editMode = 'REGIST'
+      this.$refs[`site-editor`].open({ editMode })
+    },
+  },
 }
 </script>
 
 <template>
-  <div>
+  <g-template-detail
+    :actions="[{ event: 'edit', icon: 'mdi-pencil', color: 'green' }]"
+    @click:edit="onClickEdit"
+  >
     <v-breadcrumbs :items="breadcrumbs" />
-    <v-container>
-      <v-row>
-        <v-col cols="12">
-          <g-customer-card v-bind="model" flat outlined />
-        </v-col>
-        <v-col cols="12" md="5">
-          <g-map-card :value="model.address1" flat outlined height="600" />
-        </v-col>
-        <v-col cols="12" md="7">
-          <g-customer-sites
-            :customer-id="docId"
-            flat
-            height="600"
-            outlined
-            @click:row="$router.push(`/sites/${$event.docId}`)"
-          />
-        </v-col>
-      </v-row>
-    </v-container>
-  </div>
+    <v-row>
+      <v-col cols="12">
+        <g-card-customer v-bind="model" outlined />
+      </v-col>
+      <v-col cols="12" md="5">
+        <g-card-map :value="model.address1" outlined height="600" />
+      </v-col>
+      <v-col cols="12" md="7">
+        <g-card-sites
+          :items="items.sites"
+          :show-last="showLast.sites"
+          height="600"
+          :lazy-search.sync="lazySearch.sites"
+          outlined
+          @click:regist="onClickRegistSite"
+          @click:row="$router.push(`/sites/${$event.docId}`)"
+        />
+        <!-- site editor -->
+        <g-dialog-editor
+          ref="site-editor"
+          label="現場"
+          model-id="Site"
+          :default-item="{ customer: JSON.parse(JSON.stringify(model)) }"
+        >
+          <template #default="{ attrs, on }">
+            <g-input-site v-bind="attrs" hide-customer v-on="on" />
+          </template>
+        </g-dialog-editor>
+      </v-col>
+    </v-row>
+    <!-- editor -->
+    <g-dialog-editor
+      ref="customer-editor"
+      label="取引先"
+      model-id="Customer"
+      @submit:complete="onSubmitComplete"
+    >
+      <template #default="{ attrs, on }">
+        <g-input-customer v-bind="attrs" v-on="on" />
+      </template>
+    </g-dialog-editor>
+  </g-template-detail>
 </template>
 
 <style></style>

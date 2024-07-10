@@ -1,24 +1,14 @@
 <script>
 /**
- * ### GMapCard
+ * ### GCardMap
  *
  * `props.value`で与えられた住所をもとにGoogleマップを表示するCardコンポーネントです。
  *
- * @props
- * @prop {String} value - 住所です。
- *
- * @events
- * イベントはありません。
- *
- * @slots
- * スロットはありません。
- *
  * @author shisyamo4131
- * @version 1.0.1
+ * @version 1.0.0
  *
- * 更新履歴:
- * version 1.0.1 - 2024-07-03
- *  - v-card-titleのクラスに`d-block`、`text-truncate`を設定。
+ * #### 更新履歴
+ * - version 1.0.0 - 2024-07-10 - 初版作成
  */
 export default {
   /***************************************************************************

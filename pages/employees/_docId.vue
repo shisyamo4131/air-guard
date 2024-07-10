@@ -10,7 +10,7 @@
  *  - 健康診断履歴（EmployeeMedicalCheckups）へのリアルタイムリスナーを実装。EmployeeCardに引き渡すように。
  */
 import GLeaveApplicationCalendar from '~/components/organisms/GLeaveApplicationCalendar.vue'
-import GMapCard from '~/components/organisms/GMapCard.vue'
+import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GEmployeeCard from '~/components/organisms/GEmployeeCard.vue'
 export default {
   /***************************************************************************
@@ -22,7 +22,7 @@ export default {
    ***************************************************************************/
   components: {
     GLeaveApplicationCalendar,
-    GMapCard,
+    GCardMap,
     GEmployeeCard,
   },
   /***************************************************************************
@@ -124,7 +124,7 @@ export default {
           />
         </v-col>
         <v-col cols="12" md="5">
-          <g-map-card
+          <g-card-map
             :value="listeners.employee.address1"
             flat
             outlined

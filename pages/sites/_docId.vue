@@ -1,5 +1,5 @@
 <script>
-import GMapCard from '~/components/organisms/GMapCard.vue'
+import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GSiteCard from '~/components/organisms/GSiteCard.vue'
 import GSiteContractsTimeline from '~/components/organisms/GSiteContractsTimeline.vue'
 import GSiteOperationScheduleCalendar from '~/components/organisms/GSiteOperationScheduleCalendar.vue'
@@ -13,7 +13,7 @@ export default {
    ***************************************************************************/
   components: {
     GSiteOperationScheduleCalendar,
-    GMapCard,
+    GCardMap,
     GSiteCard,
     GSiteContractsTimeline,
   },
@@ -56,7 +56,7 @@ export default {
           <g-site-card v-bind="model" outlined flat />
         </v-col>
         <v-col cols="12" md="5">
-          <g-map-card :value="model.address" height="612" flat outlined />
+          <g-card-map :value="model.address" height="612" flat outlined />
         </v-col>
         <v-col cols="12" md="7">
           <g-site-operation-schedule-calendar
