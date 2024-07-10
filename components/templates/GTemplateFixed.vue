@@ -2,16 +2,17 @@
 /**
  * ### GTemplateDefault
  *
- * 概要:
+ * ### 概要:
  * コンテナの高さが画面の高さに固定されたテンプレートです。
  * `slots.default`に配置されたコンポーネントがこの高さを超える場合、
  * コンテナがスクロールします。
  *
- * @author shisyamo4131
- * @version 1.0.0
+ * #### 更新履歴:
+ * - version 1.0.1 - 2024-07-10 - モバイルの場合、画面下部の操作が難しくなるため余白を調整
+ * - version 1.0.0 - 2024-07-xx - 初版作成
  *
- * 更新履歴:
- * version 1.0.0 - 2024-07-09 - 初版作成
+ * @author shisyamo4131
+ * @version 1.0.1
  */
 export default {
   /***************************************************************************
@@ -19,7 +20,9 @@ export default {
    ***************************************************************************/
   computed: {
     containerHeight() {
-      return this.templateHeight - 24
+      // return this.templateHeight - 24
+      const addedBottomPadding = 20 // v-containerの追加pb
+      return this.templateHeight - 24 - addedBottomPadding
     },
     /**
      * テンプレートの高さを計算して返します。
@@ -38,7 +41,7 @@ export default {
 
 <template>
   <v-container
-    class="overflow-y-auto"
+    class="overflow-y-auto pb-8"
     :style="{ height: `${templateHeight}px` }"
   >
     <slot name="default" v-bind="{ height: containerHeight }">
