@@ -37,7 +37,7 @@ exports.onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
   const docId = event.params.docId
   try {
     log(`Deleting all dependent documents for site: ${docId}`)
-    await removeDependentDocuments(docId, [
+    await removeDependentDocuments(`Sites/${docId}`, [
       'SiteContracts',
       'SiteOperationSchedules',
     ])

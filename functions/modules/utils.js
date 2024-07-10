@@ -1,33 +1,5 @@
 /**
  * utils.js
- *
- * このファイルは、Firestoreのドキュメントデータの非正規化同期および変更検出を行うユーティリティ関数を提供します。
- *
- * 提供される関数:
- * 1. isDocumentChanged(event) - Firestoreドキュメントの内容に変更があったかどうかを判定します。
- * 2. syncDocuments(collectionId, field, data) - 非正規化されたドキュメントデータを指定のフィールドで同期します。
- * 3. removeDependentDocuments(path, collectionIds) - 指定されたパスの指定されたコレクション内のドキュメントを削除します。
- *
- * 使用例:
- * isDocumentChanged(event)
- * - 引数としてonDocumentUpdatedトリガーのイベントオブジェクトを受け取り、ドキュメントの内容が変更されたかどうかを返します。
- * - 変更検出時には、ドキュメントに含まれるupdateAt、updateDate、uidは無視されます。
- *
- * syncDocuments(collectionId, field, data)
- * - 引数としてコレクションID、フィールド名、同期するデータオブジェクトを受け取り、指定されたフィールドでドキュメントを同期します。
- *
- * removeDependentDocuments(path, collectionIds)
- * - 引数として削除対象のコレクションが存在するパス、削除対象コレクション名の配列を受け取ります。
- *
- * @module utils
- * @version 1.1.0
- * @date 2024-06-21
- * @author shisyamo4131
- *
- * 更新履歴:
- * version 1.1.0 - 2024-07-02
- * - removeDependentDocumentsを追加
- * version 1.0.0 - 2024-06-21 - 初版作成
  */
 
 const { getFirestore } = require('firebase-admin/firestore')
@@ -37,10 +9,16 @@ const BATCH_LIMIT = 500
 
 /**
  * Firestoreドキュメントの内容に変更があったかどうかを返します。
- * updateAt、updateDate、uidを無視し、eventオブジェクトのbeforeとafterを比較します。
+ * - updateAt、updateDate、uidを無視し、eventオブジェクトのbeforeとafterを比較します。
  *
  * @param {object} event - onDocumentUpdatedトリガーのイベントオブジェクト
  * @returns {boolean} - ドキュメントが変更されたかどうか
+ *
+ * #### 更新履歴
+ * - version 1.0.0 - 2024-07-10 - 初版作成
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
  */
 exports.isDocumentChanged = (event) => {
   // onDocumentUpdatedトリガーから発生したイベントかどうかをチェックします。
@@ -71,6 +49,12 @@ exports.isDocumentChanged = (event) => {
  * @param {string} field - 同期対象のフィールド名
  * @param {object} data - 同期するデータオブジェクト（例：{ docId: '123', ... }）
  * @returns {Promise<void>} - 同期操作が完了した時点で解決されるPromise
+ *
+ * #### 更新履歴
+ * - version 1.0.0 - 2024-07-10 - 初版作成
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
  */
 exports.syncDocuments = async (collectionId, field, data) => {
   const BATCH_SIZE = 500
@@ -101,6 +85,18 @@ exports.syncDocuments = async (collectionId, field, data) => {
   }
 }
 
+/**
+ * 指定されたドキュメントパス直下にあるサブコレクションをすべて削除します。
+ *
+ * @param {string} path - ドキュメントパス
+ * @param {array} collectionIds - 従属するサブコレクションの配列
+ *
+ * #### 更新履歴
+ * - version 1.0.0 - 2024-07-10 - 初版作成
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ */
 exports.removeDependentDocuments = async (path, collectionIds) => {
   for (const collectionId of collectionIds) {
     try {
