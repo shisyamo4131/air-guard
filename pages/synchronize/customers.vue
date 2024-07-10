@@ -19,10 +19,11 @@
  *   -> 同期解除の機能を実装するかどうか、要検討。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.0.1
  *
  * 更新履歴:
- * version 1.0.0 - 2024-07-09 - 初版作成
+ * - version 1.0.1 - 2024-07-10 - submit()のバグを解消。
+ * - version 1.0.0 - 2024-07-09 - 初版作成
  */
 import {
   equalTo,
@@ -34,7 +35,6 @@ import {
   ref,
   update,
 } from 'firebase/database'
-import { collection, doc, onSnapshot } from 'firebase/firestore'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
 export default {
@@ -50,27 +50,26 @@ export default {
    * ASYNCDATA
    ***************************************************************************/
   asyncData({ app }) {
-    const items = {
-      unsync: [],
-    }
-    const listeners = {
-      added: null,
-      changed: null,
-      removed: null,
-    }
+    /**
+     * `AirGuard/Customers`の同期設定がされていないデータへのリスナーをセット
+     */
+    const items = { unsync: [] }
     const dbRef = ref(app.$database, 'AirGuard/Customers')
     const q = query(dbRef, orderByChild('docId'), equalTo(null))
-    listeners.added = onChildAdded(q, (data) => {
-      items.unsync.push(data.val())
-    })
-    listeners.changed = onChildChanged(q, (data) => {
+
+    const updateItem = (data, type) => {
       const index = items.unsync.findIndex((item) => item.code === data.key)
-      if (index !== -1) items.unsync.splice(index, 1, data.val())
-    })
-    listeners.removed = onChildRemoved(q, (data) => {
-      const index = items.unsync.findIndex((item) => item.code === data.key)
-      if (index !== -1) items.unsync.splice(index, 1)
-    })
+      if (type === 'add') items.unsync.push(data.val())
+      if (index === -1) return
+      if (type === 'change') items.unsync.splice(index, 1, data.val())
+      if (type === 'remove') items.unsync.splice(index, 1)
+    }
+
+    const listeners = {
+      added: onChildAdded(q, (data) => updateItem(data, 'add')),
+      changed: onChildChanged(q, (data) => updateItem(data, 'change')),
+      removed: onChildRemoved(q, (data) => updateItem(data, 'remove')),
+    }
     return { items, listeners }
   },
   /***************************************************************************
@@ -80,14 +79,8 @@ export default {
     return {
       asNewItem: false,
       loading: false,
-      page: {
-        toSync: 1,
-        unsync: 1,
-      },
-      pageCount: {
-        toSync: 1,
-        unsync: 1,
-      },
+      page: { toSync: 1, unsync: 1 },
+      pageCount: { toSync: 1, unsync: 1 },
       selectedUnsync: [],
       selectedToSync: [],
       snackbar: false,
@@ -144,35 +137,29 @@ export default {
      */
     async submit() {
       this.loading = true
+      const code = this.selectedUnsync[0].code
       try {
         /**
-         * 新規にドキュメントを作成する場合は自動生成されたidを、
-         * 既存ドキュメントが指定されている場合は当該ドキュメントのidを取得
+         * 同期対象ドキュメントのidを取得して返します。
+         * - `data.asNewItem`がtrueの場合は空ドキュメントを作成してidを返します。
+         * - 既存ドキュメントへの同期の場合は対象のドキュメントidを返します。
+         * - 空ドキュメント作成時は自動採番を行わず、作成後に自動採番を更新します。
          */
-        const docId = this.asNewItem
-          ? doc(collection(this.$firestore, 'Customers')).id
-          : this.selectedToSync[0].docId
-
-        /**
-         * ドキュメントが同期された直後にAutonumberを更新するため、
-         * ドキュメントに対するリアルタイムリスナーをセット
-         * Autonumberの更新が終わり次第、リスナーをデタッチ
-         */
-        const docListener = onSnapshot(
-          doc(this.$firestore, `Customers/${docId}`),
-          async (snapshot) => {
+        const getDocumentId = async () => {
+          if (this.asNewItem) {
+            const model = this.$Customer({ code })
+            const docRef = await model.create({ useAutonum: false })
             await this.$Autonumber().refresh('Customers')
-            docListener()
+            return docRef.id
+          } else {
+            return this.selectedToSync[0].docId
           }
-        )
-
-        /* 新規にドキュメントを作成する場合は空作成 */
-        if (this.asNewItem) {
-          await this.$Customer().create({ docId, useAutonum: false })
         }
 
+        /* 同期対象のドキュメントidを取得 */
+        const docId = await getDocumentId()
+
         /* 同期設定対象データへの参照を取得 */
-        const code = this.selectedUnsync[0].code
         const dbRef = ref(this.$database, `AirGuard/Customers/${code}`)
 
         /* 同期設定対象データのdocIdを更新 */
@@ -201,21 +188,19 @@ export default {
       this.loading = true
       try {
         /**
-         * codeを既定した状態でドキュメントを空作成し、作成したドキュメントのidを
-         * 配列で取得
+         * codeを既定した状態でドキュメントを空作成
+         * 作成したドキュメントのidを配列で取得
          */
         const docIds = await Promise.all(
           this.items.unsync.map(async (item) => {
-            const docRef = await this.$Customer({ code: item.code }).create({
-              useAutonum: false,
-            })
+            const model = this.$Customer({ code: item.code })
+            const docRef = await model.create({ useAutonum: false })
             return docRef.id
           })
         )
         /**
-         * 同期設定が行われていないデータについて空作成したドキュメントのidを
-         * 紐づける
-         * - 先に取得したドキュメントidの配列とインデックスで参照
+         * 同期設定が行われていないデータについて空作成したドキュメントのidを紐づける
+         * - ドキュメントidは先に取得した配列をインデックスで参照取得する
          */
         const updates = this.items.unsync.reduce((acc, i, index) => {
           acc[`/AirGuard/Customers/${i.code}/docId`] = docIds[index]
@@ -227,8 +212,7 @@ export default {
 
         /**
          * Autonumberを更新
-         * - 空作成時にcodeを既定しているので、Cloud Functionsからの同期処理を
-         *   待つ必要はない
+         * - 空作成時にcodeを既定しているので、Cloud Functionsからの同期処理を待つ必要はない
          */
         await this.$Autonumber().refresh('Customers')
         this.initialize()

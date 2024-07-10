@@ -17,9 +17,10 @@
  * - RealtimeDatabaseのデータが削除されてもFirestoreドキュメントには影響させません。
  *
  * @author shisyamo4131
- * @version 1.1.1
+ * @version 1.2.0
  *
  * 更新履歴:
+ * version 1.2.0 - 2024-07-10 - Cloud Functions版FireModelの実装に伴ってデータモデルを使用するように修正。
  * version 1.1.1 - 2024-07-09 - Customerとの同期時、`code`が同期されていなかったのを修正。
  * version 1.1.0 - 2024-07-08 - Customerモデルの`sync`プロパティ追加に伴ってcustomerUpdatedを更新
  *                              -> `sync`を強制的にtrueに更新するように変更。
@@ -34,6 +35,7 @@
 const { getFirestore } = require('firebase-admin/firestore')
 const { info, error } = require('firebase-functions/logger')
 const { onValueUpdated } = require('firebase-functions/v2/database')
+const Customer = require('../models/Customer')
 const firestore = getFirestore()
 
 /**
@@ -56,26 +58,11 @@ exports.customerUpdated = onValueUpdated(
         return
       }
       info(`[air-guard.js] Firestoreドキュメントと同期します。`, { docId })
-      const item = {
-        code: data.code,
-        name1: data.name1,
-        name2: data.name2,
-        abbr: data.abbr,
-        abbrKana: data.abbrKana,
-        zipcode: data.zipcode,
-        address1: data.address1,
-        address2: data.address2,
-        tel: data.tel,
-        fax: data.fax,
-        status: data.status,
-        deadline: data.deadline,
-        depositMonth: parseInt(data.depositMonth),
-        depositDate: data.depositDate,
-        remarks: data.remarks,
-        sync: true,
-      }
+      const model = new Customer(data)
+      model.depositMonth = parseInt(data.depositMonth)
+      model.sync = true
       const docRef = firestore.collection('Customers').doc(docId)
-      await docRef.set(item, { merge: true })
+      await docRef.set({ ...model }, { merge: true })
       info('Firestoreドキュメントとの同期が正常に完了しました。', { docId })
     } catch (err) {
       error(err)
