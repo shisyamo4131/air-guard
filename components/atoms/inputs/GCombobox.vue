@@ -1,65 +1,35 @@
 <script>
 /**
  * ### GCombobox
+ *
  * AirComboboxを拡張したカスタムコンボボックスコンポーネントです。
  *
- * @component
- * @example
- * <GCombobox :items="items" v-model="selectedItem" />
+ * #### UPDATE
+ * - version 1.1.0 - 2024-07-10 - requiredが設定されている場合に`*`を表示するように修正
+ * ‐ version 1.0.0 - 2024-06-21 - 初版作成
  *
- * @props {Boolean} dense - コンポーネントの密度設定
- * @props {Boolean} outlined - コンポーネントのアウトライン表示設定
- * @props {String} requiredError - 必須入力エラー時のメッセージ
- *
- * @version 1.0.0
- * @date 2024-06-21
  * @author shisyamo4131
- *
- * 概要:
- * GComboboxコンポーネントは、AirComboboxを拡張し、デフォルトで
- * 密度設定とアウトライン表示をサポートするコンポーネントです。
- *
- * 主な機能:
- * - 密度設定とアウトライン表示のサポート
- * - 必須入力エラーメッセージの設定
- *
- * 使用例:
- * <GCombobox :items="items" v-model="selectedItem" />
- *
- * props設定:
- * - dense: コンポーネントの密度設定
- * - outlined: コンポーネントのアウトライン表示設定
- * - requiredError: 必須入力エラー時のメッセージ
- *
- * 更新履歴:
- * 2024-06-21 - 初版作成
+ * @version 1.1.0
  */
 export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
-    dense: {
-      type: Boolean,
-      default: true,
-      required: false,
-    },
-    outlined: {
-      type: Boolean,
-      default: true,
-      required: false,
-    },
-    requiredError: {
-      type: String,
-      default: '必須入力',
-      required: false,
-    },
+    dense: { type: Boolean, default: true, required: false },
+    label: { type: String, default: undefined, required: false },
+    outlined: { type: Boolean, default: true, required: false },
+    required: { type: Boolean, default: false, required: false },
+    requiredError: { type: String, default: '必須入力', required: false },
   },
 }
 </script>
 
 <template>
   <air-combobox v-bind="{ ...$props, ...$attrs }" v-on="$listeners">
+    <template #label>
+      {{ label }}<span v-if="required" class="red--text">*</span>
+    </template>
     <template
       v-for="(_, scopedSlotName) in $scopedSlots"
       #[scopedSlotName]="slotData"

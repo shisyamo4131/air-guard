@@ -26,10 +26,10 @@
  * @event update:dialog - dialogの開閉状態が更新されたときに発火します。引数はBooleanです。
  * @event click:submit - Submitボタンがクリックされたときに発火します。引数はeditModeです。削除の場合は'DELETE'が渡されます。
  *
- * @version 1.0.2
- * @author shisyamo4131
- *
  * 更新履歴:
+ * - version 1.0.3 - 2024-07-10 - 削除フラグにhide-detailsを設定
+ *                              - 削除フラグを右詰めに変更
+ *
  * 2024-06-15 - 'btn-cancel'と'btn-submit'スロットを追加して置き換え可能に。
  * 2024-06-24 - 削除フラグを追加し、click:submitイベントがeditModeを伴うように変更。
  * 2024-06-29 - initialize()のタイミングをdialogの終了時だけではなく、開閉時に変更。
@@ -39,6 +39,9 @@
  *              [NOTE]
  *              Inputコンポーネントの初期化タイミングはデリケートなので外部コンポーネントから
  *              初期化関数自体をコールするように実装を見直すべき。
+ *
+ * @version 1.0.3
+ * @author shisyamo4131
  */
 import GBtnCancelIcon from '../../atoms/btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '../../atoms/btns/GBtnSubmitIcon.vue'
@@ -152,12 +155,15 @@ export default {
       <v-form :ref="(el) => (formRef = el)" :disabled="loading || disabled">
         <slot name="default" v-bind="{ editMode, loading }" />
       </v-form>
-      <v-checkbox
-        v-if="editMode !== 'REGIST' && !disableDelete"
-        v-model="removeItem"
-        color="error"
-        :label="`この${label}を削除する`"
-      />
+      <div class="d-flex justify-end">
+        <v-checkbox
+          v-if="editMode !== 'REGIST' && !disableDelete"
+          v-model="removeItem"
+          color="error"
+          hide-details
+          :label="`この${label}を削除する`"
+        />
+      </div>
     </v-card-text>
     <v-card-actions class="justify-space-between">
       <slot
