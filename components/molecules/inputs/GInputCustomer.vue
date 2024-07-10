@@ -2,11 +2,14 @@
 /**
  * ### GInputCustomer
  *
- * #### OUTLINE
- * 取引先情報入力コンポーネント
+ * 取引先情報入力コンポーネントです。
+ *
+ * #### 機能詳細
+ * - 締日、入金サイトは一度登録すると変更できません。
+ *   -> トランザクションへの影響範囲が大きすぎるため。
  *
  * #### UPDATE
- * - version 1.0.0 - 初版作成
+ * - version 1.0.0 - 2024-07-10 - 初版作成
  *
  * @author shisyamo4131
  * @version 1.0.0
@@ -127,6 +130,7 @@ export default {
         <g-select
           :value="deadline"
           label="締日"
+          :disabled="editMode !== 'REGIST'"
           :items="$DEADLINE_ARRAY"
           @input="$emit('update:deadline', $event)"
         />
@@ -135,6 +139,7 @@ export default {
         <g-numeric
           :value="depositMonth"
           label="入金月"
+          :disabled="editMode !== 'REGIST'"
           suffix="ヶ月後"
           @input="$emit('update:depositMonth', $event)"
         />
@@ -143,6 +148,7 @@ export default {
         <g-select
           :value="depositDate"
           label="入金日"
+          :disabled="editMode !== 'REGIST'"
           :items="$DEADLINE_ARRAY"
           @input="$emit('update:depositDate', $event)"
         />
