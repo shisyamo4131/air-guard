@@ -52,16 +52,16 @@ export default {
     /**
      * `AirGuard/Customers`の同期設定がされていないデータへのリスナーをセット
      */
-    const items = { unsync: [] }
+    const items = { airGuard: [], unsync: [] }
     const dbRef = ref(app.$database, 'AirGuard/Customers')
     const q = query(dbRef, orderByChild('docId'), equalTo(null))
 
     const updateItem = (data, type) => {
-      const index = items.unsync.findIndex((item) => item.code === data.key)
-      if (type === 'add') items.unsync.push(data.val())
+      const index = items.airGuard.findIndex((item) => item.code === data.key)
+      if (type === 'add') items.airGuard.push(data.val())
       if (index === -1) return
-      if (type === 'change') items.unsync.splice(index, 1, data.val())
-      if (type === 'remove') items.unsync.splice(index, 1)
+      if (type === 'change') items.airGuard.splice(index, 1, data.val())
+      if (type === 'remove') items.airGuard.splice(index, 1)
     }
 
     const listeners = {
@@ -78,8 +78,8 @@ export default {
     return {
       asNewItem: false,
       loading: false,
-      page: { toSync: 1, unsync: 1 },
-      pageCount: { toSync: 1, unsync: 1 },
+      page: { toSync: 1, airGuard: 1 },
+      pageCount: { toSync: 1, airGuard: 1 },
       selectedUnsync: [],
       selectedToSync: [],
       snackbar: false,
@@ -122,7 +122,7 @@ export default {
       this.selectedToSync.splice(0)
       this.asNewItem = false
       this.loading = false
-      this.page.unsync = 1
+      this.page.airGuard = 1
       this.page.toSync = 1
     },
     /**
@@ -225,7 +225,7 @@ export default {
             <v-card-text class="text-end">
               <v-btn
                 color="primary"
-                :disabled="!!unsyncedCustomers.length || !items.unsync.length"
+                :disabled="!!unsyncedCustomers.length || !items.airGuard.length"
                 :loading="loading"
                 outlined
                 small
@@ -244,18 +244,18 @@ export default {
                   { text: '取引先名1', value: 'name1' },
                   { text: '取引先名2', value: 'name2' },
                 ]"
-                :items="items.unsync"
+                :items="items.airGuard"
                 item-key="code"
                 show-select
                 single-select
-                :page.sync="page.unsync"
-                @page-count="pageCount.unsync = $event"
+                :page.sync="page.airGuard"
+                @page-count="pageCount.airGuard = $event"
               />
             </v-card>
             <v-container class="text-center">
               <v-pagination
-                v-model="page.unsync"
-                :length="pageCount.unsync"
+                v-model="page.airGuard"
+                :length="pageCount.airGuard"
                 total-visible="20"
               />
             </v-container>
