@@ -64,7 +64,7 @@ export default {
     :search-input.sync="internalSearchInput"
     v-on="$listeners"
   >
-    <template #label>
+    <template v-if="label" #label>
       {{ label }}<span v-if="required" class="red--text">*</span>
     </template>
     <template

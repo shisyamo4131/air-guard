@@ -32,7 +32,7 @@ export default {
 
 <template>
   <air-select v-bind="{ ...$props, ...$attrs }" v-on="$listeners">
-    <template #label>
+    <template v-if="label" #label>
       {{ label }}<span v-if="required" class="red--text">*</span>
     </template>
     <template
