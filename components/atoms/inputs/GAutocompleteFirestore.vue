@@ -1,37 +1,56 @@
 <script>
-import { collection, getDocs, query, where } from 'firebase/firestore'
-import GAutocomplete from './GAutocomplete.vue'
-
 /**
  * ### GAutocompleteFirestore
+ *
  * Firestoreと連携してアイテムを検索するための拡張オートコンプリートコンポーネントです。
  *
- * @component
- * @example
- * <GAutocompleteFirestore :model="model" />
+ * #### 機能詳細
+ * - コンポーネントに入力された検索文字列に該当するドキュメントのNgram検索によって抽出します。
+ * - 初期値として値が与えられるケースも想定しています。
  *
- * @props {Object} model - FireModelを継承したインスタンス
- * @props {Boolean} multiple - 複数選択を許可するかどうか
- * @props {Function} filter - アイテムのフィルタリング関数
- * @props {String|Array|Function} itemValue - アイテムの値を取得するプロパティ
+ * #### 注意事項
+ * 1. FirestoreのNgram検索で固定されているため、`props.filter`は使用できません。
+ * 2. `props.item-text`は表示に関わる部分のみ影響します。filterには影響しません。
+ * 3. Firestoreドキュメントの検索に特化しているため、`itemValue`は`docId`で固定されます。
  *
- * @version 1.0.0
- * @create 2024-06-20
+ * #### 開発備忘録
+ * `slots.selection`で`props.item-text`の値を表示し、これを置換できるように
+ * selectionスロットを用意しています。
+ * [理由]
+ * 以下の条件下でドキュメントの読み込みが2回発生する。
+ * - `props.multiple`がfalse
+ * - `$attrs.value`に初期値が設定されている
+ * 原因はAutocompleteのsearch-inputに初期アイテムのitem-textが設定されるため。
+ * これにより
+ * 1. updateItemsFromValue()でドキュメントを取得（1度目の取得）
+ * 2. 取得したitemのitem-textの値がsearch-inputに設定
+ * 3. fetchMatchingItems()でドキュメントを取得（2度目の取得）
+ * の処理が実行される。
+ * 条件を満たす場合にfetchMatchingItems()でドキュメントを取得しないように
+ * 上記(1)でフラグを立て、上記(3)でフラグを解除する仕組みで試してみたが、
+ * `slots.selection`を使用した場合はitem-textの値がsearch-inputに入ってこないため、
+ * フラグ解除にはユーザーが2度、検索文字列を入力しなければならなくなる。
+ * そもそもitem-textの値がsearch-inputに入ってきてしまうことが問題であるため、
+ * 「`slots.selection`を使用するとitem-textの値がsearch-inputに入ってこない」仕様を
+ * 利用してitem-textの値をそのまま`slots.selection`で表示するようにしてみた。
+ * [selectionを使用しない場合]
+ * - 「りんご」が選択されている状態で「みかん」を入力した場合、「りんごみかん」の検索が行われる。
+ * - 「りんご」が選択されている状態でbackSpaceすると「りん」で検索が行われる。
+ * [selectionを使用した場合]
+ * - 「りんご」が選択されている状態で「みかん」を入力した場合、「みかん」の検索が行われる。
+ * - 「りんご」が選択されている状態でbackSpaceすると選択が解除される。
+ *   -> `props.multiple`がtrueの時と同じような挙動になる。
+ * どちらも該当するアイテムを選択した場合は、当該アイテムで選択値が上書きされる。
+ * 2度の読み込みを回避する手段としては適当と判断。
+ *
  * @author shisyamo4131
+ * @version 1.0.0
  *
- * 概要:
- * Firestoreのコレクションからドキュメントを検索し、オートコンプリート入力フィールドに表示します。
- * 選択されたアイテムは指定されたプロパティにバインドされます。
- *
- * 主な機能:
- * - Firestoreからのアイテム検索と表示
- * - 複数選択のサポート
- * - 選択されたアイテムのキャッシュ
- * - 検索文字列に基づく動的なアイテムの絞り込み
- *
- * 更新履歴:
- * 2024-06-20 - 初版作成
+ * #### 更新履歴
+ * - version 1.0.0 - 2024-06-20 - 初版作成
  */
+import { collection, getDocs, query, where } from 'firebase/firestore'
+import GAutocomplete from './GAutocomplete.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -41,16 +60,9 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
-    filter: {
-      type: Function,
-      default: () => {
-        return true
-      },
-      required: false,
-    },
-    itemValue: {
+    itemText: {
       type: [String, Array, Function],
-      default: 'docId',
+      default: 'text',
       required: false,
     },
     model: { type: Object, required: true }, // FireModelを継承したクラスオブジェクト
@@ -61,7 +73,24 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      isInitSet: false,
+      filter: (item, queryText, itemText) => {
+        const createNgrams = (str) => {
+          const ngrams = []
+          for (let i = 0; i < str.length; i++) {
+            for (let j = 1; j <= 2; j++) {
+              if (i + j <= str.length) {
+                ngrams.push(str.slice(i, i + j))
+              }
+            }
+          }
+          return ngrams
+        }
+        // 検索文字列をNgramに分割
+        const searchNgrams = createNgrams(queryText)
+
+        // 配列内のオブジェクトのtokenMapと検索文字列のNgramを比較
+        return searchNgrams.every((ngram) => item.tokenMap[ngram])
+      },
       items: [],
       lazySearch: null,
       loading: false,
@@ -103,7 +132,7 @@ export default {
     /**
      * 指定されたドキュメントIDのリストに基づいて、Firestoreからドキュメントを取得します。
      * @param {Array} ids - 取得するドキュメントIDのリスト
-     * @returns {Array} - 取得したドキュメントの配列
+     * @returns {Promise} - 取得したドキュメントの配列
      */
     async fetchItemsByIds(ids) {
       const colRef = collection(this.$firestore, this.model.collection)
@@ -117,7 +146,6 @@ export default {
      */
     async updateItemsFromValue(newVal) {
       if (!this.model || !newVal) return
-
       if (Array.isArray(newVal)) {
         if (!newVal.length) return
         if (typeof newVal[0] === 'object') {
@@ -149,21 +177,17 @@ export default {
         this.addItem(newVal)
       } else if (typeof newVal === 'string') {
         if (!this.items.some((item) => item.docId === newVal)) {
-          await this.model.fetchDoc(newVal)
+          await this.model.fetch(newVal)
           this.items.push(JSON.parse(JSON.stringify(this.model)))
         }
       }
-      this.isInitSet = true
     },
     /**
      * プロパティ`lazySearch`の値に基づいてFirestoreからドキュメントを取得し、items配列を更新します。
      * @param {string} searchTerm - 検索文字列
      */
     async fetchMatchingItems(searchTerm) {
-      if (this.isInitSet || !this.model || !searchTerm) {
-        this.isInitSet = false
-        return
-      }
+      if (!this.model || !searchTerm) return
       this.loading = true
       try {
         const fetchItems = await this.model.fetchDocs(searchTerm)
@@ -180,6 +204,23 @@ export default {
         this.loading = false
       }
     },
+    selectionValue(item) {
+      if (!this.itemText) return null
+      const typeOf = typeof this.itemText
+      if (typeOf === 'string') {
+        return item?.[this.itemText] || null
+      }
+      if (typeOf === 'object' && Array.isArray(this.itemText)) {
+        return this.itemText
+          .map((key) => {
+            return item?.[key] || ''
+          })
+          .join('')
+      }
+      if (typeOf === 'function') {
+        return this.itemText(item)
+      }
+    },
   },
 }
 </script>
@@ -190,12 +231,18 @@ export default {
     :cache-items="multiple"
     :filter="filter"
     :items="items"
-    :item-value="itemValue"
+    :item-text="itemText"
+    item-value="docId"
     :loading="loading"
     :multiple="multiple"
     @update:lazy-search="lazySearch = $event"
     v-on="$listeners"
   >
+    <template #selection="props">
+      <slot name="selection" v-bind="props">
+        {{ selectionValue(props.item) }}
+      </slot>
+    </template>
     <template
       v-for="(_, scopedSlotName) in $scopedSlots"
       #[scopedSlotName]="slotData"

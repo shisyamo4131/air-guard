@@ -40,10 +40,6 @@
  * }
  * ---------------------------------------------------------------
  *
- * @version 1.1.1
- * @create 2024-06-20
- * @author shisyamo4131
- *
  * 更新履歴:
  * version 1.1.1 - 2024-07-09 - propsにdocIdを追加
  * version 1.1.0 - 2024-07-08 - AirGuard(MS)との同期済みフラグとして`sync`を追加
@@ -52,6 +48,9 @@
  * 注意事項:
  * このクラスはNuxt.jsのコンテキストに依存しないよう設計されていますが、
  * FirestoreとAuthenticationインスタンスを渡す必要があります。
+ *
+ * @version 1.1.1
+ * @author shisyamo4131
  */
 
 import FireModel from './FireModel'
