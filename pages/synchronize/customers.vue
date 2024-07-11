@@ -146,7 +146,7 @@ export default {
          */
         const getDocumentId = async () => {
           if (this.asNewItem) {
-            const model = this.$Customer()
+            const model = this.$Customer({ code }) // codeを初期設定しておかないと自動採番が正常に更新されない。
             const docRef = await model.create({ useAutonum: false })
             await this.$Autonumber().refresh('Customers')
             return docRef.id
@@ -193,7 +193,7 @@ export default {
       const items = this.items.airGuard.map((item) => item)
       try {
         for (const item of items) {
-          const model = this.$Customer()
+          const model = this.$Customer({ code: item.code }) // codeを初期設定しておかないと自動採番が正常に更新されない。
           const docRef = await model.create({ useAutonum: false })
           const dbRef = ref(this.$database, `AirGuard/Customers/${item.code}`)
           await update(dbRef, { docId: docRef.id })
