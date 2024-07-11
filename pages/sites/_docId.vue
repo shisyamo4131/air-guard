@@ -1,8 +1,11 @@
 <script>
 import GCardMap from '~/components/molecules/cards/GCardMap.vue'
-import GSiteCard from '~/components/organisms/GSiteCard.vue'
+import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
+import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
+import GCardSite from '~/components/organisms/GCardSite.vue'
 import GSiteContractsTimeline from '~/components/organisms/GSiteContractsTimeline.vue'
 import GSiteOperationScheduleCalendar from '~/components/organisms/GSiteOperationScheduleCalendar.vue'
+import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -14,8 +17,11 @@ export default {
   components: {
     GSiteOperationScheduleCalendar,
     GCardMap,
-    GSiteCard,
+    GCardSite,
     GSiteContractsTimeline,
+    GTemplateDetail,
+    GInputSite,
+    GDialogEditor,
   },
   /***************************************************************************
    * ASYNCDATA
@@ -44,16 +50,34 @@ export default {
   destroyed() {
     this.model.unsubscribe()
   },
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    onClickEdit() {
+      const item = JSON.parse(JSON.stringify(this.model))
+      const editMode = 'UPDATE'
+      this.$refs[`site-editor`].open({ item, editMode })
+    },
+    onSubmitComplete(event) {
+      if (event.editMode === 'DELETE') {
+        this.$router.replace(`/sites`)
+      }
+    },
+  },
 }
 </script>
 
 <template>
-  <div>
+  <g-template-detail
+    :actions="[{ event: 'edit', icon: 'mdi-pencil', color: 'green' }]"
+    @click:edit="onClickEdit"
+  >
     <v-breadcrumbs :items="breadcrumbs" />
     <v-container>
       <v-row>
         <v-col cols="12">
-          <g-site-card v-bind="model" outlined flat />
+          <g-card-site v-bind="model" outlined flat />
         </v-col>
         <v-col cols="12" md="5">
           <g-card-map :value="model.address" height="612" flat outlined />
@@ -71,7 +95,18 @@ export default {
         </v-col>
       </v-row>
     </v-container>
-  </div>
+    <!-- editor -->
+    <g-dialog-editor
+      ref="site-editor"
+      label="現場"
+      model-id="Site"
+      @submit:complete="onSubmitComplete"
+    >
+      <template #default="{ attrs, on }">
+        <g-input-site v-bind="attrs" hide-customer v-on="on" />
+      </template>
+    </g-dialog-editor>
+  </g-template-detail>
 </template>
 
 <style></style>
