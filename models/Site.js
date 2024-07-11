@@ -1,8 +1,5 @@
 /**
- * Site.js
- * @version 1.0.0
- * @date 2024-06-20
- * @author shisyamo4131
+ * ### Site.js
  *
  * 概要:
  * Siteクラスは、現場情報を管理するためのモデルクラスです。
@@ -43,18 +40,22 @@
  * }
  * ---------------------------------------------------------------
  *
- * 更新履歴:
- * 2024-06-20 - 初版作成
- * 2024-06-24 - 取引先情報をオブジェクトとして保有できるように修正
+ * #### 更新履歴:
+ * - version 1.0.0 - 2024-07-10 - 初版作成
  *
  * 注意事項:
  * このクラスはNuxt.jsのコンテキストに依存しないよう設計されていますが、
  * FirestoreとAuthenticationインスタンスを渡す必要があります。
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
  */
 import FireModel from './FireModel'
 
 const props = {
   props: {
+    docId: { type: String, default: '', required: false },
+    customer: { type: Object, default: null, required: false },
     code: { type: String, default: '', required: false },
     name: { type: String, default: '', required: false },
     abbr: { type: String, default: '', required: false },
@@ -66,11 +67,10 @@ const props = {
     securityType: { type: String, default: '', required: false },
     status: { type: String, default: 'active', required: false },
     remarks: { type: String, default: '', required: false },
-    // customerId: { type: String, default: '', required: false },
-    customer: { type: Object, default: null, required: false },
     favorite: { type: Boolean, default: false, required: false },
-    // for bulk create.
-    temporary: { type: Boolean, default: false, required: false },
+    sync: { type: Boolean, default: false, required: false },
+    // for spot site and bulk create.
+    isSpot: { type: Boolean, default: false, required: false },
     defaultDates: { type: Array, default: () => [], required: false },
     defaultSchedule: { type: Object, default: () => ({}), required: false },
   },
@@ -81,14 +81,14 @@ export default class Site extends FireModel {
   constructor(context, item = {}) {
     super(context, item)
     this.collection = 'Sites'
-    this.hasMany = [
-      {
-        collection: 'PlacementDetails',
-        field: 'siteId',
-        condition: '==',
-        type: 'collection',
-      },
-    ]
+    // this.hasMany = [
+    //   {
+    //     collection: 'PlacementDetails',
+    //     field: 'siteId',
+    //     condition: '==',
+    //     type: 'collection',
+    //   },
+    // ]
     this.tokenFields = ['abbr', 'abbrKana']
     this.initialize(item)
   }

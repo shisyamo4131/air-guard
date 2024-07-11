@@ -1,13 +1,13 @@
 <script>
 /**
- * ### pages.synchronize/customers
+ * ### pages.synchronize/sites
  *
  * #### 概要
  * Realtime DatabaseのAirGuard/Customersに取り込まれているデータが
  * FirestoreのCustomersドキュメントと同期されるように設定する画面です。
  *
  * #### 機能詳細
- * - Realtime DatabaseのAirGuard/Customers下のデータについて、同期設定が行われていないものを一覧表示します。
+ * - Realtime DatabaseのAirGuard/Sites下のデータについて、同期設定が行われていないものを一覧表示します。
  * - ユーザーから選択された上記データの同期先ドキュメントをユーザーが選択します。
  * - 同期先ドキュメントは`sync`プロパティがfalseのもののみ、一覧表示されます。
  * - 同期先ドキュメントは新規登録させることも可能です。
@@ -15,14 +15,13 @@
  *   同期設定が行われていないデータを一括で新規登録することが可能です。
  *
  * #### 注意事項
+ * - 取引先CODEに該当するCustomerドキュメントが登録されていない場合、同期設定はできません。
  *
  * @author shisyamo4131
- * @version 1.0.2
+ * @version 1.0.0
  *
  * @updates
- * - version 1.0.2 - 2024-07-11 - forceRegist()を1件ずつ丁寧に処理するように改修。
- * - version 1.0.1 - 2024-07-10 - submit()のバグを解消。
- * - version 1.0.0 - 2024-07-09 - 初版作成
+ * - version 1.0.0 - 2024-07-11 - 初版作成
  */
 import {
   equalTo,
@@ -34,13 +33,14 @@ import {
   ref,
   update,
 } from 'firebase/database'
+import { where } from 'firebase/firestore'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
 export default {
   /***************************************************************************
    * NAME
    ***************************************************************************/
-  name: 'SynchronizeCustomers',
+  name: 'SynchronizeSites',
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
@@ -48,27 +48,40 @@ export default {
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
-  asyncData({ app }) {
-    /**
-     * `AirGuard/Customers`の同期設定がされていないデータへのリスナーをセット
-     */
-    const items = { unsync: [] }
-    const dbRef = ref(app.$database, 'AirGuard/Customers')
-    const q = query(dbRef, orderByChild('docId'), equalTo(null))
-
-    const updateItem = (data, type) => {
-      const index = items.unsync.findIndex((item) => item.code === data.key)
-      if (type === 'add') items.unsync.push(data.val())
-      if (index === -1) return
-      if (type === 'change') items.unsync.splice(index, 1, data.val())
-      if (type === 'remove') items.unsync.splice(index, 1)
-    }
-
+  asyncData({ app, store }) {
+    const items = { airGuard: [], unsync: [] }
     const listeners = {
-      added: onChildAdded(q, (data) => updateItem(data, 'add')),
-      changed: onChildChanged(q, (data) => updateItem(data, 'change')),
-      removed: onChildRemoved(q, (data) => updateItem(data, 'remove')),
+      added: null,
+      changed: null,
+      removed: null,
+      unsync: app.$Site(),
     }
+    /**
+     * `AirGuard/Sites`の同期設定がされていないデータへのリスナーをセット
+     */
+    const dbRef = ref(app.$database, 'AirGuard/Sites')
+    const q = query(dbRef, orderByChild('docId'), equalTo(null))
+    const updateItem = (data, type) => {
+      const item = data.val()
+      // storeを参照して取引先の存在有無を`isSelectable`にセット
+      item.isSelectable = store.state.customers.items.some(
+        (customer) => customer.code === item.customerCode
+      )
+      const index = items.airGuard.findIndex((item) => item.code === data.key)
+      if (type === 'add') items.airGuard.push(item)
+      if (index === -1) return
+      if (type === 'change') items.airGuard.splice(index, 1, item)
+      if (type === 'remove') items.airGuard.splice(index, 1)
+    }
+    listeners.added = onChildAdded(q, (data) => updateItem(data, 'add'))
+    listeners.changed = onChildChanged(q, (data) => updateItem(data, 'change'))
+    listeners.removed = onChildRemoved(q, (data) => updateItem(data, 'remove'))
+    /**
+     * 同期設定がされていないSiteドキュメントコレクションへのリスナーをセット
+     */
+    items.unsync = listeners.unsync.subscribe(undefined, [
+      where('sync', '==', false),
+    ])
     return { items, listeners }
   },
   /***************************************************************************
@@ -78,23 +91,13 @@ export default {
     return {
       asNewItem: false,
       loading: false,
-      page: { toSync: 1, unsync: 1 },
-      pageCount: { toSync: 1, unsync: 1 },
+      page: { toSync: 1, airGuard: 1 },
+      pageCount: { toSync: 1, airGuard: 1 },
       selectedUnsync: [],
       selectedToSync: [],
       snackbar: false,
       step: 0,
     }
-  },
-  /***************************************************************************
-   * COMPUTED
-   ***************************************************************************/
-  computed: {
-    unsyncedCustomers() {
-      return this.$store.state.customers.items.filter(
-        (item) => item.sync === false
-      )
-    },
   },
   /***************************************************************************
    * WATCH
@@ -111,6 +114,7 @@ export default {
     this.listeners.added()
     this.listeners.changed()
     this.listeners.removed()
+    this.listeners.unsync.unsubscribe()
   },
   /***************************************************************************
    * METHODS
@@ -122,14 +126,14 @@ export default {
       this.selectedToSync.splice(0)
       this.asNewItem = false
       this.loading = false
-      this.page.unsync = 1
+      this.page.airGuard = 1
       this.page.toSync = 1
     },
     /**
      * 同期設定を行います。
      * - 実際の同期処理はCloud Functionsで行われます。
      * - Cloud FunctionsのonValueChangedトリガーを起動させるため、
-     *   AirGuard/Customers/{code}/docIdに同期対象のFirestoreドキュメントidを設定します。
+     *   AirGuard/Sites/{code}/docIdに同期対象のFirestoreドキュメントidを設定します。
      * - ドキュメントを新規に作成する場合、空作成したドキュメントのidを使用します。
      * - 処理後にAutonumberを更新します。同期処理自体がCloud Functionsで行われるため、
      *   リアルタイムリスナーを利用して同期処理の完了を監視します。
@@ -146,9 +150,9 @@ export default {
          */
         const getDocumentId = async () => {
           if (this.asNewItem) {
-            const model = this.$Customer()
+            const model = this.$Site()
             const docRef = await model.create({ useAutonum: false })
-            await this.$Autonumber().refresh('Customers')
+            await this.$Autonumber().refresh('Sites')
             return docRef.id
           } else {
             return this.selectedToSync[0].docId
@@ -159,7 +163,7 @@ export default {
         const docId = await getDocumentId()
 
         /* 同期設定対象データへの参照を取得 */
-        const dbRef = ref(this.$database, `AirGuard/Customers/${code}`)
+        const dbRef = ref(this.$database, `AirGuard/Sites/${code}`)
 
         /* 同期設定対象データのdocIdを更新 */
         await update(dbRef, { docId })
@@ -176,26 +180,26 @@ export default {
       }
     },
     /**
-     * 同期設定が行われていないAirGuard/Customersデータをすべて新規ドキュメントとして
+     * 同期設定が行われていないAirGuard/Sitesデータをすべて新規ドキュメントとして
      * Firestoreに登録し、同期設定を行います。
      *
-     * @update 2024-07-11 - 一度に大量に処理すると重すぎる上、Cloud Functionsの制限に引っかかる。
-     *                      バッチ的なやり方でエラーが発生すると手戻りできないため、
-     *                      時間をかけてでも1件ずつ、丁寧に処理する。
+     * 一度に大量に処理すると重すぎる上、Cloud Functionsの制限に引っかかる。
+     * バッチ的なやり方でエラーが発生すると手戻りできないため、
+     * 時間をかけてでも1件ずつ、丁寧に処理する。
      */
     async forceRegist() {
       /* 処理確認 */
-      const msg = 'すべての取引先を強制的に登録します。よろしいですか？'
+      const msg = 'すべての現場を強制的に登録します。よろしいですか？'
       if (!window.confirm(msg)) return
 
       /* 事前処理 */
       this.loading = true
-      const items = this.items.airGuard.map((item) => item)
+      const items = this.items.airGuard.filter((item) => item.isSelectable)
       try {
         for (const item of items) {
-          const model = this.$Customer()
+          const model = this.$Site()
           const docRef = await model.create({ useAutonum: false })
-          const dbRef = ref(this.$database, `AirGuard/Customers/${item.code}`)
+          const dbRef = ref(this.$database, `AirGuard/Sites/${item.code}`)
           await update(dbRef, { docId: docRef.id })
         }
         this.initialize()
@@ -206,7 +210,7 @@ export default {
         alert(err.message)
       } finally {
         /* Autonumberを更新 -> エラー発生時にも更新が必須 */
-        await this.$Autonumber().refresh('Customers')
+        await this.$Autonumber().refresh('Sites')
         this.loading = false
       }
     },
@@ -217,20 +221,20 @@ export default {
 <template>
   <g-template-fixed v-slot="{ height }">
     <v-card outlined :height="height" class="d-flex flex-column">
-      <v-card-title> 取引先情報同期設定 </v-card-title>
-      <v-card-text> 取引先情報の同期設定を行います。 </v-card-text>
+      <v-card-title> 現場情報同期設定 </v-card-title>
+      <v-card-text> 現場情報の同期設定を行います。 </v-card-text>
       <v-window v-model="step" style="height: 100%">
         <v-window-item style="height: inherit">
           <v-container class="d-flex flex-column" style="height: inherit">
             <v-card-text class="text-end">
               <v-btn
                 color="primary"
-                :disabled="!!unsyncedCustomers.length || !items.unsync.length"
+                :disabled="!!items.unsync.length || !items.airGuard.length"
                 :loading="loading"
                 outlined
                 small
                 @click="forceRegist"
-                >すべての取引先を強制的に登録</v-btn
+                >すべての現場を強制的に登録</v-btn
               >
             </v-card-text>
             <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
@@ -241,21 +245,28 @@ export default {
                 disable-sort
                 :headers="[
                   { text: 'CODE', value: 'code' },
-                  { text: '取引先名1', value: 'name1' },
-                  { text: '取引先名2', value: 'name2' },
+                  { text: '現場名', value: 'name' },
+                  { text: '住所', value: 'address' },
                 ]"
-                :items="items.unsync"
+                :items="items.airGuard"
                 item-key="code"
                 show-select
                 single-select
-                :page.sync="page.unsync"
-                @page-count="pageCount.unsync = $event"
-              />
+                :page.sync="page.airGuard"
+                @page-count="pageCount.airGuard = $event"
+              >
+                <template #[`item.code`]="{ item }">
+                  <v-icon v-if="!item.isSelectable" color="error" small>
+                    mdi-close-circle
+                  </v-icon>
+                  {{ item.code }}
+                </template>
+              </g-data-table>
             </v-card>
             <v-container class="text-center">
               <v-pagination
-                v-model="page.unsync"
-                :length="pageCount.unsync"
+                v-model="page.airGuard"
+                :length="pageCount.airGuard"
                 total-visible="20"
               />
             </v-container>
@@ -278,10 +289,9 @@ export default {
                 disable-sort
                 :headers="[
                   { text: 'CODE', value: 'code' },
-                  { text: '取引先名1', value: 'name1' },
-                  { text: '取引先名2', value: 'name2' },
+                  { text: '現場名', value: 'name' },
                 ]"
-                :items="unsyncedCustomers"
+                :items="items.unsync"
                 item-key="code"
                 :show-select="!asNewItem"
                 single-select
@@ -296,14 +306,13 @@ export default {
                 total-visible="20"
               />
             </v-container>
-            <v-container class="d-flex">
+            <v-card-text class="d-flex">
               <v-checkbox
                 v-model="asNewItem"
                 class="ml-auto"
                 label="新規データとして同期する"
-                hide-details
               />
-            </v-container>
+            </v-card-text>
             <v-card-actions class="justify-space-between">
               <v-btn @click="step--">戻る</v-btn>
               <v-btn
@@ -323,15 +332,15 @@ export default {
                 <thead>
                   <tr>
                     <th>CODE</th>
-                    <th>取引先名1</th>
-                    <th>取引先名2</th>
+                    <th>現場名</th>
+                    <th>住所</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td>{{ selectedUnsync[0].code }}</td>
-                    <td>{{ selectedUnsync[0].name1 }}</td>
-                    <td>{{ selectedUnsync[0].name2 }}</td>
+                    <td>{{ selectedUnsync[0].name }}</td>
+                    <td>{{ selectedUnsync[0].address }}</td>
                   </tr>
                 </tbody>
               </v-simple-table>
@@ -345,15 +354,15 @@ export default {
                 <thead>
                   <tr>
                     <th>CODE</th>
-                    <th>取引先名1</th>
-                    <th>取引先名2</th>
+                    <th>現場名</th>
+                    <th>住所</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td>{{ selectedToSync[0].code }}</td>
-                    <td>{{ selectedToSync[0].name1 }}</td>
-                    <td>{{ selectedToSync[0].name2 }}</td>
+                    <td>{{ selectedToSync[0].name }}</td>
+                    <td>{{ selectedToSync[0].address }}</td>
                   </tr>
                 </tbody>
               </v-simple-table>

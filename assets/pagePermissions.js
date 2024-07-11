@@ -29,4 +29,5 @@ module.exports = {
   'operation-resuls-docId-edit': ['admin'],
   imports: ['admin', 'developer'],
   'synchronize-customers': ['admin', 'developper'],
+  'synchronize-sites': ['admin', 'developper'],
 }

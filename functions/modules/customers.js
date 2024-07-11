@@ -2,7 +2,7 @@ const {
   onDocumentUpdated,
   onDocumentDeleted,
 } = require('firebase-functions/v2/firestore')
-const { info } = require('firebase-functions/logger')
+const { info, error } = require('firebase-functions/logger')
 const { getDatabase } = require('firebase-admin/database')
 const { isDocumentChanged, syncDocuments } = require('./utils')
 const database = getDatabase()
@@ -40,9 +40,16 @@ exports.onUpdate = onDocumentUpdated('Customers/{docId}', async (event) => {
  * @version 1.0.0
  */
 exports.onDelete = onDocumentDeleted('Customers/{docId}', async (event) => {
-  // 同期設定済みの取引先ドキュメントであれば同期を解除する
-  if (event.data.data().sync) {
-    const code = event.data.data().code
-    await database.ref(`AirGuard/Customers/${code}`).update({ docId: null })
+  info(`Customerドキュメントが削除されました。`)
+  try {
+    // 同期設定済みの取引先ドキュメントであれば同期を解除する
+    if (event.data.data().sync) {
+      info(`AirGuardとの同期設定を解除します。`)
+      const code = event.data.data().code
+      await database.ref(`AirGuard/Customers/${code}`).update({ docId: null })
+      info(`AirGuardとの同期設定を解除しました。。`)
+    }
+  } catch (err) {
+    error(`Siteドキュメントの同期設定解除処理でエラーが発生しました。`, err)
   }
 })

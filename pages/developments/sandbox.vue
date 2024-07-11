@@ -1,20 +1,23 @@
 <template>
   <v-container>
-    <v-card height="360" class="d-flex flex-column">
-      <v-card-title>title</v-card-title>
-      <v-card-subtitle>subtitle</v-card-subtitle>
-      <v-card-text
-        style="border: 1px solid red; height: 100%"
-        class="flex-grow-1"
-      >
-        <div style="border: 1px solid green; height: inherit">aaa</div>
+    <v-card width="600">
+      <v-card-text>
+        <g-autocomplete-customer v-model="value" multiple />
       </v-card-text>
     </v-card>
   </v-container>
 </template>
 
 <script>
-export default {}
+import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
+export default {
+  components: { GAutocompleteCustomer },
+  data() {
+    return {
+      value: ['IjD0nH5x7wSNR1MLqiZX'],
+    }
+  },
+}
 </script>
 
 <style></style>

@@ -4,7 +4,14 @@
     ".write": "auth !== null",
     "AirGuard": {
       "Customers": {
-        ".indexOn": ["docId"]
+        ".indexOn": ["docId"],
+        ".read": "auth !== null",
+        ".write": "auth !== null"
+      },
+      "Sites": {
+        ".indexOn": ["docId"],
+        ".read": "auth !== null",
+        ".write": "auth !== null"
       }
     }
   }

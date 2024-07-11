@@ -7,13 +7,14 @@
  * Firestoreから都度取得します。
  * 検索条件が未入力の場合、最新の10件を表示します。
  *
- * @author shisyamo4131
- * @create 2024-06-26
- * @version 1.1.0
+ * #### 機能詳細
+ * - layoutでkeepAliveを設定するため、都度取得ではなくリアルタイムリスナーによるデータ取得です。
  *
- * 更新履歴:
- * version 1.1.0 - 2024-07-02
- *  - GDialogEditorの仕様変更に伴う改修。
+ * #### 更新履歴
+ * version 1.0.0 - 2024-07-10 - 初版作成
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
  */
 import { limit, orderBy } from 'firebase/firestore'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
@@ -41,27 +42,17 @@ export default {
     GAutocompleteCustomer,
   },
   /***************************************************************************
-   * ASYNCDATA
-   ***************************************************************************/
-  asyncData({ app }) {
-    const recent = {
-      items: [],
-      listener: app.$Site(),
-    }
-    recent.items = recent.listener.subscribe(undefined, [
-      orderBy('code', 'desc'),
-      limit(10),
-    ])
-    return { recent }
-  },
-  /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      fetched: {
-        items: [],
-        listener: this.$Site(),
+      items: {
+        recent: [],
+        fetched: [],
+      },
+      listeners: {
+        recent: this.$Site(),
+        fetched: this.$Site(),
       },
       model: this.$Site(),
       search: {
@@ -76,7 +67,7 @@ export default {
    ***************************************************************************/
   computed: {
     filteredItems() {
-      return this.fetched.items.filter((item) => {
+      return this.items.fetched.filter((item) => {
         const customerId = this.search.customerId
         const isActive = this.search.includeExpired || item.status === 'active'
         const isCustomerMatch =
@@ -98,11 +89,20 @@ export default {
     },
   },
   /***************************************************************************
-   * COMPUTED
+   * MOUNTED
+   ***************************************************************************/
+  mounted() {
+    this.items.recent = this.listeners.recent.subscribe(undefined, [
+      orderBy('code', 'desc'),
+      limit(10),
+    ])
+  },
+  /***************************************************************************
+   * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.fetched.listener.unsubscribe()
-    this.recent.listener.unsubscribe()
+    this.listeners.recent.unsubscribe()
+    this.listeners.fetched.unsubscribe()
   },
   /***************************************************************************
    * METHODS
@@ -110,7 +110,7 @@ export default {
   methods: {
     subscribe() {
       if (!this.search.value) return
-      this.fetched.items = this.fetched.listener.subscribe(this.search.value)
+      this.items.fetched = this.listeners.fetched.subscribe(this.search.value)
     },
   },
 }
@@ -119,7 +119,7 @@ export default {
 <template>
   <g-template-index
     extend
-    :items="search.value ? filteredItems : recent.items"
+    :items="search.value ? filteredItems : items.recent"
     :lazy-search.sync="search.value"
   >
     <template #append-search>
@@ -149,13 +149,10 @@ export default {
       >
         <g-autocomplete-customer
           v-model="search.customerId"
+          label="取引先"
           class="flex-grow-1"
           clearable
-          solo-inverted
-          flat
-          :outlined="false"
           hide-details
-          placeholder="取引先"
         />
         <g-switch
           v-model="search.includeExpired"

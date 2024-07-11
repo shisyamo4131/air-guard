@@ -1,4 +1,15 @@
 <script>
+/**
+ * ### GInputSite
+ *
+ * 現場情報入力コンポーネント
+ *
+ * #### 更新履歴
+ * - version 1.0.0 - 2024-07-10 - 初版作成
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ */
 import GDate from '~/components/atoms/inputs/GDate.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import { props } from '~/models/Site'
@@ -7,12 +18,6 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 
-/**
- * ### GInputSite
- * @author shisyamo4131
- * 更新履歴:
- * 2024-06-24 - SiteモデルがCustomerオブジェクトを持つようになったことによる修正
- */
 export default {
   /***************************************************************************
    * COMPONENTS
