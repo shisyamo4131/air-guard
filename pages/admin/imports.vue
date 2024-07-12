@@ -5,9 +5,9 @@
  * @author shisyamo4131
  * @version 1.0.0
  *
- * 更新履歴:
- * version 1.0.0 - 2024-07-04
- *  - 初版作成
+ * @updates
+ * - version 1.1.0 - 2024-07-12 - SiteContractsの取り込み機能を追加。
+ * - version 1.0.0 - 2024-07-04 - 初版作成
  */
 import { ref, update } from 'firebase/database'
 export default {
@@ -52,7 +52,8 @@ export default {
       allowedFiles: [
         { name: 'customers.txt', collectionId: 'Customers' },
         { name: 'sites.txt', collectionId: 'Sites' },
-        { name: 'employees.txt', collectionId: 'Employees' },
+        { name: 'site-contracts.txt', collectionId: 'SiteContracts' },
+        // { name: 'employees.txt', collectionId: 'Employees' },
       ],
       files: [],
       filesRule: (v) =>
