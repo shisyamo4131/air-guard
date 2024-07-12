@@ -44,8 +44,10 @@
  * @create 2024-06-24
  * @author shisyamo4131
  *
- * 更新履歴:
- * version 1.1.0 - 2024-07-02
+ * @updates
+ * - version 1.2.0 - 2024-07-12 - `slots.default`に配置されたコンポーネントへの参照を取得。
+ *                              - dialogの終了時に参照先のinitialize()をコールするように修正。
+ * - version 1.1.0 - 2024-07-02
  *  - 継承前提ではなく、`props.modelId`を用意して、プロパティから使用するデータモデルを指定できるように改善。
  *  - `props.customSubmit`を用意し、既定のsubmit処理を置き換えることができるように改善。
  *  - `props.isOpen`を用意し、dialogの開閉状態を親コンポーネント側で把握できるように改善。
@@ -79,6 +81,7 @@ export default {
     return {
       dialog: false,
       editMode: 'REGIST',
+      inputRef: null,
       model: null,
       loading: false,
     }
@@ -95,6 +98,7 @@ export default {
     attrs() {
       const props = Object.keys(this.model || {}) // Get all properties of `data.model` as an array.
       return {
+        ref: (el) => (this.inputRef = el),
         ...props.reduce((acc, i) => {
           acc[i] = this.model[i]
           return acc
@@ -160,6 +164,7 @@ export default {
      */
     dialog(v) {
       this.$emit('update:isOpen', v)
+      !v && this.inputRef?.initialize?.()
     },
     /**
      * `props.modelId`を監視します。
