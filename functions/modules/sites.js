@@ -35,6 +35,7 @@ const database = getDatabase()
  *
  * #### 更新履歴
  * - version 1.1.0 - 2024-07-12 - SiteOperationSchedulesの削除処理を追加。
+ *                              - SiteContractsの削除処理を追加。
  * - version 1.0.0 - 2024-07-11 - 初版作成
  *
  * @author shisyamo4131
@@ -55,7 +56,10 @@ exports.onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
   }
   try {
     // 従属するドキュメントを削除
-    await removeDependentDocuments(`Sites/${docId}`, ['SiteOperationSchedules'])
+    await removeDependentDocuments(`Sites/${docId}`, [
+      'SiteOperationSchedules',
+      'SiteContracts',
+    ])
     info('従属するドキュメントを削除しました。')
   } catch (err) {
     error(`Siteドキュメントの同期設定解除処理でエラーが発生しました。`, err)

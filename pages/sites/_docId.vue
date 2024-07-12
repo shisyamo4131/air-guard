@@ -3,7 +3,7 @@ import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GCardSite from '~/components/organisms/GCardSite.vue'
-// import GSiteContractsTimeline from '~/components/organisms/GSiteContractsTimeline.vue'
+import GSiteContractsTimeline from '~/components/organisms/GSiteContractsTimeline.vue'
 import GSiteOperationScheduleCalendar from '~/components/organisms/GSiteOperationScheduleCalendar.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 export default {
@@ -18,7 +18,7 @@ export default {
     GSiteOperationScheduleCalendar,
     GCardMap,
     GCardSite,
-    // GSiteContractsTimeline,
+    GSiteContractsTimeline,
     GTemplateDetail,
     GInputSite,
     GDialogEditor,
@@ -91,9 +91,9 @@ export default {
             outlined
           />
         </v-col>
-        <!-- <v-col cols="12">
+        <v-col cols="12">
           <g-site-contracts-timeline outlined :site-id="docId" />
-        </v-col> -->
+        </v-col>
       </v-row>
     </v-container>
     <!-- editor -->

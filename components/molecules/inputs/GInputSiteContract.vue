@@ -2,10 +2,13 @@
 /**
  * ### GInputSiteContract
  *
- * @author shisyamo4131
- * @create 2024-06-29
- * @version 1.0.0
+ * 現場取極めの入力用コンポーネントです。
  *
+ * @updates
+ * - version 1.0.0 - 2024-07-12 - 初版作成
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
  */
 import { props } from '~/models/SiteContract'
 import EditMode from '~/components/mixins/GMixinEditMode'
@@ -52,110 +55,128 @@ export default {
       tab: null,
     }
   },
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    initialize() {
+      this.tab = null
+    },
+  },
 }
 </script>
 
 <template>
   <div>
-    <g-combobox-date
-      :value="startDate"
-      :allowed-dates="allowedDates"
-      label="開始日"
-      required
-      :disabled="editMode !== 'REGIST'"
-      @input="$emit('update:startDate', $event)"
-    />
-    <v-tabs v-model="tab" grow>
-      <v-tab v-for="workShift of workShifts" :key="workShift.value">{{
-        workShift.text
-      }}</v-tab>
-    </v-tabs>
-    <v-tabs-items v-model="tab">
-      <v-tab-item v-for="workShift of workShifts" :key="workShift.value" eager>
-        <v-card-text>
-          <v-row dense>
-            <v-col cols="6">
-              <g-text-field
-                class="center-input"
-                :value="$props[workShift.value].startAt"
-                label="開始時刻"
-                required
-                input-type="time"
-                @input="$emit(`update:${workShift.value}-startAt`, $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <g-text-field
-                class="center-input"
-                :value="$props[workShift.value].endAt"
-                label="終了時刻"
-                required
-                input-type="time"
-                @input="$emit(`update:${workShift.value}-endAt`, $event)"
-              />
-            </v-col>
-            <v-col cols="6">
-              <g-switch
-                class="mt-1"
-                :input-value="$props[workShift.value].endAtNextday"
-                label="翌日終了"
-                required
-                @change="
-                  $emit(`update:${workShift.value}-endAtNextday`, $event)
-                "
-              />
-            </v-col>
-            <v-col cols="6">
-              <g-numeric
-                class="center-input"
-                :value="$props[workShift.value].breakTime"
-                label="休憩時間"
-                required
-                suffix="分"
-                @input="$emit(`update:${workShift.value}-breakTime`, $event)"
-              />
-            </v-col>
-          </v-row>
-          <template v-for="qualified of qualifies">
-            <v-subheader :key="`header-${qualified.value}`">{{
-              qualified.text
-            }}</v-subheader>
-            <v-row :key="`row-${qualified.value}`" dense>
-              <template v-for="dayDiv of dayDivs">
+    <v-row dense>
+      <v-col cols="12" md="6">
+        <g-combobox-date
+          :value="startDate"
+          :allowed-dates="allowedDates"
+          label="開始日"
+          required
+          :disabled="editMode !== 'REGIST'"
+          @input="$emit('update:startDate', $event)"
+        />
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-radio-group
+          class="mt-1 mb-2"
+          :value="workShift"
+          row
+          :disabled="editMode !== 'REGIST'"
+          @change="$emit('update:workShift', $event)"
+        >
+          <v-radio label="日勤" value="day" />
+          <v-radio label="夜勤" value="night" />
+        </v-radio-group>
+      </v-col>
+      <v-col cols="6">
+        <g-text-field
+          class="center-input"
+          :value="startAt"
+          label="開始時刻"
+          required
+          input-type="time"
+          @input="$emit(`update:startAt`, $event)"
+        />
+      </v-col>
+      <v-col cols="6">
+        <g-text-field
+          class="center-input"
+          :value="endAt"
+          label="終了時刻"
+          required
+          input-type="time"
+          @input="$emit(`update:endAt`, $event)"
+        />
+      </v-col>
+      <v-col cols="6">
+        <g-switch
+          class="mt-1"
+          :input-value="endAtNextday"
+          label="翌日終了"
+          required
+          @change="$emit(`update:endAtNextday`, $event)"
+        />
+      </v-col>
+      <v-col cols="6">
+        <g-numeric
+          class="center-input"
+          :value="breakTime"
+          label="休憩時間"
+          required
+          suffix="分"
+          @input="$emit(`update:breakTime`, $event)"
+        />
+      </v-col>
+    </v-row>
+    <v-card class="mb-6" outlined>
+      <v-tabs v-model="tab" center-active grow show-arrows>
+        <v-tab v-for="dayDiv of dayDivs" :key="dayDiv.value">
+          {{ dayDiv.text }}
+        </v-tab>
+      </v-tabs>
+      <v-tabs-items v-model="tab">
+        <v-tab-item v-for="dayDiv of dayDivs" :key="dayDiv.value" eager>
+          <v-card-text>
+            <template v-for="qualified of qualifies">
+              <v-subheader :key="`header-${qualified.value}`">
+                {{ qualified.text }}
+              </v-subheader>
+              <v-row :key="`row-${qualified.value}`" dense>
                 <template v-for="num of nums">
                   <v-col
-                    :key="`${workShift.value}-${dayDiv.value}-${qualified.value}-${num.value}`"
+                    :key="`${dayDiv.value}-${qualified.value}-${num.value}`"
                     cols="6"
                   >
                     <g-numeric
-                      class="center-input"
+                      class="right-input"
                       :value="
-                        $props[workShift.value].unitPrices[dayDiv.value][
-                          qualified.value
-                        ][num.value]
+                        unitPrices[dayDiv.value][qualified.value][num.value]
                       "
-                      :label="`${dayDiv.text}${num.text}`"
+                      :label="`${num.text}`"
                       required
                       suffix="円"
                       @input="
                         $emit(
-                          `update:${workShift.value}-unitPrices-${dayDiv.value}-${qualified.value}-${num.value}`,
+                          `update:unitPrices-${dayDiv.value}-${qualified.value}-${num.value}`,
                           $event
                         )
                       "
                     />
                   </v-col>
                 </template>
-              </template>
-            </v-row>
-          </template>
-        </v-card-text>
-      </v-tab-item>
-    </v-tabs-items>
+              </v-row>
+            </template>
+          </v-card-text>
+        </v-tab-item>
+      </v-tabs-items>
+    </v-card>
     <v-row dense>
       <v-col cols="6">
         <g-numeric
-          class="center-input"
+          class="right-input"
           :value="halfRate"
           label="半勤請求割合"
           required
@@ -165,7 +186,7 @@ export default {
       </v-col>
       <v-col cols="6">
         <g-numeric
-          class="center-input"
+          class="right-input"
           :value="cancelRate"
           label="中止請求割合"
           required

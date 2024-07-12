@@ -8,16 +8,11 @@
  * - 指定された現場IDの取極ドキュメント（SiteContracts）を取得し、Timelineコンポーネントを使って表示します。
  * - (未実装)モバイルの場合、Timelineではなく、最新の取極を1件のみ表示？paginationで切替？
  *
- * @props
- * @prop {string} siteId - 現場IDです。
+ * @updates
+ * - version 1.0.0 - 2024-07-12 - 初版作成
  *
  * @author shisyamo4131
- * @create 2024-06-29
  * @version 1.1.0
- *
- * 更新履歴:
- * version 1.1.0 - 2024-07-02
- *  - GDialogEditorの仕様変更に伴う改修。
  */
 import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
 import GCardSiteContract from '../molecules/cards/GCardSiteContract.vue'
@@ -47,21 +42,38 @@ export default {
       allowedDates: (val) => !this.items.some((item) => item.startDate === val),
       items: [],
       model: this.$SiteContract(),
-      test: {
-        siteId: '8wWP144vKwQBJXGw7b6o',
-      },
+      workShift: 'day',
+      tab: null,
     }
   },
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
+    dayContracts() {
+      return this.items
+        .filter(({ workShift }) => workShift === 'day')
+        .sort((a, b) => {
+          if (a.docId < b.docId) return 1
+          if (a.docId > b.docId) return -1
+          return 0
+        })
+    },
+    nightContracts() {
+      return this.items
+        .filter(({ workShift }) => workShift === 'night')
+        .sort((a, b) => {
+          if (a.docId < b.docId) return 1
+          if (a.docId > b.docId) return -1
+          return 0
+        })
+    },
     sortedItems() {
       const result = this.items
-        .map((item) => item)
+        .filter(({ workShift }) => workShift === this.workShift)
         .sort((a, b) => {
-          if (a.startDate < b.startDate) return 1
-          if (a.startDate > b.startDate) return -1
+          if (a.docId < b.docId) return 1
+          if (a.docId > b.docId) return -1
           return 0
         })
       return result
@@ -95,13 +107,14 @@ export default {
 </script>
 
 <template>
-  <v-card v-bind="$attrs" v-on="$listeners">
+  <v-card v-bind="$attrs" min-height="360" v-on="$listeners">
     <v-card-title class="g-card__title">
-      取極
+      取極め
       <g-dialog-editor
         ref="editor"
         :default-item="{ siteId }"
-        label="取極"
+        label="取極め"
+        max-width="540"
         model-id="SiteContract"
       >
         <template #activator="{ attrs, on }">
@@ -121,21 +134,37 @@ export default {
         </template>
       </g-dialog-editor>
     </v-card-title>
+    <v-tabs v-model="workShift">
+      <v-tab class="ml-auto" tab-value="day">日勤</v-tab>
+      <v-tab tab-value="night">夜勤</v-tab>
+    </v-tabs>
     <v-card-text>
-      <v-timeline :dense="$vuetify.breakpoint.mobile">
+      <g-card-site-contract
+        v-if="$vuetify.breakpoint.mobile"
+        outlined
+        show-date
+        v-bind="sortedItems[0]"
+        @click:edit="onClickEdit(sortedItems[0])"
+      />
+      <v-timeline v-else :dense="$vuetify.breakpoint.smAndDown">
         <v-timeline-item
           v-for="(item, index) of sortedItems"
           :key="index"
+          :color="index === 0 ? 'primary' : 'grey'"
           small
         >
-          <template #opposite>
+          <template v-if="$vuetify.breakpoint.mdAndUp" #opposite>
             <span
-              :class="`text-h6 font-weight-bold primary--text`"
-              v-text="item.startDate"
-            ></span>
+              :class="`text-subtitle-1 font-weight-bold ${
+                index === 0 ? 'primary' : 'grey'
+              }--text`"
+            >
+              {{ item.startDate }}
+            </span>
           </template>
           <g-card-site-contract
             outlined
+            :show-date="$vuetify.breakpoint.smAndDown"
             v-bind="item"
             @click:edit="onClickEdit(item)"
           />

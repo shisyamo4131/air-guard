@@ -4,8 +4,10 @@
  *
  * 現場の取極め情報のうち、単価情報を表示するTableコンポーネントです。
  *
+ * @updates
+ * - version 1.0.0 - 2024-07-12 - 初版作成
+ *
  * @author shisyamo4131
- * @create 2024-06-28
  * @version 1.0.0
  */
 import { props } from '~/models/SiteContract'
@@ -59,14 +61,6 @@ export default {
       ],
     }
   },
-  /***************************************************************************
-   * COMPUTED
-   ***************************************************************************/
-  computed: {
-    unitPrices() {
-      return this[this.workShift].unitPrices
-    },
-  },
 }
 </script>
 
@@ -74,15 +68,15 @@ export default {
   <v-simple-table>
     <thead>
       <tr>
-        <th>区分</th>
-        <th style="text-align: right">通常</th>
-        <th style="text-align: right">資格者</th>
+        <th></th>
+        <th style="text-align: center">通常</th>
+        <th style="text-align: center">資格者</th>
       </tr>
     </thead>
     <tbody>
       <tr v-for="(div, index) of divs" :key="`div-${index}`">
-        <td>{{ div.text }}</td>
-        <td style="text-align: right">
+        <td style="text-align: center">{{ div.text }}</td>
+        <td style="text-align: center">
           <unit-price :value="unitPrices[div.value].standard.price" />
           <unit-price
             class="grey--text text--darken-1"
@@ -90,7 +84,7 @@ export default {
             as-overtime
           />
         </td>
-        <td style="text-align: right">
+        <td style="text-align: center">
           <unit-price :value="unitPrices[div.value].qualified.price" />
           <unit-price
             class="grey--text text--darken-1"
