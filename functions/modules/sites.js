@@ -4,9 +4,9 @@ const {
 } = require('firebase-functions/v2/firestore')
 // const { getFirestore } = require('firebase-admin/firestore')
 const { info, error } = require('firebase-functions/logger')
-// const { removeDependentDocuments } = require('./utils')
-// const firestore = getFirestore()
 const { getDatabase } = require('firebase-admin/database')
+const { removeDependentDocuments } = require('./utils')
+// const firestore = getFirestore()
 const database = getDatabase()
 
 // const BATCH_LIMIT = 500
@@ -34,6 +34,7 @@ const database = getDatabase()
  * - AirGuardとの同期設定を解除します。
  *
  * #### 更新履歴
+ * - version 1.1.0 - 2024-07-12 - SiteOperationSchedulesの削除処理を追加。
  * - version 1.0.0 - 2024-07-11 - 初版作成
  *
  * @author shisyamo4131
@@ -41,10 +42,10 @@ const database = getDatabase()
  */
 exports.onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
   info(`Siteドキュメントが削除されました。`)
+  const docId = event.params.docId
   try {
     // 同期設定済みの取引先ドキュメントであれば同期を解除する
     if (event.data.data().sync) {
-      info(`AirGuardとの同期設定を解除します。`)
       const code = event.data.data().code
       await database.ref(`AirGuard/Sites/${code}`).update({ docId: null })
       info(`AirGuardとの同期設定を解除しました。。`)
@@ -52,17 +53,13 @@ exports.onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
   } catch (err) {
     error(`Siteドキュメントの同期設定解除処理でエラーが発生しました。`, err)
   }
-  // const docId = event.params.docId
-  // try {
-  //   log(`Deleting all dependent documents for site: ${docId}`)
-  //   await removeDependentDocuments(`Sites/${docId}`, [
-  //     'SiteContracts',
-  //     'SiteOperationSchedules',
-  //   ])
-  //   log(`Deleted successfully for site: ${docId}`)
-  // } catch (err) {
-  //   error(`Error deleting documents for site: ${docId}`, err)
-  // }
+  try {
+    // 従属するドキュメントを削除
+    await removeDependentDocuments(`Sites/${docId}`, ['SiteOperationSchedules'])
+    info('従属するドキュメントを削除しました。')
+  } catch (err) {
+    error(`Siteドキュメントの同期設定解除処理でエラーが発生しました。`, err)
+  }
 })
 
 /**

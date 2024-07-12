@@ -1,26 +1,25 @@
 <script>
 /**
  * ### GCalendarSiteOperationScheduleSummary
+ *
  * 現場の稼働予定を表示するためのカレンダーコンポーネントです。
  * 稼働予定情報は日付・勤務区分ごとに人数が集計されて表示されます。
  *
- * 機能の詳細：
+ * #### 機能詳細:
  * - 現場の稼働予定オブジェクトの配列を受け取り、日付・勤務区分ごとに人数を集計してカレンダーに表示します。
  * - イベントラベルをクリックすると`click:schedule`イベントがemitされます。
- * - `click:schedule`イベントは {date, workShift} が含まれます。
+ * - `click:schedule`イベントには {date, workShift} が含まれます。
  *
- * note: イベントのモデルが欲しい
- *
- * @component
- * @example
- * <GCalendarSiteOperationScheduleSummary
- *   :items="items"
- * />
+ * #### 注意事項:
+ * - 日付・勤務区分ごとに人数が集計されるため、現場の稼働予定ドキュメントをemitすることはできません。
  *
  * @params {Array} items - 現場の稼働予定オブジェクトの配列
  *
+ * @updates
+ * - version 1.0.0 - 2024-07-12 - 初版作成
+ *
  * @author shisyamo4131
- * @create 2024-06-19
+ * @version 1.0.0
  */
 import GCalendar from '../../atoms/calendars/GCalendar.vue'
 export default {
@@ -66,28 +65,28 @@ export default {
   <g-calendar v-bind="$attrs" ref="calendar" v-on="$listeners">
     <template #day="{ date }">
       <div v-if="events[date]" class="d-flex flex-wrap pa-1" style="gap: 4px">
-        <div style="height: 20px; width: 100%">
+        <div style="height: 16px; width: 100%">
           <v-sheet
             v-if="events[date].day > 0"
             color="blue lighten-2"
             width="100%"
             height="100%"
             rounded
-            class="d-flex align-center justify-center white--text"
+            class="d-flex align-center justify-center white--text text-caption"
             style="cursor: pointer"
             @click="$emit('click:schedule', { date, workShift: 'day' })"
           >
             {{ events[date].day }}
           </v-sheet>
         </div>
-        <div style="height: 20px; width: 100%">
+        <div style="height: 16px; width: 100%">
           <v-sheet
             v-if="events[date].night > 0"
             color="red lighten-2"
             width="100%"
             height="100%"
             rounded
-            class="d-flex align-center justify-center white--text"
+            class="d-flex align-center justify-center white--text text-caption"
             style="cursor: pointer"
             @click="$emit('click:schedule', { date, workShift: 'night' })"
           >

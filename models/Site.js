@@ -40,7 +40,8 @@
  * }
  * ---------------------------------------------------------------
  *
- * #### 更新履歴:
+ * @updates
+ * - version 1.1.0 - 2024-07-12 - `hasMany`に`SiteOperationSchedules`を追加。
  * - version 1.0.0 - 2024-07-10 - 初版作成
  *
  * 注意事項:
@@ -81,14 +82,14 @@ export default class Site extends FireModel {
   constructor(context, item = {}) {
     super(context, item)
     this.collection = 'Sites'
-    // this.hasMany = [
-    //   {
-    //     collection: 'PlacementDetails',
-    //     field: 'siteId',
-    //     condition: '==',
-    //     type: 'collection',
-    //   },
-    // ]
+    this.hasMany = [
+      {
+        collection: 'SiteOperationSchedules',
+        field: 'siteId',
+        condition: '==',
+        type: 'subCollection',
+      },
+    ]
     this.tokenFields = ['abbr', 'abbrKana']
     this.initialize(item)
   }

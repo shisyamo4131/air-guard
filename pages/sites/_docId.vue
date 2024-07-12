@@ -3,7 +3,7 @@ import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GCardSite from '~/components/organisms/GCardSite.vue'
-import GSiteContractsTimeline from '~/components/organisms/GSiteContractsTimeline.vue'
+// import GSiteContractsTimeline from '~/components/organisms/GSiteContractsTimeline.vue'
 import GSiteOperationScheduleCalendar from '~/components/organisms/GSiteOperationScheduleCalendar.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 export default {
@@ -18,7 +18,7 @@ export default {
     GSiteOperationScheduleCalendar,
     GCardMap,
     GCardSite,
-    GSiteContractsTimeline,
+    // GSiteContractsTimeline,
     GTemplateDetail,
     GInputSite,
     GDialogEditor,
@@ -28,9 +28,11 @@ export default {
    ***************************************************************************/
   asyncData({ app, route }) {
     const docId = route.params.docId
-    const model = app.$Site()
-    model.subscribeDoc(docId)
-    return { docId, model }
+    const listeners = {
+      site: app.$Site(),
+    }
+    listeners.site.subscribeDoc(docId)
+    return { docId, listeners }
   },
   /***************************************************************************
    * COMPUTED
@@ -48,14 +50,14 @@ export default {
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.model.unsubscribe()
+    this.listeners.site.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
     onClickEdit() {
-      const item = JSON.parse(JSON.stringify(this.model))
+      const item = JSON.parse(JSON.stringify(this.listeners.site))
       const editMode = 'UPDATE'
       this.$refs[`site-editor`].open({ item, editMode })
     },
@@ -77,22 +79,21 @@ export default {
     <v-container>
       <v-row>
         <v-col cols="12">
-          <g-card-site v-bind="model" outlined flat />
+          <g-card-site v-bind="listeners.site" outlined />
         </v-col>
         <v-col cols="12" md="5">
-          <g-card-map :value="model.address" height="612" flat outlined />
+          <g-card-map :value="listeners.site.address" height="612" outlined />
         </v-col>
         <v-col cols="12" md="7">
           <g-site-operation-schedule-calendar
             :site-id="docId"
             height="612"
-            flat
             outlined
           />
         </v-col>
-        <v-col cols="12">
-          <g-site-contracts-timeline flat outlined :site-id="docId" />
-        </v-col>
+        <!-- <v-col cols="12">
+          <g-site-contracts-timeline outlined :site-id="docId" />
+        </v-col> -->
       </v-row>
     </v-container>
     <!-- editor -->
