@@ -1,12 +1,13 @@
 <script>
-import GCalendar from '../atoms/calendars/GCalendar.vue'
-import GDialogMonthPicker from '../molecules/dialogs/GDialogMonthPicker.vue'
 /**
- * ### GLauncherTemporarySiteOperationSchedules
+ * ### GLauncherTemporarySiteOperationSchedules[要検討]
+ *
  * @author shisyamo4131
  * @create 2024-06-14
  * @update 2024-06-21   年月選択コンポーネントを変更。
  */
+import GCalendar from '../atoms/calendars/GCalendar.vue'
+import GDialogMonthPicker from '../molecules/dialogs/GDialogMonthPicker.vue'
 export default {
   /***************************************************************************
    * COMPONENTS

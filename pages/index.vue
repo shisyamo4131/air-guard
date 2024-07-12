@@ -2,13 +2,13 @@
   <v-container fluid>
     <!-- <v-row justify="center" align="center"> -->
     <v-row>
-      <v-col cols="12" lg="4" xl="3">
+      <!-- <v-col cols="12" lg="4" xl="3">
         <g-launcher-temporary-site-operation-schedules
           flat
           outlined
           height="504"
         />
-      </v-col>
+      </v-col> -->
       <v-col cols="12" lg="8" xl="5">
         <g-launcher-attendance-records flat outlined />
       </v-col>
@@ -50,13 +50,13 @@
 import GLauncherAttendanceRecords from '~/components/organisms/GLauncherAttendanceRecords.vue'
 import GLauncherLeaveApplications from '~/components/organisms/GLauncherLeaveApplications.vue'
 // import BChartSales from '~/components/molecules/charts/BChartSales.vue'
-import GLauncherTemporarySiteOperationSchedules from '~/components/organisms/GLauncherTemporarySiteOperationSchedules.vue'
+// import GLauncherTemporarySiteOperationSchedules from '~/components/organisms/GLauncherTemporarySiteOperationSchedules.vue'
 
 export default {
   name: 'IndexPage',
   components: {
     // BChartSales,
-    GLauncherTemporarySiteOperationSchedules,
+    // GLauncherTemporarySiteOperationSchedules,
     GLauncherLeaveApplications,
     GLauncherAttendanceRecords,
   },
