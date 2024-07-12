@@ -12,14 +12,16 @@
  * - 同期先ドキュメントは`sync`プロパティがfalseのもののみ、一覧表示されます。
  * - 同期先ドキュメントは新規登録させることも可能です。
  * - `sync`プロパティがfalseである既存ドキュメントが存在しない場合のみ、
- *   同期設定が行われていないデータを一括で新規登録することが可能です。
+ *   同期設定が行われていないデータを複数選択して新規登録することが可能です。
  *
  * #### 注意事項
  *
  * @author shisyamo4131
- * @version 1.0.2
+ * @version 1.1.0
  *
  * @updates
+ * - version 1.1.0 - 2024-07-12 - すべて強制登録を廃止
+ *                              - AirGuardから複数選択 -> 強制登録を可能にした。
  * - version 1.0.2 - 2024-07-11 - forceRegist()を1件ずつ丁寧に処理するように改修。
  * - version 1.0.1 - 2024-07-10 - submit()のバグを解消。
  * - version 1.0.0 - 2024-07-09 - 初版作成
@@ -78,6 +80,7 @@ export default {
     return {
       asNewItem: false,
       loading: false,
+      multiple: false,
       page: { toSync: 1, airGuard: 1 },
       pageCount: { toSync: 1, airGuard: 1 },
       selectedUnsync: [],
@@ -102,6 +105,9 @@ export default {
   watch: {
     asNewItem(v) {
       if (v) this.selectedToSync.splice(0)
+    },
+    multiple(v) {
+      if (!v) this.selectedUnsync.splice(0)
     },
   },
   /***************************************************************************
@@ -190,9 +196,8 @@ export default {
 
       /* 事前処理 */
       this.loading = true
-      const items = this.items.airGuard.map((item) => item)
       try {
-        for (const item of items) {
+        for (const item of this.selectedUnsync) {
           const model = this.$Customer({ code: item.code }) // codeを初期設定しておかないと自動採番が正常に更新されない。
           const docRef = await model.create({ useAutonum: false })
           const dbRef = ref(this.$database, `AirGuard/Customers/${item.code}`)
@@ -222,16 +227,15 @@ export default {
       <v-window v-model="step" style="height: 100%">
         <v-window-item style="height: inherit">
           <v-container class="d-flex flex-column" style="height: inherit">
-            <v-card-text class="text-end">
-              <v-btn
-                color="primary"
-                :disabled="!!unsyncedCustomers.length || !items.airGuard.length"
-                :loading="loading"
-                outlined
-                small
-                @click="forceRegist"
-                >すべての取引先を強制的に登録</v-btn
-              >
+            <v-card-text class="d-flex justify-end">
+              <v-checkbox
+                v-model="multiple"
+                label="選択した取引先を強制登録する"
+                :disabled="
+                  !!items.unsync.length || !items.airGuard.length || loading
+                "
+                hide-details
+              />
             </v-card-text>
             <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
               <g-data-table
@@ -247,7 +251,7 @@ export default {
                 :items="items.airGuard"
                 item-key="code"
                 show-select
-                single-select
+                :single-select="!multiple"
                 :page.sync="page.airGuard"
                 @page-count="pageCount.airGuard = $event"
               />
@@ -261,11 +265,21 @@ export default {
             </v-container>
             <v-card-actions class="justify-end">
               <v-btn
+                v-if="!multiple"
                 color="primary"
                 :disabled="!selectedUnsync.length"
                 @click="step++"
                 >次へ</v-btn
               >
+              <v-btn
+                v-else
+                color="primary"
+                :disabled="!selectedUnsync.length || loading"
+                :loading="loading"
+                @click="forceRegist"
+              >
+                {{ `${selectedUnsync.length}件を強制登録` }}
+              </v-btn>
             </v-card-actions>
           </v-container>
         </v-window-item>
