@@ -69,6 +69,7 @@ import FireModel from './FireModel'
 
 export const props = {
   props: {
+    docId: { type: String, default: '', required: false },
     code: { type: String, default: '', required: false },
     lastName: { type: String, default: '', required: false },
     firstName: { type: String, default: '', required: false },
@@ -103,6 +104,7 @@ export const props = {
     // Prepared by function.
     fullName: { type: String, default: '', required: false },
     fullNameKana: { type: String, default: '', required: false },
+    sync: { type: Boolean, default: false, required: false },
   },
 }
 

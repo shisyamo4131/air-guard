@@ -47,7 +47,8 @@
     "icon": "mdi-wrench-cog",
     "lists": [
       { "name": "取引先同期設定", "to": "/synchronize/customers" },
-      { "name": "現場同期設定", "to": "/synchronize/sites" }
+      { "name": "現場同期設定", "to": "/synchronize/sites" },
+      { "name": "従業員同期設定", "to": "/synchronize/employees" }
     ]
   },
   {

@@ -36,6 +36,7 @@ const { info, error } = require('firebase-functions/logger')
 const { onValueUpdated } = require('firebase-functions/v2/database')
 const Customer = require('../models/Customer')
 const Site = require('../models/Site')
+const Employee = require('../models/Employee')
 const firestore = getFirestore()
 
 /**
@@ -102,6 +103,38 @@ exports.siteUpdated = onValueUpdated(
       model.customer = await getCustomerByCode(data.customerCode)
       model.sync = true
       const docRef = firestore.collection('Sites').doc(docId)
+      await docRef.set({ ...model }, { merge: true })
+      info('Firestoreドキュメントとの同期が正常に完了しました。', { docId })
+    } catch (err) {
+      error(err)
+    }
+  }
+)
+
+/**
+ * `AirGuard/Employees/{code}`が更新された時の処理です。
+ * 対象データが有効なdocIdを保有していた場合、対象のFirestoreドキュメントと同期します。
+ */
+exports.employeeUpdated = onValueUpdated(
+  { ref: `/AirGuard/Employees/{code}`, region: 'us-central1' },
+  async (event) => {
+    const data = event.data.after.val()
+    info(`[air-guard.js] Employeeデータの更新を検知しました。`, {
+      code: data.code,
+      name: `${data.lastName} ${data.firstName}`,
+    })
+    try {
+      const docId = data.docId
+      if (!docId) {
+        info(`[air-guard.js] docIdが設定されていないため、処理を終了します。`)
+        return
+      }
+      info(`[air-guard.js] Firestoreドキュメントと同期します。`, { docId })
+      const model = new Employee(data)
+      model.isForeigner = data.isForeigner === '1'
+      model.hasSendAddress = data.hasSendAddress === '2'
+      model.sync = true
+      const docRef = firestore.collection('Employees').doc(docId)
       await docRef.set({ ...model }, { merge: true })
       info('Firestoreドキュメントとの同期が正常に完了しました。', { docId })
     } catch (err) {

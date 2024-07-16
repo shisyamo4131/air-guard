@@ -30,5 +30,6 @@ module.exports = {
   'import-masters': ['admin', 'developer'],
   'import-transactions': ['admin', 'developer'],
   'synchronize-customers': ['admin', 'developper'],
+  'synchronize-employees': ['admin', 'developper'],
   'synchronize-sites': ['admin', 'developper'],
 }

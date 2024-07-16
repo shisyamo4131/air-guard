@@ -3,9 +3,10 @@
  * ### pages.import-masters
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  *
  * @updates
+ * - version 1.1.0 - 2024-07-16 - Employeesのインポート機能を実装
  * - version 1.0.0 - 2024-07-04 - 初版作成
  */
 import { ref, update } from 'firebase/database'
@@ -51,7 +52,7 @@ export default {
       allowedFiles: [
         { name: 'customers.txt', collectionId: 'Customers' },
         { name: 'sites.txt', collectionId: 'Sites' },
-        // { name: 'employees.txt', collectionId: 'Employees' },
+        { name: 'employees.txt', collectionId: 'Employees' },
       ],
       files: [],
       filesRule: (v) =>
