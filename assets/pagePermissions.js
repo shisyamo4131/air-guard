@@ -27,7 +27,8 @@ module.exports = {
   'operation-resuls-regist': ['admin'],
   'operation-resuls-docId': ['admin'],
   'operation-resuls-docId-edit': ['admin'],
-  imports: ['admin', 'developer'],
+  'import-masters': ['admin', 'developer'],
+  'import-transactions': ['admin', 'developer'],
   'synchronize-customers': ['admin', 'developper'],
   'synchronize-sites': ['admin', 'developper'],
 }

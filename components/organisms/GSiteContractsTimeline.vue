@@ -4,17 +4,21 @@
  *
  * 現場の取極め情報を表示・編集するためのTimelineコンポーネントです。
  *
- * 機能の詳細:
+ * #### 機能の詳細:
  * - 指定された現場IDの取極ドキュメント（SiteContracts）を取得し、Timelineコンポーネントを使って表示します。
- * - (未実装)モバイルの場合、Timelineではなく、最新の取極を1件のみ表示？paginationで切替？
+ *
+ * #### 注意事項:
+ * ‐ version 1.1.0 現在、過去の取極めを確認する手段を用意していません。
  *
  * @updates
+ * - version 1.1.0 - 2024-07-13 - 取極めは最新の1件のみを表示するように変更。
+ *                              - 登録ボタンを削除し、登録のトリガーはGCardSiteContractから受け取るように修正。
+ *                              - onClickRegistを実装。
  * - version 1.0.0 - 2024-07-12 - 初版作成
  *
  * @author shisyamo4131
  * @version 1.1.0
  */
-import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
 import GCardSiteContract from '../molecules/cards/GCardSiteContract.vue'
 import GDialogEditor from '../molecules/dialogs/GDialogEditor.vue'
 import GInputSiteContract from '../molecules/inputs/GInputSiteContract.vue'
@@ -24,7 +28,6 @@ export default {
    ***************************************************************************/
   components: {
     GDialogEditor,
-    GBtnRegistIcon,
     GInputSiteContract,
     GCardSiteContract,
   },
@@ -96,6 +99,9 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    onClickRegist(workShift) {
+      this.$refs.editor.open({ item: { workShift }, editMode: 'REGIST' })
+    },
     onClickEdit(item) {
       this.$refs.editor.open({ item, editMode: 'UPDATE' })
     },
@@ -108,45 +114,31 @@ export default {
 
 <template>
   <v-card v-bind="$attrs" min-height="360" v-on="$listeners">
-    <v-card-title class="g-card__title">
-      取極め
-      <g-dialog-editor
-        ref="editor"
-        :default-item="{ siteId }"
-        label="取極め"
-        max-width="540"
-        model-id="SiteContract"
-      >
-        <template #activator="{ attrs, on }">
-          <g-btn-regist-icon
-            class="ml-auto"
-            color="primary"
-            v-bind="attrs"
-            v-on="on"
-          />
-        </template>
-        <template #default="{ attrs, on }">
-          <g-input-site-contract
-            v-bind="attrs"
-            :allowed-dates="allowedDates"
-            v-on="on"
-          />
-        </template>
-      </g-dialog-editor>
-    </v-card-title>
+    <v-card-title class="g-card__title"> 取極め </v-card-title>
     <v-tabs v-model="workShift">
       <v-tab class="ml-auto" tab-value="day">日勤</v-tab>
       <v-tab tab-value="night">夜勤</v-tab>
     </v-tabs>
     <v-card-text>
-      <g-card-site-contract
-        v-if="$vuetify.breakpoint.mobile"
-        outlined
-        show-date
-        v-bind="sortedItems[0]"
-        @click:edit="onClickEdit(sortedItems[0])"
-      />
-      <v-timeline v-else :dense="$vuetify.breakpoint.smAndDown">
+      <v-tabs-items v-model="workShift">
+        <v-tab-item value="day">
+          <g-card-site-contract
+            outlined
+            v-bind="dayContracts[0]"
+            @click:regist="onClickRegist('day')"
+            @click:edit="onClickEdit(dayContracts[0])"
+          />
+        </v-tab-item>
+        <v-tab-item value="night">
+          <g-card-site-contract
+            outlined
+            v-bind="nightContracts[0]"
+            @click:regist="onClickRegist('night')"
+            @click:edit="onClickEdit(nightContracts[0])"
+          />
+        </v-tab-item>
+      </v-tabs-items>
+      <!-- <v-timeline v-else :dense="$vuetify.breakpoint.smAndDown">
         <v-timeline-item
           v-for="(item, index) of sortedItems"
           :key="index"
@@ -169,8 +161,23 @@ export default {
             @click:edit="onClickEdit(item)"
           />
         </v-timeline-item>
-      </v-timeline>
+      </v-timeline> -->
     </v-card-text>
+    <g-dialog-editor
+      ref="editor"
+      :default-item="{ siteId }"
+      label="取極め"
+      max-width="540"
+      model-id="SiteContract"
+    >
+      <template #default="{ attrs, on }">
+        <g-input-site-contract
+          v-bind="attrs"
+          :allowed-dates="allowedDates"
+          v-on="on"
+        />
+      </template>
+    </g-dialog-editor>
   </v-card>
 </template>
 

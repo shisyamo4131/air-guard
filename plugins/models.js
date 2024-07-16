@@ -24,6 +24,11 @@ export default (context, inject) => {
   inject('AttendanceRecord', (item) => new AttendanceRecord(firebase, item))
   inject('Customer', (item) => new Customer(firebase, item))
   inject('Site', (item) => new Site(firebase, item))
+  inject('SiteContract', (item) => new SiteContract(firebase, item))
+  inject(
+    'SiteOperationSchedule',
+    (item) => new SiteOperationSchedule(firebase, item)
+  )
   inject('Employee', (item) => new Employee(firebase, item))
   inject(
     'EmployeeMedicalCheckup',
@@ -35,15 +40,7 @@ export default (context, inject) => {
     'EmployeeLeaveApplication',
     (item) => new EmployeeLeaveApplication(firebase, item)
   )
-  inject(
-    'SiteOperationSchedule',
-    (item) => new SiteOperationSchedule(firebase, item)
-  )
   inject('Equipment', (item) => new Equipment(firebase, item))
   inject('EquipmentReceiving', (item) => new EquipmentReceiving(firebase, item))
   inject('OperationResult', (item) => new OperationResult(firebase, item))
-  inject(
-    'SiteContract',
-    (siteId, item) => new SiteContract(firebase, siteId, item)
-  )
 }

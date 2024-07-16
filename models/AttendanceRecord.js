@@ -80,8 +80,8 @@ export default class AttendanceRecord extends FireModel {
     }
     await delAll()
     /* Get employee data. */
-    const getEmployees = async (chuncked) => {
-      const promises = chuncked.map(async (codes) => {
+    const getEmployees = async (chunked) => {
+      const promises = chunked.map(async (codes) => {
         const colRef = collection(this.firestore, 'Employees')
         const q = query(colRef, where('code', 'in', codes))
         const snapshot = await getDocs(q)
@@ -94,10 +94,10 @@ export default class AttendanceRecord extends FireModel {
     }
     const employeeCodes = data.map(({ employeeId }) => employeeId)
     const uniqueCodes = [...new Set(employeeCodes)]
-    const chuncked = uniqueCodes.flatMap((_, i) =>
+    const chunked = uniqueCodes.flatMap((_, i) =>
       i % 30 ? [] : [uniqueCodes.slice(i, i + 30)]
     )
-    const employees = await getEmployees(chuncked)
+    const employees = await getEmployees(chunked)
     const newItems = data.map((item) => {
       item.employeeId = employees.find(
         ({ code }) => code === item.employeeId

@@ -107,10 +107,7 @@ export default class SiteContract extends FireModel {
    * 同一の開始日付、勤務区分での取極めが存在する場合は作成不可です。
    */
   async beforeCreate() {
-    const path = `${this.collection}/${this.startDate}-${this.workShift}`
-    const docRef = doc(this.firestore, path)
-    const snapshot = await getDoc(docRef)
-    if (snapshot.exists()) {
+    if (await this.isExist()) {
       const errMsg = '同一日、同一勤務区分の取極めが既に登録されています。'
       // eslint-disable-next-line
       console.error(errMsg)
@@ -124,5 +121,15 @@ export default class SiteContract extends FireModel {
   async create() {
     const docId = `${this.startDate}-${this.workShift}`
     await super.create({ docId })
+  }
+
+  /**
+   * 指定された開始日、勤務区分での取極めが存在するかどうかを返します。
+   */
+  async isExist() {
+    const path = `${this.collection}/${this.startDate}-${this.workShift}`
+    const docRef = doc(this.firestore, path)
+    const snapshot = await getDoc(docRef)
+    return snapshot.exists()
   }
 }
