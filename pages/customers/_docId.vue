@@ -1,16 +1,16 @@
 <script>
-import { limit, orderBy, where } from 'firebase/firestore'
 /**
  * ### pages.CustomerDetail
  *
  * 取引先の詳細画面です。
  *
- * #### 更新履歴
- * - version 1.0.0 - 2024-07-10 - 初版作成
- *
  * @author shisyamo4131
  * @version 1.0.0
+ *
+ * @updates
+ * - version 1.0.0 - 2024-07-10 - 初版作成
  */
+import { limit, orderBy, where } from 'firebase/firestore'
 import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import GCardCustomer from '~/components/molecules/cards/GCardCustomer.vue'

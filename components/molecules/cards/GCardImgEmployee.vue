@@ -18,9 +18,6 @@ export default {
    * PROPS
    ***************************************************************************/
   mixins: [props],
-  props: {
-    docId: { type: String, required: true },
-  },
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -90,8 +87,8 @@ export default {
       </v-sheet>
     </v-img>
     <g-dialog-file-uploader
-      directory="/images/employees"
-      :file-name="code"
+      :directory="`/images/employees/${docId}`"
+      file-name="id"
       @upload:complete="onUploadComplete"
     >
       <template #activator="{ attrs, on }">

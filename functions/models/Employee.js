@@ -55,6 +55,24 @@ class Employee extends FireModel {
   constructor(item) {
     super(item, { addTimestamps: false })
     this.tokenFields = ['lastNameKana', 'firstNameKana', 'abbr']
+    Object.defineProperties(this, {
+      fullName: {
+        enumerable: true,
+        get() {
+          if (!this.lastName || !this.firstName) return ''
+          return `${this.lastName} ${this.firstName}`
+        },
+        set(v) {},
+      },
+      fullNameKana: {
+        enumerable: true,
+        get() {
+          if (!this.lastNameKana || !this.firstNameKana) return ''
+          return `${this.lastNameKana} ${this.firstNameKana}`
+        },
+        set(v) {},
+      },
+    })
   }
 
   initialize(item = {}) {

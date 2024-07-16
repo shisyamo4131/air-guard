@@ -5,64 +5,16 @@
  * Employeeクラスは、従業員情報を管理するためのモデルクラスです。
  * FireModelクラスを継承し、Firestoreとの連携やCRUD操作を簡素化します。
  *
- * 主な機能:
- * - Firestoreコレクション 'Employees' に対するCRUD操作
- * - LeaveApplications、AttendanceRecords、PlacementDetailsコレクションとのリレーションを管理
- * - 従業員情報のトークンフィールドによる検索サポート
- *
- * 使用例:
- * ---------------------------------------------------------------
- * import { firestore, auth } from '@/plugins/firebase';
- * import Employee from '@/models/Employee';
- *
- * const employee = new Employee({ firestore, auth }, { lastName: 'Sample', firstName: 'Example' });
- * employee.create().then(docRef => {
- *   console.log('Document created with ID: ', docRef.id);
- * });
- * ---------------------------------------------------------------
- *
- * props設定:
- * このクラスで管理するプロパティは、props.propsの中でvueコンポーネントのpropsのルールに合わせて定義しています。
- * これにより、Mixinsを利用することでクラスに依存するコンポーネントのpropsを一元管理できます。
- *
- * injectの利用:
- * Nuxtのinjectを利用してコンポーネントからのアクセスを容易にすることも可能です。
- * plugins/models.js:
- * ---------------------------------------------------------------
- * import Employee from '../models/Employee'
- *
- * export default (context, inject) => {
- *   const firebase = {
- *     firestore: context.app.$firestore,
- *     auth: context.app.$auth,
- *   }
- *   inject('Employee', (item) => new Employee(firebase, item))
- * }
- * ---------------------------------------------------------------
+ * @updates
+ * - version 1.3.0 - 2024-07-03 - updateImgRef()を実装
+ * - version 1.2.0 - 2024-07-02 - 生年月日、書類郵送先住所を追加
+ *                              - 送付先住所が個別指定されなければ住所を送付先住所に複製
+ *                              - fullName、fullNameKanaをpropsに定義
+ * - version 1.1.0 - 2024-07-01 - 血液型（bloodType）を追加
+ * - version 1.0.0 - 2024-06-20 - 初版作成
  *
  * @author shisyamo4131
- * @date 2024-06-20
  * @version 1.3.0
- *
- * 更新履歴:
- * version 1.3.0 - 2024-07-03
- *  - updateImgRef()を実装
- *
- * version 1.2.0 - 2024-07-02
- *  - 生年月日、書類郵送先住所を追加
- *  - 送付先住所が個別指定されなければ住所を送付先住所に複製
- *  - fullName、fullNameKanaをpropsに定義
- *  - fullName、fullNameKanaへの値のセットをObject.definePropertiesから、prepareData()に移動
- *    -> コンポーネントのMixinsでpropsを読み込んだ際にfullName、fullNameKanaも読み込ませるため。
- *
- * version 1.1.0 - 2024-07-01
- * - 血液型（bloodType）を追加
- *
- * 2024-06-20 - 初版作成
- *
- * 注意事項:
- * このクラスはNuxt.jsのコンテキストに依存しないよう設計されていますが、
- * FirestoreとAuthenticationインスタンスを渡す必要があります。
  */
 import { doc, updateDoc } from 'firebase/firestore'
 import FireModel from './FireModel'
@@ -133,7 +85,24 @@ export default class Employee extends FireModel {
       },
     ]
     this.tokenFields = ['lastNameKana', 'firstNameKana', 'abbr']
-    this.initialize(item)
+    Object.defineProperties(this, {
+      fullName: {
+        enumerable: true,
+        get() {
+          if (!this.lastName || !this.firstName) return ''
+          return `${this.lastName} ${this.firstName}`
+        },
+        set(v) {},
+      },
+      fullNameKana: {
+        enumerable: true,
+        get() {
+          if (!this.lastNameKana || !this.firstNameKana) return ''
+          return `${this.lastNameKana} ${this.firstNameKana}`
+        },
+        set(v) {},
+      },
+    })
   }
 
   /**
@@ -175,14 +144,14 @@ export default class Employee extends FireModel {
 
   prepareData() {
     this.imgRef = `/images/employees/${this.code}.jpg`
-    this.fullName =
-      this.lastName && this.firstName
-        ? `${this.lastName} ${this.firstName}`
-        : ''
-    this.fullNameKana =
-      this.lastNameKana && this.firstNameKana
-        ? `${this.lastNameKana} ${this.firstNameKana}`
-        : ''
+    // this.fullName =
+    //   this.lastName && this.firstName
+    //     ? `${this.lastName} ${this.firstName}`
+    //     : ''
+    // this.fullNameKana =
+    //   this.lastNameKana && this.firstNameKana
+    //     ? `${this.lastNameKana} ${this.firstNameKana}`
+    //     : ''
     if (!this.isForeigner) this.nationality = ''
     if (!this.leaveDate) this.leaveReason = ''
     // 送付先住所がなければ登録住所を送付先住所に複製
