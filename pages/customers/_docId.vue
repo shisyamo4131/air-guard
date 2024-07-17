@@ -5,9 +5,10 @@
  * 取引先の詳細画面です。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.0.1
  *
  * @updates
+ * - version 1.0.1 - 2024-07-17 - ページ遷移に$routeを使用。
  * - version 1.0.0 - 2024-07-10 - 初版作成
  */
 import { limit, orderBy, where } from 'firebase/firestore'
@@ -67,11 +68,14 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    parentPath() {
+      return this.$route.path.split('/').slice(0, -1).join('/')
+    },
     breadcrumbs() {
       return [
         { text: 'TOP', to: '/' },
-        { text: '取引先', to: '/customers', exact: true },
-        { text: '取引先詳細', to: `/customers/${this.docId}` },
+        { text: '取引先', to: this.parentPath, exact: true },
+        { text: '取引先詳細', to: `${this.parentPath}/${this.docId}` },
       ]
     },
   },
@@ -117,7 +121,7 @@ export default {
     },
     onSubmitComplete(event) {
       if (event.editMode === 'DELETE') {
-        this.$router.replace(`/customers`)
+        this.$router.replace(this.parentPath)
       }
     },
     onClickRegistSite() {

@@ -1,15 +1,14 @@
 <script>
 /**
- * ### GSwitch
+ * ### GCheckbox
  *
- * VSwitchを拡張したカスタムスイッチコンポーネントです。
+ * VCheckboxを拡張したカスタムスイッチコンポーネントです。
  *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.0.0
  *
  * @updates
- * - version 1.1.0 - 2024-07-17 - labelスロットの既定を変更。
- * - version 1.0.0 - 2024-06-21 - 初版作成
+ * - version 1.0.0 - 2024-07-17 - 初版作成
  */
 export default {
   /***************************************************************************
@@ -26,7 +25,7 @@ export default {
 </script>
 
 <template>
-  <v-switch v-bind="$attrs" v-on="$listeners">
+  <v-checkbox v-bind="$attrs" v-on="$listeners">
     <template #label>
       <slot name="label">
         <div class="text-caption">{{ label }}</div>
@@ -41,7 +40,7 @@ export default {
     <template v-for="(_, slotName) in $slots" #[slotName]>
       <slot :name="slotName" />
     </template>
-  </v-switch>
+  </v-checkbox>
 </template>
 
 <style scoped>

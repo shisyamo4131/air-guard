@@ -44,11 +44,14 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    parentPath() {
+      return this.$route.path.split('/').slice(0, -1).join('/')
+    },
     breadcrumbs() {
       return [
         { text: 'TOP', to: '/' },
-        { text: '外注先', to: '/outsourcers', exact: true },
-        { text: '外注先詳細', to: `/outsourcers/${this.docId}` },
+        { text: '外注先', to: this.parentPath, exact: true },
+        { text: '外注先詳細', to: `${this.parentPath}/${this.docId}` },
       ]
     },
   },

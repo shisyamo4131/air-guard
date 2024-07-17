@@ -94,40 +94,40 @@ export default {
       <v-col cols="6">
         <g-text-field
           class="center-input"
-          :value="startAt"
+          :value="startTime"
           label="開始時刻"
           required
           input-type="time"
-          @input="$emit(`update:startAt`, $event)"
+          @input="$emit(`update:startTime`, $event)"
         />
       </v-col>
       <v-col cols="6">
         <g-text-field
           class="center-input"
-          :value="endAt"
+          :value="endTime"
           label="終了時刻"
           required
           input-type="time"
-          @input="$emit(`update:endAt`, $event)"
+          @input="$emit(`update:endTime`, $event)"
         />
       </v-col>
       <v-col cols="6">
         <g-switch
           class="mt-1"
-          :input-value="endAtNextday"
+          :input-value="endTimeNextday"
           label="翌日終了"
           required
-          @change="$emit(`update:endAtNextday`, $event)"
+          @change="$emit(`update:endTimeNextday`, $event)"
         />
       </v-col>
       <v-col cols="6">
         <g-numeric
           class="center-input"
-          :value="breakTime"
+          :value="breakMinutes"
           label="休憩時間"
           required
           suffix="分"
-          @input="$emit(`update:breakTime`, $event)"
+          @input="$emit(`update:breakMinutes`, $event)"
         />
       </v-col>
     </v-row>

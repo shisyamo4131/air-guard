@@ -1,50 +1,33 @@
 <script>
 /**
- * ### pages.SiteDetail
- *
- * 現場の詳細画面です。
+ * ### pages.WorkRegulationDetail
  *
  * @author shisyamo4131
- * @version 1.0.1
+ * @version 1.0.0
  *
  * @updates
- * - version 1.0.1 - 2024-07-17 - ページ遷移に$routeを使用。
- * - version 1.0.0 - xxxx-xx-xx - 初版作成
+ * - version 1.0.0 - 2024-07-17 - 初版作成
  */
-import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
-import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
-import GCardSite from '~/components/organisms/GCardSite.vue'
-import GSiteContractsTimeline from '~/components/organisms/GSiteContractsTimeline.vue'
-import GSiteOperationScheduleCalendar from '~/components/organisms/GSiteOperationScheduleCalendar.vue'
+import GInputWorkRegulation from '~/components/molecules/inputs/GInputWorkRegulation.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 export default {
   /***************************************************************************
    * NAME
    ***************************************************************************/
-  name: 'SiteDetail',
+  name: 'WorkRegulationDetail',
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: {
-    GSiteOperationScheduleCalendar,
-    GCardMap,
-    GCardSite,
-    GSiteContractsTimeline,
-    GTemplateDetail,
-    GInputSite,
-    GDialogEditor,
-  },
+  components: { GTemplateDetail, GDialogEditor, GInputWorkRegulation },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
   asyncData({ app, route }) {
     const docId = route.params.docId
-    const listeners = {
-      site: app.$Site(),
-    }
-    listeners.site.subscribeDoc(docId)
-    return { docId, listeners }
+    const model = app.$WorkRegulation()
+    model.subscribeDoc(docId)
+    return { docId, model }
   },
   /***************************************************************************
    * COMPUTED
@@ -56,8 +39,8 @@ export default {
     breadcrumbs() {
       return [
         { text: 'TOP', to: '/' },
-        { text: '現場', to: this.parentPath, exact: true },
-        { text: '現場詳細', to: `${this.parentPath}/${this.docId}` },
+        { text: '就業規則', to: this.parentPath, exact: true },
+        { text: '就業規則詳細', to: `${this.parentPath}/${this.docId}` },
       ]
     },
   },
@@ -65,16 +48,16 @@ export default {
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.listeners.site.unsubscribe()
+    this.model.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
     onClickEdit() {
-      const item = JSON.parse(JSON.stringify(this.listeners.site))
+      const item = JSON.parse(JSON.stringify(this.model))
       const editMode = 'UPDATE'
-      this.$refs[`site-editor`].open({ item, editMode })
+      this.$refs.editor.open({ item, editMode })
     },
     onSubmitComplete(event) {
       if (event.editMode === 'DELETE') {
@@ -91,35 +74,20 @@ export default {
     @click:edit="onClickEdit"
   >
     <v-breadcrumbs :items="breadcrumbs" />
-    <v-container>
-      <v-row>
-        <v-col cols="12">
-          <g-card-site v-bind="listeners.site" outlined />
-        </v-col>
-        <v-col cols="12" md="5">
-          <g-card-map :value="listeners.site.address" height="612" outlined />
-        </v-col>
-        <v-col cols="12" md="7">
-          <g-site-operation-schedule-calendar
-            :site-id="docId"
-            height="612"
-            outlined
-          />
-        </v-col>
-        <v-col cols="12">
-          <g-site-contracts-timeline outlined :site-id="docId" />
-        </v-col>
-      </v-row>
-    </v-container>
+    <v-row>
+      <v-col cols="12">
+        {{ model }}
+      </v-col>
+    </v-row>
     <!-- editor -->
     <g-dialog-editor
-      ref="site-editor"
-      label="現場"
-      model-id="Site"
+      ref="editor"
+      label="就業規則"
+      model-id="WorkRegulation"
       @submit:complete="onSubmitComplete"
     >
       <template #default="{ attrs, on }">
-        <g-input-site v-bind="attrs" hide-customer v-on="on" />
+        <g-input-work-regulation v-bind="attrs" v-on="on" />
       </template>
     </g-dialog-editor>
   </g-template-detail>

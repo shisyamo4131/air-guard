@@ -8,6 +8,10 @@
  */
 module.exports = {
   'admin-autonumbers': ['admin', 'developer'],
+  'admin-import-masters': ['admin', 'developer'],
+  'admin-import-transactions': ['admin', 'developer'],
+  'admin-work-regulations': ['admin', 'developer'],
+  'admin-work-regulations-docId': ['admin', 'developer'],
   'attendance-records': ['admin', 'developer'],
   'leave-applications-unapproved': ['admin'],
   'temporary-site-schedules': ['admin', 'developer'],
@@ -27,8 +31,6 @@ module.exports = {
   'operation-resuls-regist': ['admin'],
   'operation-resuls-docId': ['admin'],
   'operation-resuls-docId-edit': ['admin'],
-  'import-masters': ['admin', 'developer'],
-  'import-transactions': ['admin', 'developer'],
   'synchronize-customers': ['admin', 'developper'],
   'synchronize-employees': ['admin', 'developper'],
   'synchronize-sites': ['admin', 'developper'],

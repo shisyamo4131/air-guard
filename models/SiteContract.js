@@ -29,10 +29,10 @@ const props = {
       validator: (v) => ['day', 'night'].includes(v),
       required: false,
     },
-    startAt: { type: String, default: '', required: false },
-    endAt: { type: String, default: '', required: false },
-    endAtNextday: { type: Boolean, default: false, required: false },
-    breakTime: { type: Number, default: 60, required: false },
+    startTime: { type: String, default: '', required: false },
+    endTime: { type: String, default: '', required: false },
+    endTimeNextday: { type: Boolean, default: false, required: false },
+    breakMinutes: { type: Number, default: 60, required: false },
     unitPrices: {
       type: Object,
       default: () => {
@@ -76,12 +76,12 @@ export default class SiteContract extends FireModel {
         enumerable: true,
         get() {
           if (!this.startDate) return 0
-          if (!this.startAt || !this.endAt) return 0
-          const start = new Date(`${this.startDate} ${this.startAt}`)
-          const end = new Date(`${this.startDate} ${this.endAt}`)
-          if (this.endAtNextday) end.setDate(end.getDate() + 1)
+          if (!this.startTime || !this.endTime) return 0
+          const start = new Date(`${this.startDate} ${this.startTime}`)
+          const end = new Date(`${this.startDate} ${this.endTime}`)
+          if (this.endTimeNextday) end.setDate(end.getDate() + 1)
           const diff = (end.getTime() - start.getTime()) / 60 / 1000
-          return diff - (this.breakTime || 0)
+          return diff - (this.breakMinutes || 0)
         },
         set(v) {},
       },

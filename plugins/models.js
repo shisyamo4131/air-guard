@@ -13,6 +13,7 @@ import Equipment from '../models/Equipment'
 import EquipmentReceiving from '../models/EquipmentReceiving'
 import OperationResult from '../models/OperationResult'
 import SiteContract from '../models/SiteContract'
+import WorkRegulation from '../models/WorkRegulation'
 
 export default (context, inject) => {
   const firebase = {
@@ -43,4 +44,5 @@ export default (context, inject) => {
   inject('Equipment', (item) => new Equipment(firebase, item))
   inject('EquipmentReceiving', (item) => new EquipmentReceiving(firebase, item))
   inject('OperationResult', (item) => new OperationResult(firebase, item))
+  inject('WorkRegulation', (item) => new WorkRegulation(firebase, item))
 }

@@ -24,9 +24,9 @@ export default {
       return [
         { text: '適用開始日付', value: 'startDate', width: '132' },
         { text: '勤務区分', value: 'workShift' },
-        { text: '開始時刻', value: 'startAt' },
-        { text: '終了時刻', value: 'endAt' },
-        { text: '休憩時間', value: 'breakTime' },
+        { text: '開始時刻', value: 'startTime' },
+        { text: '終了時刻', value: 'endTime' },
+        { text: '休憩時間', value: 'breakMinutes' },
         { text: '実働時間', value: 'workTime' },
         {
           text: '基本単価',

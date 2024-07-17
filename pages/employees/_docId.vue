@@ -5,9 +5,10 @@
  * 従業員の詳細画面です。
  *
  * @author shisyamo4131
- * @version 1.2.0
+ * @version 1.2.1
  *
  * @updates
+ * - version 1.2.1 - 2024-07-17 - ページ遷移に$routeを使用。
  * - version 1.2.0 - 2024-07-16 - GTempleteDetailを使用
  * - version 1.1.0 - 2024-07-03 - 健康診断履歴（EmployeeMedicalCheckups）へのリアルタイムリスナーを実装
  * - version 1.0.0 - xxxx-xx-xx - 初版作成
@@ -61,11 +62,14 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    parentPath() {
+      return this.$route.path.split('/').slice(0, -1).join('/')
+    },
     breadcrumbs() {
       return [
         { text: 'TOP', to: '/' },
-        { text: '従業員', to: '/employees', exact: true },
-        { text: '従業員詳細', to: `/employees/${this.docId}` },
+        { text: '従業員', to: this.parentPath, exact: true },
+        { text: '従業員詳細', to: `${this.parentPath}/${this.docId}` },
       ]
     },
   },
@@ -88,7 +92,7 @@ export default {
     },
     onSubmitComplete(event) {
       if (event.editMode === 'DELETE') {
-        this.$router.replace(`/employees`)
+        this.$router.replace(this.parentPath)
       }
     },
   },

@@ -5,7 +5,7 @@ const props = {
     workStartTime: { type: String, default: '', required: false },
     workEndDate: { type: String, default: '', required: false },
     workEndTime: { type: String, default: '', required: false },
-    breakTime: { type: Number, default: null, required: false },
+    breakMinutes: { type: Number, default: null, required: false },
     workTime: { type: Number, default: null, required: false },
     overTime: { type: Number, default: null, required: false },
     nightTime: { type: Number, default: null, required: false },

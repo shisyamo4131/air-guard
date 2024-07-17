@@ -60,6 +60,10 @@
       {
         "name": "トランザクションインポート",
         "to": "/admin/import-transactions"
+      },
+      {
+        "name": "就業規則",
+        "to": "/admin/work-regulations"
       }
     ]
   },

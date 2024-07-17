@@ -111,7 +111,7 @@ export default {
                 const docId = `${item.startDate}-${item.workShift}`
                 await model.fetch(docId)
                 model.endAtNextday = item.endAtNextday === 1
-                model.breakTime = parseInt(item.breakTime)
+                model.breakMinutes = parseInt(item.breakMinutes)
                 model.halfRate = parseInt(item.halfRate) * 100
                 model.cancelRate = parseInt(item.cancelRate) * 100
                 // 単価情報をセット
