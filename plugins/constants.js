@@ -97,6 +97,18 @@ const EDIT_MODE_ARRAY = [
   { text: '削除', value: 'DELETE' },
 ]
 
+const EMPLOYEE_CONTRACT_TYPE = {
+  'part-time': 'アルバイト',
+  contract: '契約社員',
+  'full-time': '正社員',
+}
+
+const EMPLOYEE_CONTRACT_TYPE_ARRAY = [
+  { value: 'part-time', text: 'アルバイト' },
+  { value: 'contract', text: '契約社員' },
+  { value: 'full-time', text: '正社員' },
+]
+
 const EMPLOYEE_STATUS = {
   active: '在籍',
   expired: '退職',
@@ -203,6 +215,8 @@ export default (context, inject) => {
   inject('DEADLINE_ARRAY', DEADLINE_ARRAY)
   inject('EDIT_MODE', EDIT_MODE)
   inject('EDIT_MODE_ARRAY', EDIT_MODE_ARRAY)
+  inject('EMPLOYEE_CONTRACT_TYPE', EMPLOYEE_CONTRACT_TYPE)
+  inject('EMPLOYEE_CONTRACT_TYPE_ARRAY', EMPLOYEE_CONTRACT_TYPE_ARRAY)
   inject('EMPLOYEE_STATUS', EMPLOYEE_STATUS)
   inject('EMPLOYEE_STATUS_ARRAY', EMPLOYEE_STATUS_ARRAY)
   inject('LEAVE_APPLICATION_STATUS', LEAVE_APPLICATION_STATUS)

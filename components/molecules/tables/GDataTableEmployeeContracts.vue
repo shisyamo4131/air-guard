@@ -41,6 +41,7 @@ export default {
       return [
         { text: '契約日', value: 'startDate' },
         { text: '雇用形態', value: 'contractType' },
+        { text: '基本給', value: 'basicWage', align: 'right' },
       ]
     },
   },
@@ -82,6 +83,16 @@ export default {
           </template>
         </g-dialog-editor>
       </v-toolbar>
+    </template>
+    <template #[`item.contractType`]="{ item }">
+      {{ $EMPLOYEE_CONTRACT_TYPE[item.contractType] }}
+    </template>
+    <template #[`item.basicWage`]="{ item }">
+      {{
+        `${item.basicWage.toLocaleString()} 円/${
+          item.paymentType === 'monthly' ? '月' : '日'
+        }`
+      }}
     </template>
   </g-data-table>
 </template>
