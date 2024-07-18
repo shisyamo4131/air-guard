@@ -69,9 +69,10 @@ exports.onUpdate = onDocumentUpdated('Employees/{docId}', async (event) => {
  * - 依存コレクションのすべてのドキュメントを削除します。
  *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.2.0
  *
  * @updates
+ * - version 1.2.0 - 2024-07-18 - EmployeeContractsを削除するように
  * - version 1.1.0 - 2024-07-16 - AirGuardとの同期解除処理を追加
  *                              - Storage内のファイル削除処理を追加
  * - version 1.0.0 - 2024-07-02 - 初版作成
@@ -92,6 +93,7 @@ exports.onDelete = onDocumentDeleted('Employees/{docId}', async (event) => {
     await removeIndex(docId)
     // 依存ドキュメントを削除
     await removeDependentDocuments(`Employees/${docId}`, [
+      'EmployeeContracts',
       'EmployeeMedicalCheckups',
     ])
     // ファイル削除
