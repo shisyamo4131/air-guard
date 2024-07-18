@@ -5,7 +5,8 @@
  * Access版AirGuardから出力されたトランザクションデータをインポートします。
  *
  * #### 注意事項:
- * - SiteContractの取り込みについて、
+ * - トランザクションデータのインポートは、既存ドキュメントがあれば上書きを、なければ作成を、
+ *   直接Firestoreに行います。
  *
  * @author shisyamo4131
  * @version 1.0.0
@@ -13,7 +14,13 @@
  * @updates
  * - version 1.0.0 - 2024-07-13 - 初版作成
  */
-import { collection, getDocs, query, where } from 'firebase/firestore'
+import {
+  collection,
+  collectionGroup,
+  getDocs,
+  query,
+  where,
+} from 'firebase/firestore'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -104,7 +111,7 @@ export default {
                 const siteId = await getSiteId(item.siteCode)
                 if (!siteId) {
                   throw new Error(
-                    `未登録現場の取極めが含まれています。処理を中断します。現場code: ${item.code}`
+                    `未登録現場の取極めが含まれています。処理を中断します。現場code: ${item.siteCode}`
                   )
                 }
                 const model = this.$SiteContract({ siteId, ...item })
@@ -134,8 +141,114 @@ export default {
             }
           },
         },
+        {
+          name: 'employee-contracts.txt',
+          handler: async (data) => {
+            /**
+             * dataに含まれるsiteCodeから、現場情報を一括取得し、
+             * `data.fetchedItems.employees`にセットします。
+             */
+            const fetchEmployees = async (data) => {
+              this.fetchedItems.employees.splice(0)
+              const uniqueCodes = [
+                ...new Set(data.map(({ employeeCode }) => employeeCode)),
+              ]
+              const chunkedCodes = uniqueCodes.flatMap((_, i) =>
+                i % 30 ? [] : [uniqueCodes.slice(i, i + 30)]
+              )
+              const snapshots = await Promise.all(
+                chunkedCodes.map(async (codes) => {
+                  const colRef = collection(this.$firestore, 'Employees')
+                  const q = query(colRef, where('code', 'in', codes))
+                  const snapshot = await getDocs(q)
+                  return snapshot.docs.map((doc) => doc.data())
+                })
+              )
+              this.fetchedItems.employees = snapshots.flat()
+            }
+            /**
+             * `data.fetchedItems.employees`から、引数で指定されたcodeに一致する
+             * 従業員ドキュメントを検索しdocIdを返します。
+             * 該当するものがない場合、undefinedを返します。
+             */
+            const getEmployeeId = (code) => {
+              const fetched = this.fetchedItems.employees.find(
+                (item) => item.code === code
+              )
+              return fetched ? fetched.docId : undefined
+            }
+
+            const getExistContracts = async (data) => {
+              this.fetchedItems.employeeContracts.splice(0)
+              const uniqueIds = [
+                ...new Set(data.map(({ employeeId }) => employeeId)),
+              ]
+              const chunkedIds = uniqueIds.flatMap((_, i) =>
+                i % 30 ? [] : [uniqueIds.slice(i, i + 30)]
+              )
+              const snapshots = await Promise.all(
+                chunkedIds.map(async (employeeIds) => {
+                  const colRef = collectionGroup(
+                    this.$firestore,
+                    'EmployeeContracts'
+                  )
+                  const q = query(
+                    colRef,
+                    where('employeeId', 'in', employeeIds)
+                  )
+                  const snapshot = await getDocs(q)
+                  return snapshot.docs.map((doc) => doc.data())
+                })
+              )
+              this.fetchedItems.employeeContracts = snapshots.flat()
+            }
+            this.progress.max = data.length
+            this.progress.current = 0
+            try {
+              // 1. dataに含まれる従業員ドキュメントを取得
+              await fetchEmployees(data)
+              // 2. dataにemployeeIdを付与
+              data.forEach((item) => {
+                item.employeeId = getEmployeeId(item.employeeCode)
+              })
+              // 3. employeeIdが取得できなかったdataが存在すればエラー
+              const unknown = data.filter((item) => !item.employeeId)
+              if (unknown.length) {
+                // eslint-disable-next-line
+                console.log(unknown)
+                throw new Error(
+                  `未登録従業員の雇用契約が含まれています。処理を中断します。`
+                )
+              }
+              // 4. 既登録の雇用契約情報を取得
+              await getExistContracts(data)
+              for (const item of data) {
+                item.hasPeriod = item.hasPeriod === 1
+                item.basicWage = parseInt(item.basicWage)
+                const existDoc = this.fetchedItems.employeeContracts.find(
+                  ({ employeeId, startDate }) =>
+                    employeeId === item.employeeId &&
+                    startDate === item.startDate
+                )
+                const model = this.$EmployeeContract(
+                  existDoc
+                    ? { ...existDoc, ...item }
+                    : { employeeId: data.employeeId, ...item }
+                )
+                model.docId ? await model.update() : await model.create()
+                this.progress.current++
+              }
+            } catch (err) {
+              // eslint-disable-next-line
+              console.error(err)
+              alert(err.message)
+            }
+          },
+        },
       ],
       fetchedItems: {
+        employees: [],
+        employeeContracts: [],
         sites: [],
       },
       files: [],

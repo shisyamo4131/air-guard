@@ -113,7 +113,9 @@ export default {
               <v-tab-item>
                 <g-data-table-employee-contracts
                   :doc-id="docId"
+                  height="240"
                   :items="contracts"
+                  :items-per-page="-1"
                 />
               </v-tab-item>
             </v-tabs-items>

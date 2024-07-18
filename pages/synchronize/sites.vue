@@ -248,7 +248,7 @@ export default {
                 checkbox-color="primary"
                 disable-sort
                 :headers="[
-                  { text: 'CODE', value: 'code' },
+                  { text: 'CODE', value: 'code', width: '96' },
                   { text: '現場名', value: 'name' },
                   { text: '住所', value: 'address' },
                 ]"
@@ -302,7 +302,7 @@ export default {
                 class="flex-table"
                 disable-sort
                 :headers="[
-                  { text: 'CODE', value: 'code' },
+                  { text: 'CODE', value: 'code', width: '96' },
                   { text: '現場名', value: 'name' },
                 ]"
                 :items="items.unsync"
