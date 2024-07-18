@@ -4,6 +4,7 @@ import AttendanceRecord from '../models/AttendanceRecord'
 import Customer from '../models/Customer'
 import Site from '../models/Site'
 import Employee from '../models/Employee'
+import EmployeeContract from '../models/EmployeeContract'
 import EmployeeMedicalCheckup from '../models/EmployeeMedicalCheckup'
 import Outsourcer from '../models/Outsourcer'
 import LeaveApplication from '../models/LeaveApplication'
@@ -31,6 +32,7 @@ export default (context, inject) => {
     (item) => new SiteOperationSchedule(firebase, item)
   )
   inject('Employee', (item) => new Employee(firebase, item))
+  inject('EmployeeContract', (item) => new EmployeeContract(firebase, item))
   inject(
     'EmployeeMedicalCheckup',
     (item) => new EmployeeMedicalCheckup(firebase, item)

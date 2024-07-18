@@ -5,6 +5,9 @@
  *
  * @author shisyamo4131
  * @version 1.0.0
+ *
+ * @updates
+ * - version 1.0.0 - 2024-07-17 - 初版作成
  */
 
 import { doc, getDoc } from 'firebase/firestore'
@@ -27,7 +30,7 @@ const props = {
     paymentType: {
       type: String,
       default: 'daily',
-      validator: (v) => ['dayly', 'monthly'],
+      validator: (v) => ['daily', 'monthly'],
     },
     basicWage: { type: Number, default: null, required: false },
     remarks: { type: String, default: '', required: false },
@@ -65,6 +68,14 @@ export default class SiteContract extends FireModel {
       console.error(errMsg)
       throw new Error(errMsg)
     }
+    if (!this.hasPeriod) this.expiredDate = ''
+  }
+
+  beforeUpdate() {
+    return new Promise((resolve) => {
+      if (!this.hasPeriod) this.expiredDate = ''
+      resolve()
+    })
   }
 
   /**

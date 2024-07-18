@@ -10,22 +10,24 @@
  * @author shisyamo4131
  * @version 2.1.1
  *
- * 更新履歴:
- * version 2.1.1 - 2024-07-18 - 雇用契約表示用のtabを用意。
- *                            - VTabsにgrowを設定。
- * version 2.1.0 - 2024-07-03 - 健康診断履歴（EmployeeMedicalCheckups）をpropsで受け付けるように追加。
- *                            - 健康診断履歴を表示するためにGDataTableEmployeeMedicalCheckupsを追加。
- *                            - VTabにcenter-active、show-arrowsを追加。
- * version 2.0.0 - 2024-07-02 - 全体的に改修。写真の表示準備と登録情報を細かく確認できるように。
- *                            - 切り分けられるコンポーネントを外部に。
- * version 1.1.0 - 2024-07-01 - 入社日を表示
- * version 1.0.0 - 2024-06-28 - 初版作成
+ * @updates
+ * - version 2.1.1 - 2024-07-18 - 雇用契約表示用のtabを用意。
+ *                              - VTabsにgrowを設定。
+ *                              - 雇用契約の管理機能を実装。
+ * - version 2.1.0 - 2024-07-03 - 健康診断履歴（EmployeeMedicalCheckups）をpropsで受け付けるように追加。
+ *                              - 健康診断履歴を表示するためにGDataTableEmployeeMedicalCheckupsを追加。
+ *                              - VTabにcenter-active、show-arrowsを追加。
+ * - version 2.0.0 - 2024-07-02 - 全体的に改修。写真の表示準備と登録情報を細かく確認できるように。
+ *                              - 切り分けられるコンポーネントを外部に。
+ * - version 1.1.0 - 2024-07-01 - 入社日を表示
+ * - version 1.0.0 - 2024-06-28 - 初版作成
  */
 import GSimpleTableEmployeeBasic from '../molecules/tables/GSimpleTableEmployeeBasic.vue'
 import GSimpleTableEmployeeAddress from '../molecules/tables/GSimpleTableEmployeeAddress.vue'
 import GSimpleTableEmployeeContact from '../molecules/tables/GSimpleTableEmployeeContact.vue'
 import GCardImgEmployee from '../molecules/cards/GCardImgEmployee.vue'
 import GDataTableEmployeeMedicalCheckups from '../molecules/tables/GDataTableEmployeeMedicalCheckups.vue'
+import GDataTableEmployeeContracts from '../molecules/tables/GDataTableEmployeeContracts.vue'
 import { props } from '~/models/Employee'
 export default {
   /***************************************************************************
@@ -37,6 +39,7 @@ export default {
     GSimpleTableEmployeeContact,
     GCardImgEmployee,
     GDataTableEmployeeMedicalCheckups,
+    GDataTableEmployeeContracts,
   },
   /***************************************************************************
    * PROPS
@@ -44,6 +47,7 @@ export default {
   mixins: [props],
   props: {
     docId: { type: String, required: true },
+    contracts: { type: Array, default: () => [], required: false },
     medicalCheckups: { type: Array, default: () => [], required: false },
   },
   /***************************************************************************
@@ -104,6 +108,12 @@ export default {
                 <g-data-table-employee-medical-checkups
                   :doc-id="docId"
                   :items="medicalCheckups"
+                />
+              </v-tab-item>
+              <v-tab-item>
+                <g-data-table-employee-contracts
+                  :doc-id="docId"
+                  :items="contracts"
                 />
               </v-tab-item>
             </v-tabs-items>

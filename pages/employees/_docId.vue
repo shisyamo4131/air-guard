@@ -8,6 +8,8 @@
  * @version 1.2.1
  *
  * @updates
+ * - version 1.3.0 - 2024-07-18 - 雇用契約に対するリアルタイムリスナーを用意。
+ *                              - GEmployeeCardに雇用契約情報をセット。
  * - version 1.2.1 - 2024-07-17 - ページ遷移に$routeを使用。
  * - version 1.2.0 - 2024-07-16 - GTempleteDetailを使用
  * - version 1.1.0 - 2024-07-03 - 健康診断履歴（EmployeeMedicalCheckups）へのリアルタイムリスナーを実装
@@ -42,13 +44,16 @@ export default {
   asyncData({ app, route }) {
     const docId = route.params.docId
     const items = {
+      contracts: [],
       medicalCheckups: [],
     }
     const listeners = {
       employee: app.$Employee(),
+      contracts: app.$EmployeeContract({ employeeId: docId }),
       medicalCheckup: app.$EmployeeMedicalCheckup({ employeeId: docId }),
     }
     listeners.employee.subscribeDoc(docId)
+    items.contracts = listeners.contracts.subscribe()
     items.medicalCheckups = listeners.medicalCheckup.subscribe()
     return { docId, listeners, items }
   },
@@ -110,6 +115,7 @@ export default {
         <g-employee-card
           v-bind="listeners.employee"
           outlined
+          :contracts="items.contracts"
           :medical-checkups="items.medicalCheckups"
         />
       </v-col>
