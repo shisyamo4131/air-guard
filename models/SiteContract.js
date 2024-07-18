@@ -63,11 +63,6 @@ const props = {
 }
 export { props }
 
-/**
- * ## SiteContract
- *
- * @author shisyamo4131
- */
 export default class SiteContract extends FireModel {
   constructor(context, item = {}) {
     super(context, item)
