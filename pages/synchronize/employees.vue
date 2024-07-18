@@ -187,7 +187,7 @@ export default {
      */
     async forceRegist() {
       /* 処理確認 */
-      const msg = 'すべての取引先を強制的に登録します。よろしいですか？'
+      const msg = 'すべての従業員を強制的に登録します。よろしいですか？'
       if (!window.confirm(msg)) return
 
       /* 事前処理 */
