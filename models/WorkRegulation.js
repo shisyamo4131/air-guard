@@ -19,6 +19,10 @@
  *
  * @author shisyamo4131
  * @version 1.0.0 - 2024-07-17
+ *
+ * @updates
+ * - version 1.0.1 - 2024-07-18 - 月平均所定労働日数を追加
+ * - version 1.0.0 - 2024-07-17 - 初版作成
  */
 
 import dayjs from 'dayjs'
@@ -49,6 +53,11 @@ const props = {
     overtimePayRate: { type: Number, default: 25, required: false },
     holidayPayRate: { type: Number, default: 35, required: false },
     bonusEligibility: { type: Boolean, default: true, required: false },
+    averageMonthlyScheduledWorkDays: {
+      type: Number,
+      default: null,
+      required: false,
+    },
   },
 }
 export { props }

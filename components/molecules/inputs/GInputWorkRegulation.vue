@@ -8,6 +8,7 @@
  * @version 1.0.0
  *
  * @updates
+ * - version 1.0.1 - 2024-07-18 - 月平均所定労働日数を追加
  * - version 1.0.0 - 2024-07-17 - 初版作成
  */
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
@@ -184,8 +185,19 @@ export default {
     <v-col cols="12" sm="4">
       <g-numeric
         class="center-input"
+        :value="averageMonthlyScheduledWorkDays"
+        label="月平均所定日数"
+        required
+        decimal-places="2"
+        suffix="日／月"
+        @input="$emit('update:averageMonthlyScheduledWorkDays', $event)"
+      />
+    </v-col>
+    <v-col cols="12" sm="4">
+      <g-numeric
+        class="center-input"
         :value="overtimePayRate"
-        label="時間外労働割増率"
+        label="時間外割増"
         required
         suffix="％"
         @input="$emit('update:overtimePayRate', $event)"
@@ -195,7 +207,7 @@ export default {
       <g-numeric
         class="center-input"
         :value="holidayPayRate"
-        label="休日労働割増率"
+        label="休日割増"
         required
         suffix="％"
         @input="$emit('update:holidayPayRate', $event)"
