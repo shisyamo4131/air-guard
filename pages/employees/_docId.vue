@@ -9,7 +9,7 @@
  *
  * @updates
  * - version 1.3.0 - 2024-07-18 - 雇用契約に対するリアルタイムリスナーを用意。
- *                              - GEmployeeCardに雇用契約情報をセット。
+ *                              - GCardEmployeeに雇用契約情報をセット。
  * - version 1.2.1 - 2024-07-17 - ページ遷移に$routeを使用。
  * - version 1.2.0 - 2024-07-16 - GTempleteDetailを使用
  * - version 1.1.0 - 2024-07-03 - 健康診断履歴（EmployeeMedicalCheckups）へのリアルタイムリスナーを実装
@@ -18,7 +18,7 @@
  */
 import GLeaveApplicationCalendar from '~/components/organisms/GLeaveApplicationCalendar.vue'
 import GCardMap from '~/components/molecules/cards/GCardMap.vue'
-import GEmployeeCard from '~/components/organisms/GEmployeeCard.vue'
+import GCardEmployee from '~/components/molecules/cards/GCardEmployee.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
@@ -33,7 +33,7 @@ export default {
   components: {
     GLeaveApplicationCalendar,
     GCardMap,
-    GEmployeeCard,
+    GCardEmployee,
     GTemplateDetail,
     GInputEmployee,
     GDialogEditor,
@@ -112,7 +112,7 @@ export default {
     <v-breadcrumbs :items="breadcrumbs" />
     <v-row>
       <v-col cols="12">
-        <g-employee-card
+        <g-card-employee
           v-bind="listeners.employee"
           outlined
           :contracts="items.contracts"

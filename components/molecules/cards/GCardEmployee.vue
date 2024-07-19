@@ -1,6 +1,6 @@
 <script>
 /**
- * ### GEmployeeCard
+ * ### GCardEmployee
  *
  * 従業員情報を表示・編集するためのCardコンポーネントです。
  *
@@ -22,12 +22,12 @@
  * - version 1.1.0 - 2024-07-01 - 入社日を表示
  * - version 1.0.0 - 2024-06-28 - 初版作成
  */
-import GSimpleTableEmployeeBasic from '../molecules/tables/GSimpleTableEmployeeBasic.vue'
-import GSimpleTableEmployeeAddress from '../molecules/tables/GSimpleTableEmployeeAddress.vue'
-import GSimpleTableEmployeeContact from '../molecules/tables/GSimpleTableEmployeeContact.vue'
-import GCardImgEmployee from '../molecules/cards/GCardImgEmployee.vue'
-import GDataTableEmployeeMedicalCheckups from '../molecules/tables/GDataTableEmployeeMedicalCheckups.vue'
-import GDataTableEmployeeContracts from '../molecules/tables/GDataTableEmployeeContracts.vue'
+import GSimpleTableEmployeeBasic from '../tables/GSimpleTableEmployeeBasic.vue'
+import GSimpleTableEmployeeAddress from '../tables/GSimpleTableEmployeeAddress.vue'
+import GSimpleTableEmployeeContact from '../tables/GSimpleTableEmployeeContact.vue'
+import GDataTableEmployeeMedicalCheckups from '../tables/GDataTableEmployeeMedicalCheckups.vue'
+import GDataTableEmployeeContracts from '../tables/GDataTableEmployeeContracts.vue'
+import GCardImgEmployee from './GCardImgEmployee.vue'
 import { props } from '~/models/Employee'
 export default {
   /***************************************************************************
