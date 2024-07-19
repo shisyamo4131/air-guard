@@ -18,9 +18,10 @@
  * - 取引先CODEに該当するCustomerドキュメントが登録されていない場合、同期設定はできません。
  *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.1.1
  *
  * @updates
+ * - version 1.1.1 - 2024-07-19 - 強制インポートに表示件数を追加。
  * - version 1.1.0 - 2024-07-12 - すべて強制登録を廃止
  *                              - AirGuardから複数選択 -> 強制登録を可能にした。
  * - version 1.0.0 - 2024-07-11 - 初版作成
@@ -38,6 +39,7 @@ import {
 import { where } from 'firebase/firestore'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
+import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -46,7 +48,7 @@ export default {
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
-  components: { GDataTable, GTemplateFixed },
+  components: { GDataTable, GTemplateFixed, GCheckbox },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -92,6 +94,7 @@ export default {
   data() {
     return {
       asNewItem: false,
+      itemsPerPage: 10,
       loading: false,
       multiple: false,
       page: { toSync: 1, airGuard: 1 },
@@ -231,13 +234,23 @@ export default {
       <v-window v-model="step" style="height: 100%">
         <v-window-item style="height: inherit">
           <v-container class="d-flex flex-column" style="height: inherit">
-            <v-card-text class="d-flex justify-end">
-              <v-checkbox
+            <v-card-text class="d-flex justify-space-between">
+              <g-checkbox
                 v-model="multiple"
                 label="選択した現場を強制登録する"
                 :disabled="
                   !!items.unsync.length || !items.airGuard.length || loading
                 "
+                hide-details
+              />
+              <air-select
+                v-model="itemsPerPage"
+                style="width: 120px; max-width: 120px"
+                label="表示件数"
+                :items="[
+                  { text: '10件', value: 10 },
+                  { text: '20件', value: 20 },
+                ]"
                 hide-details
               />
             </v-card-text>
@@ -252,8 +265,9 @@ export default {
                   { text: '現場名', value: 'name' },
                   { text: '住所', value: 'address' },
                 ]"
-                :items="items.airGuard"
                 item-key="code"
+                :items="items.airGuard"
+                :items-per-page="itemsPerPage"
                 show-select
                 :single-select="!multiple"
                 :page.sync="page.airGuard"
