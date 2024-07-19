@@ -99,38 +99,75 @@ export default {
               return fetched ? fetched.docId : undefined
             }
 
-            // 1. dataに含まれる現場ドキュメントを取得しておく
-            await fetchSites(data)
+            const getExistContracts = async (data) => {
+              this.fetchedItems.siteContracts.splice(0)
+              const uniqueIds = [...new Set(data.map(({ siteId }) => siteId))]
+              const chunkedIds = uniqueIds.flatMap((_, i) =>
+                i % 30 ? [] : [uniqueIds.slice(i, i + 30)]
+              )
+              const snapshots = await Promise.all(
+                chunkedIds.map(async (siteIds) => {
+                  const colRef = collectionGroup(
+                    this.$firestore,
+                    'SiteContracts'
+                  )
+                  const q = query(colRef, where('siteId', 'in', siteIds))
+                  const snapshot = await getDocs(q)
+                  return snapshot.docs.map((doc) => doc.data())
+                })
+              )
+              this.fetchedItems.siteContracts = snapshots.flat()
+            }
             const dayDivs = ['weekdays', 'saturday', 'sunday', 'holiday']
             const types = ['standard', 'qualified']
             const nums = ['price', 'overtime']
             this.progress.max = data.length
             this.progress.current = 0
             try {
+              // 1. dataに含まれる現場ドキュメントを取得しておく
+              await fetchSites(data)
+              // 2. dataにsiteIdを付与
+              data.forEach((item) => (item.siteId = getSiteId(item.siteCode)))
+              // 3. siteIdが取得できなかったdataが存在すればエラー
+              const unknown = data.filter((item) => !item.siteId)
+              if (unknown.length) {
+                // eslint-disable-next-line
+                console.log(unknown)
+                throw new Error(
+                  `未登録現場の取極めが含まれています。処理を中断します。`
+                )
+              }
+              // 4. 既登録の取極め情報を取得
+              await getExistContracts(data)
               for (const item of data) {
-                const siteId = await getSiteId(item.siteCode)
-                if (!siteId) {
-                  throw new Error(
-                    `未登録現場の取極めが含まれています。処理を中断します。現場code: ${item.siteCode}`
-                  )
-                }
-                const model = this.$SiteContract({ siteId, ...item })
-                const docId = `${item.startDate}-${item.workShift}`
-                await model.fetch(docId)
-                model.endAtNextday = item.endAtNextday === 1
-                model.breakMinutes = parseInt(item.breakMinutes)
-                model.halfRate = parseInt(item.halfRate) * 100
-                model.cancelRate = parseInt(item.cancelRate) * 100
+                item.endAtNextday = item.endAtNextday === 1
+                item.breakMinutes = parseInt(item.breakMinutes)
+                item.halfRate = parseInt(item.halfRate) * 100
+                item.cancelRate = parseInt(item.cancelRate) * 100
                 // 単価情報をセット
+                item.unitPrices = {}
                 dayDivs.forEach((dayDiv) => {
+                  item.unitPrices[dayDiv] = {}
                   types.forEach((type) => {
+                    item.unitPrices[dayDiv][type] = {}
                     nums.forEach((num) => {
-                      model.unitPrices[dayDiv][type][num] = parseInt(
+                      item.unitPrices[dayDiv][type][num] = parseInt(
                         item[`unitPrice-${dayDiv}-${type}-${num}`]
                       )
                     })
                   })
                 })
+                const existDoc = this.fetchedItems.siteContracts.find(
+                  ({ siteId, startDate, workShift }) =>
+                    siteId === item.siteId &&
+                    startDate === item.startDate &&
+                    workShift === item.workShift
+                )
+                const model = this.$SiteContract(
+                  existDoc
+                    ? { ...existDoc, ...item }
+                    : { siteId: data.siteId, ...item }
+                )
                 model.docId ? await model.update() : await model.create()
                 this.progress.current++
               }
@@ -208,9 +245,9 @@ export default {
               // 1. dataに含まれる従業員ドキュメントを取得
               await fetchEmployees(data)
               // 2. dataにemployeeIdを付与
-              data.forEach((item) => {
-                item.employeeId = getEmployeeId(item.employeeCode)
-              })
+              data.forEach(
+                (item) => (item.employeeId = getEmployeeId(item.employeeCode))
+              )
               // 3. employeeIdが取得できなかったdataが存在すればエラー
               const unknown = data.filter((item) => !item.employeeId)
               if (unknown.length) {
@@ -250,6 +287,7 @@ export default {
         employees: [],
         employeeContracts: [],
         sites: [],
+        siteContracts: [],
       },
       files: [],
       filesRule: (v) =>
