@@ -3,10 +3,17 @@
  *
  * 従業員の雇用契約データモデルです。
  *
+ * #### 注意事項
+ * 1. ドキュメント作成時、従業員情報を取得して`employee`プロパティにセットします。
+ * 2. ドキュメント更新時には従業員情報は取得・更新されません。
+ *    -> Employeeドキュメントのサブコレクションであるため。
+ * 3. Employeeドキュメントが更新された時の同期処理はCloud Functionsで行われます。
+ *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  *
  * @updates
+ * - version 1.1.0 - 2024-07-19 - ドキュメント作成時に従業員情報を取得するように修正
  * - version 1.0.0 - 2024-07-17 - 初版作成
  */
 
@@ -17,6 +24,7 @@ const props = {
   props: {
     docId: { type: String, default: '', required: false },
     employeeId: { type: String, default: '', required: false },
+    employee: { type: Object, default: () => ({}), required: false },
     workRegulationId: { type: String, default: '', required: false },
     startDate: { type: String, default: '', required: false },
     hasPeriod: { type: Boolean, default: true, required: false },
@@ -69,6 +77,10 @@ export default class SiteContract extends FireModel {
       throw new Error(errMsg)
     }
     if (!this.hasPeriod) this.expiredDate = ''
+    this.employee = await this.getEmployee()
+    if (!this.employee) {
+      throw new Error('従業員情報が取得できませんでした。')
+    }
   }
 
   beforeUpdate() {
@@ -94,5 +106,11 @@ export default class SiteContract extends FireModel {
     const docRef = doc(this.firestore, path)
     const snapshot = await getDoc(docRef)
     return snapshot.exists()
+  }
+
+  async getEmployee() {
+    const docRef = doc(this.firestore, `Employees/${this.employeeId}`)
+    const snapshot = await getDoc(docRef)
+    return snapshot.exists() ? snapshot.data() : undefined
   }
 }

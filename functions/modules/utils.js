@@ -50,18 +50,47 @@ exports.isDocumentChanged = (event) => {
  * @param {object} data - 同期するデータオブジェクト（例：{ docId: '123', ... }）
  * @returns {Promise<void>} - 同期操作が完了した時点で解決されるPromise
  *
- * #### 更新履歴
- * - version 1.0.0 - 2024-07-10 - 初版作成
- *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 2.0.0
+ *
+ * #### 更新履歴
+ * - version 2.0.0 - 2024-07-22 - [破壊]比較対象のプロパティ、更新対象のプロパティを引数で指定できるように修正。
+ * - version 1.0.0 - 2024-07-10 - 初版作成
  */
-exports.syncDocuments = async (collectionId, field, data) => {
+// exports.syncDocuments = async (collectionId, field, data) => {
+//   const BATCH_SIZE = 500
+//   info(`${collectionId}コレクション内のドキュメントと同期します。`)
+//   try {
+//     const colRef = firestore.collection(collectionId)
+//     const query = colRef.where(`${field}.docId`, '==', data.docId)
+//     const querySnapshot = await query.get()
+//     if (querySnapshot.empty) {
+//       info('同期対象のドキュメントはありませんでした。')
+//     } else {
+//       const docCount = querySnapshot.docs.length
+//       info(`${docCount}件のドキュメントと同期します。`)
+//       const batchArray = []
+//       querySnapshot.docs.forEach((doc, index) => {
+//         if (index % BATCH_SIZE === 0) batchArray.push(firestore.batch())
+//         batchArray[batchArray.length - 1].update(doc.ref, { [field]: data })
+//       })
+//       await Promise.all(batchArray.map((batch) => batch.commit()))
+//       info('同期処理が正常に完了しました。')
+//     }
+//   } catch (err) {
+//     error('syncDocumentsでエラーが発生しました。詳細:', {
+//       message: err.message,
+//       stack: err.stack,
+//     })
+//     throw err
+//   }
+// }
+exports.syncDocuments = async (collectionId, compareProp, updateProp, data) => {
   const BATCH_SIZE = 500
   info(`${collectionId}コレクション内のドキュメントと同期します。`)
   try {
     const colRef = firestore.collection(collectionId)
-    const query = colRef.where(`${field}.docId`, '==', data.docId)
+    const query = colRef.where(compareProp, '==', data.docId)
     const querySnapshot = await query.get()
     if (querySnapshot.empty) {
       info('同期対象のドキュメントはありませんでした。')
@@ -71,7 +100,9 @@ exports.syncDocuments = async (collectionId, field, data) => {
       const batchArray = []
       querySnapshot.docs.forEach((doc, index) => {
         if (index % BATCH_SIZE === 0) batchArray.push(firestore.batch())
-        batchArray[batchArray.length - 1].update(doc.ref, { [field]: data })
+        batchArray[batchArray.length - 1].update(doc.ref, {
+          [updateProp]: data,
+        })
       })
       await Promise.all(batchArray.map((batch) => batch.commit()))
       info('同期処理が正常に完了しました。')

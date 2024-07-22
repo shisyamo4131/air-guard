@@ -11,7 +11,11 @@ const {
 const { getDatabase } = require('firebase-admin/database')
 const { getStorage } = require('firebase-admin/storage')
 const { log, error, info } = require('firebase-functions/logger')
-const { removeDependentDocuments } = require('./utils')
+const {
+  removeDependentDocuments,
+  syncDocuments,
+  isDocumentChanged,
+} = require('./utils')
 const database = getDatabase()
 const storage = getStorage()
 
@@ -44,17 +48,26 @@ exports.onCreate = onDocumentCreated('Employees/{docId}', async (event) => {
  * - Realtime DatabaseのEmployeeインデックスを更新しますた。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  *
  * @updates
+ * - version 1.1.0 - 2024-07-22 - EmployeeContractドキュメントとの同期処理を追加。
+ *                              - ドキュメントの更新有無判断を追加。
  * - version 1.0.0 - 2024-07-02 - 初版作成
  */
 exports.onUpdate = onDocumentUpdated('Employees/{docId}', async (event) => {
   const docId = event.params.docId
   const after = event.data.after.data()
+  if (!isDocumentChanged(event)) return
   log(`Employeeドキュメントが更新されました。`)
   try {
     await updateIndex(docId, after)
+    await syncDocuments(
+      `Employees/${docId}/EmployeeContracts`,
+      'employeeId',
+      'employee',
+      after
+    )
   } catch (err) {
     error(
       `Employeeドキュメントの更新トリガー内処理でエラーが発生しました。`,

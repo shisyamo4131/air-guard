@@ -143,15 +143,6 @@ export default class Employee extends FireModel {
   }
 
   prepareData() {
-    this.imgRef = `/images/employees/${this.code}.jpg`
-    // this.fullName =
-    //   this.lastName && this.firstName
-    //     ? `${this.lastName} ${this.firstName}`
-    //     : ''
-    // this.fullNameKana =
-    //   this.lastNameKana && this.firstNameKana
-    //     ? `${this.lastNameKana} ${this.firstNameKana}`
-    //     : ''
     if (!this.isForeigner) this.nationality = ''
     if (!this.leaveDate) this.leaveReason = ''
     // 送付先住所がなければ登録住所を送付先住所に複製
