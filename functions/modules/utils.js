@@ -117,10 +117,10 @@ exports.syncDocuments = async (collectionId, compareProp, updateProp, data) => {
 }
 
 /**
- * 指定されたドキュメントパス直下にあるサブコレクションをすべて削除します。
+ * 指定されたドキュメントパスにある指定されたコレクション内のドキュメントをすべて削除します。
  *
  * @param {string} path - ドキュメントパス
- * @param {array} collectionIds - 従属するサブコレクションの配列
+ * @param {array} collectionIds - 従属するコレクションのID
  *
  * #### 更新履歴
  * - version 1.0.0 - 2024-07-10 - 初版作成

@@ -261,7 +261,7 @@ export default {
                 checkbox-color="primary"
                 disable-sort
                 :headers="[
-                  { text: 'CODE', value: 'code', width: '96' },
+                  { text: 'CODE', value: 'code', width: '108' },
                   { text: '現場名', value: 'name' },
                   { text: '住所', value: 'address' },
                 ]"

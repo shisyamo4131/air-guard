@@ -1,44 +1,18 @@
 /**
  * ### Site.js
  *
- * 概要:
- * Siteクラスは、現場情報を管理するためのモデルクラスです。
- * FireModelクラスを継承し、Firestoreとの連携やCRUD操作を簡素化します。
+ * 現場ドキュメントのデータモデルです。
  *
- * 主な機能:
- * - Firestoreコレクション 'Sites' に対するCRUD操作
- * - PlacementDetailsコレクションとのリレーションを管理
- * - 現場情報のトークンフィールドによる検索サポート
+ * #### 機能詳細
+ * 1. ドキュメントの作成時、`customerId`に有効な値がセットされていればCustomerドキュメントを取得して`customer`プロパティにセットします。
+ * 2. ドキュメントの更新時、`customerId`に有効な値がセットされており、`customer.docId`と異なる場合、Customerドキュメントを取得して`customer`プロパティを更新します。
  *
- * 使用例:
- * ---------------------------------------------------------------
- * import { firestore, auth } from '@/plugins/firebase';
- * import Site from '@/models/Site';
+ * #### 注意事項
+ * 1. AirGuardとの同期設定の都合上、`customer`プロパティの更新は`customerId`に有効な値がセットされている場合にのみ行われます。
+ * 2. Customerドキュメントが更新された時の同期処理はCloud Functionsで行われます。
  *
- * const site = new Site({ firestore, auth }, { name: 'Sample Site', address: 'Sample Address' });
- * site.create().then(docRef => {
- *   console.log('Document created with ID: ', docRef.id);
- * });
- * ---------------------------------------------------------------
- *
- * props設定:
- * このクラスで管理するプロパティは、props.propsの中でvueコンポーネントのpropsのルールに合わせて定義しています。
- * これにより、Mixinsを利用することでクラスに依存するコンポーネントのpropsを一元管理できます。
- *
- * injectの利用:
- * Nuxtのinjectを利用してコンポーネントからのアクセスを容易にすることも可能です。
- * plugins/models.js:
- * ---------------------------------------------------------------
- * import Site from '../models/Site'
- *
- * export default (context, inject) => {
- *   const firebase = {
- *     firestore: context.app.$firestore,
- *     auth: context.app.$auth,
- *   }
- *   inject('Site', (item) => new Site(firebase, item))
- * }
- * ---------------------------------------------------------------
+ * @author shisyamo4131
+ * @version 1.2.0
  *
  * @updates
  * - version 1.2.0 - 2024-07-22 - `props.customerId`を追加。
@@ -47,13 +21,6 @@
  *                              - beforeUpdate()で`customer`を更新するように追加。
  * - version 1.1.0 - 2024-07-12 - `hasMany`に`SiteOperationSchedules`を追加。
  * - version 1.0.0 - 2024-07-10 - 初版作成
- *
- * 注意事項:
- * このクラスはNuxt.jsのコンテキストに依存しないよう設計されていますが、
- * FirestoreとAuthenticationインスタンスを渡す必要があります。
- *
- * @author shisyamo4131
- * @version 1.0.0
  */
 import { doc, getDoc } from 'firebase/firestore'
 import FireModel from './FireModel'
@@ -120,9 +87,11 @@ export default class Site extends FireModel {
    * - `customerId`に対応するCustomerドキュメントを取得して`customer`にセットします。
    */
   async beforeCreate() {
-    this.customer = await this.getCustomer()
-    if (!this.customer) {
-      throw new Error('取引先情報が取得できませんでした。')
+    if (this.customerId) {
+      this.customer = await this.getCustomer()
+      if (!this.customer) {
+        throw new Error('取引先情報が取得できませんでした。')
+      }
     }
   }
 
@@ -131,10 +100,12 @@ export default class Site extends FireModel {
    * - `customerId`と`customer.docId`が異なっていたら、Customerドキュメントを取得して`customer`にセットします。
    */
   async beforeUpdate() {
-    if (this.customerId !== this.customer.docId) {
-      this.customer = await this.getCustomer()
-      if (!this.customer) {
-        throw new Error('取引先情報が取得できませんでした。')
+    if (this.customerId) {
+      if (this.customerId !== this.customer.docId) {
+        this.customer = await this.getCustomer()
+        if (!this.customer) {
+          throw new Error('取引先情報が取得できませんでした。')
+        }
       }
     }
   }

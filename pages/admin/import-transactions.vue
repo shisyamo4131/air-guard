@@ -12,6 +12,8 @@
  * @version 1.0.0
  *
  * @updates
+ * - version 1.1.0 - 2024-07-22 - データモデルの仕様変更に伴い、EmployeeContractsの取り込み時に`employee`をセットするように修正。
+ *                              - データモデルの仕様変更に伴い、SiteContractsの取り込み時に`site`をセットするように修正。
  * - version 1.0.0 - 2024-07-13 - 初版作成
  */
 import {
@@ -89,14 +91,14 @@ export default {
 
             /**
              * `data.fetchedItems.sites`から、引数で指定されたcodeに一致する
-             * 現場ドキュメントを検索しdocIdを返します。
+             * 現場ドキュメントを検索し該当するものを返します。
              * 該当するものがない場合、undefinedを返します。
              */
-            const getSiteId = (code) => {
+            const getSite = (code) => {
               const fetched = this.fetchedItems.sites.find(
                 (item) => item.code === code
               )
-              return fetched ? fetched.docId : undefined
+              return fetched || undefined
             }
 
             const getExistContracts = async (data) => {
@@ -127,7 +129,10 @@ export default {
               // 1. dataに含まれる現場ドキュメントを取得しておく
               await fetchSites(data)
               // 2. dataにsiteIdを付与
-              data.forEach((item) => (item.siteId = getSiteId(item.siteCode)))
+              data.forEach((item) => {
+                item.site = getSite(item.siteCode)
+                item.siteId = item.site?.docId || undefined
+              })
               // 3. siteIdが取得できなかったdataが存在すればエラー
               const unknown = data.filter((item) => !item.siteId)
               if (unknown.length) {
@@ -164,9 +169,7 @@ export default {
                     workShift === item.workShift
                 )
                 const model = this.$SiteContract(
-                  existDoc
-                    ? { ...existDoc, ...item }
-                    : { siteId: data.siteId, ...item }
+                  existDoc ? { ...existDoc, ...item } : { ...item }
                 )
                 model.docId ? await model.update() : await model.create()
                 this.progress.current++
@@ -205,14 +208,14 @@ export default {
             }
             /**
              * `data.fetchedItems.employees`から、引数で指定されたcodeに一致する
-             * 従業員ドキュメントを検索しdocIdを返します。
+             * 従業員ドキュメントを検索し該当するものを返します。
              * 該当するものがない場合、undefinedを返します。
              */
-            const getEmployeeId = (code) => {
+            const getEmployee = (code) => {
               const fetched = this.fetchedItems.employees.find(
                 (item) => item.code === code
               )
-              return fetched ? fetched.docId : undefined
+              return fetched || undefined
             }
 
             const getExistContracts = async (data) => {
@@ -244,10 +247,11 @@ export default {
             try {
               // 1. dataに含まれる従業員ドキュメントを取得
               await fetchEmployees(data)
-              // 2. dataにemployeeIdを付与
-              data.forEach(
-                (item) => (item.employeeId = getEmployeeId(item.employeeCode))
-              )
+              // 2. dataにemployeeId、employeeを付与
+              data.forEach((item) => {
+                item.employee = getEmployee(item.employeeCode)
+                item.employeeId = item.employee?.docId || undefined
+              })
               // 3. employeeIdが取得できなかったdataが存在すればエラー
               const unknown = data.filter((item) => !item.employeeId)
               if (unknown.length) {
@@ -268,9 +272,7 @@ export default {
                     startDate === item.startDate
                 )
                 const model = this.$EmployeeContract(
-                  existDoc
-                    ? { ...existDoc, ...item }
-                    : { employeeId: data.employeeId, ...item }
+                  existDoc ? { ...existDoc, ...item } : { ...item }
                 )
                 model.docId ? await model.update() : await model.create()
                 this.progress.current++

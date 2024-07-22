@@ -16,16 +16,17 @@
  * - RealtimeDatabaseのデータが削除されてもFirestoreドキュメントには影響させません。
  *
  * @author shisyamo4131
- * @version 1.2.0
+ * @version 1.3.0
  *
- * 更新履歴:
- * version 1.2.1 - 2024-07-11 - Siteの同期処理時に`customer`プロパティをセットするように修正。
- * version 1.2.0 - 2024-07-10 - Cloud Functions版FireModelの実装に伴ってデータモデルを使用するように修正。
- *                            - Siteの同期処理を実装。
- * version 1.1.1 - 2024-07-09 - Customerとの同期時、`code`が同期されていなかったのを修正。
- * version 1.1.0 - 2024-07-08 - Customerモデルの`sync`プロパティ追加に伴ってcustomerUpdatedを更新
+ * @updates
+ * - version 1.3.0 - 2024-07-22 - Siteモデルの仕様変更に伴ってSiteの同期処理時に`customerId`プロパティをセットするように修正。
+ * - version 1.2.1 - 2024-07-11 - Siteの同期処理時に`customer`プロパティをセットするように修正。
+ * - version 1.2.0 - 2024-07-10 - Cloud Functions版FireModelの実装に伴ってデータモデルを使用するように修正。
+ *                              - Siteの同期処理を実装。
+ * - version 1.1.1 - 2024-07-09 - Customerとの同期時、`code`が同期されていなかったのを修正。
+ * - version 1.1.0 - 2024-07-08 - Customerモデルの`sync`プロパティ追加に伴ってcustomerUpdatedを更新
  *                              -> `sync`を強制的にtrueに更新するように変更。
- * version 1.0.0 - 2024-07-05 - 初版作成
+ * - version 1.0.0 - 2024-07-05 - 初版作成
  *
  * NOTE:
  * - Siteの同期処理で、Customerが見つからなかった場合にnullがセットされるのに注意。
@@ -101,6 +102,7 @@ exports.siteUpdated = onValueUpdated(
       info(`[air-guard.js] Firestoreドキュメントと同期します。`, { docId })
       const model = new Site(data)
       model.customer = await getCustomerByCode(data.customerCode)
+      model.customerId = model.customer.docId
       model.sync = true
       const docRef = firestore.collection('Sites').doc(docId)
       await docRef.set({ ...model }, { merge: true })

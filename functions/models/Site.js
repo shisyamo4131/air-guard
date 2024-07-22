@@ -4,16 +4,18 @@
  * #### OUTLINE
  * Cloud FunctionsでSiteドキュメントを操作する際のドキュメントモデル。
  *
- * #### UPDATE
+ * @updates
+ * - version 1.1.0 - 2024-07-22 - `customerId`を追加。
  * - version 1.0.0 - 2024-07-10 - 初版作成
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  */
 const FireModel = require('./FireModel')
 
 const props = {
   docId: { type: String, default: '', required: false },
+  customerId: { type: String, default: '', required: false },
   customer: { type: Object, default: null, required: false },
   code: { type: String, default: '', required: false },
   name: { type: String, default: '', required: false },
