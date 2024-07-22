@@ -41,6 +41,10 @@
  * ---------------------------------------------------------------
  *
  * @updates
+ * - version 1.2.0 - 2024-07-22 - `props.customerId`を追加。
+ *                              - getCustomer()を実装。
+ *                              ‐ beforeCreate()で`customer`を取得するように追加。
+ *                              - beforeUpdate()で`customer`を更新するように追加。
  * - version 1.1.0 - 2024-07-12 - `hasMany`に`SiteOperationSchedules`を追加。
  * - version 1.0.0 - 2024-07-10 - 初版作成
  *
@@ -51,11 +55,13 @@
  * @author shisyamo4131
  * @version 1.0.0
  */
+import { doc, getDoc } from 'firebase/firestore'
 import FireModel from './FireModel'
 
 const props = {
   props: {
     docId: { type: String, default: '', required: false },
+    customerId: { type: String, default: '', required: false },
     customer: { type: Object, default: null, required: false },
     code: { type: String, default: '', required: false },
     name: { type: String, default: '', required: false },
@@ -107,5 +113,39 @@ export default class Site extends FireModel {
     })
     // 親クラスのinitializeメソッドを呼び出し
     super.initialize(item)
+  }
+
+  /**
+   * ドキュメントが作成される前に実行される処理です。
+   * - `customerId`に対応するCustomerドキュメントを取得して`customer`にセットします。
+   */
+  async beforeCreate() {
+    this.customer = await this.getCustomer()
+    if (!this.customer) {
+      throw new Error('取引先情報が取得できませんでした。')
+    }
+  }
+
+  /**
+   * ドキュメントが更新される前に実行される処理です。
+   * - `customerId`と`customer.docId`が異なっていたら、Customerドキュメントを取得して`customer`にセットします。
+   */
+  async beforeUpdate() {
+    if (this.customerId !== this.customer.docId) {
+      this.customer = await this.getCustomer()
+      if (!this.customer) {
+        throw new Error('取引先情報が取得できませんでした。')
+      }
+    }
+  }
+
+  /**
+   * 自身の`customerId`に対応するCustomerドキュメントを取得して返します。
+   * @returns
+   */
+  async getCustomer() {
+    const docRef = doc(this.firestore, `Customers/${this.customerId}`)
+    const snapshot = await getDoc(docRef)
+    return snapshot.exists() ? snapshot.data() : undefined
   }
 }

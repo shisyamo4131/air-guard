@@ -5,6 +5,7 @@
  * 現場情報入力コンポーネント
  *
  * #### 更新履歴
+ * - version 1.1.0 - 2024-07-22 - データモデルの修正に伴って`customer`の選択ではなく、`customerId`の選択に修正。
  * - version 1.0.0 - 2024-07-10 - 初版作成
  *
  * @author shisyamo4131
@@ -37,11 +38,10 @@ export default {
   <div>
     <g-autocomplete-customer
       v-if="!hideCustomer"
-      :value="customer"
+      :value="customerId"
       label="取引先"
       required
-      return-object
-      @input="$emit('update:customer', $event)"
+      @input="$emit('update:customerId', $event)"
     />
     <g-text-field
       :value="name"
