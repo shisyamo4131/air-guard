@@ -14,6 +14,7 @@
  * @updates
  * - version 1.1.0 - 2024-07-22 - データモデルの仕様変更に伴い、EmployeeContractsの取り込み時に`employee`をセットするように修正。
  *                              - データモデルの仕様変更に伴い、SiteContractsの取り込み時に`site`をセットするように修正。
+ *                              - EmployeeContractsの取り込み時、`hasPeriod`プロパティのBool値の判定に誤りがあったのを修正。
  * - version 1.0.0 - 2024-07-13 - 初版作成
  */
 import {
@@ -264,7 +265,7 @@ export default {
               // 4. 既登録の雇用契約情報を取得
               await getExistContracts(data)
               for (const item of data) {
-                item.hasPeriod = item.hasPeriod === 1
+                item.hasPeriod = item.hasPeriod === '1'
                 item.basicWage = parseInt(item.basicWage)
                 const existDoc = this.fetchedItems.employeeContracts.find(
                   ({ employeeId, startDate }) =>
