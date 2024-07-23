@@ -1,20 +1,18 @@
 <script>
-import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 /**
  * ## InputEmployee
- *
- * Employee用Inputコンポーネント
+ * Employee用Inputコンポーネントです。
  *
  * @author shisyamo4131
  * @version 1.2.0
  *
- * 更新履歴:
- * version 1.2.0 - 2024-07-02
- * - 生年月日を追加
- * version 1.1.0 - 2024-07-01
- * - 血液型を追加
+ * @updates
+ * - version 1.3.0 - 2024-07-23 - 氏名から略称を自動入力
+ *                              - 退職日と退職事由を削除 -> 登録時には不要。退職処理は別途用意。
+ * - version 1.2.0 - 2024-07-02 - 生年月日を追加
+ * - version 1.1.0 - 2024-07-01 - 血液型を追加
  */
-import GDate from '~/components/atoms/inputs/GDate.vue'
+import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
@@ -22,22 +20,27 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
 import { props } from '~/models/Employee'
 export default {
-  /***************************************************************************
-   * COMPONENTS
-   ***************************************************************************/
   components: {
     GTextField,
     GTextarea,
     ARenderlessZipcode,
     GSwitch,
-    GDate,
     GSelect,
     GComboboxDate,
   },
-  /***************************************************************************
-   * PROPS
-   ***************************************************************************/
   mixins: [props],
+  methods: {
+    /**
+     * `lastName`または`firstName`のchangeイベントで呼び出されます。
+     * `lastName`と`firstName`を結合して最初の5文字を生成し、
+     * `update:abbr`イベントをemitします。
+     */
+    refreshAbbr() {
+      const combined = `${this.lastName}${this.firstName}`
+      const sliced = combined.slice(0, 5)
+      this.$emit('update:abbr', sliced)
+    },
+  },
 }
 </script>
 
@@ -56,6 +59,7 @@ export default {
           label="氏"
           required
           @input="$emit('update:lastName', $event)"
+          @change="refreshAbbr"
         />
       </v-col>
       <v-col cols="12" md="6">
@@ -63,6 +67,7 @@ export default {
           :value="firstName"
           label="名"
           @input="$emit('update:firstName', $event)"
+          @change="refreshAbbr"
         />
       </v-col>
       <v-col cols="12" md="6">
@@ -109,7 +114,7 @@ export default {
       </v-col>
       <v-col cols="12" md="6">
         <g-switch
-          class="mt-0 mb-2"
+          class="mt-1"
           :input-value="isForeigner"
           label="外国籍"
           @change="$emit('update:isForeigner', $event)"
@@ -183,20 +188,6 @@ export default {
       input-type="tel"
       @input="$emit('update:mobile', $event)"
     />
-    <g-date
-      :value="leaveDate"
-      label="退職日"
-      @input="$emit('update:leaveDate', $event)"
-    />
-    <v-expand-transition>
-      <g-text-field
-        v-show="leaveDate"
-        :value="leaveReason"
-        label="退職事由"
-        :required="!!leaveDate"
-        @input="$emit('update:leaveReason', $event)"
-      />
-    </v-expand-transition>
     <g-textarea
       :value="remarks"
       label="備考"
