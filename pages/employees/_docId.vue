@@ -5,9 +5,11 @@
  * 従業員の詳細画面です。
  *
  * @author shisyamo4131
- * @version 1.2.1
+ * @version 1.4.0
  *
  * @updates
+ * - version 1.4.0 - 2024-07-24 - 雇用契約の管理をGEmployeeContractsManagerに変更。
+ *                              - 雇用契約に対するリアルタイムリスナーを削除。
  * - version 1.3.0 - 2024-07-18 - 雇用契約に対するリアルタイムリスナーを用意。
  *                              - GCardEmployeeに雇用契約情報をセット。
  * - version 1.2.1 - 2024-07-17 - ページ遷移に$routeを使用。
@@ -22,6 +24,7 @@ import GCardEmployee from '~/components/molecules/cards/GCardEmployee.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
+import GEmployeeContractsManager from '~/components/organisms/GEmployeeContractsManager.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -37,6 +40,7 @@ export default {
     GTemplateDetail,
     GInputEmployee,
     GDialogEditor,
+    GEmployeeContractsManager,
   },
   /***************************************************************************
    * ASYNCDATA
@@ -44,16 +48,13 @@ export default {
   asyncData({ app, route }) {
     const docId = route.params.docId
     const items = {
-      contracts: [],
       medicalCheckups: [],
     }
     const listeners = {
       employee: app.$Employee(),
-      contracts: app.$EmployeeContract({ employeeId: docId }),
       medicalCheckup: app.$EmployeeMedicalCheckup({ employeeId: docId }),
     }
     listeners.employee.subscribeDoc(docId)
-    items.contracts = listeners.contracts.subscribe()
     items.medicalCheckups = listeners.medicalCheckup.subscribe()
     return { docId, listeners, items }
   },
@@ -115,9 +116,11 @@ export default {
         <g-card-employee
           v-bind="listeners.employee"
           outlined
-          :contracts="items.contracts"
           :medical-checkups="items.medicalCheckups"
         />
+      </v-col>
+      <v-col cols="12">
+        <g-employee-contracts-manager :employee-id="docId" />
       </v-col>
       <v-col cols="12" md="5">
         <g-card-map

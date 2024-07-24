@@ -8,9 +8,10 @@
  * - propsはモデルで定義されているものを使用しています。
  *
  * @author shisyamo4131
- * @version 2.1.1
+ * @version 2.2.0
  *
  * @updates
+ * - version 2.2.0 - 2024-07-24 - 雇用契約表示を削除
  * - version 2.1.1 - 2024-07-18 - 雇用契約表示用のtabを用意。
  *                              - VTabsにgrowを設定。
  *                              - 雇用契約の管理機能を実装。
@@ -26,7 +27,6 @@ import GSimpleTableEmployeeBasic from '../tables/GSimpleTableEmployeeBasic.vue'
 import GSimpleTableEmployeeAddress from '../tables/GSimpleTableEmployeeAddress.vue'
 import GSimpleTableEmployeeContact from '../tables/GSimpleTableEmployeeContact.vue'
 import GDataTableEmployeeMedicalCheckups from '../tables/GDataTableEmployeeMedicalCheckups.vue'
-import GDataTableEmployeeContracts from '../tables/GDataTableEmployeeContracts.vue'
 import GCardImgEmployee from './GCardImgEmployee.vue'
 import { props } from '~/models/Employee'
 export default {
@@ -39,7 +39,6 @@ export default {
     GSimpleTableEmployeeContact,
     GCardImgEmployee,
     GDataTableEmployeeMedicalCheckups,
-    GDataTableEmployeeContracts,
   },
   /***************************************************************************
    * PROPS
@@ -47,7 +46,6 @@ export default {
   mixins: [props],
   props: {
     docId: { type: String, required: true },
-    contracts: { type: Array, default: () => [], required: false },
     medicalCheckups: { type: Array, default: () => [], required: false },
   },
   /***************************************************************************
@@ -56,7 +54,7 @@ export default {
   data() {
     return {
       tab: null,
-      tabs: ['基本情報', '住所', '連絡先', '健康診断', '雇用契約'],
+      tabs: ['基本情報', '住所', '連絡先', '健康診断'],
     }
   },
   /***************************************************************************
@@ -108,14 +106,6 @@ export default {
                 <g-data-table-employee-medical-checkups
                   :doc-id="docId"
                   :items="medicalCheckups"
-                />
-              </v-tab-item>
-              <v-tab-item>
-                <g-data-table-employee-contracts
-                  :doc-id="docId"
-                  height="240"
-                  :items="contracts"
-                  :items-per-page="-1"
                 />
               </v-tab-item>
             </v-tabs-items>

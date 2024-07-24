@@ -1,3 +1,17 @@
+/**
+ * ## employees.js
+ *
+ * 従業員情報のVuexです。
+ *
+ * ### 注意事項
+ * - 在職中の従業員情報のみ、Firestoreから取得しストアとして提供します。
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ *
+ * @updates
+ * - version 1.0.0 - 2024-xx-xx - 初版作成
+ */
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
 
 /******************************************************************
@@ -11,6 +25,12 @@ export const state = () => ({
  * GETTERS
  ******************************************************************/
 export const getters = {
+  /**
+   * 従業員のドキュメントidを引数に取り、該当する従業員データを`state.items`から
+   * 抽出して返します。
+   * @param {*} state
+   * @returns
+   */
   get: (state) => (docId) => {
     return state.items.find((item) => item.docId === docId)
   },
