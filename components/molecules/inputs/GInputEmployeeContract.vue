@@ -12,9 +12,10 @@ import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
  * 従業員の雇用契約情報編集用コンポーネントです。
  *
  * @author shisayamo4131
- * @version 1.0.0
+ * @version 1.0.1
  *
  * @updates
+ * - version 1.0.1 - 2024-07-24 - 追加モード以外では契約日を編集不可に。
  * - version 1.0.0 - 2024-07-18 - 初版作成
  */
 export default {
@@ -44,6 +45,7 @@ export default {
           :value="startDate"
           label="契約日"
           required
+          :disabled="editMode !== 'REGIST'"
           @input="$emit('update:startDate', $event)"
         />
       </v-col>
