@@ -1,21 +1,26 @@
 <template>
   <v-container>
-    <g-employee-contracts-manager
-      employee-id="ezD5kn7tg8yiNepgHEMC"
-      @contracts="contracts = $event"
-    />
-    {{ contracts }}
+    <v-data-table :items="contracts" :headers="headers" :items-per-page="-1" />
   </v-container>
 </template>
 
 <script>
-import GEmployeeContractsManager from '~/components/organisms/GEmployeeContractsManager.vue'
 export default {
-  components: { GEmployeeContractsManager },
   data() {
     return {
-      contracts: [],
+      headers: [
+        { text: 'docId', value: 'docId' },
+        { text: 'startDate', value: 'startDate' },
+        { text: 'expiredDate', value: 'expiredDate' },
+      ],
     }
+  },
+  computed: {
+    contracts() {
+      return this.$store.state['employee-contracts'].items.current.filter(
+        (item) => item.employeeId === 'zcjl99C6BzBlrc7TPkBN'
+      )
+    },
   },
 }
 </script>

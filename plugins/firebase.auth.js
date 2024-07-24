@@ -8,6 +8,14 @@
  *
  * [NOTE]
  * The actions must return the Promise.
+ *
+ * @author shisyamo4131
+ * @version 1.1.0
+ *
+ * @updates
+ * - version 1.1.0 - 2024-07-24 - `employee-contracts/subscribe`を追加
+ *                              ‐ `employee-contracts/unsubscribe`を追加
+ * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
 import { onAuthStateChanged } from 'firebase/auth'
 
@@ -23,10 +31,12 @@ export default (context) => {
         await context.store.dispatch(ACTIVATE, user)
         await context.store.dispatch('customers/subscribe')
         await context.store.dispatch('employees/subscribe')
+        await context.store.dispatch('employee-contracts/subscribe')
       } else if (!user && DISACTIVATE) {
         await context.store.dispatch(DISACTIVATE)
         await context.store.dispatch('customers/unsubscribe')
         await context.store.dispatch('employees/unsubscribe')
+        await context.store.dispatch('employee-contracts/unsubscribe')
       }
       resolve()
     })

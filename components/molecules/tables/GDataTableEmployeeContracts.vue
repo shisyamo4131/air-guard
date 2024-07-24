@@ -9,6 +9,7 @@
  *
  * @updates
  * - version 2.0.0 - 2024-07-24 - 雇用契約情報の編集機能を排除 -> 純粋なDataTableコンポーネントとして再実装
+ *                              - 現在有効な雇用契約について、契約日の前にアイコンを表示。
  * - version 1.0.0 - 2024-07-18 - 初版作成
  */
 import GDataTable from '../../atoms/tables/GDataTable.vue'
@@ -76,6 +77,18 @@ export default {
     :mobile-breakpoint="0"
     v-on="$listeners"
   >
+    <!-- `startDate` -->
+    <template #[`item.startDate`]="{ item }">
+      <v-icon
+        v-if="$store.getters['employee-contracts/isCurrent'](item.docId)"
+        color="green"
+        left
+        small
+        >mdi-play</v-icon
+      >
+      {{ item.startDate }}
+    </template>
+
     <!-- `contractType` -->
     <template #[`item.contractType`]="{ item }">
       {{ $EMPLOYEE_CONTRACT_TYPE[item.contractType] }}
