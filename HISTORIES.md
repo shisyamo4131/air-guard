@@ -77,6 +77,12 @@
 
 - `GDataTableSites`の表示カラムを breakpoint に応じて細かく変更。
 
+## TEMPLATE
+
+### GTemplateIndex
+
+- `v-pagination`の`total-visible`を 20 に設定。
+
 # 24th July 2024
 
 ## Vuex.employee-contracts

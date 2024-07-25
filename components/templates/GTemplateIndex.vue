@@ -41,13 +41,14 @@
  * @slot extension - VToolbarのextensionスロットです。
  * @slot prepend-search - 検索用TextFieldの前に配置されます。
  *
- * @version 1.0.0
- * @create 2024-06-25
  * @author shisyamo4131
+ * @version 1.1.1
  *
- * 更新履歴:
- * 2024-06-27 - ページネーションをv-footerからv-containerに変更。
- *              これに伴ってメインコンテナの高さの計算方法を変更。
+ * @updates
+ * - version 1.1.1 - 2024-07-25 - v-paginationのtotal-visibleを20に設定。
+ * - version 1.1.0 - 2024-06-27 - ページネーションをv-footerからv-containerに変更。
+ *                              - これに伴ってメインコンテナの高さの計算方法を変更。
+ * - version 1.0.0 - 2024-06-25 - 初版作成
  *
  * 更新予定:
  * - VDataTableのitemsPerPageを変更できるようにしたい。
@@ -165,7 +166,7 @@ export default {
       </v-card>
     </v-container>
     <v-container class="flex-grow-0">
-      <v-pagination v-model="page" :length="pageCount" />
+      <v-pagination v-model="page" :length="pageCount" total-visible="20" />
     </v-container>
   </v-container>
 </template>
