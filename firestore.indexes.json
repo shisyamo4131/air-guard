@@ -29,6 +29,38 @@
       ]
     },
     {
+      "collectionGroup": "EmployeeContracts",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "employee.status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "expiredDate",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "startDate",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "EmployeeContracts",
+      "queryScope": "COLLECTION_GROUP",
+      "fields": [
+        {
+          "fieldPath": "employee.status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "startDate",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "EmployeeLeaveApplications",
       "queryScope": "COLLECTION",
       "fields": [

@@ -1,18 +1,22 @@
 <script>
 /**
- * ### pages.CustomerIndex
+ * # pages.CustomerIndex
  *
  * 取引先情報の一覧ページです。
- * 取引先情報（Customers）はVuexから取得します。
+ *
+ * ## 注意事項
+ * - Vuexで管理しているのは`status === 'active'`のもののみです。
+ * - `status`が`active`以外のドキュメントは別途取得されます。
  *
  * @author shisyamo4131
- * @create
- * @version 1.1.0
+ * @version 1.2.0
  *
- * 更新履歴:
- * version 1.1.0 - 2024-07-02
- *  - GDialogEditorの仕様変更に伴う改修。
+ * @updates
+ * - version 1.2.0 - 2024-07-25 - Vuex.customersの仕様変更に伴う修正。
+ * - version 1.1.0 - 2024-07-02 - GDialogEditorの仕様変更に伴う改修。
+ * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
+import { where } from 'firebase/firestore'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import GDataTableCustomers from '~/components/molecules/tables/GDataTableCustomers.vue'
@@ -40,24 +44,46 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      items: {
+        active: this.$store.state.customers.items,
+        inActive: [],
+      },
       includeExpired: false,
+      listener: this.$Customer(),
     }
   },
   /***************************************************************************
-   * COMPUTED
+   * WATCH
    ***************************************************************************/
-  computed: {
-    items() {
-      return this.$store.state.customers.items.filter(
-        (item) => !this.includeExpired || item.status === 'active'
-      )
+  watch: {
+    includeExpired: {
+      handler(newVal, oldVal) {
+        if (newVal === oldVal) return
+        this.subscribe()
+      },
+    },
+  },
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.listener.unsubscribe()
+  },
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    subscribe() {
+      this.items.inActive = this.listener.subscribe(undefined, [
+        where('status', '!=', 'active'),
+      ])
     },
   },
 }
 </script>
 
 <template>
-  <g-template-index extend :items="items">
+  <g-template-index extend :items="items.active.concat(items.inActive)">
     <template #append-search>
       <g-dialog-editor
         label="取引先"
@@ -77,6 +103,7 @@ export default {
         v-model="includeExpired"
         label="取引終了を含める"
         hide-details
+        :disabled="includeExpired"
       />
     </template>
     <template #default="{ attrs, on, search }">

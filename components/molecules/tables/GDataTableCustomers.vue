@@ -4,10 +4,12 @@
  *
  * 取引先のDataTableコンポーネントです。
  *
- * @version 1.0.0
- * @create 2024-06-25
  * @author shisyamo4131
+ * @version 1.1.0
  *
+ * @updates
+ * - version 1.1.0 - 2024-07-25 - 契約中かどうかを表すアイコンを取引先名の左に追加。
+ * - version 1.0.0 - 2024-06-25 - 初版作成
  */
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 export default {
@@ -47,8 +49,18 @@ export default {
     v-on="$listeners"
   >
     <template #[`item.name1`]="{ item }">
-      <div>{{ item.name1 }}</div>
-      <div class="text-caption grey--text text--darken-1">{{ item.name2 }}</div>
+      <div class="d-flex">
+        <v-icon v-if="item.status === 'active'" color="green" left small
+          >mdi-play</v-icon
+        >
+        <v-icon v-else color="red" left small>mdi-stop</v-icon>
+        <div>
+          <div>{{ item.name1 }}</div>
+          <div v-if="item.name2" class="text-caption grey--text text--darken-1">
+            {{ item.name2 }}
+          </div>
+        </div>
+      </div>
     </template>
     <template #[`item.tel`]="{ item }">
       <div><v-icon left x-small>mdi-phone</v-icon>{{ item.tel }}</div>
