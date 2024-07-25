@@ -13,6 +13,8 @@
  * @version 1.1.0
  *
  * @updates
+ * - version 1.2.0 - 2024-07-25 - `sites/subscribe`を追加
+ *                                `sites/unsubscribe`を追加
  * - version 1.1.0 - 2024-07-24 - `employee-contracts/subscribe`を追加
  *                              ‐ `employee-contracts/unsubscribe`を追加
  * - version 1.0.0 - 2024-xx-xx - 初版作成
@@ -30,11 +32,13 @@ export default (context) => {
       if (user && ACTIVATE) {
         await context.store.dispatch(ACTIVATE, user)
         await context.store.dispatch('customers/subscribe')
+        await context.store.dispatch('sites/subscribe')
         await context.store.dispatch('employees/subscribe')
         await context.store.dispatch('employee-contracts/subscribe')
       } else if (!user && DISACTIVATE) {
         await context.store.dispatch(DISACTIVATE)
         await context.store.dispatch('customers/unsubscribe')
+        await context.store.dispatch('sites/unsubscribe')
         await context.store.dispatch('employees/unsubscribe')
         await context.store.dispatch('employee-contracts/unsubscribe')
       }

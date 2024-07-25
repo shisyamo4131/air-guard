@@ -1,22 +1,17 @@
 <script>
 /**
- * ### pages.SitesIndex
+ * # pages.SitesIndex
  *
  * 現場情報の一覧ページです。
- * 現場情報（Sites）はドキュメント数が膨大になるため、ユーザーの入力した検索条件に該当するものを
- * Firestoreから都度取得します。
- * 検索条件が未入力の場合、最新の10件を表示します。
- *
- * #### 機能詳細
- * - layoutでkeepAliveを設定するため、都度取得ではなくリアルタイムリスナーによるデータ取得です。
- *
- * #### 更新履歴
- * version 1.0.0 - 2024-07-10 - 初版作成
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
+ *
+ * @updates
+ * - version 1.1.0 - 2024-07-25 - Vuex.sitesの実装により仕様変更。
+ * - version 1.0.0 - 2024-07-10 - 初版作成
  */
-import { limit, orderBy } from 'firebase/firestore'
+import { where } from 'firebase/firestore'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
@@ -46,20 +41,13 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      customerId: '',
+      includeExpired: false,
       items: {
-        recent: [],
-        fetched: [],
+        active: this.$store.state.sites.items,
+        inActive: [],
       },
-      listeners: {
-        recent: this.$Site(),
-        fetched: this.$Site(),
-      },
-      model: this.$Site(),
-      search: {
-        customerId: '',
-        includeExpired: false,
-        value: null,
-      },
+      listener: this.$Site(),
     }
   },
   /***************************************************************************
@@ -67,12 +55,12 @@ export default {
    ***************************************************************************/
   computed: {
     filteredItems() {
-      return this.items.fetched.filter((item) => {
-        const customerId = this.search.customerId
-        const isActive = this.search.includeExpired || item.status === 'active'
-        const isCustomerMatch =
-          !customerId || item.customer.docId === customerId
-        return isActive && isCustomerMatch
+      const combined = this.items.active.concat(this.items.inActive)
+      return combined.filter((item) => {
+        const customer = this.customerId
+          ? item.customerId === this.customerId
+          : true
+        return !!customer
       })
     },
   },
@@ -80,48 +68,34 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
-    'search.value': {
+    includeExpired: {
       handler(newVal, oldVal) {
         if (newVal === oldVal) return
         this.subscribe()
       },
-      immediate: true,
     },
-  },
-  /***************************************************************************
-   * MOUNTED
-   ***************************************************************************/
-  mounted() {
-    this.items.recent = this.listeners.recent.subscribe(undefined, [
-      orderBy('code', 'desc'),
-      limit(10),
-    ])
   },
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.listeners.recent.unsubscribe()
-    this.listeners.fetched.unsubscribe()
+    this.listener.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
     subscribe() {
-      if (!this.search.value) return
-      this.items.fetched = this.listeners.fetched.subscribe(this.search.value)
+      this.items.inActive = this.listener.subscribe(undefined, [
+        where('status', '!=', 'active'),
+      ])
     },
   },
 }
 </script>
 
 <template>
-  <g-template-index
-    extend
-    :items="search.value ? filteredItems : items.recent"
-    :lazy-search.sync="search.value"
-  >
+  <g-template-index extend :items="filteredItems">
     <template #append-search>
       <g-dialog-editor
         model-id="Site"
@@ -137,34 +111,30 @@ export default {
       </g-dialog-editor>
     </template>
     <template #extension>
-      <div v-if="!search.value" class="flex-grow-1">
-        <v-alert class="mb-0" dense type="info" text
-          >最新の10件を表示しています。</v-alert
-        >
-      </div>
       <div
-        v-else
         class="d-flex align-center flex-nowrap flex-grow-1"
         style="gap: 12px"
       >
         <g-autocomplete-customer
-          v-model="search.customerId"
+          v-model="customerId"
           label="取引先"
           class="flex-grow-1"
           clearable
           hide-details
         />
         <g-switch
-          v-model="search.includeExpired"
+          v-model="includeExpired"
           class="flex-grow-0"
           label="稼働終了を含める"
           hide-details
+          :disabled="includeExpired"
         />
       </div>
     </template>
-    <template #default="{ attrs, on }">
+    <template #default="{ attrs, search, on }">
       <g-data-table-sites
         v-bind="attrs"
+        :search="search"
         sort-by="code"
         sort-desc
         @click:row="$router.push(`/sites/${$event.docId}`)"
