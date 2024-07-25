@@ -46,6 +46,8 @@
 - 契約満了の取引先については`取引終了を含める`フラグが`true`になったときに読み込むように。
 - 上記フラグの値が変わるたびに読み込みを行うことのないよう、`true`になったらフラグ操作不可に。
 
+## 現場（Sites）の Vuex 化
+
 ### MS 版 AirGuard
 
 - 過去半年間、稼働がなかった現場について稼働状況を`稼働終了`に変更。
@@ -61,7 +63,19 @@
 
 ### pages.sites.index
 
-- `Vuex.sites`の実装により全体的に使用を変更。
+- `Vuex.sites`の実装により全体的に仕様を変更。
+
+## 取引先詳細画面
+
+### pages.customers.\_docId
+
+- 現場管理機能として`GSitesManager`を新規に作成。
+
+- 現場の管理機能を`GCardSites`から`GSitesManager`に変更。
+
+- `GCardSites`を削除。
+
+- `GDataTableSites`の表示カラムを breakpoint に応じて細かく変更。
 
 # 24th July 2024
 

@@ -5,20 +5,19 @@
  * 取引先の詳細画面です。
  *
  * @author shisyamo4131
- * @version 1.0.1
+ * @version 1.1.0
  *
  * @updates
+ * - version 1.1.0 - 2024-07-25 - 現場管理用コンポーネントを`GCardSites`から`GSitesManager`に変更。
  * - version 1.0.1 - 2024-07-17 - ページ遷移に$routeを使用。
  * - version 1.0.0 - 2024-07-10 - 初版作成
  */
-import { limit, orderBy, where } from 'firebase/firestore'
 import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import GCardCustomer from '~/components/molecules/cards/GCardCustomer.vue'
-import GCardSites from '~/components/molecules/cards/GCardSites.vue'
 import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
-import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
+import GSitesManager from '~/components/organisms/GSitesManager.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -28,13 +27,12 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GCardSites,
     GCardMap,
     GCardCustomer,
     GTemplateDetail,
     GDialogEditor,
     GInputCustomer,
-    GInputSite,
+    GSitesManager,
   },
   /***************************************************************************
    * ASYNCDATA
@@ -49,20 +47,7 @@ export default {
    * DATA
    ***************************************************************************/
   data() {
-    return {
-      items: {
-        sites: [],
-      },
-      lazySearch: {
-        sites: null,
-      },
-      listeners: {
-        sites: this.$Site(),
-      },
-      showLast: {
-        sites: false,
-      },
-    }
+    return {}
   },
   /***************************************************************************
    * COMPUTED
@@ -82,28 +67,7 @@ export default {
   /***************************************************************************
    * WATCH
    ***************************************************************************/
-  watch: {
-    'lazySearch.sites': {
-      handler(newVal, oldVal) {
-        if (newVal === oldVal) return
-        if (!newVal) {
-          this.items.sites = this.listeners.sites.subscribe(undefined, [
-            where('customer.docId', '==', this.docId),
-            orderBy('code', 'desc'),
-            limit(10),
-          ])
-          this.showLast.sites = true
-        } else {
-          this.items.sites = this.listeners.sites.subscribe(newVal, [
-            where('customer.docId', '==', this.docId),
-            orderBy('code', 'desc'),
-          ])
-          this.showLast.sites = false
-        }
-      },
-      immediate: true,
-    },
-  },
+  watch: {},
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
@@ -124,10 +88,6 @@ export default {
         this.$router.replace(this.parentPath)
       }
     },
-    onClickRegistSite() {
-      const editMode = 'REGIST'
-      this.$refs[`site-editor`].open({ editMode })
-    },
   },
 }
 </script>
@@ -146,26 +106,7 @@ export default {
         <g-card-map :value="model.address1" outlined height="600" />
       </v-col>
       <v-col cols="12" md="7">
-        <g-card-sites
-          :items="items.sites"
-          :show-last="showLast.sites"
-          height="600"
-          :lazy-search.sync="lazySearch.sites"
-          outlined
-          @click:regist="onClickRegistSite"
-          @click:row="$router.push(`/sites/${$event.docId}`)"
-        />
-        <!-- site editor -->
-        <g-dialog-editor
-          ref="site-editor"
-          label="現場"
-          model-id="Site"
-          :default-item="{ customer: JSON.parse(JSON.stringify(model)) }"
-        >
-          <template #default="{ attrs, on }">
-            <g-input-site v-bind="attrs" hide-customer v-on="on" />
-          </template>
-        </g-dialog-editor>
+        <g-sites-manager outlined :customer-id="docId" height="600" />
       </v-col>
     </v-row>
     <!-- editor -->

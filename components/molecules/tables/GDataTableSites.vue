@@ -4,9 +4,12 @@
  *
  * 現場のDataTableコンポーネントです。
  *
- * @version 1.0.0
- * @create 2024-06-26
  * @author shisyamo4131
+ * @version 1.1.0
+ *
+ * @updates
+ * - version 1.1.0 - 2024-07-25 - breakpointに応じて表示するカラムを変更。
+ * - version 1.0.0 - 2024-06-26 - 初版作成
  */
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 export default {
@@ -15,25 +18,35 @@ export default {
    ***************************************************************************/
   components: { GDataTable },
   /***************************************************************************
+   * DATA
+   ***************************************************************************/
+  data() {
+    return {
+      search: null,
+    }
+  },
+  /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
     headers() {
-      const isMobile = this.$vuetify.breakpoint.mobile
-      if (!isMobile) {
-        return [
-          { text: 'CODE', value: 'code', width: 84 },
-          { text: '現場名', value: 'name', sortable: false },
-          { text: '住所', value: 'address', sortable: false },
-        ]
-      } else {
-        return [
-          { text: 'CODE', value: 'code', width: 84 },
-          {
-            text: '略称',
-            value: 'abbr',
-          },
-        ]
+      switch (this.$vuetify.breakpoint.name) {
+        case 'xs':
+        case 'sm':
+          return [
+            { text: 'CODE', value: 'code', width: 84 },
+            { text: '略称', value: 'abbr' },
+          ]
+        case 'md':
+          return [
+            { text: 'CODE', value: 'code', width: 84 },
+            { text: '略称', value: 'abbr', sortable: false },
+          ]
+        default:
+          return [
+            { text: 'CODE', value: 'code', width: 84 },
+            { text: '現場名/住所', value: 'name', sortable: false },
+          ]
       }
     },
   },
@@ -59,7 +72,7 @@ export default {
             {{ item.name }}
           </div>
           <div class="text-caption grey--text text--darken-1">
-            {{ item.customer.abbr }}
+            {{ item.address }}
           </div>
         </div>
       </div>
