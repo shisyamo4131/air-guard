@@ -1,14 +1,17 @@
 <template>
   <v-container>
-    <g-date-picker-multiple v-model="model.date" />
-    <v-btn @click="regist">regist</v-btn>
+    <v-card>
+      <v-card-text>
+        <g-input-site-operation-schedule-bulk v-bind.sync="model" />
+      </v-card-text>
+    </v-card>
   </v-container>
 </template>
 
 <script>
-import GDatePickerMultiple from '~/components/atoms/pickers/GDatePickerMultiple.vue'
+import GInputSiteOperationScheduleBulk from '~/components/molecules/inputs/GInputSiteOperationScheduleBulk.vue'
 export default {
-  components: { GDatePickerMultiple },
+  components: { GInputSiteOperationScheduleBulk },
   data() {
     return {
       model: this.$SiteOperationScheduleBulk({
@@ -16,11 +19,6 @@ export default {
         workShift: 'day',
       }),
     }
-  },
-  methods: {
-    async regist() {
-      await this.model.create()
-    },
   },
 }
 </script>

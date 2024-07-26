@@ -12,7 +12,7 @@
  * @version 1.0.0
  *
  * @updates
- * - version 1.1.0 - 2024-07-06 - 各種設定をダイアログ上で行うUIに変更
+ * - version 1.1.0 - 2024-07-26 - 各種設定をダイアログ上で行うUIに変更
  * - version 1.0.0 - 2024-06-21 - 初版作成
  */
 
@@ -201,7 +201,6 @@ export default {
   <g-date-picker
     v-bind="$attrs"
     v-model="pickerValue"
-    style="width: 290px"
     color="primary"
     multiple
     :range="isRange"
