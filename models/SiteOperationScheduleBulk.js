@@ -23,7 +23,6 @@
 import { props } from './SiteOperationSchedule'
 import FireModel from './FireModel'
 
-props.props.date = { type: Array, default: () => [], required: false }
 export { props }
 
 export default class SiteOperationScheduleBulk extends FireModel {

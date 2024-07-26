@@ -6,18 +6,6 @@
     "lists": []
   },
   {
-    "name": "休暇申請管理",
-    "icon": "mdi-home",
-    "to": "/leave-applications",
-    "lists": []
-  },
-  {
-    "name": "スポット現場稼働予定",
-    "icon": "mdi-home",
-    "to": "/temporary-site-schedules",
-    "lists": []
-  },
-  {
     "name": "マスタ管理",
     "icon": "mdi-cube",
     "lists": [
@@ -26,20 +14,6 @@
       { "name": "従業員", "to": "/employees", "icon": "mdi-domain" },
       { "name": "外注先", "to": "/outsourcers", "icon": "mdi-domain" },
       { "name": "制服・装備品", "to": "/equipments", "icon": "mdi-domain" }
-    ]
-  },
-  {
-    "name": "分析",
-    "icon": "mdi-cube",
-    "lists": [
-      { "name": "勤怠実績", "to": "/attendance-records", "icon": "mdi-domain" }
-    ]
-  },
-  {
-    "name": "実績管理",
-    "icon": "mdi-cube",
-    "lists": [
-      { "name": "稼働実績", "to": "/operation-results", "icon": "mdi-domain" }
     ]
   },
   {

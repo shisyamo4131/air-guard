@@ -37,14 +37,14 @@ export default {
   <div class="d-flex flex-wrap flex-sm-nowrap" style="gap: 16px">
     <v-card class="flex-grow-1 flex-sm-grow-0" outlined>
       <g-date-picker-multiple
-        :value="date"
+        :value="dates"
         label="日付"
         required
-        @input="$emit('update:date', $event)"
+        @input="$emit('update:dates', $event)"
       />
       <v-input
         class="ml-2 mb-2"
-        :value="date"
+        :value="dates"
         :rules="[(v) => !!v.length || '日を選択してください']"
       />
     </v-card>

@@ -52,15 +52,21 @@ export default {
       required
       @input="$emit('update:date', $event)"
     />
-    <v-radio-group
-      :value="workShift"
-      row
-      class="mt-0"
-      @change="$emit('update:workShift', $event)"
-    >
-      <v-radio value="day" label="日勤" />
-      <v-radio value="night" label="夜勤" />
-    </v-radio-group>
+    <div class="d-flex mb-6 flex-wrap" flat>
+      <h5 class="align-self-end pr-4" style="color: rgba(0, 0, 0, 0.6)">
+        勤務区分
+      </h5>
+      <v-radio-group
+        :value="workShift"
+        class="mt-0"
+        hide-details
+        row
+        @change="$emit('update:workShift', $event)"
+      >
+        <v-radio value="day" label="日勤" />
+        <v-radio value="night" label="夜勤" />
+      </v-radio-group>
+    </div>
     <v-row dense>
       <v-col cols="6">
         <g-text-field

@@ -14,6 +14,7 @@ const FireModel = require('./FireModel')
 const props = {
   docId: { type: String, default: '', required: false },
   date: { type: String, default: '', required: false },
+  dates: { type: Array, default: () => [], required: false },
   siteId: { type: String, default: '', required: false },
   workShift: {
     type: String,
@@ -33,6 +34,25 @@ const props = {
 class SiteOperationSchedule extends FireModel {
   constructor(item) {
     super(item, { addTimestamps: false })
+    Object.defineProperties(this, {
+      /**
+       * VCalendarコンポーネントで容易に使用できるよう、eventプロパティを定義。
+       */
+      event: {
+        enumerable: true,
+        get() {
+          return {
+            name: this.siteId,
+            date: this.date,
+            workShift: this.workShift,
+            requiredWorkers: this.requiredWorkers,
+            start: this.start,
+            color: this.workShift === 'day' ? 'blue' : 'red',
+          }
+        },
+        set(v) {},
+      },
+    })
   }
 
   initialize(item = {}) {

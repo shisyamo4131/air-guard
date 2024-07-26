@@ -20,6 +20,7 @@ import GInputSiteOperationSchedule from '../molecules/inputs/GInputSiteOperation
 import GDivMonthChooser from '../molecules/divs/GDivMonthChooser.vue'
 import GCalendarSiteOperationScheduleSummary from '../molecules/calendars/GCalendarSiteOperationScheduleSummary.vue'
 import GDialogEditor from '../molecules/dialogs/GDialogEditor.vue'
+import GInputSiteOperationScheduleBulk from '../molecules/inputs/GInputSiteOperationScheduleBulk.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -30,6 +31,7 @@ export default {
     GDivMonthChooser,
     GCalendarSiteOperationScheduleSummary,
     GDialogEditor,
+    GInputSiteOperationScheduleBulk,
   },
   /***************************************************************************
    * PROPS
@@ -43,8 +45,9 @@ export default {
   data() {
     return {
       currentDate: this.$dayjs().format('YYYY-MM-DD'),
+      editMode: null,
       items: [],
-      model: this.$SiteOperationSchedule(),
+      listener: this.$SiteOperationSchedule(),
     }
   },
   /***************************************************************************
@@ -63,6 +66,20 @@ export default {
         .endOf('week')
         .format('YYYY-MM-DD')
     },
+    modelId() {
+      if (this.editMode === 'REGIST') {
+        return 'SiteOperationScheduleBulk'
+      } else {
+        return 'SiteOperationSchedule'
+      }
+    },
+    component() {
+      if (this.editMode === 'REGIST') {
+        return `GInputSiteOperationScheduleBulk`
+      } else {
+        return `GInputSiteOperationSchedule`
+      }
+    },
   },
   /***************************************************************************
    * WATCH
@@ -75,7 +92,7 @@ export default {
     siteId: {
       handler(newVal, oldVal) {
         if (newVal === oldVal) return
-        this.model.siteId = newVal
+        this.listener.siteId = newVal
         this.subscribe()
       },
       immediate: true,
@@ -86,13 +103,16 @@ export default {
    ***************************************************************************/
   methods: {
     onClickSchedule({ date, workShift }) {
-      const item = this.items.find((item) => {
-        return item.date === date && item.workShift === workShift
+      this.editMode = 'UPDATE'
+      this.$nextTick(() => {
+        const item = this.items.find((item) => {
+          return item.date === date && item.workShift === workShift
+        })
+        this.$refs.editor.open({ item, editMode: 'UPDATE' })
       })
-      this.$refs.editor.open({ item, editMode: 'UPDATE' })
     },
     subscribe() {
-      this.items = this.model.subscribe(undefined, [
+      this.items = this.listener.subscribe(undefined, [
         where('date', '>=', this.from),
         where('date', '<=', this.to),
       ])
@@ -108,9 +128,10 @@ export default {
       <g-dialog-editor
         ref="editor"
         label="稼働予定"
-        max-width="360"
-        model-id="SiteOperationSchedule"
+        :model-id="modelId"
+        :max-width="editMode === 'REGIST' ? 720 : 360"
         :default-item="{ siteId }"
+        @edit-mode="editMode = $event"
       >
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon
@@ -121,7 +142,9 @@ export default {
           />
         </template>
         <template #default="{ attrs, on }">
-          <g-input-site-operation-schedule v-bind="attrs" v-on="on" />
+          <component :is="component" v-bind="attrs" v-on="on" />
+          <!-- <g-input-site-operation-schedule-bulk v-bind="attrs" v-on="on" />
+          <g-input-site-operation-schedule v-bind="attrs" v-on="on" /> -->
         </template>
       </g-dialog-editor>
     </v-card-title>

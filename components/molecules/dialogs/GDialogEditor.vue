@@ -40,21 +40,20 @@
  * @prop {string} label - タイトルです。
  * @prop {string} modelId - データモデルのIDです。
  *
- * @version 1.1.0
- * @create 2024-06-24
  * @author shisyamo4131
+ * @version 1.3.0
  *
  * @updates
+ * - version 1.3.0 - 2024-07-26 - `edit-mode`イベントを追加。親コンポーネント側で現在の編集モードを把握することが可能に。
  * - version 1.2.0 - 2024-07-12 - `slots.default`に配置されたコンポーネントへの参照を取得。
  *                              - dialogの終了時に参照先のinitialize()をコールするように修正。
- * - version 1.1.0 - 2024-07-02
- *  - 継承前提ではなく、`props.modelId`を用意して、プロパティから使用するデータモデルを指定できるように改善。
- *  - `props.customSubmit`を用意し、既定のsubmit処理を置き換えることができるように改善。
- *  - `props.isOpen`を用意し、dialogの開閉状態を親コンポーネント側で把握できるように改善。
- *
- * 2024-06-29 - defaultスロットプロパティ`on`について、モデルが保有するプロパティが
- *              ネストされたオブジェクトであった場合に、最上位以外のプロパティについての
- *              updateイベントを生成できていなかったのを修正。
+ * - version 1.1.0 - 2024-07-02 - 継承前提ではなく、`props.modelId`を用意して、プロパティから使用するデータモデルを指定できるように改善。
+ *                              - `props.customSubmit`を用意し、既定のsubmit処理を置き換えることができるように改善。
+ *                              - `props.isOpen`を用意し、dialogの開閉状態を親コンポーネント側で把握できるように改善。
+ * - version 1.0.1 - 2024-06-29 - defaultスロットプロパティ`on`について、モデルが保有するプロパティが
+ *                                ネストされたオブジェクトであった場合に、最上位以外のプロパティについての
+ *                                updateイベントを生成できていなかったのを修正。
+ * - version 1.0.0 - 2024-06-xx - 初版作成
  */
 
 import GCardSubmitCancel from '../cards/GCardSubmitCancel.vue'
@@ -165,6 +164,16 @@ export default {
     dialog(v) {
       this.$emit('update:isOpen', v)
       !v && this.inputRef?.initialize?.()
+    },
+    /**
+     * `data.editMode`を監視します。
+     * - 親コンポーネントで現在の編集モードを把握することが可能です。
+     */
+    editMode: {
+      handler(v) {
+        this.$emit('edit-mode', v)
+      },
+      immediate: true,
     },
     /**
      * `props.modelId`を監視します。

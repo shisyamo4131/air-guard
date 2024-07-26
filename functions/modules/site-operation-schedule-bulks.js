@@ -1,5 +1,5 @@
 /**
- * ## site-operation-schedule-bulk.js
+ * ## site-operation-schedule-bulks.js
  *
  * 現場の稼働予定（SiteOperationSchedule）ドキュメント一括作成用に用意されたモジュールです。
  * `SiteOperationScheduleBulks`コレクションのドキュメント作成トリガーについて処理を定義しています。
@@ -33,7 +33,7 @@ exports.onCreate = onDocumentCreated(
         `Sites/${data.siteId}/SiteOperationSchedules`
       )
       const batchArray = []
-      data.date.forEach((date, index) => {
+      data.dates.forEach((date, index) => {
         if (index % BATCH_LIMIT === 0) batchArray.push(firestore.batch())
         const schedule = new SiteOperationSchedule({ ...data, date })
         const docId = `${data.siteId}-${date}-${data.workShift}`

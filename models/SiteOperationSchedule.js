@@ -13,6 +13,7 @@
  *
  * @updates
  * - version 1.1.0 - 2024-07-26 - ドキュメントidを`siteId` + `date` + `workShift`に固定。
+ *                              - `props.dates`を追加 -> `SiteOperationScheduleBulk`で使用するため。
  * - version 1.0.0 - 2024-07-12 - 初版作成
  */
 
@@ -23,6 +24,10 @@ const props = {
   props: {
     docId: { type: String, default: '', required: false },
     date: { type: String, default: '', required: false },
+    /**
+     * `SiteOperationScheduleBulk`で使用します。
+     */
+    dates: { type: Array, default: () => [], required: false },
     siteId: { type: String, default: '', required: false },
     workShift: {
       type: String,
@@ -108,7 +113,7 @@ export default class SiteOperationSchedule extends FireModel {
       limit(1)
     )
     const querySnapshot = await getDocs(q)
-    if (!querySnapshot.empty) {
+    if (!querySnapshot.empty && querySnapshot.docs[0].id !== this.docId) {
       const errMsg = '同一日、同一勤務区分の稼働予定が既に登録されています。'
       // eslint-disable-next-line
       console.error(errMsg)
