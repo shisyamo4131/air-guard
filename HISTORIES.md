@@ -18,24 +18,6 @@
   - 最終稼働日の管理方法を検討しなくてはならない。
   - どちらにしても稼働実績の取り込み・管理機能が完成しないと不可能？
 
-## 現場スケジュールの管理機能実装
-
-各現場の稼働予定を登録・管理できるような機能を実装。
-
-- ベースは 1 件 1 件、スケジュールを登録できれば OK。
-- 一括作成の機能は必須。以下の要領で構築できないか。
-  - SiteOperationSchedule モデルを使った工夫は構築が複雑になるため NG。
-  - SiteOperationScheduleBulk モデルを実装 -> 日付は複数選択可能
-  - SiteOperationScheduleBulk ドキュメントが作成されたら Cloud Functions ですべての日付について SiteOperationSchedules コレクションに登録
-    - すべての SiteOperationSchedule ドキュメントを作成し終えたら SiteOperationScheduleBulk ドキュメントは削除。
-    - 既存の SiteOperationSchedule ドキュメントがあれば上書き。
-
-スポット現場についても通常の現場と同じように登録・管理する。代わりにスポット現場であることが分かるフラグを用意。
-
-スポット現場の稼働予定は突然発生することが多いため、外出先からも簡単に登録できればベター。
-
-- 現場と稼働予定を一気に登録できる機能があると便利だと思うが、現場を重複登録してしまった場合のリカバリーについて機能を実現するのがやっかい。
-
 ## 雇用契約書の PDF 出力
 
 ## 現場取極めの PDF 保存と表示
@@ -51,6 +33,40 @@
 ## GDatePickerMultiple
 
 - 選択モードや選択可能日の指定などの設定をダイアログ上で行えるように UI を変更。
+
+## 現場稼働予定（SiteOperationSchedules）
+
+### model.SiteOperationSchedule
+
+- 現場稼働予定の一括登録用として`dates`プロパティを用意。
+
+### model.SiteOperationScheduleBulk
+
+- 現場稼働予定の一括登録用データモデルとして新規に作成。
+- プロパティは`model.SiteOperationSchedule`を参照。
+
+### GDialogEditor
+
+- 親コンポーネントで現在の編集モードを判断できるように`edit-mode`イベントを実装。
+
+### GInputSiteOperationScheduleBulk
+
+- 現場稼働予定の一括登録用入力コンポーネントとして新規実装。
+
+### functions.SiteOperationSchedule
+
+- Cloud Functions で`SiteOperationSchedule`ドキュメントを扱うためのモデルとして実装。
+
+### functions.site-operation-schedule-bulks
+
+- 現場稼働予定の一括登録用モジュールを実装。
+- ドキュメントが作成されると`dates`プロパティを参照して複数の`SiteOperationSchedule`ドキュメントを作成。
+- 作成後は自身を削除する。
+
+### functions.site-operation-schedule
+
+- 更新トリガーでの処理を実装。現場 id、稼働日、勤務区分のどれかが変更された際に、ドキュメント id との整合性を保つため、新規にドキュメントを作成し、作成元（変更されたドキュメント）を削除するように。
+- これにより、現場 id が変更された際に従属先の`Site`ドキュメントを変更することにも対応可能に。
 
 # 25th July 2024
 

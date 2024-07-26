@@ -35,7 +35,10 @@ exports.onCreate = onDocumentCreated(
       const batchArray = []
       data.dates.forEach((date, index) => {
         if (index % BATCH_LIMIT === 0) batchArray.push(firestore.batch())
-        const schedule = new SiteOperationSchedule({ ...data, date })
+        const schedule = new SiteOperationSchedule(
+          { ...data, date },
+          { addTimestamps: true }
+        )
         const docId = `${data.siteId}-${date}-${data.workShift}`
         const docRef = colRef.doc(docId)
         batchArray[batchArray.length - 1].set(docRef, { ...schedule })
