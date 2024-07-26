@@ -6,23 +6,17 @@
  *
  * #### 機能詳細:
  * - 稼働予定としてカレンダーで頻繁に表示されることを想定して、`event`プロパティを定義しています。
+ * - 同一日、同一勤務区分でのドキュメントは作成できません。（keyにはsiteIdを含みますが、サブコレクションなので日付と勤務区分でのValidationです）
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
  *
  * @updates
+ * - version 1.1.0 - 2024-07-26 - ドキュメントidを`siteId` + `date` + `workShift`に固定。
  * - version 1.0.0 - 2024-07-12 - 初版作成
- *
- * @version 1.0.0
- * @author shisyamo4131
  */
 
-import {
-  collection,
-  // doc,
-  // getDoc,
-  getDocs,
-  limit,
-  query,
-  where,
-} from 'firebase/firestore'
+import { collection, getDocs, limit, query, where } from 'firebase/firestore'
 import FireModel from './FireModel'
 
 const props = {
@@ -48,11 +42,13 @@ const props = {
 export { props }
 
 export default class SiteOperationSchedule extends FireModel {
-  // #fetchedSites = []
   constructor(context, item = {}) {
     super(context, item)
     this.tokenFields = []
     Object.defineProperties(this, {
+      /**
+       * VCalendarコンポーネントで容易に使用できるよう、eventプロパティを定義。
+       */
       event: {
         enumerable: true,
         get() {
@@ -120,77 +116,8 @@ export default class SiteOperationSchedule extends FireModel {
     }
   }
 
-  /**
-   * コレクションへのリアルタイムリスナーを開始します。
-   * 参照として返される配列にはカレンダー用のイベントに変換されたオブジェクトです。
-   * @param {string} from - 取得する日付範囲の開始日
-   * @param {*} to - 取得する日付範囲の最終日
-   * @param {*} temporary - trueにするとスポット現場の稼働予定のみを取得
-   * @returns 取得したドキュメントデータをカレンダー用のイベントに変換したオブジェクトが格納されている配列への参照
-   */
-  // subscribeAsEvent(
-  //   { from, to } = {
-  //     from: undefined,
-  //     to: undefined,
-  //   }
-  // ) {
-  //   const constraints = [where('date', '>=', from), where('date', '<=', to)]
-  //   const items = super.subscribe(
-  //     undefined,
-  //     constraints,
-  //     this.convertToEvent.bind(this)
-  //   )
-  //   return items
-  // }
-
-  /**
-   * コレクショングループへのリアルタイムリスナーを開始します。
-   * 参照として返される配列にはカレンダー用のイベントに変換されたオブジェクトです。
-   * @param {string} from - 取得する日付範囲の開始日
-   * @param {string} to - 取得する日付範囲の最終日
-   * @param {boolean} temporary - trueにするとスポット現場の稼働予定のみを取得
-   * @returns 取得したドキュメントデータをカレンダー用のイベントに変換したオブジェクトが格納されている配列への参照
-   */
-  // subscribeGroupAsEvent(
-  //   { from, to } = {
-  //     from: undefined,
-  //     to: undefined,
-  //   }
-  // ) {
-  //   const constraints = [where('date', '>=', from), where('date', '<=', to)]
-  //   const items = super.subscribeGroup(
-  //     undefined,
-  //     constraints,
-  //     this.convertToEvent.bind(this)
-  //   )
-  //   return items
-  // }
-
-  // async convertToEvent(data) {
-  //   const getSite = async (siteId) => {
-  //     const site = this.#fetchedSites.find(({ docId }) => docId === siteId)
-  //     if (site) return site
-  //     const docRef = doc(this.firestore, `Sites/${siteId}`)
-  //     const snapshot = await getDoc(docRef)
-  //     if (!snapshot.exists()) {
-  //       const errMsg = `Could not find site document. id: ${siteId}`
-  //       // eslint-disable-next-line
-  //       console.error(errMsg)
-  //       throw new Error(errMsg)
-  //     }
-  //     this.#fetchedSites.push(snapshot.data())
-  //     return snapshot.data()
-  //   }
-  //   const site = await getSite(data.siteId)
-  //   return {
-  //     name: site.name,
-  //     date: data.date,
-  //     workShift: data.workShift,
-  //     requiredWorkers: data.requiredWorkers,
-  //     start: data.start,
-  //     color: data.workShift === 'day' ? 'blue' : 'red',
-  //     site,
-  //     schedule: data,
-  //   }
-  // }
+  async create() {
+    const docId = `${this.siteId}-${this.date}-${this.workShift}`
+    await super.create({ docId })
+  }
 }

@@ -2,18 +2,19 @@ import User from '../models/User'
 import Autonumber from '../models/Autonumber'
 import AttendanceRecord from '../models/AttendanceRecord'
 import Customer from '../models/Customer'
-import Site from '../models/Site'
 import Employee from '../models/Employee'
 import EmployeeContract from '../models/EmployeeContract'
 import EmployeeMedicalCheckup from '../models/EmployeeMedicalCheckup'
 import Outsourcer from '../models/Outsourcer'
 import LeaveApplication from '../models/LeaveApplication'
 import EmployeeLeaveApplication from '../models/EmployeeLeaveApplication'
-import SiteOperationSchedule from '../models/SiteOperationSchedule'
 import Equipment from '../models/Equipment'
 import EquipmentReceiving from '../models/EquipmentReceiving'
 import OperationResult from '../models/OperationResult'
+import Site from '../models/Site'
 import SiteContract from '../models/SiteContract'
+import SiteOperationSchedule from '../models/SiteOperationSchedule'
+import SiteOperationScheduleBulk from '../models/SiteOperationScheduleBulk'
 import WorkRegulation from '../models/WorkRegulation'
 
 export default (context, inject) => {
@@ -30,6 +31,10 @@ export default (context, inject) => {
   inject(
     'SiteOperationSchedule',
     (item) => new SiteOperationSchedule(firebase, item)
+  )
+  inject(
+    'SiteOperationScheduleBulk',
+    (item) => new SiteOperationScheduleBulk(firebase, item)
   )
   inject('Employee', (item) => new Employee(firebase, item))
   inject('EmployeeContract', (item) => new EmployeeContract(firebase, item))

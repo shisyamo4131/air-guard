@@ -1,6 +1,7 @@
 <template>
   <v-container>
-    <g-date-picker-multiple v-model="dates" />
+    <g-date-picker-multiple v-model="model.date" />
+    <v-btn @click="regist">regist</v-btn>
   </v-container>
 </template>
 
@@ -10,8 +11,16 @@ export default {
   components: { GDatePickerMultiple },
   data() {
     return {
-      dates: [],
+      model: this.$SiteOperationScheduleBulk({
+        siteId: 'KFLWoTljBjmlDbGi992A',
+        workShift: 'day',
+      }),
     }
+  },
+  methods: {
+    async regist() {
+      await this.model.create()
+    },
   },
 }
 </script>

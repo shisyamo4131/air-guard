@@ -14,6 +14,7 @@ exports.employees = require('./modules/employees')
 
 exports.customers = require('./modules/customers')
 exports.sites = require('./modules/sites')
+exports.siteOperationScheduleBulks = require('./modules/site-operation-schedule-bulks')
 
 // exports.operationResults = require('./modules/operation-results')
 // exports.siteDaylySales = require('./modules/site-dayly-sales')
