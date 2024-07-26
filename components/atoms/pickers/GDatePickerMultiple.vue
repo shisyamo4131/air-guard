@@ -1,29 +1,19 @@
 <script>
 /**
- * ### GDatePickerMultiple
- * @version 1.0.0
- * @date 2024-06-21
+ * ## GDatePickerMultiple
+ *
+ * 複数の日を選択可能なDatePickerコンポーネントです。
+ *
+ * ### 機能詳細
+ * - 選択可能な曜日を指定することが可能です。
+ * - Range（範囲）選択の切り替えを行うことができます。
+ *
  * @author shisyamo4131
+ * @version 1.0.0
  *
- * 概要:
- * GDatePickerMultipleコンポーネントは、VDatePickerコンポーネントを拡張したコンポーネントです。
- * 曜日の選択可不可の状態を制御可能で、複数の日の選択機能をより充実させています。
- * また、範囲選択の場合、VDatePickerは選択された範囲の最初・最後の日を返しますが、
- * このコンポーネントは選択された範囲の対象日全てを返します。
- *
- * 主な機能:
- * - 範囲選択モードのサポート
- * - 選択可能な曜日の指定
- * - 親コンポーネントとの値の同期
- *
- * 使用例:
- * <GDatePickerMultiple v-model="selectedDates" />
- *
- * props設定:
- * - value: 選択された日付の配列
- *
- * 更新履歴:
- * 2024-06-21 - 初版作成
+ * @updates
+ * - version 1.1.0 - 2024-07-06 - 各種設定をダイアログ上で行うUIに変更
+ * - version 1.0.0 - 2024-06-21 - 初版作成
  */
 
 import GSwitch from '../inputs/GSwitch.vue'
@@ -51,6 +41,7 @@ export default {
         const dayOfWeek = this.$dayjs(v).format('ddd').toLowerCase()
         return this.selectableDayOfWeeks.includes(dayOfWeek)
       },
+      dialog: false,
       internalValue: [],
       isRange: false,
       multiFunctional: false,
@@ -210,6 +201,7 @@ export default {
   <g-date-picker
     v-bind="$attrs"
     v-model="pickerValue"
+    style="width: 290px"
     color="primary"
     multiple
     :range="isRange"
@@ -218,39 +210,58 @@ export default {
     v-on="$listeners"
   >
     <div class="flex-grow-1">
-      <v-checkbox
-        v-model="multiFunctional"
-        class="mt-0 pt-0"
-        label="詳細選択モード"
-        hide-details
-      />
-      <v-expand-transition>
-        <div v-show="multiFunctional">
-          <v-divider class="my-2" />
-          <g-switch
-            v-model="isRange"
-            class="mt-0 pt-0"
-            label="範囲選択"
-            hide-details
-          />
-          <v-chip-group
-            v-model="selectableDayOfWeeks"
-            multiple
-            active-class="primary--text"
-            column
+      <div class="d-flex justify-space-between">
+        <div
+          class="text-caption align-self-center"
+          style="color: rgba(0, 0, 0, 0.6)"
+        >
+          <span>選択モード:</span>
+          <v-btn icon small @click="isRange = false"
+            ><v-icon color="blue" :disabled="isRange"
+              >mdi-calendar-multiselect</v-icon
+            ></v-btn
           >
-            <v-chip small value="mon">月</v-chip>
-            <v-chip small value="tue">火</v-chip>
-            <v-chip small value="wed">水</v-chip>
-            <v-chip small value="thu">木</v-chip>
-            <v-chip small value="fri">金</v-chip>
-            <v-chip small value="sat">土</v-chip>
-            <v-chip small value="sun">日</v-chip>
-          </v-chip-group>
+          <v-btn class="ml-1" icon small @click="isRange = true">
+            <v-icon color="green" :disabled="!isRange"
+              >mdi-calendar-expand-horizontal</v-icon
+            >
+          </v-btn>
         </div>
-      </v-expand-transition>
-      <div class="d-flex" style="display: block">
-        <slot name="default" />
+        <v-dialog v-model="dialog" max-width="360">
+          <template #activator="{ attrs, on }">
+            <v-btn v-bind="attrs" icon small v-on="on"
+              ><v-icon>mdi-cog-outline</v-icon></v-btn
+            >
+          </template>
+          <v-card>
+            <v-card-text class="pa-4">
+              <h4>選択モード切替</h4>
+              <v-divider class="my-2" />
+              <g-switch
+                v-model="isRange"
+                class="mt-0 pt-0"
+                label="範囲で選択"
+                hide-details
+              />
+              <h4 class="mt-4">選択可能日</h4>
+              <v-divider class="my-2" />
+              <v-chip-group
+                v-model="selectableDayOfWeeks"
+                multiple
+                active-class="primary--text"
+                column
+              >
+                <v-chip small value="mon">月</v-chip>
+                <v-chip small value="tue">火</v-chip>
+                <v-chip small value="wed">水</v-chip>
+                <v-chip small value="thu">木</v-chip>
+                <v-chip small value="fri">金</v-chip>
+                <v-chip small value="sat">土</v-chip>
+                <v-chip small value="sun">日</v-chip>
+              </v-chip-group>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
       </div>
     </div>
   </g-date-picker>

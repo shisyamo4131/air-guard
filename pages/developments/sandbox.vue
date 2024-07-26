@@ -1,26 +1,17 @@
 <template>
   <v-container>
-    <v-data-table :items="contracts" :headers="headers" :items-per-page="-1" />
+    <g-date-picker-multiple v-model="dates" />
   </v-container>
 </template>
 
 <script>
+import GDatePickerMultiple from '~/components/atoms/pickers/GDatePickerMultiple.vue'
 export default {
+  components: { GDatePickerMultiple },
   data() {
     return {
-      headers: [
-        { text: 'docId', value: 'docId' },
-        { text: 'startDate', value: 'startDate' },
-        { text: 'expiredDate', value: 'expiredDate' },
-      ],
+      dates: [],
     }
-  },
-  computed: {
-    contracts() {
-      return this.$store.state['employee-contracts'].items.current.filter(
-        (item) => item.employeeId === 'zcjl99C6BzBlrc7TPkBN'
-      )
-    },
   },
 }
 </script>
