@@ -4,9 +4,11 @@
  * Cloud FunctionsでSiteOperationScheduleドキュメントを操作する際のドキュメントモデルです。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.0.1
  *
  * @updates
+ * - version 1.0.1 - 2027-07-29 - constructorで`addTimestamps`が`false`で固定されていた（なぜ？）。
+ *                              - `options`としてすべての引数を受け付けるように修正。
  * - version 1.0.0 - 2024-07-26 - 初版作成
  */
 const FireModel = require('./FireModel')
@@ -32,8 +34,8 @@ const props = {
 }
 
 class SiteOperationSchedule extends FireModel {
-  constructor(item) {
-    super(item, { addTimestamps: false })
+  constructor(item, options) {
+    super(item, options)
     Object.defineProperties(this, {
       /**
        * VCalendarコンポーネントで容易に使用できるよう、eventプロパティを定義。
