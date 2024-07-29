@@ -1,25 +1,18 @@
 <script>
 /**
- * ### GInputSiteOperationSchedule
+ * ## GInputSiteOperationSchedule
  *
  * 現場の稼働予定を入力するためのコンポーネントです。
- * GDialogSiteOperationScheduleBulkRegisterで使用できるように、
- * 日付の入力コンポーネントを非表示にする機能が実装されています。
  *
- * 機能の詳細：
- * - `props.hideDate`をtrueにすると日付の入力コンポーネントが非表示になります。
- *
- * @component
- * @example
- * <GInputSiteOperationSchedule
- *   v-bind.sync="model"
- *   :edit-mode="editMode"
- *   hide-date
- * />
- *
- * @props {Boolean} hideDate - 日付を非表示にします
+ * ### 注意事項:
+ * - 稼働日、勤務区分は変更できません。
  *
  * @author shisyamo4131
+ * @version 1.1.0
+ *
+ * @updates
+ * - version 1.1.0 - 2024-07-29 - 現場の稼働予定の仕様について再確認。日付と勤務区分は変更不可に。
+ * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
@@ -49,6 +42,7 @@ export default {
       v-if="!hideDate"
       :value="date"
       label="日付"
+      :disabled="editMode !== 'REGIST'"
       required
       @input="$emit('update:date', $event)"
     />
@@ -60,6 +54,7 @@ export default {
         :value="workShift"
         class="mt-0"
         hide-details
+        :disabled="editMode !== 'REGIST'"
         row
         @change="$emit('update:workShift', $event)"
       >

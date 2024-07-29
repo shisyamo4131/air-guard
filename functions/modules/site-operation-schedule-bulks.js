@@ -5,9 +5,10 @@
  * `SiteOperationScheduleBulks`コレクションのドキュメント作成トリガーについて処理を定義しています。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.0.1
  *
  * @updates
+ * - version 1.0.1 - `SiteOperationSchedule`ドキュメントを作成する際に`docId`が正しく指定できていなかったのを修正。
  * - version 1.0.0 - 2024-07-26 - 初版作成
  */
 
@@ -35,11 +36,11 @@ exports.onCreate = onDocumentCreated(
       const batchArray = []
       data.dates.forEach((date, index) => {
         if (index % BATCH_LIMIT === 0) batchArray.push(firestore.batch())
+        const docId = `${data.siteId}-${date}-${data.workShift}`
         const schedule = new SiteOperationSchedule(
-          { ...data, date },
+          { ...data, date, docId },
           { addTimestamps: true }
         )
-        const docId = `${data.siteId}-${date}-${data.workShift}`
         const docRef = colRef.doc(docId)
         batchArray[batchArray.length - 1].set(docRef, { ...schedule })
       })

@@ -5,9 +5,11 @@
  * 現場の詳細画面です。
  *
  * @author shisyamo4131
- * @version 1.0.1
+ * @version 1.1.0
  *
  * @updates
+ * - version 1.1.0 - 2024-07-29 - レイアウトを変更（tab化）
+ *                              - 稼働予定の更新履歴を表示する`GSiteOperationScheduleHistory`を配置。
  * - version 1.0.1 - 2024-07-17 - ページ遷移に$routeを使用。
  * - version 1.0.0 - xxxx-xx-xx - 初版作成
  */
@@ -17,6 +19,7 @@ import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GCardSite from '~/components/organisms/GCardSite.vue'
 import GSiteContractsTimeline from '~/components/organisms/GSiteContractsTimeline.vue'
 import GSiteOperationScheduleCalendar from '~/components/organisms/GSiteOperationScheduleCalendar.vue'
+import GSiteOperationScheduleHistory from '~/components/organisms/GSiteOperationScheduleHistory.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 export default {
   /***************************************************************************
@@ -34,6 +37,7 @@ export default {
     GTemplateDetail,
     GInputSite,
     GDialogEditor,
+    GSiteOperationScheduleHistory,
   },
   /***************************************************************************
    * ASYNCDATA
@@ -45,6 +49,14 @@ export default {
     }
     listeners.site.subscribeDoc(docId)
     return { docId, listeners }
+  },
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
+  data() {
+    return {
+      tab: 0,
+    }
   },
   /***************************************************************************
    * COMPUTED
@@ -91,25 +103,52 @@ export default {
     @click:edit="onClickEdit"
   >
     <v-breadcrumbs :items="breadcrumbs" />
+
+    <!-- 現場概要 -->
     <v-container>
-      <v-row>
-        <v-col cols="12">
-          <g-card-site v-bind="listeners.site" outlined />
-        </v-col>
-        <v-col cols="12" md="5">
-          <g-card-map :value="listeners.site.address" height="612" outlined />
-        </v-col>
-        <v-col cols="12" md="7">
-          <g-site-operation-schedule-calendar
-            :site-id="docId"
-            height="612"
-            outlined
-          />
-        </v-col>
-        <v-col cols="12">
-          <g-site-contracts-timeline outlined :site-id="docId" />
-        </v-col>
-      </v-row>
+      <g-card-site v-bind="listeners.site" outlined />
+    </v-container>
+
+    <v-container>
+      <v-card outlined>
+        <!-- TABS -->
+        <v-tabs v-model="tab" background-color="primary" center-active dark>
+          <v-tab>稼働予定</v-tab>
+          <v-tab>所在地</v-tab>
+          <v-tab>取極め</v-tab>
+        </v-tabs>
+
+        <!-- TABS ITEMS -->
+        <v-tabs-items v-model="tab">
+          <v-tab-item>
+            <v-row no-gutters>
+              <v-col cols="12" md="6" style="height: 612px">
+                <g-site-operation-schedule-calendar
+                  :site-id="docId"
+                  flat
+                  height="100%"
+                />
+              </v-col>
+              <v-col cols="12" md="6" style="height: 612px">
+                <v-container style="height: 100%">
+                  <g-site-operation-schedule-history
+                    height="100%"
+                    class="overflow-y-auto"
+                    :site-id="docId"
+                    outlined
+                  />
+                </v-container>
+              </v-col>
+            </v-row>
+          </v-tab-item>
+          <v-tab-item>
+            <g-card-map :value="listeners.site.address" height="612" />
+          </v-tab-item>
+          <v-tab-item>
+            <g-site-contracts-timeline :site-id="docId" />
+          </v-tab-item>
+        </v-tabs-items>
+      </v-card>
     </v-container>
     <!-- editor -->
     <g-dialog-editor
