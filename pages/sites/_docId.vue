@@ -5,9 +5,10 @@
  * 現場の詳細画面です。
  *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.1.1
  *
  * @updates
+ * - version 1.1.1 - 2024-07-30 - 稼働予定のカレンダー部と履歴部の`$vuetify.breakpoint.md`におけるサイズ配分を調整。
  * - version 1.1.0 - 2024-07-29 - レイアウトを変更（tab化）
  *                              - 稼働予定の更新履歴を表示する`GSiteOperationScheduleHistory`を配置。
  * - version 1.0.1 - 2024-07-17 - ページ遷移に$routeを使用。
@@ -55,6 +56,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      schedulePeriod: { from: '', to: '' },
       tab: 0,
     }
   },
@@ -122,19 +124,22 @@ export default {
         <v-tabs-items v-model="tab">
           <v-tab-item>
             <v-row no-gutters>
-              <v-col cols="12" md="6" style="height: 612px">
+              <v-col cols="12" md="7" style="height: 612px">
                 <g-site-operation-schedule-calendar
                   :site-id="docId"
                   flat
                   height="100%"
+                  @period="schedulePeriod = $event"
                 />
               </v-col>
-              <v-col cols="12" md="6" style="height: 612px">
+              <v-col cols="12" md="5" style="height: 612px">
                 <v-container style="height: 100%">
                   <g-site-operation-schedule-history
                     height="100%"
                     class="overflow-y-auto"
                     :site-id="docId"
+                    :from="schedulePeriod.from"
+                    :to="schedulePeriod.to"
                     outlined
                   />
                 </v-container>

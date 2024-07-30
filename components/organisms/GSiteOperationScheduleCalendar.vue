@@ -7,12 +7,14 @@
  * #### 機能詳細:
  * - `props.siteId`で指定された現場の稼働予定をカレンダー表示します。
  * - `props.siteId`で指定された現場の稼働予定の追加・変更・削除が可能です。
- *
- * @updates
- * - version 1.0.0 - 初版作成
+ * - `period`イベントで、現在カレンダーに表示されている期間を`{from, to}`として受け取ることができます。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
+ *
+ * @updates
+ * - version 1.1.0 - `period`イベントを実装。現在カレンダーで選択されている期間の開始・終了をemitする。
+ * - version 1.0.0 - 初版作成
  */
 import { where } from 'firebase/firestore'
 import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
@@ -97,6 +99,13 @@ export default {
       },
       immediate: true,
     },
+    currentDate: {
+      handler(newVal, oldVal) {
+        if (newVal === oldVal) return
+        this.$emit('period', { from: this.from, to: this.to })
+      },
+      immediate: true,
+    },
   },
   /***************************************************************************
    * METHODS
@@ -143,8 +152,6 @@ export default {
         </template>
         <template #default="{ attrs, on }">
           <component :is="component" v-bind="attrs" v-on="on" />
-          <!-- <g-input-site-operation-schedule-bulk v-bind="attrs" v-on="on" />
-          <g-input-site-operation-schedule v-bind="attrs" v-on="on" /> -->
         </template>
       </g-dialog-editor>
     </v-card-title>

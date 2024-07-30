@@ -5,18 +5,36 @@
  * 現場の稼働予定の変更履歴を表示するコンポーネントです。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  *
  * @updates
+ * - version 1.1.0 - 2024-07-30 - 更新履歴の表示部分を`GCardSiteOperationScheduleHistory`としてコンポーネント化
+ *                              - `props.from`、`props.to`を追加。
+ *                              - 更新履歴の取得について、`date`の範囲指定を追加。
+ *                              - `watch.siteId`を削除し、`lifecycle.create`に`$watch`を追加。
  * - version 1.0.0 - 2024-07-29 - 初版作成
  */
-import { onChildAdded, ref } from 'firebase/database'
+import {
+  endAt,
+  onChildAdded,
+  orderByChild,
+  query,
+  ref,
+  startAt,
+} from 'firebase/database'
+import GCardSiteOperationScheduleHistory from '../molecules/cards/GCardSiteOperationScheduleHistory.vue'
 export default {
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
+  components: { GCardSiteOperationScheduleHistory },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
     siteId: { type: String, required: true },
+    from: { type: String, required: true },
+    to: { type: String, required: true },
   },
   /***************************************************************************
    * DATA
@@ -25,7 +43,6 @@ export default {
     return {
       items: [],
       listener: null,
-      nonce: 0,
     }
   },
   /***************************************************************************
@@ -39,17 +56,31 @@ export default {
   /***************************************************************************
    * WATCH
    ***************************************************************************/
-  watch: {
-    siteId: {
-      handler(newVal, oldVal) {
-        if (newVal === oldVal) return
-        if (!newVal) return
-        this.items.splice(0)
-        this.nonce = 0
-        this.subscribe()
+  watch: {},
+  /***************************************************************************
+   * CREATED
+   ***************************************************************************/
+  created() {
+    this.$watch(
+      () => [this.$props.siteId, this.$props.from, this.$props.to],
+      (newVal, oldVal) => {
+        const after = {
+          siteId: newVal[0],
+          from: newVal[1],
+          to: newVal[2],
+        }
+        const before = {
+          siteId: oldVal?.[0] || undefined,
+          from: oldVal?.[1] || undefined,
+          to: oldVal?.[2] || undefined,
+        }
+        if (JSON.stringify(after) !== JSON.stringify(before)) {
+          this.items.splice(0)
+          this.subscribe()
+        }
       },
-      immediate: true,
-    },
+      { immediate: true }
+    )
   },
   /***************************************************************************
    * DESTROYED
@@ -62,30 +93,17 @@ export default {
    ***************************************************************************/
   methods: {
     subscribe() {
-      const dbRef = ref(
-        this.$database,
-        `History/SiteOperationSchedules/${this.siteId}`
+      if (!this.siteId || !this.from || !this.to) return
+      const path = `History/SiteOperationSchedules/${this.siteId}`
+      const dbRef = ref(this.$database, path)
+      const q = query(
+        dbRef,
+        orderByChild('date'),
+        startAt(this.from),
+        endAt(this.to)
       )
-      this.listener = onChildAdded(dbRef, (snapshot) => {
-        const timestamp = this.$dayjs(
-          snapshot.key.split('-')[0],
-          'YYYYMMDDHHmmss'
-        )
-        const type = snapshot.val().type
-        this.items.push({
-          ...snapshot.val(),
-          id: snapshot.key,
-          timestamp: timestamp.format('YYYY-MM-DD HH:mm:ss'),
-          headerClass: type === 'delete' ? 'text-decoration-line-through' : '',
-          chip:
-            type === 'create' ? '作成' : type === 'update' ? '更新' : '削除',
-          chipColor:
-            type === 'create'
-              ? 'primary'
-              : type === 'update'
-              ? 'secondary'
-              : 'error',
-        })
+      this.listener = onChildAdded(q, (snapshot) => {
+        this.items.push({ ...snapshot.val(), id: snapshot.key })
       })
     },
   },
@@ -98,44 +116,7 @@ export default {
       <v-timeline dense>
         <v-slide-x-transition group>
           <v-timeline-item v-for="item of sortedItems" :key="item.id" small>
-            <v-card outlined>
-              <v-card-text class="pa-2">
-                <div class="d-flex justify-space-between">
-                  <div>
-                    <span>{{ `対象: ` }}</span>
-                    <span :class="item.headerClass">{{ item.date }}</span>
-                  </div>
-                  <v-chip :color="item.chipColor" x-small label>
-                    {{ item.chip }}
-                  </v-chip>
-                </div>
-                <div class="mb-2">
-                  <div>
-                    <span>{{ `内容: ` }}</span>
-                    <span :class="item.headerClass">{{
-                      `${$WORK_SHIFT[item.workShift]} ${
-                        item.requiredWorkers
-                      }名 ${item.qualification ? '資格あり' : '資格なし'}`
-                    }}</span>
-                  </div>
-                </div>
-                <v-divider class="mb-2" />
-                <div v-if="item.remarks && item.type !== 'delete'">
-                  <div>
-                    {{ item.remarks }}
-                  </div>
-                  <v-divider class="my-2" />
-                </div>
-                <div class="text-caption d-flex flex-column">
-                  <div class="align-self-end">
-                    {{ `${item.timestamp}` }}
-                  </div>
-                  <div class="align-self-end">
-                    {{ `${item.uid}さん` }}
-                  </div>
-                </div>
-              </v-card-text>
-            </v-card>
+            <g-card-site-operation-schedule-history v-bind="item" />
           </v-timeline-item>
         </v-slide-x-transition>
       </v-timeline>

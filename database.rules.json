@@ -13,6 +13,13 @@
         ".read": "auth !== null",
         ".write": "auth !== null"
       }
+    },
+    "History": {
+      "SiteOperationSchedules": {
+        "$siteId": {
+          ".indexOn": ["date"]
+        }
+      }
     }
   }
 }
