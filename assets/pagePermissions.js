@@ -25,6 +25,7 @@ module.exports = {
   'outsourcers-docId': ['admin'],
   sites: ['admin'],
   'sites-docId': ['admin'],
+  'sites-expired': [],
   employees: ['admin'],
   'employees-docId': ['admin'],
   'operation-resuls': ['admin'],

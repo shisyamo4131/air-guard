@@ -71,7 +71,7 @@ export default {
         case '/customers':
           return ['CustomersIndex', 'CustomerDetail']
         case '/sites':
-          return ['SitesIndex', 'SiteDetail']
+          return ['SitesIndex', 'SiteDetail', 'SitesExpiredIndex']
         // case '/employees':
         //   return ['EmployeesIndex', 'EmployeeDetail']
         default:

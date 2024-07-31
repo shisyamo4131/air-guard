@@ -1,9 +1,20 @@
 # 実装計画
 
-### 現場管理
+## GTemplateIndex
 
-- 稼働終了にした現場のみを検索できる機能（画面）を用意して、通常の現場管理画面とは別にする。
-  - 「稼働終了を含める」を`true`にした瞬間、1,000 件以上の読み込みが発生してしまう。
+- 一覧の表示件数を選べるようにしたい。
+  - 追加ボタンをそれぞれのページで Slot を使って配置しているが、フローティングに変更
+  - というより、検索バーが邪魔（モバイルだと一覧の表示領域が狭すぎてしまう）
+- 画面タイトルが欲しい（いる？）
+
+## 詳細画面
+
+- breadCrumbs を動的なコンポーネントにできないか。
+  - $router を使えばできるのでは？（但し、URL やページ名を日本語化するための機構が必要）
+
+### 現場管理/稼働中現場
+
+- 稼働終了を含めるを削除
 
 ### 雇用契約満了アラート
 
@@ -39,7 +50,25 @@
 
 # 更新履歴
 
-# 30th July 2024
+## 31th July 2024
+
+### pages.sites.expired.index
+
+- 稼働終了現場の検索用一覧画面として新規実装
+
+### GDataTableSites
+
+- `breakpoint`ごとの表示カラムを再調整。
+
+### GNavigationDrawer
+
+- ナビゲーションの`v-list-item`に`exact`を指定
+
+### layout.default.vue
+
+- `SitesExpiredIndex`を`keep-alive`に設定
+
+## 30th July 2024
 
 ### firebase-tools バージョンアップ
 
@@ -81,7 +110,7 @@
 
 - `History/SiteOperationSchedules/$siteId`に`.indexOn: ["date"]`としてインデックスを設定。
 
-# 29th July 2024
+## 29th July 2024
 
 ### SiteOperationSchedules
 
@@ -129,7 +158,7 @@
 - 更新トリガーでの処理を実装。現場 id、稼働日、勤務区分のどれかが変更された際に、ドキュメント id との整合性を保つため、新規にドキュメントを作成し、作成元（変更されたドキュメント）を削除するように。
 - これにより、現場 id が変更された際に従属先の`Site`ドキュメントを変更することにも対応可能に。
 
-# 25th July 2024
+## 25th July 2024
 
 ### 取引先（Customers）の管理機能について一部修正。
 
@@ -180,7 +209,7 @@
 
 - `v-pagination`の`total-visible`を 20 に設定。
 
-# 24th July 2024
+## 24th July 2024
 
 ### Vuex.employee-contracts
 
@@ -213,7 +242,7 @@
 
 - 暫定で雇用契約満了アラートの為のコンポーネントを配置。将来改善予定。
 
-# 23th July 2024
+## 23th July 2024
 
 ### GInputEmployee
 

@@ -8,6 +8,7 @@
  * @version 1.1.0
  *
  * @updates
+ * - version 1.1.1 - 2024-07-31 - `GDataTableSites`への`sort-by`と`sort-desc`を削除。
  * - version 1.1.0 - 2024-07-25 - Vuex.sitesの実装により仕様変更。
  * - version 1.0.0 - 2024-07-10 - 初版作成
  */
@@ -135,8 +136,6 @@ export default {
       <g-data-table-sites
         v-bind="attrs"
         :search="search"
-        sort-by="code"
-        sort-desc
         @click:row="$router.push(`/sites/${$event.docId}`)"
         v-on="on"
       />

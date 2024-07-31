@@ -6,6 +6,14 @@
     "lists": []
   },
   {
+    "name": "現場管理",
+    "icon": "mdi-cube",
+    "lists": [
+      { "name": "稼働中現場", "to": "/sites", "icon": "mdi-domain" },
+      { "name": "終了現場", "to": "/sites/expired", "icon": "mdi-domain" }
+    ]
+  },
+  {
     "name": "マスタ管理",
     "icon": "mdi-cube",
     "lists": [

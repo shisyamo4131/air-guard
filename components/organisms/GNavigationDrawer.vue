@@ -22,6 +22,7 @@
             v-for="(list, listIndex) in nav_list.lists"
             :key="listIndex"
             :to="list.to"
+            exact
           >
             <v-list-item-content>
               <v-list-item-title>{{ list.name }}</v-list-item-title>
