@@ -1,4 +1,5 @@
 <script>
+import GSelect from '../atoms/inputs/GSelect.vue'
 /**
  * ### GTemplateIndex
  *
@@ -42,9 +43,11 @@
  * @slot prepend-search - 検索用TextFieldの前に配置されます。
  *
  * @author shisyamo4131
- * @version 1.1.1
+ * @version 1.2.0
  *
  * @updates
+ * - version 1.2.0 - 2024-07-31 - 検索バーのv-toolbarにdenseを設定。
+ *                              - DataTableの表示件数設定機能を追加。
  * - version 1.1.1 - 2024-07-25 - v-paginationのtotal-visibleを20に設定。
  * - version 1.1.0 - 2024-06-27 - ページネーションをv-footerからv-containerに変更。
  *                              - これに伴ってメインコンテナの高さの計算方法を変更。
@@ -60,7 +63,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextFieldSearch },
+  components: { GTextFieldSearch, GSelect },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -79,6 +82,7 @@ export default {
       appbarHeight: 48,
       internalLazySearch: null,
       internalSearch: null,
+      itemsPerPage: 10,
       page: 1,
       pageCount: 0,
     }
@@ -91,6 +95,7 @@ export default {
       return {
         class: 'flex-table',
         items: this.items,
+        itemsPerPage: this.itemsPerPage,
         page: this.page,
       }
     },
@@ -137,13 +142,28 @@ export default {
     :style="{ height: `${templateHeight}px` }"
   >
     <!-- HEADER -->
-    <v-toolbar class="flex-grow-0" :color="toolbarColor" flat>
+    <v-toolbar class="flex-grow-0" :color="toolbarColor" flat dense>
       <!-- slot: prepend-search -->
       <slot name="prepend-search" />
       <g-text-field-search
         v-model="internalSearch"
         :delay="delay"
         :lazy-value.sync="internalLazySearch"
+      />
+      <g-select
+        v-model="itemsPerPage"
+        class="ml-2"
+        style="max-width: 96px"
+        flat
+        hide-details
+        :items="[
+          { text: '10件', value: 10 },
+          { text: '20件', value: 20 },
+          { text: '30件', value: 30 },
+        ]"
+        mandatory
+        :outlined="false"
+        solo-inverted
       />
       <!-- slot: append-search -->
       <slot name="append-search" />
