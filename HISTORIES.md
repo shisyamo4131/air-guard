@@ -12,10 +12,6 @@
 - breadCrumbs を動的なコンポーネントにできないか。
   - $router を使えばできるのでは？（但し、URL やページ名を日本語化するための機構が必要）
 
-### 現場管理/稼働中現場
-
-- 稼働終了を含めるを削除
-
 ### 雇用契約満了アラート
 
 - `pages.index`の雇用契約満了アラートをコンポーネント化？
@@ -67,6 +63,10 @@
 ### layout.default.vue
 
 - `SitesExpiredIndex`を`keep-alive`に設定
+
+### pages.sites.index
+
+- 稼働終了現場の取得・表示に関する機能を排除
 
 ## 30th July 2024
 

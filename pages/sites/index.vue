@@ -5,18 +5,18 @@
  * 現場情報の一覧ページです。
  *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.2.0
  *
  * @updates
- * - version 1.1.1 - 2024-07-31 - `GDataTableSites`への`sort-by`と`sort-desc`を削除。
+ * - version 1.2.0 - 2024-07-31 - `GDataTableSites`への`sort-by`と`sort-desc`を削除。
+ *                              - 稼働終了現場の取得・表示に関する機能を削除
+ *                                -> 稼働終了現場の一覧画面を別に実装したため。
  * - version 1.1.0 - 2024-07-25 - Vuex.sitesの実装により仕様変更。
  * - version 1.0.0 - 2024-07-10 - 初版作成
  */
-import { where } from 'firebase/firestore'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
-import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
 import GDataTableSites from '~/components/molecules/tables/GDataTableSites.vue'
 import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
@@ -32,7 +32,6 @@ export default {
     GTemplateIndex,
     GBtnRegistIcon,
     GInputSite,
-    GSwitch,
     GDialogEditor,
     GDataTableSites,
     GAutocompleteCustomer,
@@ -43,12 +42,7 @@ export default {
   data() {
     return {
       customerId: '',
-      includeExpired: false,
-      items: {
-        active: this.$store.state.sites.items,
-        inActive: [],
-      },
-      listener: this.$Site(),
+      items: this.$store.state.sites.items,
     }
   },
   /***************************************************************************
@@ -56,42 +50,23 @@ export default {
    ***************************************************************************/
   computed: {
     filteredItems() {
-      const combined = this.items.active.concat(this.items.inActive)
-      return combined.filter((item) => {
-        const customer = this.customerId
-          ? item.customerId === this.customerId
-          : true
-        return !!customer
+      return this.items.filter(({ customerId }) => {
+        return this.customerId ? customerId === this.customerId : true
       })
     },
   },
   /***************************************************************************
    * WATCH
    ***************************************************************************/
-  watch: {
-    includeExpired: {
-      handler(newVal, oldVal) {
-        if (newVal === oldVal) return
-        this.subscribe()
-      },
-    },
-  },
+  watch: {},
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
-  destroyed() {
-    this.listener.unsubscribe()
-  },
+  destroyed() {},
   /***************************************************************************
    * METHODS
    ***************************************************************************/
-  methods: {
-    subscribe() {
-      this.items.inActive = this.listener.subscribe(undefined, [
-        where('status', '!=', 'active'),
-      ])
-    },
-  },
+  methods: {},
 }
 </script>
 
@@ -122,13 +97,6 @@ export default {
           class="flex-grow-1"
           clearable
           hide-details
-        />
-        <g-switch
-          v-model="includeExpired"
-          class="flex-grow-0"
-          label="稼働終了を含める"
-          hide-details
-          :disabled="includeExpired"
         />
       </div>
     </template>
