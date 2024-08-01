@@ -68,7 +68,7 @@
 
 ### GTemplateIndex
 
-- 表示件数設定機能を追加。
+- 検索バーの`v-toolbar`に`dense`を設定
 
 ## 30th July 2024
 

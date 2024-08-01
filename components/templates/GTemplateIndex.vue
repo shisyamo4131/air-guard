@@ -1,5 +1,4 @@
 <script>
-import GSelect from '../atoms/inputs/GSelect.vue'
 /**
  * ### GTemplateIndex
  *
@@ -47,7 +46,6 @@ import GSelect from '../atoms/inputs/GSelect.vue'
  *
  * @updates
  * - version 1.2.0 - 2024-07-31 - 検索バーのv-toolbarにdenseを設定。
- *                              - DataTableの表示件数設定機能を追加。
  * - version 1.1.1 - 2024-07-25 - v-paginationのtotal-visibleを20に設定。
  * - version 1.1.0 - 2024-06-27 - ページネーションをv-footerからv-containerに変更。
  *                              - これに伴ってメインコンテナの高さの計算方法を変更。
@@ -63,7 +61,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextFieldSearch, GSelect },
+  components: { GTextFieldSearch },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -80,9 +78,9 @@ export default {
   data() {
     return {
       appbarHeight: 48,
+      drawer: false,
       internalLazySearch: null,
       internalSearch: null,
-      itemsPerPage: 10,
       page: 1,
       pageCount: 0,
     }
@@ -95,7 +93,6 @@ export default {
       return {
         class: 'flex-table',
         items: this.items,
-        itemsPerPage: this.itemsPerPage,
         page: this.page,
       }
     },
@@ -141,6 +138,7 @@ export default {
     class="d-flex flex-column"
     :style="{ height: `${templateHeight}px` }"
   >
+    <v-navigation-drawer v-model="drawer" absolute right temporary />
     <!-- HEADER -->
     <v-toolbar class="flex-grow-0" :color="toolbarColor" flat dense>
       <!-- slot: prepend-search -->
@@ -150,23 +148,11 @@ export default {
         :delay="delay"
         :lazy-value.sync="internalLazySearch"
       />
-      <g-select
-        v-model="itemsPerPage"
-        class="ml-2"
-        style="max-width: 96px"
-        flat
-        hide-details
-        :items="[
-          { text: '10件', value: 10 },
-          { text: '20件', value: 20 },
-          { text: '30件', value: 30 },
-        ]"
-        mandatory
-        :outlined="false"
-        solo-inverted
-      />
       <!-- slot: append-search -->
       <slot name="append-search" />
+      <v-btn icon>
+        <v-icon @click="drawer = !drawer">mdi-filter</v-icon>
+      </v-btn>
       <template v-if="extend" #extension>
         <slot name="extension" />
       </template>
