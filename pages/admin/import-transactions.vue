@@ -9,9 +9,10 @@
  *   直接Firestoreに行います。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.2.0
  *
  * @updates
+ * - version 1.2.0 - 2024-08-07 - `OperationResults`のインポート機能を追加。
  * - version 1.1.0 - 2024-07-22 - データモデルの仕様変更に伴い、EmployeeContractsの取り込み時に`employee`をセットするように修正。
  *                              - データモデルの仕様変更に伴い、SiteContractsの取り込み時に`site`をセットするように修正。
  *                              - EmployeeContractsの取り込み時、`hasPeriod`プロパティのBool値の判定に誤りがあったのを修正。
@@ -285,10 +286,115 @@ export default {
             }
           },
         },
+        {
+          name: 'operation-results.txt',
+          handler: async (data) => {
+            /**
+             * dataに含まれるsiteCodeから、現場情報を一括取得し、
+             * `data.fetchedItems.sites`にセットします。
+             */
+            const fetchSites = async (data) => {
+              this.fetchedItems.sites.splice(0)
+              const uniqueCodes = [
+                ...new Set(data.map(({ siteCode }) => siteCode)),
+              ]
+              const chunkedCodes = uniqueCodes.flatMap((_, i) =>
+                i % 30 ? [] : [uniqueCodes.slice(i, i + 30)]
+              )
+              const snapshots = await Promise.all(
+                chunkedCodes.map(async (codes) => {
+                  const colRef = collection(this.$firestore, 'Sites')
+                  const q = query(colRef, where('code', 'in', codes))
+                  const snapshot = await getDocs(q)
+                  return snapshot.docs.map((doc) => doc.data())
+                })
+              )
+              this.fetchedItems.sites = snapshots.flat()
+            }
+
+            /**
+             * `data.fetchedItems.sites`から、引数で指定されたcodeに一致する
+             * 現場ドキュメントを検索し該当するものを返します。
+             * 該当するものがない場合、undefinedを返します。
+             */
+            const getSite = (code) => {
+              const fetched = this.fetchedItems.sites.find(
+                (item) => item.code === code
+              )
+              return fetched || undefined
+            }
+            /**
+             * `data.fetchedItems.operationResults`から、引数で指定されたcodeに一致する
+             * 稼働実績ドキュメントを検索し、該当するものを返します。
+             * 該当するものがない場合、undefinedを返します。
+             */
+            const getExistOperationResults = async (data) => {
+              this.fetchedItems.operationResults.splice(0)
+              const uniqueCodes = [...new Set(data.map(({ code }) => code))]
+              const chunkedCodes = uniqueCodes.flatMap((_, i) =>
+                i % 30 ? [] : [uniqueCodes.slice(i, i + 30)]
+              )
+              const snapshots = await Promise.all(
+                chunkedCodes.map(async (codes) => {
+                  const colRef = collectionGroup(
+                    this.$firestore,
+                    'OperationResults'
+                  )
+                  const q = query(colRef, where('code', 'in', codes))
+                  const snapshot = await getDocs(q)
+                  return snapshot.docs.map((doc) => doc.data())
+                })
+              )
+              this.fetchedItems.operationResults = snapshots.flat()
+            }
+            this.progress.max = data.length
+            this.progress.current = 0
+            try {
+              // 1. dataに含まれる現場ドキュメントを取得しておく
+              await fetchSites(data)
+              // 2. dataにsiteIdを付与
+              data.forEach((item) => {
+                item.site = getSite(item.siteCode)
+                item.siteId = item.site?.docId || undefined
+              })
+              // 3. siteIdが取得できなかったdataが存在すればエラー
+              const unknown = data.filter((item) => !item.siteId)
+              if (unknown.length) {
+                // eslint-disable-next-line
+                console.log(unknown)
+                throw new Error(
+                  `未登録現場の稼働実績が含まれています。処理を中断します。`
+                )
+              }
+              // 4. 既登録の稼働実績を取得
+              await getExistOperationResults(data)
+              for (const item of data) {
+                const existDoc = this.fetchedItems.operationResults.find(
+                  ({ code }) => code === item.code
+                )
+                const model = this.$OperationResult(
+                  existDoc ? { ...existDoc, ...item } : { ...item }
+                )
+                model.docId ? await model.update() : await model.create()
+                this.progress.current++
+              }
+              await this.$Autonumber().refresh(
+                'OperationResults',
+                undefined,
+                true
+              )
+            } catch (err) {
+              // eslint-disable-next-line
+              console.error(err)
+              alert(err.message)
+            }
+          },
+        },
       ],
       fetchedItems: {
         employees: [],
         employeeContracts: [],
+        operationResults: [],
         sites: [],
         siteContracts: [],
       },
@@ -309,6 +415,9 @@ export default {
       step: 1,
     }
   },
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
   computed: {
     progressRate() {
       if (!this.progress.current || !this.progress.max) return 0

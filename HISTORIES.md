@@ -1,5 +1,52 @@
 # 実装計画
 
+## 稼働実績のインポート
+
+- MS-Access 版 AirGuard の稼働実績を取り込まないと、有効な機能の作成はこれ以上不可能。
+- 管理機能は後回し。
+- 但し、削除機能は必要
+  - MS-Access 版 AirGuard からのインポートでは、削除したレコードの反映が不可能。
+
+## 従業員の交通費精算
+
+2024 年 10 月から郵送代金が大幅に値上げ。
+
+- 稼働実績をインポートできないと始まらない。
+- 稼働実績に紐づけるのではなく、別途データ保存。（自宅を出てから帰宅するまでのルートで精算するため）
+- 現行では稼働実績に対してい往復の交通費を記入する形式だったが、片道＋帰路の形式が好ましいはず。
+- 稼働実績の作成に連動して Cloud Functions で`TransportationCosts`を作成。
+
+#### TransportationCosts - Realtime Database
+
+```
+TransportationCosts: {
+  $employeeId: {
+    $date: {
+      $OperationResultId: {
+        siteId: string, // 現場ドキュメントid
+        startTime: string, // 開始時刻
+        endTime: string, // 終了時刻
+        breakMinutes: number, // 休憩時間（分）
+        overtimeMinutes: number, // 残業時間（分）
+        cost: number // 当該現場までの片道の交通費
+      },
+      wayBack: number, // 最後の現場から自宅までの交通費
+      total: number, // 稼働実績ごとの`cost`と`wayback`の合計
+      fixed: boolean, // trueの場合、この日のデータは編集不可
+      paymentDate: string, // 支払日
+    }
+  }
+}
+```
+
+## 現場稼働予定の一覧編集
+
+現場マスタの詳細画面を利用して稼働予定を一つ一つ登録していくのは非常に非効率。縦軸に現場、横軸に日付の表形式から稼働予定を編集できるようにしたい。
+
+- 縦軸に表示する現場の選定が必要。
+  - 対象の現場を特定するために、現場に`favorite`を持たせる。
+  - 対象の現場の表示順序を設定できるようしなければならない。Realtime Database にインデックスを作成？
+
 ## GTemplateIndex
 
 - 画面タイトルが欲しい（いる？）
@@ -8,7 +55,11 @@
 ## 詳細画面
 
 - breadCrumbs を動的なコンポーネントにできないか。
-  - $router を使えばできるのでは？（但し、URL やページ名を日本語化するための機構が必要）
+  - $router では URL の遷移履歴を取得できない。
+  - $router のナビゲーションガードを利用してアプリ側で履歴を記録する方法が良い。
+    - サイズ制限をしておくこと。
+    - 配列で履歴を保管するが、第一要素は top で OK。
+    - ルート定義の meta を使ってページ名の日本語化も可能。
 
 ### 雇用契約満了アラート
 
@@ -43,6 +94,33 @@
 - 備考欄に入力できるテキストの量に制限を設けておかないと、大きなデータが保存されるかもしれない。
 
 # 更新履歴
+
+## 7th August 2024
+
+### models.Autonumber.js
+
+- `refresh()`の引数末尾に`isSubcollection`（規定値: `false`）を追加。対象のコレクションがサブコレクションであった場合にも対応可能に。
+
+### models.OperationResult.js
+
+- 稼働実績用のデータモデルとして初版作成
+
+### functions.models.OperationResult.js
+
+- Cloud Functions で稼働実績データを扱うためのモデルとして初版作成
+
+### functions.models.OperationResultWorker.js
+
+- Cloud Functions で稼働実績明細データを扱うためのモデルとして初版作成
+
+### models.site.js
+
+- `hasMany`に`OperationResults`を追加
+
+### functions.modules.sites.js
+
+- 削除トリガーで`OperationResults`を連動削除するように設定
+- 更新トリガーを用意。`OperationResults`ドキュメントと同期するように実装。
 
 ## 31th July 2024
 

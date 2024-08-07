@@ -15,15 +15,17 @@
  * | status       | boolean | true    | true     |             |
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  *
- * 更新履歴:
- * version 1.0.1 - 2024-07-09
- *  - FireModelのcreate()の仕様変更に伴う修正。
+ * @updates
+ * - version 1.1.0 - 2024-08-07 - `refresh()`の引数に`isSubcollection`を追加。[非破壊的変更]
+ * - version 1.0.1 - 2024-07-09 - FireModelのcreate()の仕様変更に伴う修正。
+ * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
 
 import {
   collection,
+  collectionGroup,
   doc,
   getDoc,
   getDocs,
@@ -119,9 +121,10 @@ export default class Autonumber extends FireModel {
    * 値が指定されなかった場合、指定されたコレクションのドキュメントに使用されている
    * 最大値が適用されます。
    * @param {string} collectionId 対象のコレクションIDです。
+   * @param {boolean} isSubcollection trueの場合、指定されたコレクションをサブコレクションとして認識します。
    * @param {string | number} val 更新する値です。
    */
-  async refresh(collectionId, val = undefined) {
+  async refresh(collectionId, val = undefined, isSubcollection = false) {
     const docRef = doc(this.firestore, `Autonumbers/${collectionId}`)
     const docSnapshot = await getDoc(docRef)
     if (!docSnapshot.exists()) {
@@ -129,7 +132,9 @@ export default class Autonumber extends FireModel {
     }
     const field = docSnapshot.data().field
     const getCurrent = async () => {
-      const colRef = collection(this.firestore, collectionId)
+      const colRef = isSubcollection
+        ? collectionGroup(this.firestore, collectionId)
+        : collection(this.firestore, collectionId)
       const q = query(colRef, orderBy(field, 'desc'), limit(1))
       const querySnapshot = await getDocs(q)
       return querySnapshot.empty

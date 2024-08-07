@@ -12,9 +12,10 @@
  * 2. Customerドキュメントが更新された時の同期処理はCloud Functionsで行われます。
  *
  * @author shisyamo4131
- * @version 1.2.0
+ * @version 1.3.0
  *
  * @updates
+ * - version 1.3.0 - 2024-08-07 - `hasMany`に`OperationResults`を追加。
  * - version 1.2.0 - 2024-07-22 - `props.customerId`を追加。
  *                              - getCustomer()を実装。
  *                              ‐ beforeCreate()で`customer`を取得するように追加。
@@ -45,8 +46,8 @@ const props = {
     sync: { type: Boolean, default: false, required: false },
     // for spot site and bulk create.
     isSpot: { type: Boolean, default: false, required: false },
-    defaultDates: { type: Array, default: () => [], required: false },
-    defaultSchedule: { type: Object, default: () => ({}), required: false },
+    defaultDates: { type: Array, default: () => [], required: false }, // deletable
+    defaultSchedule: { type: Object, default: () => ({}), required: false }, // deletable
   },
 }
 export { props }
@@ -58,6 +59,12 @@ export default class Site extends FireModel {
     this.hasMany = [
       {
         collection: 'SiteOperationSchedules',
+        field: 'siteId',
+        condition: '==',
+        type: 'subCollection',
+      },
+      {
+        collection: 'OperationResults',
         field: 'siteId',
         condition: '==',
         type: 'subCollection',
