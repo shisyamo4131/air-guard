@@ -103,6 +103,24 @@
       ]
     },
     {
+      "collectionGroup": "SiteOperationSchedules",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "date",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "workShift",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "docId",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "Sites",
       "queryScope": "COLLECTION",
       "fields": [
