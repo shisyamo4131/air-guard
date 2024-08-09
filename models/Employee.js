@@ -5,18 +5,27 @@
  * Employeeクラスは、従業員情報を管理するためのモデルクラスです。
  * FireModelクラスを継承し、Firestoreとの連携やCRUD操作を簡素化します。
  *
+ * @author shisyamo4131
+ * @version 1.4.0
+ *
  * @updates
+ * - version 1.4.0 - 2024-08-09 - `fetchByCode()`を実装。
+ *                              - `fetchByCodes()`を実装。
  * - version 1.3.0 - 2024-07-03 - updateImgRef()を実装
  * - version 1.2.0 - 2024-07-02 - 生年月日、書類郵送先住所を追加
  *                              - 送付先住所が個別指定されなければ住所を送付先住所に複製
  *                              - fullName、fullNameKanaをpropsに定義
  * - version 1.1.0 - 2024-07-01 - 血液型（bloodType）を追加
  * - version 1.0.0 - 2024-06-20 - 初版作成
- *
- * @author shisyamo4131
- * @version 1.3.0
  */
-import { doc, updateDoc } from 'firebase/firestore'
+import {
+  collection,
+  doc,
+  getDocs,
+  query,
+  updateDoc,
+  where,
+} from 'firebase/firestore'
 import FireModel from './FireModel'
 
 export const props = {
@@ -167,5 +176,40 @@ export default class Employee extends FireModel {
       console.error(err)
       throw err
     }
+  }
+
+  /**
+   * 指定された従業員codeに該当する従業員ドキュメントデータを配列で返します。
+   * @param {string} code
+   * @returns {Promise<Array>} 従業員ドキュメントデータの配列
+   */
+  async fetchByCode(code) {
+    const colRef = collection(this.firestore, this.collection)
+    const q = query(colRef, where('code', '==', code))
+    const snapshots = await getDocs(q)
+    if (snapshots.empty) return []
+    return snapshots.docs.map((doc) => doc.data())
+  }
+
+  /**
+   * 従業員codeの配列を受け取り、該当する従業員ドキュメントデータを配列で返します。
+   * 従業員codeの配列は、重複があれば一意に整理されます。
+   * @param {Array<string>} codes
+   * @returns {Promise<Array>} 従業員ドキュメントデータの配列
+   */
+  async fetchByCodes(codes) {
+    const unique = [...new Set(codes)]
+    const chunked = unique.flatMap((_, i) =>
+      i % 30 ? [] : [unique.slice(i, i + 30)]
+    )
+    const colRef = collection(this.firestore, this.collection)
+    const snapshots = await Promise.all(
+      chunked.map(async (arr) => {
+        const q = query(colRef, where('code', 'in', arr))
+        const snapshot = await getDocs(q)
+        return snapshot.docs.map((doc) => doc.data())
+      })
+    )
+    return snapshots.flat()
   }
 }

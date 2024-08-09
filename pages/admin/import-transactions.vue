@@ -18,13 +18,6 @@
  *                              - EmployeeContractsの取り込み時、`hasPeriod`プロパティのBool値の判定に誤りがあったのを修正。
  * - version 1.0.0 - 2024-07-13 - 初版作成
  */
-import {
-  collection,
-  collectionGroup,
-  getDocs,
-  query,
-  where,
-} from 'firebase/firestore'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -69,29 +62,6 @@ export default {
           name: 'site-contracts.txt',
           handler: async (data) => {
             /**
-             * dataに含まれるsiteCodeから、現場情報を一括取得し、
-             * `data.fetchedItems.sites`にセットします。
-             */
-            const fetchSites = async (data) => {
-              this.fetchedItems.sites.splice(0)
-              const uniqueCodes = [
-                ...new Set(data.map(({ siteCode }) => siteCode)),
-              ]
-              const chunkedCodes = uniqueCodes.flatMap((_, i) =>
-                i % 30 ? [] : [uniqueCodes.slice(i, i + 30)]
-              )
-              const snapshots = await Promise.all(
-                chunkedCodes.map(async (codes) => {
-                  const colRef = collection(this.$firestore, 'Sites')
-                  const q = query(colRef, where('code', 'in', codes))
-                  const snapshot = await getDocs(q)
-                  return snapshot.docs.map((doc) => doc.data())
-                })
-              )
-              this.fetchedItems.sites = snapshots.flat()
-            }
-
-            /**
              * `data.fetchedItems.sites`から、引数で指定されたcodeに一致する
              * 現場ドキュメントを検索し該当するものを返します。
              * 該当するものがない場合、undefinedを返します。
@@ -102,26 +72,6 @@ export default {
               )
               return fetched || undefined
             }
-
-            const getExistContracts = async (data) => {
-              this.fetchedItems.siteContracts.splice(0)
-              const uniqueIds = [...new Set(data.map(({ siteId }) => siteId))]
-              const chunkedIds = uniqueIds.flatMap((_, i) =>
-                i % 30 ? [] : [uniqueIds.slice(i, i + 30)]
-              )
-              const snapshots = await Promise.all(
-                chunkedIds.map(async (siteIds) => {
-                  const colRef = collectionGroup(
-                    this.$firestore,
-                    'SiteContracts'
-                  )
-                  const q = query(colRef, where('siteId', 'in', siteIds))
-                  const snapshot = await getDocs(q)
-                  return snapshot.docs.map((doc) => doc.data())
-                })
-              )
-              this.fetchedItems.siteContracts = snapshots.flat()
-            }
             const dayDivs = ['weekdays', 'saturday', 'sunday', 'holiday']
             const types = ['standard', 'qualified']
             const nums = ['price', 'overtime']
@@ -129,23 +79,28 @@ export default {
             this.progress.current = 0
             try {
               // 1. dataに含まれる現場ドキュメントを取得しておく
-              await fetchSites(data)
-              // 2. dataにsiteIdを付与
+              this.fetchedItems.sites = await this.$Site().fetchByCodes(
+                data.map(({ siteCode }) => siteCode)
+              )
+              // 2. dataにsite、siteIdを付与
               data.forEach((item) => {
                 item.site = getSite(item.siteCode)
                 item.siteId = item.site?.docId || undefined
               })
               // 3. siteIdが取得できなかったdataが存在すればエラー
-              const unknown = data.filter((item) => !item.siteId)
-              if (unknown.length) {
+              const unknownSite = data.filter((item) => !item.siteId)
+              if (unknownSite.length) {
                 // eslint-disable-next-line
-                console.log(unknown)
+                console.log(unknownSite)
                 throw new Error(
                   `未登録現場の取極めが含まれています。処理を中断します。`
                 )
               }
               // 4. 既登録の取極め情報を取得
-              await getExistContracts(data)
+              this.fetchedItems.siteContracts =
+                await this.$SiteContract().fetchBySiteIds(
+                  data.map(({ siteId }) => siteId)
+                )
               for (const item of data) {
                 item.endAtNextday = item.endAtNextday === 1
                 item.breakMinutes = parseInt(item.breakMinutes)
@@ -187,28 +142,6 @@ export default {
           name: 'employee-contracts.txt',
           handler: async (data) => {
             /**
-             * dataに含まれるsiteCodeから、現場情報を一括取得し、
-             * `data.fetchedItems.employees`にセットします。
-             */
-            const fetchEmployees = async (data) => {
-              this.fetchedItems.employees.splice(0)
-              const uniqueCodes = [
-                ...new Set(data.map(({ employeeCode }) => employeeCode)),
-              ]
-              const chunkedCodes = uniqueCodes.flatMap((_, i) =>
-                i % 30 ? [] : [uniqueCodes.slice(i, i + 30)]
-              )
-              const snapshots = await Promise.all(
-                chunkedCodes.map(async (codes) => {
-                  const colRef = collection(this.$firestore, 'Employees')
-                  const q = query(colRef, where('code', 'in', codes))
-                  const snapshot = await getDocs(q)
-                  return snapshot.docs.map((doc) => doc.data())
-                })
-              )
-              this.fetchedItems.employees = snapshots.flat()
-            }
-            /**
              * `data.fetchedItems.employees`から、引数で指定されたcodeに一致する
              * 従業員ドキュメントを検索し該当するものを返します。
              * 該当するものがない場合、undefinedを返します。
@@ -219,36 +152,13 @@ export default {
               )
               return fetched || undefined
             }
-
-            const getExistContracts = async (data) => {
-              this.fetchedItems.employeeContracts.splice(0)
-              const uniqueIds = [
-                ...new Set(data.map(({ employeeId }) => employeeId)),
-              ]
-              const chunkedIds = uniqueIds.flatMap((_, i) =>
-                i % 30 ? [] : [uniqueIds.slice(i, i + 30)]
-              )
-              const snapshots = await Promise.all(
-                chunkedIds.map(async (employeeIds) => {
-                  const colRef = collectionGroup(
-                    this.$firestore,
-                    'EmployeeContracts'
-                  )
-                  const q = query(
-                    colRef,
-                    where('employeeId', 'in', employeeIds)
-                  )
-                  const snapshot = await getDocs(q)
-                  return snapshot.docs.map((doc) => doc.data())
-                })
-              )
-              this.fetchedItems.employeeContracts = snapshots.flat()
-            }
             this.progress.max = data.length
             this.progress.current = 0
             try {
               // 1. dataに含まれる従業員ドキュメントを取得
-              await fetchEmployees(data)
+              this.fetchedItems.employees = await this.$Employee().fetchByCodes(
+                data.map(({ employeeCode }) => employeeCode)
+              )
               // 2. dataにemployeeId、employeeを付与
               data.forEach((item) => {
                 item.employee = getEmployee(item.employeeCode)
@@ -264,7 +174,10 @@ export default {
                 )
               }
               // 4. 既登録の雇用契約情報を取得
-              await getExistContracts(data)
+              this.fetchedItems.employeeContracts =
+                await this.$EmployeeContract().fetchByEmployeeIds(
+                  data.map(({ employeeId }) => employeeId)
+                )
               for (const item of data) {
                 item.hasPeriod = item.hasPeriod === '1'
                 item.basicWage = parseInt(item.basicWage)
@@ -290,50 +203,6 @@ export default {
           name: 'operation-results.txt',
           handler: async (data) => {
             /**
-             * dataに含まれるsiteCodeから、現場情報を一括取得し、
-             * `data.fetchedItems.sites`にセットします。
-             */
-            const fetchSites = async (data) => {
-              this.fetchedItems.sites.splice(0)
-              const uniqueCodes = [
-                ...new Set(data.map(({ siteCode }) => siteCode)),
-              ]
-              const chunkedCodes = uniqueCodes.flatMap((_, i) =>
-                i % 30 ? [] : [uniqueCodes.slice(i, i + 30)]
-              )
-              const snapshots = await Promise.all(
-                chunkedCodes.map(async (codes) => {
-                  const colRef = collection(this.$firestore, 'Sites')
-                  const q = query(colRef, where('code', 'in', codes))
-                  const snapshot = await getDocs(q)
-                  return snapshot.docs.map((doc) => doc.data())
-                })
-              )
-              this.fetchedItems.sites = snapshots.flat()
-            }
-            /**
-             * dataに含まれるemployeeIdから、従業員情報を一括取得し、
-             * `data.fetchedItems.employees`にセットします。
-             */
-            const fetchEmployees = async (data) => {
-              this.fetchedItems.employees.splice(0)
-              const uniqueCodes = [
-                ...new Set(data.map(({ employeeId }) => employeeId)),
-              ]
-              const chunkedCodes = uniqueCodes.flatMap((_, i) =>
-                i % 30 ? [] : [uniqueCodes.slice(i, i + 30)]
-              )
-              const snapshots = await Promise.all(
-                chunkedCodes.map(async (codes) => {
-                  const colRef = collection(this.$firestore, 'Employees')
-                  const q = query(colRef, where('code', 'in', codes))
-                  const snapshot = await getDocs(q)
-                  return snapshot.docs.map((doc) => doc.data())
-                })
-              )
-              this.fetchedItems.employees = snapshots.flat()
-            }
-            /**
              * `data.fetchedItems.sites`から、引数で指定されたcodeに一致する
              * 現場ドキュメントを検索し該当するものを返します。
              * 該当するものがない場合、undefinedを返します。
@@ -355,30 +224,6 @@ export default {
               )
               return fetched || undefined
             }
-            /**
-             * `data.fetchedItems.operationResults`から、引数で指定されたcodeに一致する
-             * 稼働実績ドキュメントを検索し、該当するものを返します。
-             * 該当するものがない場合、undefinedを返します。
-             */
-            const getExistOperationResults = async (data) => {
-              this.fetchedItems.operationResults.splice(0)
-              const uniqueCodes = [...new Set(data.map(({ code }) => code))]
-              const chunkedCodes = uniqueCodes.flatMap((_, i) =>
-                i % 30 ? [] : [uniqueCodes.slice(i, i + 30)]
-              )
-              const snapshots = await Promise.all(
-                chunkedCodes.map(async (codes) => {
-                  const colRef = collectionGroup(
-                    this.$firestore,
-                    'OperationResults'
-                  )
-                  const q = query(colRef, where('code', 'in', codes))
-                  const snapshot = await getDocs(q)
-                  return snapshot.docs.map((doc) => doc.data())
-                })
-              )
-              this.fetchedItems.operationResults = snapshots.flat()
-            }
             this.progress.max = data.length
             this.progress.current = 0
             try {
@@ -390,10 +235,12 @@ export default {
                 ? await this.readCsv(workersFile)
                 : []
               // 2. `workersData`に含まれる従業員データを取得しておく
-              await fetchEmployees(workersData)
-              // 3. `workersData`の`employeeId`を実際のドキュメントidに置換
+              this.fetchedItems.employees = await this.$Employee().fetchByCodes(
+                workersData.map(({ employeeCode }) => employeeCode)
+              )
+              // 3. `workersData`に`employeeId`をセット
               workersData.forEach((item) => {
-                const employee = getEmployee(item.employeeId)
+                const employee = getEmployee(item.employeeCode)
                 item.employeeId = employee?.docId || undefined
               })
               // 4. `employeeId`が取得できなかったレコードがあればエラー
@@ -418,7 +265,9 @@ export default {
                 item.ojt = item.ojt === '1'
               })
               // 6. dataに含まれる現場ドキュメントを取得しておく
-              await fetchSites(data)
+              this.fetchedItems.sites = await this.$Site().fetchByCodes(
+                data.map(({ siteCode }) => siteCode)
+              )
               // 7. dataにsite、siteIdを付与し、workersをセット
               data.forEach((item) => {
                 item.site = getSite(item.siteCode)
@@ -439,7 +288,10 @@ export default {
                 )
               }
               // 9. 既登録の稼働実績を取得
-              await getExistOperationResults(data)
+              this.fetchedItems.operationResults =
+                await this.$OperationResult().fetchByCodes(
+                  data.map(({ code }) => code)
+                )
               for (const item of data) {
                 const existDoc = this.fetchedItems.operationResults.find(
                   ({ code }) => code === item.code

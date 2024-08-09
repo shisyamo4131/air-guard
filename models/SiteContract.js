@@ -10,13 +10,22 @@
  * #### 注意事項:
  * - `startDate`と`workShift`がドキュメントのkeyになるため、変更してはいけません。
  *
- * @updates
- * - version 1.0.0 - 2024-07-12 - 初版作成
- *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
+ *
+ * @updates
+ * - version 1.1.0 - 2024-08-09 - `fetchBySiteId()`を実装。
+ *                              - `fetchBySiteIds()`を実装。
+ * - version 1.0.0 - 2024-07-12 - 初版作成
  */
-import { doc, getDoc } from 'firebase/firestore'
+import {
+  collectionGroup,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from 'firebase/firestore'
 import FireModel from './FireModel'
 const props = {
   props: {
@@ -126,5 +135,40 @@ export default class SiteContract extends FireModel {
     const docRef = doc(this.firestore, path)
     const snapshot = await getDoc(docRef)
     return snapshot.exists()
+  }
+
+  /**
+   * 指定された現場の取極めデータを取得して配列で返します。
+   * @param {string} siteId 現場のドキュメントid
+   * @returns {Promise<Array>} 取極めドキュメントデータの配列
+   */
+  async fetchBySiteId(siteId) {
+    const colRef = collectionGroup(this.firestore, 'SiteContracts')
+    const q = query(colRef, where('siteId', '==', siteId))
+    const snapshots = await getDocs(q)
+    if (snapshots.empty) return []
+    return snapshots.docs.map((doc) => doc.data())
+  }
+
+  /**
+   * 現場のドキュメントidの配列を受け取り、該当する取極めドキュメントデータを配列で返します。
+   * 現場のドキュメントidの配列は、重複があれば一意に整理されます。
+   * @param {Array<string>} ids
+   * @returns {Promise<Array>} 取極めドキュメントデータの配列
+   */
+  async fetchBySiteIds(ids) {
+    const unique = [...new Set(ids)]
+    const chunked = unique.flatMap((_, i) =>
+      i % 30 ? [] : [unique.slice(i, i + 30)]
+    )
+    const colRef = collectionGroup(this.firestore, 'SiteContracts')
+    const snapshots = await Promise.all(
+      chunked.map(async (arr) => {
+        const q = query(colRef, where('siteId', 'in', arr))
+        const snapshot = await getDocs(q)
+        return snapshot.docs.map((doc) => doc.data())
+      })
+    )
+    return snapshots.flat()
   }
 }

@@ -10,14 +10,23 @@
  * 3. Employeeドキュメントが更新された時の同期処理はCloud Functionsで行われます。
  *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.2.0
  *
  * @updates
+ * - version 1.2.0 - 2024-08-09 - `fetchByEmployeeId()`を実装。
+ *                              - `fetchByEmployeeIds()`を実装。
  * - version 1.1.0 - 2024-07-19 - ドキュメント作成時に従業員情報を取得するように修正
  * - version 1.0.0 - 2024-07-17 - 初版作成
  */
 
-import { doc, getDoc } from 'firebase/firestore'
+import {
+  collectionGroup,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  where,
+} from 'firebase/firestore'
 import FireModel from './FireModel'
 
 const props = {
@@ -46,7 +55,7 @@ const props = {
 }
 export { props }
 
-export default class SiteContract extends FireModel {
+export default class EmployeeContract extends FireModel {
   constructor(context, item = {}) {
     super(context, item)
   }
@@ -67,7 +76,7 @@ export default class SiteContract extends FireModel {
   }
 
   /**
-   * 同一の開始日付、勤務区分での取極めが存在する場合は作成不可です。
+   * 同一の開始日付、勤務区分での雇用契約が存在する場合は作成不可です。
    */
   async beforeCreate() {
     if (await this.isExist()) {
@@ -99,7 +108,7 @@ export default class SiteContract extends FireModel {
   }
 
   /**
-   * 指定された開始日、勤務区分での取極めが存在するかどうかを返します。
+   * 指定された開始日、勤務区分での雇用契約が存在するかどうかを返します。
    */
   async isExist() {
     const path = `${this.collection}/${this.startDate}`
@@ -112,5 +121,40 @@ export default class SiteContract extends FireModel {
     const docRef = doc(this.firestore, `Employees/${this.employeeId}`)
     const snapshot = await getDoc(docRef)
     return snapshot.exists() ? snapshot.data() : undefined
+  }
+
+  /**
+   * 指定された従業員の雇用契約データを取得して配列で返します。
+   * @param {string} employeeId 従業員のドキュメントid
+   * @returns {Promise<Array>} 雇用契約ドキュメントデータの配列
+   */
+  async fetchByEmployeeId(employeeId) {
+    const colRef = collectionGroup(this.firestore, 'EmployeeContracts')
+    const q = query(colRef, where('employeeId', '==', employeeId))
+    const snapshots = await getDocs(q)
+    if (snapshots.empty) return []
+    return snapshots.docs.map((doc) => doc.data())
+  }
+
+  /**
+   * 従業員のドキュメントidの配列を受け取り、該当する雇用契約ドキュメントデータを配列で返します。
+   * 従業員のドキュメントidの配列は、重複があれば一意に整理されます。
+   * @param {Array<string>} ids
+   * @returns {Promise<Array>} 雇用契約ドキュメントデータの配列
+   */
+  async fetchByEmployeeIds(ids) {
+    const unique = [...new Set(ids)]
+    const chunked = unique.flatMap((_, i) =>
+      i % 30 ? [] : [unique.slice(i, i + 30)]
+    )
+    const colRef = collectionGroup(this.firestore, 'EmployeeContracts')
+    const snapshots = await Promise.all(
+      chunked.map(async (arr) => {
+        const q = query(colRef, where('employeeId', 'in', arr))
+        const snapshot = await getDocs(q)
+        return snapshot.docs.map((doc) => doc.data())
+      })
+    )
+    return snapshots.flat()
   }
 }

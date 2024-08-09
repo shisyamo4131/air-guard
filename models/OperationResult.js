@@ -4,11 +4,14 @@
  * 稼働実績のデータモデルです。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  *
  * @updates
+ * - version 1.1.0 - 2024-08-09 - `fetchByCode()`を実装。
+ *                              - `fetchByCodes()`を実装。
  * - version 1.0.0 - 2024-08-07 - 初版作成
  */
+import { collectionGroup, getDocs, query, where } from 'firebase/firestore'
 import FireModel from './FireModel'
 
 const props = {
@@ -55,5 +58,40 @@ export default class OperationResult extends FireModel {
         typeof propDefault === 'function' ? propDefault() : propDefault
     })
     super.initialize(item)
+  }
+
+  /**
+   * 指定されたcodeに該当する稼働実績ドキュメントデータを配列で返します。
+   * @param {string} code 稼働実績のcode
+   * @returns {Promise<Array>} 稼働実績ドキュメントデータの配列
+   */
+  async fetchByCode(code) {
+    const colRef = collectionGroup(this.firestore, 'OperationResults')
+    const q = query(colRef, where('code', '==', code))
+    const snapshots = await getDocs(q)
+    if (snapshots.empty) return []
+    return snapshots.docs.map((doc) => doc.data())
+  }
+
+  /**
+   * 稼働実績のcodeの配列を受け取り、該当する稼働実績ドキュメントデータを配列で返します。
+   * 稼働実績のcodeの配列は、重複があれば一意に整理されます。
+   * @param {Array<string>} codes
+   * @returns {Promise<Array>} 稼働実績ドキュメントデータの配列
+   */
+  async fetchByCodes(codes) {
+    const unique = [...new Set(codes)]
+    const chunked = unique.flatMap((_, i) =>
+      i % 30 ? [] : [unique.slice(i, i + 30)]
+    )
+    const colRef = collectionGroup(this.firestore, 'OperationResults')
+    const snapshots = await Promise.all(
+      chunked.map(async (arr) => {
+        const q = query(colRef, where('code', 'in', arr))
+        const snapshot = await getDocs(q)
+        return snapshot.docs.map((doc) => doc.data())
+      })
+    )
+    return snapshots.flat()
   }
 }
