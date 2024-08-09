@@ -7,6 +7,10 @@
 - 但し、削除機能は必要
   - MS-Access 版 AirGuard からのインポートでは、削除したレコードの反映が不可能。
 
+## トランザクションインポートコードのモジュール化
+
+- `pages.admin.import-transactions.vue`のインポートに関するコードが肥大化している。モジュール分割するべき。
+
 ## 従業員の交通費精算
 
 2024 年 10 月から郵送代金が大幅に値上げ。
@@ -94,6 +98,16 @@ TransportationCosts: {
 - 備考欄に入力できるテキストの量に制限を設けておかないと、大きなデータが保存されるかもしれない。
 
 # 更新履歴
+
+## 9th August 2024
+
+### models.OperationResultWorker.js
+
+- 新規作成
+
+### pages.admin.import-transactions.vue
+
+- `OperationResults`のインポート時に`workers`を反映できるように機能追加。
 
 ## 7th August 2024
 

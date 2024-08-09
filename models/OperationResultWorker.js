@@ -1,21 +1,21 @@
 const props = {
   props: {
     employeeId: { type: String, default: '', required: false },
-    workStartDate: { type: String, default: '', required: false },
-    workStartTime: { type: String, default: '', required: false },
-    workEndDate: { type: String, default: '', required: false },
-    workEndTime: { type: String, default: '', required: false },
+    date: { type: String, default: '', required: false },
+    startTime: { type: String, default: '', required: false },
+    endTime: { type: String, default: '', required: false },
+    endAtNextday: { type: Boolean, default: false, required: false },
     breakMinutes: { type: Number, default: null, required: false },
-    workTime: { type: Number, default: null, required: false },
-    overTime: { type: Number, default: null, required: false },
-    nightTime: { type: Number, default: null, required: false },
-    qualified: { type: Boolean, default: false, required: false },
+    workMinutes: { type: Number, default: null, required: false },
+    overtimeMinutes: { type: Number, default: null, required: false },
+    nighttimeMinutes: { type: Number, default: null, required: false },
+    qualification: { type: Boolean, default: false, required: false },
     ojt: { type: Boolean, default: false, required: false },
   },
 }
 export { props }
 
-export default class OperationResultEmployee {
+export default class OperationResultWorker {
   constructor(item) {
     this.initialize(item)
   }

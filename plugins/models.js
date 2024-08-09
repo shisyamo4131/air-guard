@@ -11,6 +11,7 @@ import EmployeeLeaveApplication from '../models/EmployeeLeaveApplication'
 import Equipment from '../models/Equipment'
 import EquipmentReceiving from '../models/EquipmentReceiving'
 import OperationResult from '../models/OperationResult'
+import OperationResultWorker from '../models/OperationResultWorker'
 import Site from '../models/Site'
 import SiteContract from '../models/SiteContract'
 import SiteOperationSchedule from '../models/SiteOperationSchedule'
@@ -51,5 +52,6 @@ export default (context, inject) => {
   inject('Equipment', (item) => new Equipment(firebase, item))
   inject('EquipmentReceiving', (item) => new EquipmentReceiving(firebase, item))
   inject('OperationResult', (item) => new OperationResult(firebase, item))
+  inject('OperationResultWorker', (item) => new OperationResultWorker(item))
   inject('WorkRegulation', (item) => new WorkRegulation(firebase, item))
 }

@@ -16,6 +16,7 @@ Sites/{siteId}/OperationResults
 - Cloud Functions で`Sites`->`OperationResults`の同期をすること。
   - `Customers`ドキュメントの更新も反映されるようになる。
   - `Customers`ドキュメントの締日の変更に対する`deadline`の自動更新は`不要`。
+  - `Customers`ドキュメントの締日はそもそも変更できないようにするべき。
 
 @version 1.0.0
 @updates
@@ -51,16 +52,17 @@ remarks: { type: String, default: '', required: false },
 
 ```
 {
-  employeeId: string,
-  startTime: string,
-  endTime: string,
-  endAtNextday: boolean,
-  breakMinute: number,
-  workMinute: number,
-  overtimeMinute: number,
-  nighttimeMinute: number,
-  qualification: boolean,
-  ojt: boolean,
+  employeeId: { type: String, default: '', required: false },
+  date: { type: String, default: '', required: false },
+  startTime: { type: String, default: '', required: false },
+  endTime: { type: String, default: '', required: false },
+  endAtNextday: { type: Boolean, default: false, required: false },
+  breakMinute: { type: Number, default: null, required: false },
+  workMinute: { type: Number, default: null, required: false },
+  overtimeMinute: { type: Number, default: null, required: false },
+  nighttimeMinute: { type: Number, default: null, required: false },
+  qualification: { type: Boolean, default: false, required: false },
+  ojt: { type: Boolean, default: false, required: false },
 }
 ```
 

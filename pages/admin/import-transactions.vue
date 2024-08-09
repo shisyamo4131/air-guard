@@ -311,7 +311,28 @@ export default {
               )
               this.fetchedItems.sites = snapshots.flat()
             }
-
+            /**
+             * dataに含まれるemployeeIdから、従業員情報を一括取得し、
+             * `data.fetchedItems.employees`にセットします。
+             */
+            const fetchEmployees = async (data) => {
+              this.fetchedItems.employees.splice(0)
+              const uniqueCodes = [
+                ...new Set(data.map(({ employeeId }) => employeeId)),
+              ]
+              const chunkedCodes = uniqueCodes.flatMap((_, i) =>
+                i % 30 ? [] : [uniqueCodes.slice(i, i + 30)]
+              )
+              const snapshots = await Promise.all(
+                chunkedCodes.map(async (codes) => {
+                  const colRef = collection(this.$firestore, 'Employees')
+                  const q = query(colRef, where('code', 'in', codes))
+                  const snapshot = await getDocs(q)
+                  return snapshot.docs.map((doc) => doc.data())
+                })
+              )
+              this.fetchedItems.employees = snapshots.flat()
+            }
             /**
              * `data.fetchedItems.sites`から、引数で指定されたcodeに一致する
              * 現場ドキュメントを検索し該当するものを返します。
@@ -319,6 +340,17 @@ export default {
              */
             const getSite = (code) => {
               const fetched = this.fetchedItems.sites.find(
+                (item) => item.code === code
+              )
+              return fetched || undefined
+            }
+            /**
+             * `data.fetchedItems.sites`から、引数で指定されたcodeに一致する
+             * 現場ドキュメントを検索し該当するものを返します。
+             * 該当するものがない場合、undefinedを返します。
+             */
+            const getEmployee = (code) => {
+              const fetched = this.fetchedItems.employees.find(
                 (item) => item.code === code
               )
               return fetched || undefined
@@ -350,14 +382,54 @@ export default {
             this.progress.max = data.length
             this.progress.current = 0
             try {
-              // 1. dataに含まれる現場ドキュメントを取得しておく
+              // 1. `data.files`に`operation-result-details`が含まれていればこれを読み込んでおく
+              const workersFile = this.files.find(
+                ({ name }) => name === 'operation-result-details.txt'
+              )
+              const workersData = workersFile
+                ? await this.readCsv(workersFile)
+                : []
+              // 2. `workersData`に含まれる従業員データを取得しておく
+              await fetchEmployees(workersData)
+              // 3. `workersData`の`employeeId`を実際のドキュメントidに置換
+              workersData.forEach((item) => {
+                const employee = getEmployee(item.employeeId)
+                item.employeeId = employee?.docId || undefined
+              })
+              // 4. `employeeId`が取得できなかったレコードがあればエラー
+              const unknownEmployee = workersData.filter(
+                (item) => !item.employeeId
+              )
+              if (unknownEmployee.length) {
+                // eslint-disable-next-line
+                console.log(unknownEmployee)
+                throw new Error(
+                  `未登録の従業員が含まれています。処理を中断します。`
+                )
+              }
+              // 5. 型置換など
+              workersData.forEach((item) => {
+                item.endAtNextday = item.endAtNextday === '1'
+                item.breakMinutes = parseInt(item.breakMinutes)
+                item.workMinutes = parseInt(item.workMinutes)
+                item.overtimeMinutes = parseInt(item.overtimeMinutes)
+                item.nighttimeMinutes = parseInt(item.nighttimeMinutes)
+                item.qualification = item.qualification === '1'
+                item.ojt = item.ojt === '1'
+              })
+              // 6. dataに含まれる現場ドキュメントを取得しておく
               await fetchSites(data)
-              // 2. dataにsiteIdを付与
+              // 7. dataにsite、siteIdを付与し、workersをセット
               data.forEach((item) => {
                 item.site = getSite(item.siteCode)
                 item.siteId = item.site?.docId || undefined
+                item.workers = workersData
+                  .filter(({ code }) => code === item.code)
+                  .map((item) => {
+                    return { ...this.$OperationResultWorker(item) }
+                  })
               })
-              // 3. siteIdが取得できなかったdataが存在すればエラー
+              // 8. siteIdが取得できなかったdataが存在すればエラー
               const unknown = data.filter((item) => !item.siteId)
               if (unknown.length) {
                 // eslint-disable-next-line
@@ -366,7 +438,7 @@ export default {
                   `未登録現場の稼働実績が含まれています。処理を中断します。`
                 )
               }
-              // 4. 既登録の稼働実績を取得
+              // 9. 既登録の稼働実績を取得
               await getExistOperationResults(data)
               for (const item of data) {
                 const existDoc = this.fetchedItems.operationResults.find(
@@ -389,6 +461,9 @@ export default {
               alert(err.message)
             }
           },
+        },
+        {
+          name: 'operation-result-details.txt',
         },
       ],
       fetchedItems: {
@@ -496,13 +571,15 @@ export default {
       this.loading = true
       try {
         for (const file of this.files) {
-          const csvData = await this.readCsv(file)
-          const handler = this.getHandler(file)
-          if (!handler) throw new Error('handlerが取得できませんでした。')
-          this.progress.text = `${file.name}をインポートしています。`
-          await handler(csvData, this.fetchedItems)
-          this.progress.max = 0
-          this.progress.current = 0
+          if (file.name !== `operation-result-details.txt`) {
+            const csvData = await this.readCsv(file)
+            const handler = this.getHandler(file)
+            if (!handler) throw new Error('handlerが取得できませんでした。')
+            this.progress.text = `${file.name}をインポートしています。`
+            await handler(csvData, this.fetchedItems)
+            this.progress.max = 0
+            this.progress.current = 0
+          }
         }
         this.snackbar = true
         this.step = 1
