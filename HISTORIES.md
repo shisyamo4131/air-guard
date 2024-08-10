@@ -1,16 +1,5 @@
 # 実装計画
 
-## 稼働実績のインポート
-
-- MS-Access 版 AirGuard の稼働実績を取り込まないと、有効な機能の作成はこれ以上不可能。
-- 管理機能は後回し。
-- 但し、削除機能は必要
-  - MS-Access 版 AirGuard からのインポートでは、削除したレコードの反映が不可能。
-
-## トランザクションインポートコードのモジュール化
-
-- `pages.admin.import-transactions.vue`のインポートに関するコードが肥大化している。モジュール分割するべき。
-
 ## 従業員の交通費精算
 
 2024 年 10 月から郵送代金が大幅に値上げ。
@@ -19,29 +8,6 @@
 - 稼働実績に紐づけるのではなく、別途データ保存。（自宅を出てから帰宅するまでのルートで精算するため）
 - 現行では稼働実績に対してい往復の交通費を記入する形式だったが、片道＋帰路の形式が好ましいはず。
 - 稼働実績の作成に連動して Cloud Functions で`TransportationCosts`を作成。
-
-#### TransportationCosts - Realtime Database
-
-```
-TransportationCosts: {
-  $employeeId: {
-    $date: {
-      $OperationResultId: {
-        siteId: string, // 現場ドキュメントid
-        startTime: string, // 開始時刻
-        endTime: string, // 終了時刻
-        breakMinutes: number, // 休憩時間（分）
-        overtimeMinutes: number, // 残業時間（分）
-        cost: number // 当該現場までの片道の交通費
-      },
-      wayBack: number, // 最後の現場から自宅までの交通費
-      total: number, // 稼働実績ごとの`cost`と`wayback`の合計
-      fixed: boolean, // trueの場合、この日のデータは編集不可
-      paymentDate: string, // 支払日
-    }
-  }
-}
-```
 
 ## 現場稼働予定の一覧編集
 
@@ -99,15 +65,40 @@ TransportationCosts: {
 
 # 更新履歴
 
+## 10th August 2024
+
+### 交通費申請にかかわるモジュールの準備
+
+#### functions.modules.operation-results.js
+
+- 初版作成。ドキュメントに対する作成・更新・削除トリガーを用意し、交通費申請データを Realtime Database に反映させるようにした。
+
+#### functions.modules.transportation-cost-applications.js
+
+- 初版作成。
+
 ## 9th August 2024
 
 ### models.OperationResultWorker.js
 
 - 新規作成
 
+### models.Employee.js、models.Site.js、models.OperationResult.js
+
+- `fetchByCode()`、`fetchByCodes()`を実装。
+
+### models.EmployeeContracts.js
+
+- `fetchByEmployeeId()`、`fetchByEmployeeIds()`を実装。
+
+### models.SiteContract.js
+
+- `fetchBySiteId()`、`fetchBySiteIds()`を実装。
+
 ### pages.admin.import-transactions.vue
 
 - `OperationResults`のインポート時に`workers`を反映できるように機能追加。
+- 関係する model に新しく実装された関数を利用してコードをメンテナンス。
 
 ## 7th August 2024
 
