@@ -6,6 +6,12 @@
     "lists": []
   },
   {
+    "name": "交通費",
+    "icon": "mdi-home",
+    "to": "/transportation-cost-applications",
+    "lists": []
+  },
+  {
     "name": "現場管理",
     "icon": "mdi-cube",
     "lists": [

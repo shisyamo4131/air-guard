@@ -35,4 +35,5 @@ module.exports = {
   'synchronize-customers': ['admin', 'developper'],
   'synchronize-employees': ['admin', 'developper'],
   'synchronize-sites': ['admin', 'developper'],
+  'transportation-cost-applications': [],
 }

@@ -62,6 +62,24 @@
 
 # 更新履歴
 
+## 11th August 2024
+
+### データモデル変更
+
+#### TransportationCostApplications
+
+- 稼働実績から同期されるデータを`TransportationCostApplications/original/{employeeId}/{date}/OperationResults`に変更。
+- `original`以下のデータを`status`の状態に応じて`TransportationCostApplications/{status}`に複製を保存。
+
+#### functions.modules.operation-results.js
+
+- 交通費申請データの構造変更による修正。
+
+#### functions.modules.transportation-cost-applications.js
+
+- 交通費申請データの構造変更による修正。
+- `status`の変更に応じて`original`を複製するように機能を追加。
+
 ## 10th August 2024
 
 ### 交通費申請にかかわるモジュールの準備

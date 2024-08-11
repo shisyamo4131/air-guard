@@ -44,32 +44,48 @@
 
 ```
 TransportationCostApplications: {
-  $employeeId: {
-    $date: { // 稼働日
-      OperationResults: {
-        $OperationResultId: { // 精算対象となる稼働実績ドキュメントのid
-          siteId: string, // 現場ドキュメントid
-          siteAbbr: string, // 現場名
-          startTime: string, // 開始時刻
-          endTime: string, // 終了時刻
-          breakMinutes: number, // 休憩時間（分）
-          overtimeMinutes: number, // 残業時間（分）
-          cost: number // 交通費
-          createAt: number, // データ作成（更新）日時（timestamp）
+  original: {
+    $employeeId: {
+      $date: { // 稼働日
+        OperationResults: {
+          $OperationResultId: { // 精算対象となる稼働実績ドキュメントのid
+            siteId: string, // 現場ドキュメントid
+            siteAbbr: string, // 現場名
+            startTime: string, // 開始時刻
+            endTime: string, // 終了時刻
+            breakMinutes: number, // 休憩時間（分）
+            overtimeMinutes: number, // 残業時間（分）
+            cost: number // 交通費
+            createAt: number, // データ作成（更新）日時（timestamp）
+          },
         },
-      },
-      total: number, // `cost`の合計
-      status: string,
-      // ['0:creating', '1:draft', '2:pending', '3:approved', '4:settled', '8:rejected', '9:expired']
-      createAt: number, // データ作成（更新）日時（timestamp）
-      draftAt: number, // 申請受付開始日時（timestamp）
-      pendingAt: number, // 申請日時（timestamp）
-      approvedAt: number, // 承認日時（timestamp）
-      rejectedAt: number, // 差し戻し日時（timestamp）
-      settledAt: number, // 精算日時（timestamp）
-      expiredAt: number, // 期限切れとした日時（timestamp）
-    }
-  }
+        total: number, // `cost`の合計
+        status: string,
+        // ['0:creating', '1:draft', '2:pending', '3:approved', '4:settled', '8:rejected', '9:expired']
+        createAt: number, // データ作成（更新）日時（timestamp）
+        draftAt: number, // 申請受付開始日時（timestamp）
+        pendingAt: number, // 申請日時（timestamp）
+        approvedAt: number, // 承認日時（timestamp）
+        rejectedAt: number, // 差し戻し日時（timestamp）
+        settledAt: number, // 精算日時（timestamp）
+        expiredAt: number, // 期限切れとした日時（timestamp）
+      }
+    },
+  },
+  creating: {
+    $employeeId: {
+      $date: { // 稼働日
+        OperationResults: {...},
+        ...
+      }
+    },
+  },
+  draft: {...},
+  pending: {...},
+  approved: {...},
+  rejected: {...},
+  settled: {...},
+  expired: {...},
 }
 ```
 

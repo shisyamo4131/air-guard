@@ -3,9 +3,10 @@
  * Firestoreの稼働実績ドキュメントに関するモジュール
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.0.1
  *
  * @updates
+ * - version 1.0.1 - 2024-08-11 - 交通費申請データの構造変更により一部修正
  * - version 1.0.0 - 2024-08-10 - 初版作成
  */
 const { getDatabase } = require('firebase-admin/database')
@@ -24,7 +25,7 @@ const database = getDatabase()
  */
 async function syncTransportationCostApplication(data) {
   const workers = data.workers
-  const root = `TransportationCostApplications`
+  const root = `TransportationCostApplications/original`
   const updates = {}
   workers.forEach((worker) => {
     const path = `${root}/${worker.employeeId}/${data.date}`
@@ -46,7 +47,7 @@ async function syncTransportationCostApplication(data) {
  */
 async function removeTransportationCostApplication(data) {
   const workers = data.workers
-  const root = `TransportationCostApplications`
+  const root = `TransportationCostApplications/original`
   const updates = {}
   workers.forEach((worker) => {
     const path = `${root}/${worker.employeeId}/${data.date}/OperationResults/${data.docId}`
