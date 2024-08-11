@@ -1,6 +1,13 @@
 /**
  * # transportation-const-applications.js
  *
+ * 交通費申請データ`TransportationCostApplications`に関わるモジュール群。
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ *
+ * @updates
+ * - version 1.0.0 - 2024-08-10 - 初版作成
  */
 const {
   onValueCreated,
@@ -31,7 +38,7 @@ exports.onOperationResultsCreated = onValueCreated(
     // 交通費申請データの初期化
     const updates = {}
     updates.total = 0
-    updates.status = 'creating'
+    updates.status = '0:creating'
     updates.createAt = createAt
     await event.data.ref.parent.update(updates)
   }

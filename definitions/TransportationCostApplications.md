@@ -54,30 +54,60 @@ TransportationCostApplications: {
           endTime: string, // 終了時刻
           breakMinutes: number, // 休憩時間（分）
           overtimeMinutes: number, // 残業時間（分）
-          cost: number // 自宅と現場を往復するのにかかった交通費
+          cost: number // 交通費
           createAt: number, // データ作成（更新）日時（timestamp）
         },
       },
       total: number, // `cost`の合計
       status: string,
-      // ['creating', 'draft', 'pending', 'approved', 'rejected']
+      // ['0:creating', '1:draft', '2:pending', '3:approved', '4:settled', '8:rejected', '9:expired']
       createAt: number, // データ作成（更新）日時（timestamp）
       draftAt: number, // 申請受付開始日時（timestamp）
       pendingAt: number, // 申請日時（timestamp）
       approvedAt: number, // 承認日時（timestamp）
       rejectedAt: number, // 差し戻し日時（timestamp）
       settledAt: number, // 精算日時（timestamp）
+      expiredAt: number, // 期限切れとした日時（timestamp）
     }
   }
 }
 ```
 
-- データは稼働実績が作成されると Cloud Functions によって`status`が`creating`の状態で作成される。
-- 稼働実績が更新されると Cloud Functions によって稼働実績データ部が更新される。
-- 稼働実績が削除され、ある日の稼働実績件数が 0 件になるとデータは削除される。
-- 従業員が申請する際に必要となる情報（勤務日や現場名など）をデータに含める。
-- 稼働実績の確認も兼ねるため、勤怠情報（開始時刻、終了時刻など）もデータに含める。
-- 現場マスタへの参照を避けるため、現場名もデータに含める。
-  - 現場マスタの更新トリガーによる同期処理は不要。
-- `status`の状態にかかわらず、データは稼働実績と同期される。
-- AirGuard にて、期間を指定して`status`を`draft`に変更する。
+## 機能概要
+
+### 交通費申請データの作成・更新・削除
+
+- 交通費申請データは稼働実績`OperationResults`ドキュメントが作成・更新・削除されると Cloud Functions によって同期される。
+- 交通費申請データの`status`の初期値は`creating`。
+- 稼働実績`OperationResults`ドキュメントの作成・更新・削除によって交通費申請データの`status`が更新されることはない。
+
+### 申請受付開始
+
+- `status`が`creating`の状態では、従業員による交通費の申請（交通費データの編集）は不可能。
+- AirGuard から`status`を`draft`に変更することで、申請を受け付けるようする。
+- `status`の`draft`への更新は期間を指定して行う。その際、`status`が`2:pending`以降のデータについては更新対象が除外する。
+
+### 申請受付
+
+- `AirGuard-Client`から従業員自身が申請を行うことが原則。
+- `AirGuard-Client`が使用できない従業員の申請を肩代わりする機能が必要。
+- 申請は`日単位`で行い、申請が行われると`status`が`2:pending`に変更され、従業員からは変更できなくなる。
+- `status`が`8:rejected`になっているデータも申請が可能とする。
+
+### 承認・差し戻し処理
+
+- 従業員からの申請内容を承認する機能。（`status`を`3:approved`に更新）
+- 申請内容に疑義があるなどを理由に、差し戻すことも可能。（`status`を`8:rejected`に更新）
+
+### 一覧表出力（振込データ作成？）
+
+- `status`が`3:approved`のデータについて、一覧表を出力。
+- できれば振込データ（全銀協フォーマット）を出力してみたい。
+
+### 精算処理
+
+- 従業員への精算（振込）が完了したデータの`status`を`4:settled`に更新する。
+
+### 期限切れ処理
+
+- 規定期間（会社のルール）を超過したデータについて、`status`を`9:expired`に更新する。
