@@ -16,6 +16,7 @@ import Site from '../models/Site'
 import SiteContract from '../models/SiteContract'
 import SiteOperationSchedule from '../models/SiteOperationSchedule'
 import SiteOperationScheduleBulk from '../models/SiteOperationScheduleBulk'
+import TransportationCostApplication from '../models/TransportationCostApplication'
 import WorkRegulation from '../models/WorkRegulation'
 
 export default (context, inject) => {
@@ -36,6 +37,10 @@ export default (context, inject) => {
   inject(
     'SiteOperationScheduleBulk',
     (item) => new SiteOperationScheduleBulk(firebase, item)
+  )
+  inject(
+    'TransportationCostApplication',
+    (item) => new TransportationCostApplication(item)
   )
   inject('Employee', (item) => new Employee(firebase, item))
   inject('EmployeeContract', (item) => new EmployeeContract(firebase, item))

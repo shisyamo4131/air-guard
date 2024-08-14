@@ -12,10 +12,6 @@
  * @props {Boolean} multiple - 複数選択の許可
  * @props {Boolean} required - 必須入力設定
  *
- * @version 1.1.0
- * @date 2024-06-21
- * @author shisyamo4131
- *
  * 概要:
  * GComboboxDateコンポーネントは、カレンダーピッカーを使用して日付を選択するための
  * コンボボックスを提供します。ユーザーは単一または複数の日付を選択できます。
@@ -29,9 +25,14 @@
  * 使用例:
  * <GComboboxDate v-model="selectedDate" :multiple="true" />
  *
- * 更新履歴:
- * 2024-06-21 - 初版作成
- * 2024-06-29 - (v1.1.0) props.allowedDatesを用意し、date-pickerに適用。
+ * @author shisyamo4131
+ * @version 1.2.0
+ *
+ * @updates
+ * - version 1.2.0 - 2024-08-12 - `multiple`が`false`の場合、GComboboxの`width`を指定。
+ *                              - GComboboxに`center-input`を適用。
+ * - version 1.1.0 - 2024-06-29 - props.allowedDatesを用意し、date-pickerに適用。
+ * - version 1.0.0 - 2024-06-21 - 初版作成
  */
 import GDatePicker from '../pickers/GDatePicker.vue'
 import GDatePickerMultiple from '../pickers/GDatePickerMultiple.vue'
@@ -128,6 +129,8 @@ export default {
       >
         <g-combobox
           v-bind="{ ...attrs, ...props.attrs }"
+          :style="{ maxWidth: `${multiple ? 'auto' : '156px'}` }"
+          class="center-input"
           :dense="!multiple"
           :required="dialog ? false : required"
           append-icon=""

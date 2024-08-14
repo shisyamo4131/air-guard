@@ -20,6 +20,9 @@
           ".indexOn": ["date"]
         }
       }
+    },
+    "TransportationCostApplications": {
+      ".indexOn": ["date"]
     }
   }
 }

@@ -42,9 +42,11 @@
  * @slot prepend-search - 検索用TextFieldの前に配置されます。
  *
  * @author shisyamo4131
- * @version 1.2.0
+ * @version 1.3.0
  *
  * @updates
+ * - version 1.3.0 - 2024-08-12 - 検索用VToolbar直下に`div`を配置し、検索用TextField他をflexアイテム化。
+ *                              - `slots.search`を用意し、検索用TextFieldを置換できるように修正。
  * - version 1.2.0 - 2024-07-31 - 検索バーのv-toolbarにdenseを設定。
  * - version 1.1.1 - 2024-07-25 - v-paginationのtotal-visibleを20に設定。
  * - version 1.1.0 - 2024-06-27 - ページネーションをv-footerからv-containerに変更。
@@ -141,18 +143,22 @@ export default {
     <v-navigation-drawer v-model="drawer" absolute right temporary />
     <!-- HEADER -->
     <v-toolbar class="flex-grow-0" :color="toolbarColor" flat dense>
-      <!-- slot: prepend-search -->
-      <slot name="prepend-search" />
-      <g-text-field-search
-        v-model="internalSearch"
-        :delay="delay"
-        :lazy-value.sync="internalLazySearch"
-      />
-      <!-- slot: append-search -->
-      <slot name="append-search" />
-      <v-btn icon>
-        <v-icon @click="drawer = !drawer">mdi-filter</v-icon>
-      </v-btn>
+      <div class="d-flex align-center flex-grow-1" style="gap: 8px">
+        <!-- slot: prepend-search -->
+        <slot name="prepend-search" />
+        <slot name="search">
+          <g-text-field-search
+            v-model="internalSearch"
+            :delay="delay"
+            :lazy-value.sync="internalLazySearch"
+          />
+        </slot>
+        <!-- slot: append-search -->
+        <slot name="append-search" />
+        <v-btn icon class="ml-auto">
+          <v-icon @click="drawer = !drawer">mdi-filter</v-icon>
+        </v-btn>
+      </div>
       <template v-if="extend" #extension>
         <slot name="extension" />
       </template>

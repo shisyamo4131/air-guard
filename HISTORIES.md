@@ -2,9 +2,9 @@
 
 ## 従業員の交通費精算
 
-2024 年 10 月から郵送代金が大幅に値上げ。
-
-- 稼働実績ドキュメントの作成・更新・削除に対応して Cloud Functions で交通費申請用データ`TransportationCostApplications`を Realtime Database に反映させる機能は実装済み。
+- とりあえずの初版が完成。
+- AirGuard-client に取り掛かりたいところだが、オンライン申請ができない従業員への対応として manager 側での登録処理を優先する。
+- ってことは申請データに基づいて帳票が出力できないといけない。-> pdfme の出番！！！
 
 ## 現場稼働予定の一覧編集
 
@@ -61,6 +61,22 @@
 - 備考欄に入力できるテキストの量に制限を設けておかないと、大きなデータが保存されるかもしれない。
 
 # 更新履歴
+
+## 14th August 2024
+
+- 交通費申請管理の初版作成完了。
+
+## 12th August 2024
+
+#### GTemplateIndex.vue
+
+- 検索用 VToolbar 直下に`div`を配置し、検索用 TextField 他を flex アイテム化。
+- `slots.search`を用意し、検索用 TextField を置換できるように修正。
+
+#### GComboboxDate
+
+- `multiple`が`false`の場合、GCombobox の`width`を指定。
+- GCombobox に`center-input`を適用。
 
 ## 11th August 2024
 

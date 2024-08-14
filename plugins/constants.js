@@ -191,6 +191,26 @@ const TEMPORARY_SITE_STATUS_ARRAY = [
   { value: 'canceled', text: 'キャンセル' },
 ]
 
+const TRANSPORTATION_COST_APPLICATION_STATUS = {
+  '0:creating': '申請受付前',
+  '1:draft': '申請受付中',
+  '2:pending': '申請中',
+  '3:approved': '承認済み',
+  '4:settled': '精算済み',
+  '8:rejected': '差し戻し',
+  '9:expired': '期限切れ',
+}
+
+const TRANSPORTATION_COST_APPLICATION_STATUS_ARRAY = [
+  { value: '0:creating', text: '申請受付前' },
+  { value: '1:draft', text: '申請受付中' },
+  { value: '2:pending', text: '申請中' },
+  { value: '3:approved', text: '承認済み' },
+  { value: '4:settled', text: '精算済み' },
+  { value: '8:rejected', text: '差し戻し' },
+  { value: '9:expired', text: '期限切れ' },
+]
+
 const WORK_SHIFT = {
   day: '日勤',
   night: '夜勤',
@@ -229,6 +249,14 @@ export default (context, inject) => {
   inject('SITE_STATUS_ARRAY', SITE_STATUS_ARRAY)
   inject('TEMPORARY_SITE_STATUS', TEMPORARY_SITE_STATUS)
   inject('TEMPORARY_SITE_STATUS_ARRAY', TEMPORARY_SITE_STATUS_ARRAY)
+  inject(
+    'TRANSPORTATION_COST_APPLICATION_STATUS',
+    TRANSPORTATION_COST_APPLICATION_STATUS
+  )
+  inject(
+    'TRANSPORTATION_COST_APPLICATION_STATUS_ARRAY',
+    TRANSPORTATION_COST_APPLICATION_STATUS_ARRAY
+  )
   inject('WORK_SHIFT', WORK_SHIFT)
   inject('WORK_SHIFT_ARRAY', WORK_SHIFT_ARRAY)
 }

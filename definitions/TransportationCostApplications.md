@@ -8,15 +8,15 @@
 
 申請データには日付ごとに状態を表す`status`を持たせる。
 
-| 作成中   | 申請前 | 申請中  | 承認済み | 精算済み | 差し戻し | 期限切れ |
-| -------- | ------ | ------- | -------- | -------- | -------- | -------- |
-| creating | draft  | pending | approved | settled  | rejected | expired  |
+| 申請受付前 | 申請受付中 | 申請中  | 承認済み | 精算済み | 差し戻し | 期限切れ |
+| ---------- | ---------- | ------- | -------- | -------- | -------- | -------- |
+| creating   | draft      | pending | approved | settled  | rejected | expired  |
 
-### 作成中
+### 申請受付前
 
 稼働実績からデータが作成された状態。従業員はデータの閲覧不可能。
 
-### 申請前
+### 申請受付中
 
 会社が従業員からの申請を受け付けている状態。従業員がデータを編集可能。従業員のアクションにより`申請中`に状態が遷移。
 
@@ -44,48 +44,31 @@
 
 ```
 TransportationCostApplications: {
-  original: {
-    $employeeId: {
-      $date: { // 稼働日
-        OperationResults: {
-          $OperationResultId: { // 精算対象となる稼働実績ドキュメントのid
-            siteId: string, // 現場ドキュメントid
-            siteAbbr: string, // 現場名
-            startTime: string, // 開始時刻
-            endTime: string, // 終了時刻
-            breakMinutes: number, // 休憩時間（分）
-            overtimeMinutes: number, // 残業時間（分）
-            cost: number // 交通費
-            createAt: number, // データ作成（更新）日時（timestamp）
-          },
-        },
-        total: number, // `cost`の合計
-        status: string,
-        // ['0:creating', '1:draft', '2:pending', '3:approved', '4:settled', '8:rejected', '9:expired']
-        createAt: number, // データ作成（更新）日時（timestamp）
-        draftAt: number, // 申請受付開始日時（timestamp）
-        pendingAt: number, // 申請日時（timestamp）
-        approvedAt: number, // 承認日時（timestamp）
-        rejectedAt: number, // 差し戻し日時（timestamp）
-        settledAt: number, // 精算日時（timestamp）
-        expiredAt: number, // 期限切れとした日時（timestamp）
-      }
+  ${date}-${employeeId}: {
+    OperationResults: {
+      $OperationResultId: { // 精算対象となる稼働実績ドキュメントのid
+        siteId: string, // 現場ドキュメントid
+        siteAbbr: string, // 現場名
+        startTime: string, // 開始時刻
+        endTime: string, // 終了時刻
+        breakMinutes: number, // 休憩時間（分）
+        overtimeMinutes: number, // 残業時間（分）
+        cost: number // 交通費
+      },
     },
+    employeeId: string,
+    date: string,
+    total: number, // `cost`の合計
+    status: string,
+    // ['0:creating', '1:draft', '2:pending', '3:approved', '4:settled', '8:rejected', '9:expired']
+    creatingAt: number, // データ作成（更新）日時（timestamp）
+    draftAt: number, // 申請受付開始日時（timestamp）
+    pendingAt: number, // 申請日時（timestamp）
+    approvedAt: number, // 承認日時（timestamp）
+    rejectedAt: number, // 差し戻し日時（timestamp）
+    settledAt: number, // 精算日時（timestamp）
+    expiredAt: number, // 期限切れとした日時（timestamp）
   },
-  creating: {
-    $employeeId: {
-      $date: { // 稼働日
-        OperationResults: {...},
-        ...
-      }
-    },
-  },
-  draft: {...},
-  pending: {...},
-  approved: {...},
-  rejected: {...},
-  settled: {...},
-  expired: {...},
 }
 ```
 

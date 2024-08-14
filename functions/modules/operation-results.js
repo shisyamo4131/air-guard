@@ -3,10 +3,10 @@
  * Firestoreの稼働実績ドキュメントに関するモジュール
  *
  * @author shisyamo4131
- * @version 1.0.1
+ * @version 1.1.0
  *
  * @updates
- * - version 1.0.1 - 2024-08-11 - 交通費申請データの構造変更により一部修正
+ * - version 1.1.0 - 2024-08-14 - 交通費申請データと同期する処理を追加。
  * - version 1.0.0 - 2024-08-10 - 初版作成
  */
 const { getDatabase } = require('firebase-admin/database')
@@ -25,10 +25,14 @@ const database = getDatabase()
  */
 async function syncTransportationCostApplication(data) {
   const workers = data.workers
-  const root = `TransportationCostApplications/original`
+  const root = `TransportationCostApplications`
   const updates = {}
   workers.forEach((worker) => {
-    const path = `${root}/${worker.employeeId}/${data.date}`
+    // const uid = `${worker.employeeId}-${data.date}`
+    const uid = `${data.date}-${worker.employeeId}`
+    const path = `${root}/${uid}`
+    updates[`${path}/employeeId`] = worker.employeeId
+    updates[`${path}/date`] = data.date
     const detailPath = `${path}/OperationResults/${data.docId}`
     updates[`${detailPath}/siteId`] = data.siteId
     updates[`${detailPath}/siteAbbr`] = data.site.abbr
@@ -36,7 +40,6 @@ async function syncTransportationCostApplication(data) {
     updates[`${detailPath}/endTime`] = worker.endTime
     updates[`${detailPath}/breakMinutes`] = worker.breakMinutes
     updates[`${detailPath}/overtimeMinutes`] = worker.overtimeMinutes
-    updates[`${detailPath}/createAt`] = { '.sv': 'timestamp' }
   })
   await database.ref().update(updates)
 }
