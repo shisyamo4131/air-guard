@@ -6,8 +6,8 @@
     "lists": []
   },
   {
-    "name": "交通費",
-    "icon": "mdi-home",
+    "name": "交通費管理",
+    "icon": "mdi-train-bus",
     "to": "/transportation-cost-applications",
     "lists": []
   },

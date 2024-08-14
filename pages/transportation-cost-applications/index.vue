@@ -21,6 +21,7 @@ import {
   endAt,
   startAt,
 } from 'firebase/database'
+import ja from 'dayjs/locale/ja'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GSelectSearch from '~/components/molecules/inputs/GSelectSearch.vue'
@@ -28,7 +29,8 @@ import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
 import GInputTransportationCostApplication from '~/components/molecules/inputs/GInputTransportationCostApplication.vue'
 import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
-import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
+import GTextField from '~/components/atoms/inputs/GTextField.vue'
+import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -45,7 +47,8 @@ export default {
     GInputTransportationCostApplication,
     GBtnCancelIcon,
     GBtnSubmitIcon,
-    GComboboxDate,
+    GTextField,
+    GDatePicker,
   },
   /***************************************************************************
    * DATA
@@ -60,48 +63,51 @@ export default {
       data: [],
       dialog: {
         bulk: false,
+        period: false,
       },
-      from: this.$dayjs().subtract(10, 'day').format('YYYY-MM-DD'),
       listeners: {
         added: null,
         changed: null,
         removed: null,
       },
       loading: false,
-      period: [],
+      period: [
+        this.$dayjs().subtract(10, 'day').format('YYYY-MM-DD'),
+        this.$dayjs().subtract(1, 'day').format('YYYY-MM-DD'),
+      ],
       status: '0:creating',
-      to: this.$dayjs().subtract(1, 'day').format('YYYY-MM-DD'),
     }
   },
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
+    title() {
+      if (!this.period.length) return ''
+      if (this.period.length === 1) return ''
+      const from = this.$dayjs(this.period[0])
+        .locale(ja)
+        .format('YYYY年MM月DD日(dd)')
+      const to = this.$dayjs(this.period[1])
+        .locale(ja)
+        .format('YYYY年MM月DD日(dd)')
+      return `${from} ~ ${to}`
+    },
     items() {
       return this.data.filter(({ status }) => status === this.status)
     },
   },
   /***************************************************************************
-   * CREATED
+   * WATCH
    ***************************************************************************/
-  created() {
-    this.$watch(
-      () => [this.$data.from, this.$data.to],
-      (newVal, oldVal) => {
-        const after = {
-          from: newVal[1],
-          to: newVal[2],
-        }
-        const before = {
-          from: oldVal?.[1] || undefined,
-          to: oldVal?.[2] || undefined,
-        }
-        if (JSON.stringify(after) !== JSON.stringify(before)) {
-          this.subscribe()
-        }
+  watch: {
+    period: {
+      handler(v) {
+        if (v.length !== 2) return
+        this.subscribe()
       },
-      { immediate: true }
-    )
+      immediate: true,
+    },
   },
   /***************************************************************************
    * DESTROYED
@@ -144,8 +150,10 @@ export default {
       const q = query(
         dbRef,
         orderByChild('date'),
-        startAt(`${this.from}`),
-        endAt(`${this.to}`)
+        // startAt(`${this.from}`),
+        // endAt(`${this.to}`)
+        startAt(`${this.period[0]}`),
+        endAt(`${this.period[1]}`)
       )
       this.listeners.added = onChildAdded(q, (snapshot) => {
         snapshotHandler(snapshot, 'add')
@@ -188,7 +196,7 @@ export default {
           return sum
         }, {})
         await update(ref(this.$database), updates)
-        Object.keys(this.dialog).forEach((key) => (this.dialog[key] = false))
+        this.dialog.bulk = false
       } catch (err) {
         // eslint-disable-next-line
         console.error(err)
@@ -244,11 +252,33 @@ export default {
         :clearable="false"
         placeholder="状態"
       />
+      <v-dialog v-model="dialog.period" max-width="290" persistent>
+        <template #activator="{ attrs, on }">
+          <div style="width: 372px">
+            <g-text-field
+              v-bind="attrs"
+              :value="title"
+              hide-details
+              prepend-inner-icon="mdi-calendar"
+              readonly
+              v-on="on"
+            />
+          </div>
+        </template>
+        <v-card>
+          <g-date-picker
+            v-model="period"
+            no-title
+            range
+            @change="dialog.period = false"
+          />
+          <v-card-actions>
+            <g-btn-cancel-icon @click="dialog.period = false" />
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </template>
     <template #search>
-      <g-combobox-date v-model="from" hide-details />
-      <div>～</div>
-      <g-combobox-date v-model="to" hide-details />
       <v-dialog v-model="dialog.bulk" persistent width="360">
         <template #activator="{ attrs }">
           <v-btn
