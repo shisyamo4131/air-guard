@@ -15,6 +15,7 @@
  * @version 1.4.0
  *
  * @updates
+ * - version 1.4.1 - 2024-08-16 - OperationResultsコレクションの変更に伴って`hasMany`を変更。
  * - version 1.4.0 - 2024-08-09 - `fetchByCode()`を実装。
  *                              - `fetchByCodes()`を実装。
  * - version 1.3.0 - 2024-08-07 - `hasMany`に`OperationResults`を追加。
@@ -76,7 +77,7 @@ export default class Site extends FireModel {
         collection: 'OperationResults',
         field: 'siteId',
         condition: '==',
-        type: 'subCollection',
+        type: 'collection',
       },
     ]
     this.tokenFields = ['abbr', 'abbrKana']

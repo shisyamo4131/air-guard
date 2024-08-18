@@ -5,9 +5,10 @@
  * 交通費申請データの管理画面です。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.0.1
  *
  * @updates
+ * - version 1.0.1 - 2024-08-15 - 期間選択に`GDatePeriod`を使用。
  * - version 1.0.0 - 2024-08-14 - 初版作成
  */
 import {
@@ -21,16 +22,14 @@ import {
   endAt,
   startAt,
 } from 'firebase/database'
-import ja from 'dayjs/locale/ja'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
-import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GSelectSearch from '~/components/molecules/inputs/GSelectSearch.vue'
 import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
 import GInputTransportationCostApplication from '~/components/molecules/inputs/GInputTransportationCostApplication.vue'
 import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
-import GTextField from '~/components/atoms/inputs/GTextField.vue'
-import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
+import GDatePeriod from '~/components/atoms/inputs/GDatePeriod.vue'
+import GDataTableTransportationCostApplications from '~/components/molecules/tables/GDataTableTransportationCostApplications.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -41,14 +40,13 @@ export default {
    ***************************************************************************/
   components: {
     GTemplateIndex,
-    GDataTable,
     GSelectSearch,
     GDialogEditor,
     GInputTransportationCostApplication,
     GBtnCancelIcon,
     GBtnSubmitIcon,
-    GTextField,
-    GDatePicker,
+    GDatePeriod,
+    GDataTableTransportationCostApplications,
   },
   /***************************************************************************
    * DATA
@@ -60,11 +58,10 @@ export default {
         text: '',
         toStatus: '0:creating',
       },
-      data: [],
       dialog: {
         bulk: false,
-        period: false,
       },
+      items: [],
       listeners: {
         added: null,
         changed: null,
@@ -82,19 +79,8 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
-    title() {
-      if (!this.period.length) return ''
-      if (this.period.length === 1) return ''
-      const from = this.$dayjs(this.period[0])
-        .locale(ja)
-        .format('YYYY年MM月DD日(dd)')
-      const to = this.$dayjs(this.period[1])
-        .locale(ja)
-        .format('YYYY年MM月DD日(dd)')
-      return `${from} ~ ${to}`
-    },
-    items() {
-      return this.data.filter(({ status }) => status === this.status)
+    filteredItems() {
+      return this.items.filter(({ status }) => status === this.status)
     },
   },
   /***************************************************************************
@@ -134,24 +120,28 @@ export default {
     subscribe() {
       const snapshotHandler = (snapshot, action) => {
         const uid = snapshot.key
-        const data = snapshot.val()
-        const operationResults = Object.entries(data.OperationResults).map(
+        const item = snapshot.val()
+        // オブジェクトであるOperationResultsを配列に変換
+        const operationResults = Object.entries(item.OperationResults).map(
           ([docId, values]) => ({ docId, ...values })
         )
-        const index = this.data.findIndex((obj) => obj.uid === uid)
-        if (action === 'add') this.data.push({ ...data, uid, operationResults })
-        if (action === 'change')
-          this.data.splice(index, 1, { ...data, uid, operationResults })
-        if (action === 'remove') this.data.splice(index, 1)
+        const index = this.items.findIndex((obj) => obj.uid === uid)
+        // OperationResultsオブジェクト以外を抽出
+        const { OperationResults, ...newItem } = item
+        if (action === 'add') {
+          this.items.push({ ...newItem, uid, operationResults })
+        } else if (action === 'change') {
+          this.items.splice(index, 1, { ...newItem, uid, operationResults })
+        } else if (action === 'remove') {
+          this.items.splice(index, 1)
+        }
       }
-      this.data.splice(0)
+      this.items.splice(0)
       const path = `TransportationCostApplications`
       const dbRef = ref(this.$database, path)
       const q = query(
         dbRef,
         orderByChild('date'),
-        // startAt(`${this.from}`),
-        // endAt(`${this.to}`)
         startAt(`${this.period[0]}`),
         endAt(`${this.period[1]}`)
       )
@@ -192,7 +182,7 @@ export default {
           sum[`TransportationCostApplications/${i.uid}/status`] = status
           sum[
             `TransportationCostApplications/${i.uid}/statusDateKey`
-          ] = `${status}-${this.data.date}`
+          ] = `${status}-${this.items.date}`
           return sum
         }, {})
         await update(ref(this.$database), updates)
@@ -243,7 +233,7 @@ export default {
 </script>
 
 <template>
-  <g-template-index :items="items">
+  <g-template-index :items="filteredItems">
     <template #prepend-search>
       <g-select-search
         v-model="status"
@@ -252,31 +242,7 @@ export default {
         :clearable="false"
         placeholder="状態"
       />
-      <v-dialog v-model="dialog.period" max-width="290" persistent>
-        <template #activator="{ attrs, on }">
-          <div style="width: 372px">
-            <g-text-field
-              v-bind="attrs"
-              :value="title"
-              hide-details
-              prepend-inner-icon="mdi-calendar"
-              readonly
-              v-on="on"
-            />
-          </div>
-        </template>
-        <v-card>
-          <g-date-picker
-            v-model="period"
-            no-title
-            range
-            @change="dialog.period = false"
-          />
-          <v-card-actions>
-            <g-btn-cancel-icon @click="dialog.period = false" />
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+      <g-date-period v-model="period" hide-details :max-days="10" />
     </template>
     <template #search>
       <v-dialog v-model="dialog.bulk" persistent width="360">
@@ -308,70 +274,11 @@ export default {
       </v-dialog>
     </template>
     <template #default="{ attrs, on }">
-      <g-data-table
+      <g-data-table-transportation-cost-applications
         v-bind="attrs"
-        :actions="['detail']"
-        :headers="[
-          { text: '従業員', value: 'employeeId' },
-          { text: '勤務日', value: 'date' },
-          { text: '申請額', value: 'total', sortable: false, align: 'right' },
-          { text: '状態', value: 'status', sortable: false, align: 'center' },
-          { text: '処理', value: 'operation', sortable: false },
-        ]"
-        item-key="uid"
-        :sort-by="['employeeId', 'date']"
+        :status="status"
         v-on="on"
-        @click:detail="onClickDetail"
-      >
-        <template #[`item.employeeId`]="{ item }">
-          {{
-            $store.getters['employees/get'](item.employeeId)?.fullName ||
-            '退職者'
-          }}
-        </template>
-        <template #[`item.status`]="{ item }">
-          <v-chip small>{{
-            $TRANSPORTATION_COST_APPLICATION_STATUS[item.status]
-          }}</v-chip>
-        </template>
-        <template #[`item.operation`]="{ item }">
-          <v-btn
-            v-if="item.status === '1:draft'"
-            color="secondary"
-            small
-            @click="changeStatus(item, '0:creating')"
-            >取消</v-btn
-          >
-          <v-btn
-            v-if="item.status === '0:creating'"
-            color="primary"
-            small
-            @click="changeStatus(item, '1:draft')"
-            >開始</v-btn
-          >
-          <v-btn
-            v-if="item.status === '2:pending'"
-            color="primary"
-            small
-            @click="changeStatus(item, '3:approved')"
-            >承認</v-btn
-          >
-          <v-btn
-            v-if="item.status === '3:approved'"
-            color="primary"
-            small
-            @click="changeStatus(item, '4:settled')"
-            >精算</v-btn
-          >
-          <v-btn
-            v-if="item.status === '2:pending' || item.status === '3:approved'"
-            color="error"
-            small
-            @click="changeStatus(item, '8:rejected')"
-            >差戻</v-btn
-          >
-        </template>
-      </g-data-table>
+      />
       <g-dialog-editor
         ref="editor"
         model-id="TransportationCostApplication"

@@ -299,7 +299,9 @@ export default {
                 const model = this.$OperationResult(
                   existDoc ? { ...existDoc, ...item } : { ...item }
                 )
-                model.docId ? await model.update() : await model.create()
+                model.docId
+                  ? await model.update()
+                  : await model.create({ useAutonum: false })
                 this.progress.current++
               }
               await this.$Autonumber().refresh(

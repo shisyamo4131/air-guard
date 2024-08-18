@@ -7,18 +7,29 @@
  * - 在職中の従業員情報のみ、Firestoreから取得しストアとして提供します。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  *
  * @updates
+ * - version 1.1.0 - 2024-08-15 - `state.temporary`を新規実装。
+ *                              - `actions.loadTemporary`と`actions.clearTemporary`を実装。
+ *                              - `getters.get`が`state.temporary`も対象にするよう修正。
+ *                              - `getters.all`を実装。
  * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
-import { collection, onSnapshot, query, where } from 'firebase/firestore'
+import {
+  collection,
+  getDocs,
+  onSnapshot,
+  query,
+  where,
+} from 'firebase/firestore'
 
 /******************************************************************
  * STATE
  ******************************************************************/
 export const state = () => ({
   items: [],
+  temporary: [],
   listener: null,
 })
 /******************************************************************
@@ -32,7 +43,18 @@ export const getters = {
    * @returns
    */
   get: (state) => (docId) => {
-    return state.items.find((item) => item.docId === docId)
+    // return state.items.find((item) => item.docId === docId)
+    return state.items
+      .concat(state.temporary)
+      .find((item) => item.docId === docId)
+  },
+  getByCode: (state) => (code) => {
+    return state.items
+      .concat(state.temporary)
+      .find((item) => item.code === code)
+  },
+  all(state) {
+    return state.items.concat(state.temporary)
   },
   male(state) {
     return state.items.filter(({ gender }) => gender === 'male').length
@@ -62,6 +84,12 @@ export const mutations = {
     state.listener = null
     state.items.splice(0)
   },
+  setTemporary(state, items) {
+    state.temporary.push(...items)
+  },
+  removeTemporary(state) {
+    state.temporary.splice(0)
+  },
 }
 /******************************************************************
  * ACTIONS
@@ -81,5 +109,37 @@ export const actions = {
   },
   unsubscribe({ commit }) {
     commit('removeListener')
+  },
+  /**
+   * 画面（機能）単位で必要なドキュメントデータをVuexに読み込みます。
+   * 原則として、データが不要になったら必ず`clearTemporary`を実行してください。
+   * @param {*} param0
+   * @param {*} param1
+   */
+  async loadTemporary({ commit, state }, { docIds }) {
+    const loaded = state.items.concat(state.temporary)
+    const colRef = collection(this.$firestore, 'Employees')
+    const uniqueIds = [...new Set(docIds)]
+    const missingIds = uniqueIds.filter((id) => {
+      return !loaded.some(({ docId }) => docId === id)
+    })
+    const chunked = missingIds.flatMap((_, i) =>
+      i % 30 ? [] : [missingIds.slice(i, i + 30)]
+    )
+    const snapshots = await Promise.all(
+      chunked.map(async (docIds) => {
+        const q = query(colRef, where('docId', 'in', docIds))
+        const snapshot = await getDocs(q)
+        return snapshot.docs.map((doc) => doc.data())
+      })
+    )
+    commit('setTemporary', snapshots.flat())
+  },
+  /**
+   * 画面（機能）単位で読み込まれたドキュメントデータをVuexから削除します。
+   * @param {*} param0
+   */
+  clearTemporary({ commit }) {
+    commit('removeTemporary')
   },
 }

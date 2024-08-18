@@ -17,7 +17,6 @@ exports.sites = require('./modules/sites')
 exports.siteOperationSchedules = require('./modules/site-operation-schedules')
 exports.siteOperationScheduleBulks = require('./modules/site-operation-schedule-bulks')
 
-exports.operationResults = require('./modules/operation-results')
-exports.transportationCostApplications = require('./modules/transportation-cost-applications')
+exports.operationResults = require('./triggers/operation-results')
 // exports.siteDaylySales = require('./modules/site-dayly-sales')
 // exports.siteMonthlySales = require('./modules/site-monthly-sales')

@@ -4,14 +4,15 @@
  * 稼働実績のデータモデルです。
  *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.2.0
  *
  * @updates
+ * - version 1.2.0 - 2024-08-16 - `Sites`のサブコレクションからコレクションに変更。
  * - version 1.1.0 - 2024-08-09 - `fetchByCode()`を実装。
  *                              - `fetchByCodes()`を実装。
  * - version 1.0.0 - 2024-08-07 - 初版作成
  */
-import { collectionGroup, getDocs, query, where } from 'firebase/firestore'
+import { collection, getDocs, query, where } from 'firebase/firestore'
 import FireModel from './FireModel'
 
 const props = {
@@ -43,13 +44,8 @@ export { props }
 export default class OperationResult extends FireModel {
   constructor(context, item = {}) {
     super(context, item)
+    this.collection = 'OperationResults'
   }
-
-  get collection() {
-    return `Sites/${this.siteId}/OperationResults`
-  }
-
-  set collection(v) {}
 
   initialize(item = {}) {
     Object.keys(props.props).forEach((key) => {
@@ -66,7 +62,7 @@ export default class OperationResult extends FireModel {
    * @returns {Promise<Array>} 稼働実績ドキュメントデータの配列
    */
   async fetchByCode(code) {
-    const colRef = collectionGroup(this.firestore, 'OperationResults')
+    const colRef = collection(this.firestore, 'OperationResults')
     const q = query(colRef, where('code', '==', code))
     const snapshots = await getDocs(q)
     if (snapshots.empty) return []
@@ -84,7 +80,7 @@ export default class OperationResult extends FireModel {
     const chunked = unique.flatMap((_, i) =>
       i % 30 ? [] : [unique.slice(i, i + 30)]
     )
-    const colRef = collectionGroup(this.firestore, 'OperationResults')
+    const colRef = collection(this.firestore, 'OperationResults')
     const snapshots = await Promise.all(
       chunked.map(async (arr) => {
         const q = query(colRef, where('code', 'in', arr))

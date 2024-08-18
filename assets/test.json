@@ -1,0 +1,338 @@
+[
+  {
+    "creatingAt": 1723789483368,
+    "date": "2024-07-13",
+    "employeeId": "QjXMOQrnglk7jabsSGqn",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-13",
+    "uid": "2024-07-13-QjXMOQrnglk7jabsSGqn",
+    "operationResults": [
+      {
+        "docId": "2QLAMEzVadWjFu9ZijdR",
+        "breakMinutes": 60,
+        "date": "2024-07-13",
+        "endTime": "07:00",
+        "overtimeMinutes": 60,
+        "siteAbbr": "SOCOLA武蔵小金井ｼﾃｨｸﾛｽ",
+        "siteId": "icTQhTI6S0AXKn8BxGsX",
+        "startTime": "21:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789483163,
+    "date": "2024-07-13",
+    "employeeId": "Y1fHsbuHzxNPPBxzUhaI",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-13",
+    "uid": "2024-07-13-Y1fHsbuHzxNPPBxzUhaI",
+    "operationResults": [
+      {
+        "docId": "Jx17CTNIvSq7cSACktGc",
+        "breakMinutes": 0,
+        "date": "2024-07-13",
+        "endTime": "09:00",
+        "overtimeMinutes": 0,
+        "siteAbbr": "（勤怠調整）",
+        "siteId": "wuXdVHLQnxRWbv8xQASi",
+        "startTime": "08:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789483160,
+    "date": "2024-07-13",
+    "employeeId": "Z7BQ5FRVeTjVlh1wADkp",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-13",
+    "uid": "2024-07-13-Z7BQ5FRVeTjVlh1wADkp",
+    "operationResults": [
+      {
+        "docId": "2QLAMEzVadWjFu9ZijdR",
+        "breakMinutes": 60,
+        "date": "2024-07-13",
+        "endTime": "05:00",
+        "overtimeMinutes": 0,
+        "siteAbbr": "SOCOLA武蔵小金井ｼﾃｨｸﾛｽ",
+        "siteId": "icTQhTI6S0AXKn8BxGsX",
+        "startTime": "20:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789482836,
+    "date": "2024-07-13",
+    "employeeId": "g3pTvferiajcIk9wDM1q",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-13",
+    "uid": "2024-07-13-g3pTvferiajcIk9wDM1q",
+    "operationResults": [
+      {
+        "docId": "lHSxP6cuHeXR9ehmPczh",
+        "breakMinutes": 60,
+        "date": "2024-07-13",
+        "endTime": "17:00",
+        "overtimeMinutes": 0,
+        "siteAbbr": "世田谷区宮坂2丁目PJ新築工事",
+        "siteId": "8UfVvZ8BqmXrLWBNXXYe",
+        "startTime": "08:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789482941,
+    "date": "2024-07-13",
+    "employeeId": "u5ANbBgQhw7wXxacgjQ8",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-13",
+    "uid": "2024-07-13-u5ANbBgQhw7wXxacgjQ8",
+    "operationResults": [
+      {
+        "docId": "Jx17CTNIvSq7cSACktGc",
+        "breakMinutes": 0,
+        "date": "2024-07-13",
+        "endTime": "09:00",
+        "overtimeMinutes": 0,
+        "siteAbbr": "（勤怠調整）",
+        "siteId": "wuXdVHLQnxRWbv8xQASi",
+        "startTime": "08:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789482715,
+    "date": "2024-07-14",
+    "employeeId": "akEH7v41TlRjxj9ShCDz",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-14",
+    "uid": "2024-07-14-akEH7v41TlRjxj9ShCDz",
+    "operationResults": [
+      {
+        "docId": "OWphd3RS7PpIkwFHac6I",
+        "breakMinutes": 60,
+        "date": "2024-07-14",
+        "endTime": "07:00",
+        "overtimeMinutes": 60,
+        "siteAbbr": "SOCOLA武蔵小金井ｼﾃｨｸﾛｽ",
+        "siteId": "icTQhTI6S0AXKn8BxGsX",
+        "startTime": "21:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789482425,
+    "date": "2024-07-14",
+    "employeeId": "u5ANbBgQhw7wXxacgjQ8",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-14",
+    "uid": "2024-07-14-u5ANbBgQhw7wXxacgjQ8",
+    "operationResults": [
+      {
+        "docId": "OWphd3RS7PpIkwFHac6I",
+        "breakMinutes": 60,
+        "date": "2024-07-14",
+        "endTime": "05:00",
+        "overtimeMinutes": 0,
+        "siteAbbr": "SOCOLA武蔵小金井ｼﾃｨｸﾛｽ",
+        "siteId": "icTQhTI6S0AXKn8BxGsX",
+        "startTime": "20:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789482149,
+    "date": "2024-07-15",
+    "employeeId": "JWPPYtaG9Z7QpFrruFif",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-15",
+    "uid": "2024-07-15-JWPPYtaG9Z7QpFrruFif",
+    "operationResults": [
+      {
+        "docId": "h7eRrIkuKW9yx4RNqR1T",
+        "breakMinutes": 60,
+        "date": "2024-07-15",
+        "endTime": "18:00",
+        "overtimeMinutes": 0,
+        "siteAbbr": "研修講師",
+        "siteId": "li5XDxmgPDnHG9qm6XKj",
+        "startTime": "09:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789481874,
+    "date": "2024-07-15",
+    "employeeId": "QjXMOQrnglk7jabsSGqn",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-15",
+    "uid": "2024-07-15-QjXMOQrnglk7jabsSGqn",
+    "operationResults": [
+      {
+        "docId": "9MkjJeIFZ1wRxIlvYbny",
+        "breakMinutes": 60,
+        "date": "2024-07-15",
+        "endTime": "07:00",
+        "overtimeMinutes": 60,
+        "siteAbbr": "SOCOLA武蔵小金井ｼﾃｨｸﾛｽ",
+        "siteId": "icTQhTI6S0AXKn8BxGsX",
+        "startTime": "21:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789482689,
+    "date": "2024-07-15",
+    "employeeId": "QxbsI5mLqeE0cG44xl10",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-15",
+    "uid": "2024-07-15-QxbsI5mLqeE0cG44xl10",
+    "operationResults": [
+      {
+        "docId": "hllK53izmfE7WhWajVkG",
+        "breakMinutes": 60,
+        "date": "2024-07-15",
+        "endTime": "17:00",
+        "overtimeMinutes": 60,
+        "siteAbbr": "東日本銀行本店",
+        "siteId": "Jheu3UFsyPzkSGW7YfrJ",
+        "startTime": "07:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789482179,
+    "date": "2024-07-15",
+    "employeeId": "WD6UX4ZFf5ZprrotblHC",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-15",
+    "uid": "2024-07-15-WD6UX4ZFf5ZprrotblHC",
+    "operationResults": [
+      {
+        "docId": "AMfCSCG1KYd6nlxOTXVp",
+        "breakMinutes": 60,
+        "date": "2024-07-15",
+        "endTime": "17:00",
+        "overtimeMinutes": 60,
+        "siteAbbr": "渋谷NHK第一共同ビル",
+        "siteId": "BCgybJLNzzLg1N2fsRYg",
+        "startTime": "07:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789482121,
+    "date": "2024-07-15",
+    "employeeId": "p2OGG3kh7MEqcLFykrR8",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-15",
+    "uid": "2024-07-15-p2OGG3kh7MEqcLFykrR8",
+    "operationResults": [
+      {
+        "docId": "zAiBQ9n9cstwglez3XIr",
+        "breakMinutes": 60,
+        "date": "2024-07-15",
+        "endTime": "18:00",
+        "overtimeMinutes": 0,
+        "siteAbbr": "新任研修",
+        "siteId": "TKHVIk5kyWDbqF1gf081",
+        "startTime": "09:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789482500,
+    "date": "2024-07-15",
+    "employeeId": "sOKLtgf1nLkcxTDnrdW2",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-15",
+    "uid": "2024-07-15-sOKLtgf1nLkcxTDnrdW2",
+    "operationResults": [
+      {
+        "docId": "hllK53izmfE7WhWajVkG",
+        "breakMinutes": 60,
+        "date": "2024-07-15",
+        "endTime": "17:00",
+        "overtimeMinutes": 0,
+        "siteAbbr": "東日本銀行本店",
+        "siteId": "Jheu3UFsyPzkSGW7YfrJ",
+        "startTime": "08:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789483045,
+    "date": "2024-07-15",
+    "employeeId": "tZjebn6JemUN3a5l6zUe",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-15",
+    "uid": "2024-07-15-tZjebn6JemUN3a5l6zUe",
+    "operationResults": [
+      {
+        "docId": "kvsOjZ1SKA6G4brZ8G6e",
+        "breakMinutes": 60,
+        "date": "2024-07-15",
+        "endTime": "17:00",
+        "overtimeMinutes": 0,
+        "siteAbbr": "恵比寿1丁目ビル",
+        "siteId": "mbaTDAUcgMceFKbuT3MS",
+        "startTime": "08:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789482651,
+    "date": "2024-07-15",
+    "employeeId": "tgOZXYOmNW2TFNfoVECB",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-15",
+    "uid": "2024-07-15-tgOZXYOmNW2TFNfoVECB",
+    "operationResults": [
+      {
+        "docId": "hllK53izmfE7WhWajVkG",
+        "breakMinutes": 60,
+        "date": "2024-07-15",
+        "endTime": "17:00",
+        "overtimeMinutes": 60,
+        "siteAbbr": "東日本銀行本店",
+        "siteId": "Jheu3UFsyPzkSGW7YfrJ",
+        "startTime": "07:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  },
+  {
+    "creatingAt": 1723789482090,
+    "date": "2024-07-15",
+    "employeeId": "u5ANbBgQhw7wXxacgjQ8",
+    "status": "0:creating",
+    "statusDateKey": "0:creating-2024-07-15",
+    "uid": "2024-07-15-u5ANbBgQhw7wXxacgjQ8",
+    "operationResults": [
+      {
+        "docId": "9MkjJeIFZ1wRxIlvYbny",
+        "breakMinutes": 60,
+        "date": "2024-07-15",
+        "endTime": "05:00",
+        "overtimeMinutes": 0,
+        "siteAbbr": "SOCOLA武蔵小金井ｼﾃｨｸﾛｽ",
+        "siteId": "icTQhTI6S0AXKn8BxGsX",
+        "startTime": "20:00",
+        "transportationCost": { "amount": 0, "type": "on-cash" }
+      }
+    ]
+  }
+]
