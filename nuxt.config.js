@@ -114,6 +114,7 @@ export default {
     mode: 'out-in',
     duration: 300,
   },
+
   layoutTransition: {
     name: 'slide-x-transition',
     mode: 'out-in',

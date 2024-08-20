@@ -85,11 +85,12 @@
  */
 
 /* eslint-disable */
-import { initializeApp } from 'firebase/app'
+import { getApps, initializeApp } from 'firebase/app'
 // import { connectFirestoreEmulator, getFirestore } from 'firebase/firestore'
 import {
   connectFirestoreEmulator,
-  initializeFirestore,
+  getFirestore,
+  // initializeFirestore,
 } from 'firebase/firestore'
 import { connectDatabaseEmulator, getDatabase } from 'firebase/database'
 import { connectAuthEmulator, getAuth } from 'firebase/auth'
@@ -114,13 +115,16 @@ export default (context, inject) => {
   )
 
   // Initialize firebase.
-  const firebaseApp = initializeApp(firebaseConfig)
+  // const firebaseApp = initializeApp(firebaseConfig)
+  const firebaseApp = getApps().length
+    ? getApps()[0]
+    : initializeApp(firebaseConfig)
   const inAuth = getAuth(firebaseApp)
   const inFunctions = getFunctions(firebaseApp)
-  // const inFirestore = getFirestore(firebaseApp)
-  const inFirestore = initializeFirestore(firebaseApp, {
-    experimentalForceLongPolling: true,
-  })
+  const inFirestore = getFirestore(firebaseApp)
+  // const inFirestore = initializeFirestore(firebaseApp, {
+  //   experimentalForceLongPolling: true,
+  // })
   const inDatabase = getDatabase(firebaseApp)
   const inStorage = getStorage(firebaseApp)
   const inVapidKey = firebaseConfig?.vapidKey || ''

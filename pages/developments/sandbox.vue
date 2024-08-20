@@ -1,56 +1,118 @@
 <template>
   <v-container>
-    <v-toolbar>
-      <v-btn @click="fetch">fetch</v-btn>
-    </v-toolbar>
-    <v-data-table
-      :headers="[
-        { text: 'id', value: 'docId' },
-        { text: 'status', value: 'transportationCost.status' },
-        { text: 'createAt', value: 'transportationCost.createAt' },
-        { text: 'draftAt', value: 'transportationCost.draftAt' },
-        { text: 'actions', value: 'actions' },
-      ]"
-      :items="items"
-      disable-sort
-    >
-      <template #[`item.transportationCost.createAt`]="{ item }">
-        {{ dateFormat(item.createAt) }}
-      </template>
-      <template #[`item.actions`]="{ item }">
-        <v-btn @click="showDetail(item)">detail</v-btn>
-      </template>
-    </v-data-table>
+    <v-container>
+      <v-card>
+        <v-card-text>
+          <v-text-field v-model="model.lastName" label="lastName" />
+          <v-text-field v-model="model.firstName" label="firstName" />
+        </v-card-text>
+        <v-card-actions class="justify-space-between">
+          <v-btn @click="create">create</v-btn>
+          <v-btn @click="fetchDoc">fetchDoc</v-btn>
+          <v-btn @click="update">update</v-btn>
+          <v-btn @click="del">delete</v-btn>
+          <v-btn @click="restore">restore</v-btn>
+          <v-btn @click="subscribe">subscribe</v-btn>
+          <v-btn @click="unsubscribe">unsubscribe</v-btn>
+          <v-btn @click="subscribeDocs">subscribeDocs</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-container>
+    <v-container>
+      <v-card>
+        <v-card-title>DOCUMENTS</v-card-title>
+        <v-data-table :items="items" :headers="headers">
+          <template #[`item.actions`]="{ item }">
+            <v-btn @click="fetch(item.docId)">fetch</v-btn>
+          </template>
+        </v-data-table>
+      </v-card>
+    </v-container>
+    <v-container>
+      <v-card>
+        <v-card-title>ARCHIVES</v-card-title>
+        <v-data-table :items="archives" :headers="headers">
+          <template #[`item.actions`]="{ item }">
+            <v-btn @click="restore(item.docId)">fetch</v-btn>
+          </template>
+        </v-data-table>
+      </v-card>
+    </v-container>
   </v-container>
 </template>
 
 <script>
-import { collection, getDocs } from 'firebase/firestore'
+import FireModel from 'air-firemodel'
+class TestModel extends FireModel {
+  constructor(item = {}) {
+    super(item, 'TestCollection', [], true)
+    Object.defineProperties(this, {
+      fullName: {
+        enumerable: true,
+        get() {
+          return `${this.lastName} ${this.firstName}`
+        },
+        set(v) {},
+      },
+    })
+  }
+
+  initialize(item = {}) {
+    this.firstName = ''
+    this.lastName = ''
+    super.initialize(item)
+  }
+}
 export default {
   components: {},
   data() {
     return {
+      archives: [],
+      docRef: null,
       items: [],
+      model: new TestModel(),
     }
   },
-  computed: {},
+  computed: {
+    headers() {
+      const result = Object.keys(this.model).map((key) => {
+        return { text: key, value: key }
+      })
+      result.push({ text: 'actions', value: 'actions' })
+      return result
+    },
+  },
   methods: {
-    async fetch() {
-      this.items.splice(0)
-      const colRef = collection(this.$firestore, 'OperationWorkResults')
-      const snapshot = await getDocs(colRef)
-      this.items = snapshot.docs.map((doc) => doc.data())
+    async create() {
+      await this.model.create()
+      this.model.initialize()
     },
-    dateFormat(timestamp) {
-      return this.$dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss')
+    async fetch(docId) {
+      await this.model.fetch(docId)
     },
-    async toDraft(item) {
-      const model = this.$OperationWorkResult(item)
-      await model.toDraft()
+    async fetchDoc() {
+      const newModel = await this.model.fetchDoc(this.docRef.id)
+      console.log(newModel)
     },
-    showDetail(item) {
-      const model = this.$OperationWorkResult(item)
-      console.log(model)
+    async update() {
+      this.model.firstName = 'daizo'
+      this.model.lastName = 'maruyama'
+      await this.model.update()
+    },
+    async del() {
+      await this.model.delete()
+    },
+    async restore(docId) {
+      await this.model.restore(docId)
+    },
+    subscribe() {
+      this.model.subscribe(this.docRef.id)
+    },
+    unsubscribe() {
+      this.model.unsubscribe()
+    },
+    subscribeDocs() {
+      this.items = this.model.subscribeDocs()
     },
   },
 }
