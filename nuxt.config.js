@@ -1,9 +1,18 @@
 import colors from 'vuetify/es5/util/colors'
+import dotenv from 'dotenv'
+dotenv.config({ path: `.env.${process.env.NODE_ENV || 'local'}` })
 
 export default {
   // Rewrite NODE_ENV to switch firebase settings according to the environment.
   env: {
     NODE_ENV: process.env.NODE_ENV || 'dev',
+    API_KEY: process.env.API_KEY,
+    AUTH_DOMAIN: process.env.AUTH_DOMAIN,
+    PROJECT_ID: process.env.PROJECT_ID,
+    DATABASE_URL: process.env.DATABASE_URL,
+    STORAGE_BUCKET: process.env.STORAGE_BUCKET,
+    MESSAGING_SENDER_ID: process.env.MESSAGING_SENDER_ID,
+    APP_ID: process.env.APP_ID,
   },
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
   ssr: false,

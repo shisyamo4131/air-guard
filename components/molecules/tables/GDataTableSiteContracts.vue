@@ -5,7 +5,9 @@
  *
  * @author shisyamo4131
  */
+import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 export default {
+  components: { GDataTable },
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -45,7 +47,7 @@ export default {
 </script>
 
 <template>
-  <v-data-table
+  <g-data-table
     v-bind="$attrs"
     :headers="headers"
     hide-default-footer
@@ -78,7 +80,7 @@ export default {
     >
       {{ item.unitPrices[dayDiv][claimType][price].toLocaleString() }}
     </template>
-  </v-data-table>
+  </g-data-table>
 </template>
 
 <style></style>

@@ -61,20 +61,6 @@
       ]
     },
     {
-      "collectionGroup": "EmployeeLeaveApplications",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "docId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "leaveApplicationId",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
       "collectionGroup": "Employees",
       "queryScope": "COLLECTION",
       "fields": [
@@ -153,29 +139,6 @@
     {
       "collectionGroup": "EmployeeContracts",
       "fieldPath": "employeeId",
-      "ttl": false,
-      "indexes": [
-        {
-          "order": "ASCENDING",
-          "queryScope": "COLLECTION"
-        },
-        {
-          "order": "DESCENDING",
-          "queryScope": "COLLECTION"
-        },
-        {
-          "arrayConfig": "CONTAINS",
-          "queryScope": "COLLECTION"
-        },
-        {
-          "order": "ASCENDING",
-          "queryScope": "COLLECTION_GROUP"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "EmployeeLeaveApplications",
-      "fieldPath": "docId",
       "ttl": false,
       "indexes": [
         {

@@ -1,160 +1,119 @@
+import { FireModel } from 'air-firebase'
+import Employee from './Employee'
+import { classProps } from './propsDefinition/EmployeeContract'
+
 /**
- * ### EmployeeContract.js
+ * EmployeeContractsドキュメントデータモデル
  *
- * 従業員の雇用契約データモデルです。
+ * - 従業員の雇用契約情報を管理するデータモデルです。
  *
- * #### 注意事項
- * 1. ドキュメント作成時、従業員情報を取得して`employee`プロパティにセットします。
- * 2. ドキュメント更新時には従業員情報は取得・更新されません。
- *    -> Employeeドキュメントのサブコレクションであるため。
- * 3. Employeeドキュメントが更新された時の同期処理はCloud Functionsで行われます。
- *
+ * @version 2.0.0
  * @author shisyamo4131
- * @version 1.2.0
- *
  * @updates
- * - version 1.2.0 - 2024-08-09 - `fetchByEmployeeId()`を実装。
- *                              - `fetchByEmployeeIds()`を実装。
- * - version 1.1.0 - 2024-07-19 - ドキュメント作成時に従業員情報を取得するように修正
- * - version 1.0.0 - 2024-07-17 - 初版作成
+ * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
-
-import {
-  collectionGroup,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from 'firebase/firestore'
-import FireModel from './FireModel'
-
-const props = {
-  props: {
-    docId: { type: String, default: '', required: false },
-    employeeId: { type: String, default: '', required: false },
-    employee: { type: Object, default: () => ({}), required: false },
-    workRegulationId: { type: String, default: '', required: false },
-    startDate: { type: String, default: '', required: false },
-    hasPeriod: { type: Boolean, default: true, required: false },
-    expiredDate: { type: String, default: '', required: false },
-    contractType: {
-      type: String,
-      default: 'part-time',
-      validator: (v) => ['part-time', 'contract', 'full-time'],
-      required: false,
-    },
-    paymentType: {
-      type: String,
-      default: 'daily',
-      validator: (v) => ['daily', 'monthly'],
-    },
-    basicWage: { type: Number, default: null, required: false },
-    remarks: { type: String, default: '', required: false },
-  },
-}
-export { props }
-
 export default class EmployeeContract extends FireModel {
-  constructor(context, item = {}) {
-    super(context, item)
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item, 'EmployeeContracts', [], false, [], classProps)
   }
 
-  get collection() {
-    return `Employees/${this.employeeId}/EmployeeContracts`
-  }
-
-  set collection(v) {}
-
-  initialize(item = {}) {
-    Object.keys(props.props).forEach((key) => {
-      const propDefault = props.props[key].default
-      this[key] =
-        typeof propDefault === 'function' ? propDefault() : propDefault
-    })
-    super.initialize(item)
-  }
-
-  /**
-   * 同一の開始日付、勤務区分での雇用契約が存在する場合は作成不可です。
-   */
-  async beforeCreate() {
-    if (await this.isExist()) {
-      const errMsg = '同一契約日の雇用契約が既に登録されています。'
-      // eslint-disable-next-line
-      console.error(errMsg)
-      throw new Error(errMsg)
+  /****************************************************************************
+   * クラスインスタンスをオブジェクト形式に変換します。
+   * - スーパークラスの `toObject` メソッドを呼び出し、その結果に `employee` プロパティを追加します。
+   * - `employee` プロパティが存在し、かつ `toObject` メソッドを持つ場合、そのメソッドを呼び出してオブジェクトに変換します。
+   * - `employee` が存在しない場合、もしくは `toObject` メソッドを持たない場合、そのままの値か、空のオブジェクトを返します。
+   *
+   * @returns {Object} - クラスインスタンスを表すオブジェクト
+   ****************************************************************************/
+  toObject() {
+    return {
+      ...super.toObject(),
+      employee:
+        this.employee && typeof this.employee.toObject === 'function'
+          ? this.employee.toObject()
+          : this.employee || {},
     }
-    if (!this.hasPeriod) this.expiredDate = ''
-    this.employee = await this.getEmployee()
-    if (!this.employee) {
+  }
+
+  /****************************************************************************
+   * Firestoreから取得したデータをクラスインスタンスに変換します。
+   * - スーパークラスの `fromFirestore` メソッドを呼び出して基本のインスタンスを取得します。
+   * - 取得した `employee` データを新しい `Employee` クラスのインスタンスに変換します。
+   * - `employee` が存在しない場合、`null` を引数として渡して `Employee` のインスタンスを作成します。
+   *
+   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
+   * @returns {Object} - クラスインスタンス
+   ****************************************************************************/
+  fromFirestore(snapshot) {
+    // スーパークラスから基本のインスタンスを生成
+    const instance = super.fromFirestore(snapshot)
+
+    // employee データを新しい Employee クラスのインスタンスに変換
+    instance.employee = new Employee(instance?.employee || null)
+
+    // 変換したインスタンスを返す
+    return instance
+  }
+
+  /****************************************************************************
+   * beforeCreateをオーバーライドします。
+   * - `employeeId`、`startDate`の入力チェックを行います。
+   * - `employeeId`と`startDate`が同一である他のドキュメントが存在した場合はエラーをスローします。
+   * - `employeeId`に該当する`employee`オブジェクトを取得・セットします。
+   * - validatePropertiesを行う為、super.beforeCreateを呼び出します。
+   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   ****************************************************************************/
+  async beforeCreate() {
+    if (!this.employeeId) {
+      throw new Error('従業員の指定が必要です。')
+    }
+    if (!this.startDate) {
+      throw new Error('開始日の指定が必要です。')
+    }
+    const id = `${this.employeeId}-${this.startDate}`
+    const existingContract = await this.fetchDoc(id)
+    if (existingContract) {
+      throw new Error('同一契約日の雇用契約が既に登録されています。')
+    }
+    const employee = await new Employee().fetchDoc(this.employeeId)
+    if (!employee) {
       throw new Error('従業員情報が取得できませんでした。')
     }
+    this.employee = employee
+    if (!this.hasPeriod) this.expiredDate = ''
+    await super.beforeCreate()
   }
 
-  beforeUpdate() {
-    return new Promise((resolve) => {
-      if (!this.hasPeriod) this.expiredDate = ''
-      resolve()
-    })
+  /****************************************************************************
+   * beforeUpdateをオーバーライドします。
+   * - `employeeId`、`startDate`が変更されていないかをチェックします。
+   * - validatePropertiesを行う為、super.beforeUpdateを呼び出します。
+   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   ****************************************************************************/
+  async beforeUpdate() {
+    const match = this.docId.match(/^(.+)-(\d{4}-\d{2}-\d{2})$/) // YYYY-MM-DD形式の日付部分をキャプチャ
+    if (!match) {
+      throw new Error('docIdの形式が正しくありません。')
+    }
+
+    const [, employeeId, startDate] = match // 分割した結果を格納
+    if (employeeId !== this.employeeId || startDate !== this.startDate) {
+      throw new Error('従業員、開始日は変更できません。')
+    }
+    await super.beforeUpdate()
   }
 
-  /**
-   * `docId`を`${startDate}-${workShift}`に固定します。
-   */
+  /****************************************************************************
+   * createをオーバーライドします。
+   * - ドキュメントIDを`${employeeId}-${startDate}`に固定します。
+   * - super.create({docId})を呼び出します。
+   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   ****************************************************************************/
   async create() {
-    const docId = `${this.startDate}`
+    const docId = `${this.employeeId}-${this.startDate}`
     await super.create({ docId })
-  }
-
-  /**
-   * 指定された開始日、勤務区分での雇用契約が存在するかどうかを返します。
-   */
-  async isExist() {
-    const path = `${this.collection}/${this.startDate}`
-    const docRef = doc(this.firestore, path)
-    const snapshot = await getDoc(docRef)
-    return snapshot.exists()
-  }
-
-  async getEmployee() {
-    const docRef = doc(this.firestore, `Employees/${this.employeeId}`)
-    const snapshot = await getDoc(docRef)
-    return snapshot.exists() ? snapshot.data() : undefined
-  }
-
-  /**
-   * 指定された従業員の雇用契約データを取得して配列で返します。
-   * @param {string} employeeId 従業員のドキュメントid
-   * @returns {Promise<Array>} 雇用契約ドキュメントデータの配列
-   */
-  async fetchByEmployeeId(employeeId) {
-    const colRef = collectionGroup(this.firestore, 'EmployeeContracts')
-    const q = query(colRef, where('employeeId', '==', employeeId))
-    const snapshots = await getDocs(q)
-    if (snapshots.empty) return []
-    return snapshots.docs.map((doc) => doc.data())
-  }
-
-  /**
-   * 従業員のドキュメントidの配列を受け取り、該当する雇用契約ドキュメントデータを配列で返します。
-   * 従業員のドキュメントidの配列は、重複があれば一意に整理されます。
-   * @param {Array<string>} ids
-   * @returns {Promise<Array>} 雇用契約ドキュメントデータの配列
-   */
-  async fetchByEmployeeIds(ids) {
-    const unique = [...new Set(ids)]
-    const chunked = unique.flatMap((_, i) =>
-      i % 30 ? [] : [unique.slice(i, i + 30)]
-    )
-    const colRef = collectionGroup(this.firestore, 'EmployeeContracts')
-    const snapshots = await Promise.all(
-      chunked.map(async (arr) => {
-        const q = query(colRef, where('employeeId', 'in', arr))
-        const snapshot = await getDocs(q)
-        return snapshot.docs.map((doc) => doc.data())
-      })
-    )
-    return snapshots.flat()
   }
 }

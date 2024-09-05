@@ -1,15 +1,6 @@
 <script>
 /**
- * ### GInputCustomer
- *
  * 取引先情報入力コンポーネントです。
- *
- * #### 機能詳細
- * - 締日、入金サイトは一度登録すると変更できません。
- *   -> トランザクションへの影響範囲が大きすぎるため。
- *
- * #### UPDATE
- * - version 1.0.0 - 2024-07-10 - 初版作成
  *
  * @author shisyamo4131
  * @version 1.0.0
@@ -17,20 +8,40 @@
 import GTextField from '../../atoms/inputs/GTextField.vue'
 import GSelect from '../../atoms/inputs/GSelect.vue'
 import GNumeric from '../../atoms/inputs/GNumeric.vue'
+import GCardInputForm from '../cards/GCardInputForm.vue'
 import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
-import { props } from '~/models/Customer'
-import EditMode from '~/components/mixins/GMixinEditMode'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
+import Customer from '~/models/Customer'
+import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { ARenderlessZipcode, GTextField, GSelect, GNumeric, GTextarea },
+  components: {
+    ARenderlessZipcode,
+    GTextField,
+    GSelect,
+    GNumeric,
+    GTextarea,
+    GCardInputForm,
+  },
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GInputSubmitMixin],
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [props, EditMode],
+  props: {
+    instance: {
+      type: Object,
+      required: true,
+      validator(instance) {
+        return instance instanceof Customer
+      },
+    },
+  },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
@@ -44,123 +55,108 @@ export default {
         .trim()
         .replace(/^\s+|\s+$/g, '')
         .replace(/^[\u3000]+|[\u3000]+$/g, '')
-      this.$emit('update:abbr', result)
+      // this.$emit('update:abbr', result)
+      this.editModel.abbr = result
     },
   },
 }
 </script>
 
 <template>
-  <div>
-    <g-text-field
-      :value="name1"
-      label="取引先名1"
-      required
-      @input="$emit('update:name1', $event)"
-      @change="onChangedName1"
-    />
-    <g-text-field
-      :value="name2"
-      label="取引先名2"
-      @input="$emit('update:name2', $event)"
-    />
-    <g-text-field
-      :value="abbr"
-      label="略称"
-      required
-      hint="検索に使用されます"
-      ignore-surrogate-pair
-      @input="$emit('update:abbr', $event)"
-    />
-    <g-text-field
-      :value="abbrKana"
-      label="略称カナ"
-      required
-      hint="検索に使用されます"
-      ignore-surrogate-pair
-      input-type="katakana"
-      @input="$emit('update:abbrKana', $event)"
-    />
-    <a-renderless-zipcode
-      :value="zipcode"
-      @input="$emit('update:zipcode', $event)"
-      @loaded="$emit('update:address1', $event.full)"
-    >
-      <template #default="{ attrs, on }">
-        <g-text-field
-          class="center-input"
-          style="max-width: 96px"
-          v-bind="attrs"
-          label="郵便番号"
-          v-on="on"
-        />
-      </template>
-    </a-renderless-zipcode>
-    <g-text-field
-      :value="address1"
-      label="住所"
-      required
-      @input="$emit('update:address1', $event)"
-    />
-    <g-text-field
-      :value="address2"
-      label="建物名・階数"
-      @input="$emit('update:address2', $event)"
-    />
-    <v-row dense>
-      <v-col cols="12" sm="6">
-        <g-text-field
-          :value="tel"
-          label="電話番号"
-          input-type="tel"
-          @input="$emit('update:tel', $event)"
-        />
-      </v-col>
-      <v-col cols="12" sm="6">
-        <g-text-field
-          :value="fax"
-          label="FAX番号"
-          input-type="tel"
-          @input="$emit('update:fax', $event)"
-        />
-      </v-col>
-    </v-row>
-    <v-row dense>
-      <v-col cols="12" sm="4">
-        <g-select
-          :value="deadline"
-          label="締日"
-          :disabled="editMode !== 'REGIST'"
-          :items="$DEADLINE_ARRAY"
-          @input="$emit('update:deadline', $event)"
-        />
-      </v-col>
-      <v-col cols="12" sm="4">
-        <g-numeric
-          :value="depositMonth"
-          label="入金月"
-          :disabled="editMode !== 'REGIST'"
-          suffix="ヶ月後"
-          @input="$emit('update:depositMonth', $event)"
-        />
-      </v-col>
-      <v-col cols="12" sm="4">
-        <g-select
-          :value="depositDate"
-          label="入金日"
-          :disabled="editMode !== 'REGIST'"
-          :items="$DEADLINE_ARRAY"
-          @input="$emit('update:depositDate', $event)"
-        />
-      </v-col>
-    </v-row>
-    <g-textarea
-      :value="remarks"
-      label="備考"
-      hide-details
-      @input="$emit('update:remarks', $event)"
-    />
-  </div>
+  <g-card-input-form
+    v-bind="$attrs"
+    label="取引先情報編集"
+    :edit-mode="editMode"
+    @click:submit="submit"
+    v-on="$listeners"
+  >
+    <v-form ref="form" @submit.prevent>
+      <g-text-field
+        v-model="editModel.name1"
+        label="取引先名1"
+        required
+        @change="onChangedName1"
+      />
+      <g-text-field v-model="editModel.name2" label="取引先名2" />
+      <g-text-field
+        v-model="editModel.abbr"
+        label="略称"
+        required
+        hint="検索に使用されます"
+        ignore-surrogate-pair
+      />
+      <g-text-field
+        v-model="editModel.abbrKana"
+        label="略称カナ"
+        required
+        hint="検索に使用されます"
+        ignore-surrogate-pair
+        input-type="katakana"
+      />
+      <a-renderless-zipcode
+        v-model="editModel.zipcode"
+        @loaded="editModel.address1 = $event.full"
+      >
+        <template #default="{ attrs, on }">
+          <g-text-field
+            class="center-input"
+            style="max-width: 96px"
+            v-bind="attrs"
+            label="郵便番号"
+            v-on="on"
+          />
+        </template>
+      </a-renderless-zipcode>
+      <g-text-field v-model="editModel.address1" label="住所" required />
+      <g-text-field v-model="editModel.address2" label="建物名・階数" />
+      <v-row dense>
+        <v-col cols="12" sm="6">
+          <g-text-field
+            v-model="editModel.tel"
+            label="電話番号"
+            input-type="tel"
+          />
+        </v-col>
+        <v-col cols="12" sm="6">
+          <g-text-field
+            v-model="editModel.fax"
+            label="FAX番号"
+            input-type="tel"
+          />
+        </v-col>
+      </v-row>
+      <v-row dense>
+        <v-col cols="12" sm="4">
+          <g-select
+            v-model="editModel.deadline"
+            label="締日"
+            :disabled="editMode !== CREATE"
+            :items="$DEADLINE_ARRAY"
+            required
+          />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <g-numeric
+            v-model="editModel.depositMonth"
+            label="入金月"
+            :disabled="editMode !== CREATE"
+            suffix="ヶ月後"
+            required
+          />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <g-select
+            v-model="editModel.depositDate"
+            label="入金日"
+            :disabled="editMode !== CREATE"
+            :items="$DEADLINE_ARRAY"
+            required
+          />
+        </v-col>
+      </v-row>
+      <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+    </v-form>
+  </g-card-input-form>
 </template>
 
 <style></style>

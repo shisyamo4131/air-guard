@@ -1,3 +1,4 @@
+// 使用不可
 /**
  * ## mixins.GMixinEditMode.js
  * @author shisyamo4131

@@ -19,7 +19,7 @@ import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import { props } from '~/models/SiteOperationScheduleBulk'
-import EditMode from '~/components/mixins/GMixinEditMode'
+import EditMode from '~/mixins/GMixinEditMode'
 import GDatePickerMultiple from '~/components/atoms/pickers/GDatePickerMultiple.vue'
 export default {
   /***************************************************************************

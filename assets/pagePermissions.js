@@ -17,8 +17,6 @@ module.exports = {
   'temporary-site-schedules': ['admin', 'developer'],
   customers: ['admin'],
   'customers-docId': ['admin'],
-  'developments-sandbox': ['admin'],
-  'developments-models': ['admin'],
   equipments: ['admin'],
   'equipments-docId': ['admin'],
   outsourcers: ['admin'],
@@ -32,8 +30,11 @@ module.exports = {
   'operation-resuls-regist': ['admin'],
   'operation-resuls-docId': ['admin'],
   'operation-resuls-docId-edit': ['admin'],
-  'synchronize-customers': ['admin', 'developper'],
-  'synchronize-employees': ['admin', 'developper'],
-  'synchronize-sites': ['admin', 'developper'],
+  'synchronize-customers': ['admin', 'developer'],
+  'synchronize-employees': ['admin', 'developer'],
+  'synchronize-sites': ['admin', 'developer'],
   'transportation-cost-applications': [],
+  // 以下、開発用ページ
+  'developments-model-input': ['admin', 'developer'],
+  'developments-sandbox': ['admin', 'developer'],
 }

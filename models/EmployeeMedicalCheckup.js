@@ -1,77 +1,118 @@
+import { FireModel } from 'air-firebase'
+import Employee from './Employee'
+import { classProps } from './propsDefinition/EmployeeMedicalCheckup'
+
 /**
- * ### MedicalCheckup.js
+ * EmployeeMedicalCheckupsドキュメントデータモデル
  *
- * 概要:
  * 従業員の健康診断情報を管理するためのデータモデルです。
  *
- * 機能詳細:
- *
- * 注意事項:
- * - 従業員情報が削除されるとCloud Functionsによって同期削除されます。
- *
+ * @version 2.0.0
  * @author shisyamo4131
- * @create 2024-07-02
- * @version 1.0.0
- *
- * 更新履歴:
- * version 1.0.1 - 2024-07-09
- *  - FireModelのcreate()の仕様変更に伴う修正。
- *
- * version 1.0.0 - 2024-07-02
- *  - 初版作成
+ * @updates
+ * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
-import FireModel from './FireModel'
-
-const props = {
-  props: {
-    employeeId: { type: String, default: '', required: false },
-    date: { type: String, default: '', required: false },
-    type: {
-      type: String,
-      default: 'entry',
-      validator: (v) => ['entry', 'regular'].includes(v),
-      required: false,
-    },
-    agency: { type: String, default: '', required: false },
-    bloodPressure: {
-      type: Object,
-      default: () => {
-        return {
-          top: null,
-          bottom: null,
-        }
-      },
-      required: false,
-    },
-    remarks: { type: String, default: '', required: false },
-  },
-}
-export { props }
-
 export default class EmployeeMedicalCheckup extends FireModel {
-  constructor(context, item = {}) {
-    super(context, item)
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item, 'EmployeeMedicalCheckups', [], false, [], classProps)
   }
 
-  get collection() {
-    return `Employees/${this.employeeId}/EmployeeMedicalCheckups`
+  /****************************************************************************
+   * クラスインスタンスをオブジェクト形式に変換します。
+   * - スーパークラスの `toObject` メソッドを呼び出し、その結果に `employee` プロパティを追加します。
+   * - `employee` プロパティが存在し、かつ `toObject` メソッドを持つ場合、そのメソッドを呼び出してオブジェクトに変換します。
+   * - `employee` が存在しない場合、もしくは `toObject` メソッドを持たない場合、そのままの値か、空のオブジェクトを返します。
+   *
+   * @returns {Object} - クラスインスタンスを表すオブジェクト
+   ****************************************************************************/
+  toObject() {
+    return {
+      ...super.toObject(),
+      employee:
+        this.employee && typeof this.employee.toObject === 'function'
+          ? this.employee.toObject()
+          : this.employee || {},
+    }
   }
 
-  set collection(v) {}
+  /****************************************************************************
+   * Firestoreから取得したデータをクラスインスタンスに変換します。
+   * - スーパークラスの `fromFirestore` メソッドを呼び出して基本のインスタンスを取得します。
+   * - 取得した `employee` データを新しい `Employee` クラスのインスタンスに変換します。
+   * - `employee` が存在しない場合、`null` を引数として渡して `Employee` のインスタンスを作成します。
+   *
+   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
+   * @returns {Object} - クラスインスタンス
+   ****************************************************************************/
+  fromFirestore(snapshot) {
+    // スーパークラスから基本のインスタンスを生成
+    const instance = super.fromFirestore(snapshot)
 
-  initialize(item = {}) {
-    Object.keys(props.props).forEach((key) => {
-      const propDefault = props.props[key].default
-      this[key] =
-        typeof propDefault === 'function' ? propDefault() : propDefault
-    })
-    super.initialize(item)
+    // employee データを新しい Employee クラスのインスタンスに変換
+    instance.employee = new Employee(instance?.employee || null)
+
+    // 変換したインスタンスを返す
+    return instance
   }
 
-  create() {
-    const docId = this.date
-    /* 2024-07-09 FireModelの変更に伴って修正 */
-    // super.create(docId)
-    super.create({ docId })
+  /****************************************************************************
+   * beforeCreateをオーバーライドします。
+   * - `employeeId`、`date`の入力チェックを行います。
+   * - `employeeId`と`date`が同一である他のドキュメントが存在した場合はエラーをスローします。
+   * - `employeeId`に該当する`employee`オブジェクトを取得・セットします。
+   * - validatePropertiesを行う為、super.beforeCreateを呼び出します。
+   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   ****************************************************************************/
+  async beforeCreate() {
+    if (!this.employeeId) {
+      throw new Error('従業員の指定が必要です。')
+    }
+    if (!this.date) {
+      throw new Error('受診日の指定が必要です。')
+    }
+    const id = `${this.employeeId}-${this.date}`
+    const existingContract = await this.fetchDoc(id)
+    if (existingContract) {
+      throw new Error('同一の受診履歴が既に登録されています。')
+    }
+    const employee = await new Employee().fetchDoc(this.employeeId)
+    if (!employee) {
+      throw new Error('従業員情報が取得できませんでした。')
+    }
+    this.employee = employee
+    await super.beforeCreate()
+  }
+
+  /****************************************************************************
+   * beforeUpdateをオーバーライドします。
+   * - `employeeId`、`date`が変更されていないかをチェックします。
+   * - validatePropertiesを行う為、super.beforeCreateを呼び出します。
+   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   ****************************************************************************/
+  async beforeUpdate() {
+    const match = this.docId.match(/^(.+)-(\d{4}-\d{2}-\d{2})$/) // YYYY-MM-DD形式の日付部分をキャプチャ
+    if (!match) {
+      throw new Error('docIdの形式が正しくありません。')
+    }
+
+    const [, employeeId, date] = match // 分割した結果を格納
+    if (employeeId !== this.employeeId || date !== this.date) {
+      throw new Error('従業員、受診日は変更できません。')
+    }
+    await super.beforeUpdate()
+  }
+
+  /****************************************************************************
+   * createをオーバーライドします。
+   * - ドキュメントIDを`${employeeId}-${date}`に固定します。
+   * - super.create({docId})を呼び出します。
+   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   ****************************************************************************/
+  async create() {
+    const docId = `${this.employeeId}-${this.date}`
+    await super.create({ docId })
   }
 }

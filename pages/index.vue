@@ -28,9 +28,6 @@
       <v-col cols="12" lg="8" xl="5">
         <g-launcher-attendance-records flat outlined />
       </v-col>
-      <v-col cols="12" lg="4" xl="4">
-        <g-launcher-leave-applications flat outlined />
-      </v-col>
       <!-- <v-col cols="12">
         <v-card>
           <v-card-title> 売上推移 </v-card-title>
@@ -64,16 +61,12 @@
 
 <script>
 import GLauncherAttendanceRecords from '~/components/organisms/GLauncherAttendanceRecords.vue'
-import GLauncherLeaveApplications from '~/components/organisms/GLauncherLeaveApplications.vue'
 // import BChartSales from '~/components/molecules/charts/BChartSales.vue'
-// import GLauncherTemporarySiteOperationSchedules from '~/components/organisms/GLauncherTemporarySiteOperationSchedules.vue'
 
 export default {
   name: 'IndexPage',
   components: {
     // BChartSales,
-    // GLauncherTemporarySiteOperationSchedules,
-    GLauncherLeaveApplications,
     GLauncherAttendanceRecords,
   },
   data() {

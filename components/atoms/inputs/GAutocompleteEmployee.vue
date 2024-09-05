@@ -1,13 +1,30 @@
 <script>
-import GAutocompleteCustomer from './GAutocompleteCustomer.vue'
+import GAutocomplete from './GAutocomplete.vue'
 export default {
-  extends: GAutocompleteCustomer,
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
+  components: { GAutocomplete },
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
   data() {
     return {
-      model: this.$Employee(),
+      itemText: 'fullName',
     }
   },
 }
 </script>
+
+<template>
+  <g-autocomplete
+    v-bind="$attrs"
+    :item-text="itemText"
+    item-value="docId"
+    :items="$store.state.employees.items"
+    v-on="$listeners"
+  >
+  </g-autocomplete>
+</template>
 
 <style></style>

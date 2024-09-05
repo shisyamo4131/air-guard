@@ -13,7 +13,7 @@
  */
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import { props } from '~/models/WorkRegulation'
-import EditMode from '~/components/mixins/GMixinEditMode'
+import EditMode from '~/mixins/GMixinEditMode'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'

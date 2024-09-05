@@ -1,99 +1,51 @@
+import { where } from 'firebase/firestore'
+import { FireModel } from 'air-firebase'
+import { classProps } from './propsDefinition/Employee'
+
 /**
- * ### Employee.js
+ * Employeesドキュメントデータモデル
  *
- * 概要:
- * Employeeクラスは、従業員情報を管理するためのモデルクラスです。
- * FireModelクラスを継承し、Firestoreとの連携やCRUD操作を簡素化します。
+ * - 従業員情報を管理するデータモデルです。
+ * - `code`は Autonumbers による自動採番が行われます。
+ * - 削除方法は論理削除です。
  *
+ * @version 2.0.0
  * @author shisyamo4131
- * @version 1.4.0
- *
  * @updates
- * - version 1.4.0 - 2024-08-09 - `fetchByCode()`を実装。
- *                              - `fetchByCodes()`を実装。
- * - version 1.3.0 - 2024-07-03 - updateImgRef()を実装
- * - version 1.2.0 - 2024-07-02 - 生年月日、書類郵送先住所を追加
- *                              - 送付先住所が個別指定されなければ住所を送付先住所に複製
- *                              - fullName、fullNameKanaをpropsに定義
- * - version 1.1.0 - 2024-07-01 - 血液型（bloodType）を追加
- * - version 1.0.0 - 2024-06-20 - 初版作成
+ * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
-import {
-  collection,
-  doc,
-  getDocs,
-  query,
-  updateDoc,
-  where,
-} from 'firebase/firestore'
-import FireModel from './FireModel'
-
-export const props = {
-  props: {
-    docId: { type: String, default: '', required: false },
-    code: { type: String, default: '', required: false },
-    lastName: { type: String, default: '', required: false },
-    firstName: { type: String, default: '', required: false },
-    lastNameKana: { type: String, default: '', required: false },
-    firstNameKana: { type: String, default: '', required: false },
-    abbr: { type: String, default: '', required: false },
-    gender: { type: String, default: 'male', required: false },
-    birth: { type: String, default: '', required: false },
-    zipcode: { type: String, default: '', required: false },
-    address1: { type: String, default: '', required: false },
-    address2: { type: String, default: '', required: false },
-    hasSendAddress: { type: Boolean, default: false, required: false },
-    sendZipcode: { type: String, default: '', required: false },
-    sendAddress1: { type: String, default: '', required: false },
-    sendAddress2: { type: String, default: '', required: false },
-    tel: { type: String, default: '', required: false },
-    mobile: { type: String, default: '', required: false },
-    hireDate: { type: String, default: '', required: false },
-    leaveDate: { type: String, default: '', required: false },
-    leaveReason: { type: String, default: '', required: false },
-    isForeigner: { type: Boolean, default: false, required: false },
-    nationality: { type: String, default: '', required: false },
-    bloodType: {
-      type: String,
-      default: '-',
-      validator: (v) => ['A', 'B', 'O', 'AB', '-'].includes(v),
-      required: false,
-    },
-    status: { type: String, default: 'active', required: false },
-    remarks: { type: String, default: '', required: false },
-    imgRef: { type: String, default: '', required: false },
-    // Prepared by function.
-    fullName: { type: String, default: '', required: false },
-    fullNameKana: { type: String, default: '', required: false },
-    sync: { type: Boolean, default: false, required: false },
-  },
-}
-
 export default class Employee extends FireModel {
-  constructor(context, item = {}) {
-    super(context, item)
-    this.collection = 'Employees'
-    this.hasMany = [
-      {
-        collection: 'LeaveApplications',
-        field: 'employeeId',
-        condition: '==',
-        type: 'collection',
-      },
-      {
-        collection: 'AttendanceRecords',
-        field: 'employeeId',
-        condition: '==',
-        type: 'collection',
-      },
-      {
-        collection: 'PlacementDetails',
-        field: 'workers',
-        condition: 'array-contains',
-        type: 'subcollection',
-      },
-    ]
-    this.tokenFields = ['lastNameKana', 'firstNameKana', 'abbr']
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(
+      item,
+      'Employees',
+      [
+        {
+          collection: 'EmployeeContracts',
+          field: 'employeeId',
+          condition: '==',
+          type: 'collection',
+        },
+        {
+          collection: 'EmployeeMedicalCheckups',
+          field: 'employeeId',
+          condition: '==',
+          type: 'collection',
+        },
+        {
+          collection: 'OperationResults',
+          field: 'employeeId',
+          condition: 'array-contains',
+          type: 'collection',
+        },
+      ],
+      true,
+      ['lastNameKana', 'firstNameKana', 'abbr'],
+      classProps
+    )
     Object.defineProperties(this, {
       fullName: {
         enumerable: true,
@@ -114,44 +66,31 @@ export default class Employee extends FireModel {
     })
   }
 
-  /**
-   * 初期化メソッド
-   * @param {object} item - 初期化するアイテムオブジェクト
-   */
-  initialize(item = {}) {
-    // デフォルト値を設定
-    Object.keys(props.props).forEach((key) => {
-      const propDefault = props.props[key].default
-      this[key] =
-        typeof propDefault === 'function' ? propDefault() : propDefault
-    })
-    // 親クラスのinitializeメソッドを呼び出し
-    super.initialize(item)
+  /****************************************************************************
+   * FireModelのcreateをオーバーライドします。
+   * - コレクションを自動採番対象として、createのuseAutonumberをtrueに固定します。
+   * @param {string} docId - 作成するドキュメントのID
+   * @returns {Promise<void>} 処理が完了すると解決されるPromise
+   * @throws {Error} ドキュメントの作成に失敗した場合
+   ****************************************************************************/
+  async create(docId = null) {
+    try {
+      await super.create({ docId, useAutonumber: true })
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('ドキュメントの作成に失敗しました:', error)
+      throw new Error('ドキュメントの作成中にエラーが発生しました。')
+    }
   }
 
-  /**
-   * ドキュメント作成前に実行されるメソッド
-   * @returns Promise
-   */
-  beforeCreate() {
-    return new Promise((resolve) => {
-      this.prepareData()
-      resolve()
-    })
-  }
-
-  /**
-   * ドキュメント更新前に実行されるメソッド
-   * @returns Promise
-   */
-  beforeUpdate() {
-    return new Promise((resolve) => {
-      this.prepareData()
-      resolve()
-    })
-  }
-
-  prepareData() {
+  /****************************************************************************
+   * クラスプロパティの状態に応じて、他のプロパティの値を初期化します。
+   * - `isForeigner`がfalseの場合、`nationality`を初期化します。
+   * - `leaveDate`が空の場合、`leaveReason`を初期化します。
+   * - `hasSendAddress`がfalseの場合、`sendZipcode`、`sendAddress1`、`sendAddress2`に
+   *   `zipcode`、`address1`、`address2`をセットします。
+   ****************************************************************************/
+  #initializeDependentProperties() {
     if (!this.isForeigner) this.nationality = ''
     if (!this.leaveDate) this.leaveReason = ''
     // 送付先住所がなければ登録住所を送付先住所に複製
@@ -162,54 +101,106 @@ export default class Employee extends FireModel {
     }
   }
 
-  /**
+  /****************************************************************************
+   * FireModelのbeforeCreateをオーバーライドします。
+   * - 依存プロパティを初期化します。
+   * @returns {Promise<void>} 処理が完了すると解決されるPromise
+   ****************************************************************************/
+  async beforeCreate() {
+    this.#initializeDependentProperties()
+    await super.beforeCreate()
+  }
+
+  /****************************************************************************
+   * FireModelのbeforeUpdateをオーバーライドします。
+   * - 依存プロパティを初期化します。
+   * @returns {Promise<void>} 処理が完了すると解決されるPromise
+   ****************************************************************************/
+  async beforeUpdate() {
+    this.#initializeDependentProperties()
+    await super.beforeUpdate()
+  }
+
+  /****************************************************************************
    * 従業員ドキュメントのイメージファイルパスを更新します。
-   * @param {string} docId - 従業員ID
-   * @param {string} url - イメージファイルのフルパス
-   */
-  async updateImgRef(docId, url) {
-    const docRef = doc(this.firestore, `Employees/${docId}`)
+   * - インスタンス外から`imgRef`フィールドのみを更新するときに便利です。
+   * @param {string} docId - ドキュメントID
+   * @param {string} url - Storageへの参照URL
+   * @returns {Promise<void>} 処理が完了すると解決されるPromise
+   * @throws {Error} - ドキュメントの更新中にエラーが発生した場合にエラーをスローします。
+   ****************************************************************************/
+  static async updateImgRef(docId, url) {
+    if (!docId || typeof docId !== 'string') {
+      throw new Error('有効なドキュメントIDを指定してください。')
+    }
+    if (!url || typeof url !== 'string') {
+      throw new Error('有効なURLを指定してください。')
+    }
+
     try {
-      await updateDoc(docRef, { imgRef: url })
-    } catch (err) {
-      // eslint-disable-next-line
-      console.error(err)
-      throw err
+      const instance = new this()
+      if (!(await instance.fetch(docId))) {
+        throw new Error(
+          `Employeesコレクションに指定されたドキュメントが存在しません。ドキュメントID: ${docId}`
+        )
+      }
+
+      instance.imgRef = url
+
+      await instance.update()
+    } catch (error) {
+      const message = `ドキュメントID: ${docId} のimgRefの更新に失敗しました: ${error.message}`
+      // eslint-disable-next-line no-console
+      console.error(message)
+      throw new Error(message)
     }
   }
 
-  /**
+  /****************************************************************************
    * 指定された従業員codeに該当する従業員ドキュメントデータを配列で返します。
-   * @param {string} code
-   * @returns {Promise<Array>} 従業員ドキュメントデータの配列
-   */
+   * @param {string} code - 従業員コード
+   * @returns {Promise<Array>} - 従業員ドキュメントデータの配列
+   * @throws {Error} - エラーが発生した場合にスローされます
+   ****************************************************************************/
   async fetchByCode(code) {
-    const colRef = collection(this.firestore, this.collection)
-    const q = query(colRef, where('code', '==', code))
-    const snapshots = await getDocs(q)
-    if (snapshots.empty) return []
-    return snapshots.docs.map((doc) => doc.data())
+    if (!code) throw new Error('従業員コードは必須です。')
+    try {
+      const constraints = [where('code', '==', code)]
+      const snapshots = await this.fetchDocs(constraints)
+      return snapshots
+    } catch (err) {
+      const message = `[Employee.js fetchByCode] 従業員コード ${code} に対するドキュメントの取得に失敗しました: ${err.message}`
+      // eslint-disable-next-line no-console
+      console.error(message)
+      throw new Error(message)
+    }
   }
 
-  /**
+  /****************************************************************************
    * 従業員codeの配列を受け取り、該当する従業員ドキュメントデータを配列で返します。
    * 従業員codeの配列は、重複があれば一意に整理されます。
-   * @param {Array<string>} codes
-   * @returns {Promise<Array>} 従業員ドキュメントデータの配列
-   */
+   * @param {Array<string>} codes - 従業員コードの配列
+   * @returns {Promise<Array>} - 従業員ドキュメントデータの配列
+   * @throws {Error} - 処理中にエラーが発生した場合にスローされます
+   ****************************************************************************/
   async fetchByCodes(codes) {
-    const unique = [...new Set(codes)]
-    const chunked = unique.flatMap((_, i) =>
-      i % 30 ? [] : [unique.slice(i, i + 30)]
-    )
-    const colRef = collection(this.firestore, this.collection)
-    const snapshots = await Promise.all(
-      chunked.map(async (arr) => {
-        const q = query(colRef, where('code', 'in', arr))
-        const snapshot = await getDocs(q)
-        return snapshot.docs.map((doc) => doc.data())
+    if (!Array.isArray(codes) || codes.length === 0) return []
+    try {
+      const unique = [...new Set(codes)]
+      const chunked = unique.flatMap((_, i) =>
+        i % 30 ? [] : [unique.slice(i, i + 30)]
+      )
+      const promises = chunked.map((arr) => {
+        const constraints = [where('code', 'in', arr)]
+        return this.fetchDocs(constraints)
       })
-    )
-    return snapshots.flat()
+      const snapshots = await Promise.all(promises)
+      return snapshots.flat()
+    } catch (err) {
+      const message = `[Employee.js fetchByCodes] ドキュメントの取得中にエラーが発生しました: ${err.message}`
+      // eslint-disable-next-line no-console
+      console.error(message)
+      throw new Error(message)
+    }
   }
 }

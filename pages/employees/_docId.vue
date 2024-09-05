@@ -18,7 +18,6 @@
  * - version 1.0.0 - xxxx-xx-xx - 初版作成
  *
  */
-import GLeaveApplicationCalendar from '~/components/organisms/GLeaveApplicationCalendar.vue'
 import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GCardEmployee from '~/components/molecules/cards/GCardEmployee.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
@@ -34,7 +33,6 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GLeaveApplicationCalendar,
     GCardMap,
     GCardEmployee,
     GTemplateDetail,
@@ -130,11 +128,11 @@ export default {
         />
       </v-col>
       <v-col cols="12" md="7">
-        <g-leave-application-calendar
+        <!-- <g-leave-application-calendar
           :employee-id="docId"
           outlined
           height="612"
-        />
+        /> -->
       </v-col>
     </v-row>
     <!-- editor -->

@@ -8,12 +8,12 @@
  * @create 2024-07-02
  * @version 1.0.0
  */
-import { props } from '~/models/Employee'
+import { vueProps } from '~/models/propsDefinition/Employee'
 export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [props],
+  props: vueProps,
 }
 </script>
 

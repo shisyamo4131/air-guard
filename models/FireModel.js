@@ -51,9 +51,10 @@
  * #addTimestampsをtrueにすると、追加・更新されるドキュメントにタイムスタンプが追加されます。
  *
  * @author shisyamo4131
- * @version 2.0.0
+ * @version 2.1.0
  *
  * 更新履歴:
+ * version 2.1.0 - 2024-09-03 - clone()を実装。
  * version 2.0.0 - 2024-07-09 - [破壊的] create()の引数をオブジェクトに変更し、自動採番の適用を選択できるように修正。
  *                            - create()でdocIdが指定されていた場合に、正しくコンソールが出力されていないかったのを修正。
  *
@@ -168,6 +169,15 @@ export default class FireModel {
         set: this.#setTokenMap.bind(this),
       },
     })
+  }
+
+  /**
+   * 当該インスタンスを複製したインスタンスを返します。
+   * - vueコンポーネントにおいてインスタンスを親に返す場合などに、参照渡しを回避するのに使用します。
+   * @returns {this.constructor} - 複製された新しいインスタンス
+   */
+  clone() {
+    return Object.assign(new this.constructor(), structuredClone(this))
   }
 
   /**

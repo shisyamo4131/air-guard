@@ -1,12 +1,12 @@
 <script>
-import { props } from '~/models/OperationResult'
+import { vueProps } from '~/models/propsDefinition/OperationResult'
 /**
  * ## GSimpleTableOperationResult
  *
  * @author shisyamo4131
  */
 export default {
-  mixins: [props],
+  props: vueProps,
 }
 </script>
 

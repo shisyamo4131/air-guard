@@ -1,4 +1,13 @@
-import FireModel from './FireModel'
+/**
+ * Outsourcersドキュメントデータモデル
+ *
+ * @version 2.0.0
+ * @author shisyamo4131
+ * @updates
+ * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
+ */
+
+import { FireModel } from 'air-firebase'
 
 const props = {
   props: {
@@ -17,23 +26,9 @@ const props = {
 }
 export { props }
 
-/**
- * ## Outsourcer
- * @author shisyamo4131
- */
 export default class Outsourcer extends FireModel {
-  constructor(context, item = {}) {
-    super(context, item)
-    this.collection = 'Outsourcers'
-    // this.hasMany = [
-    //   {
-    //     collection: 'Sites',
-    //     field: 'customerId',
-    //     condition: '==',
-    //     type: 'collection',
-    //   },
-    // ]
-    this.tokenFields = ['abbr', 'abbrKana']
+  constructor(item = {}) {
+    super(item, 'Outsourcers', [], true, ['abbr', 'abbrKana'])
   }
 
   initialize(item = {}) {
@@ -43,5 +38,13 @@ export default class Outsourcer extends FireModel {
         typeof propDefault === 'function' ? propDefault() : propDefault
     })
     super.initialize(item)
+  }
+
+  /**
+   * 自動採番対象
+   * @param {string} docId
+   */
+  async create(docId = null) {
+    await super.create({ docId, useAutonumber: true })
   }
 }

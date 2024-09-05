@@ -1,45 +1,31 @@
+import { FireModel } from 'air-firebase'
+import Employee from './Employee'
+import { classProps } from './propsDefinition/AttendanceRecord'
+
 /**
- * ## AttendanceRecord
- * @author shisyamo4131
- * @version 1.0.0
+ * AttendanceRecordsドキュメントデータモデル
  *
- * 更新履歴:
- * version 1.0.1 - 2024-07-09
- *  - FireModelのcreate()の仕様変更に伴う修正
+ * - AttendanceRecordsは従業員の勤怠実績を月ごとに集計したデータです。
+ * - MS-Access版AirGuardから出力されたデータを取り込む際にのみ使用されます。（2024-08-22時点）
+ * - アプリ側からデータが作成・更新・削除されることは想定されていませんので、モデル側での入力チェックは行っていません。
+ * - アプリ側からデータを操作する必要がある場合、モデル内で入力チェックを行うように修正されるべきです。
+ * - `docId`は`${employeeId}-${month}`です。
+ *
+ * 注意事項:
+ * - AttendanceRecordsドキュメントは従業員の月別勤怠実績を確認するための機能として一時的に実装するものです。
+ * - MS-Access版AirGuardから出力されたcsvデータをドキュメントとして取り込みますが、取り込み時は既存ドキュメントがすべて削除されます。
+ *
+ * @version 2.0.0
+ * @author shisyamo4131
+ * @updates
+ * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
-
-import {
-  collection,
-  doc,
-  getDocs,
-  query,
-  where,
-  writeBatch,
-} from 'firebase/firestore'
-import FireModel from './FireModel'
-
-const props = {
-  props: {
-    employeeId: { type: String, default: '', required: false },
-    month: { type: String, default: '', required: false },
-    scheduledWorkingTime: { type: Number, default: null, required: false },
-    statutoryOverTime: { type: Number, default: null, required: false },
-    nonStatutoryOverTime: { type: Number, default: null, required: false },
-    holidayWorkingTime: { type: Number, default: null, required: false },
-    midnightWorkingTime: { type: Number, default: null, required: false },
-    scheduledWorkingDays: { type: Number, default: null, required: false },
-    statutoryWorkingDays: { type: Number, default: null, required: false },
-    holidayWorkingDays: { type: Number, default: null, required: false },
-    absenceDays: { type: Number, default: null, required: false },
-    annualVacationDays: { type: Number, default: null, required: false },
-  },
-}
-export { props }
-
 export default class AttendanceRecord extends FireModel {
-  constructor(context, item = {}) {
-    super(context, item)
-    this.collection = 'AttendanceRecords'
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item, 'AttendanceRecords', [], false, [], classProps)
     Object.defineProperties(this, {
       overTimeTotal: {
         enumerable: true,
@@ -51,84 +37,186 @@ export default class AttendanceRecord extends FireModel {
     })
   }
 
-  initialize(item = {}) {
-    Object.keys(props.props).forEach((key) => {
-      const propDefault = props.props[key].default
-      this[key] =
-        typeof propDefault === 'function' ? propDefault() : propDefault
-    })
-    super.initialize(item)
+  /****************************************************************************
+   * クラスインスタンスをオブジェクト形式に変換します。
+   * - スーパークラスの `toObject` メソッドを呼び出し、その結果に `employee` プロパティを追加します。
+   * - `employee` プロパティが存在し、かつ `toObject` メソッドを持つ場合、そのメソッドを呼び出してオブジェクトに変換します。
+   * - `employee` が存在しない場合、もしくは `toObject` メソッドを持たない場合、そのままの値か、空のオブジェクトを返します。
+   *
+   * @returns {Object} - クラスインスタンスを表すオブジェクト
+   ****************************************************************************/
+  toObject() {
+    return {
+      ...super.toObject(),
+      employee:
+        this.employee && typeof this.employee.toObject === 'function'
+          ? this.employee.toObject()
+          : this.employee || {},
+    }
   }
 
-  async create() {
-    /* 2024-07-09 FireModelの変更に伴って修正 */
-    // await super.create(this.employeeId + this.month)
-    await super.create({ docId: this.employeeId + this.month })
+  /****************************************************************************
+   * Firestoreから取得したデータをクラスインスタンスに変換します。
+   * - スーパークラスの `fromFirestore` メソッドを呼び出して基本のインスタンスを取得します。
+   * - 取得した `employee` データを `Employee` クラスのインスタンスに変換します。
+   *
+   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
+   * @returns {Object} - クラスインスタンス
+   ****************************************************************************/
+  fromFirestore(snapshot) {
+    const instance = super.fromFirestore(snapshot)
+    instance.employee = new Employee(instance.employee)
+    return instance
   }
 
-  async importFromAirGuard(data) {
-    /* Delete all documents. */
-    const delAll = async () => {
-      const colRef = collection(this.firestore, this.collection)
-      const snapshot = await getDocs(colRef)
-      const batchArray = []
-      snapshot.docs.forEach((doc, index) => {
-        if (index % 500 === 0) batchArray.push(writeBatch(this.firestore))
-        batchArray[batchArray.length - 1].delete(doc.ref)
-      })
-      await Promise.all(batchArray.map((batch) => batch.commit()))
-    }
-    await delAll()
-    /* Get employee data. */
-    const getEmployees = async (chunked) => {
-      const promises = chunked.map(async (codes) => {
-        const colRef = collection(this.firestore, 'Employees')
-        const q = query(colRef, where('code', 'in', codes))
-        const snapshot = await getDocs(q)
-        return snapshot.docs.map((doc) => doc.data())
-      })
-      const snapshots = await Promise.all(promises)
-      const result = []
-      snapshots.forEach((data) => result.push(...data))
-      return result
-    }
-    const employeeCodes = data.map(({ employeeId }) => employeeId)
-    const uniqueCodes = [...new Set(employeeCodes)]
-    const chunked = uniqueCodes.flatMap((_, i) =>
-      i % 30 ? [] : [uniqueCodes.slice(i, i + 30)]
+  /****************************************************************************
+   * createメソッドを無効化します。
+   * - アプリ側で AttendanceRecords ドキュメントを作成することはできません。
+   * @returns {Promise<never>} - 常に拒否された Promise を返します。
+   ****************************************************************************/
+  create() {
+    return Promise.reject(
+      new Error(
+        '[AttendanceRecord.js] アプリではAttendanceRecordsドキュメントを作成できません。'
+      )
     )
-    const employees = await getEmployees(chunked)
-    const newItems = data.map((item) => {
-      item.employeeId = employees.find(
-        ({ code }) => code === item.employeeId
-      ).docId
-      item.scheduledWorkingTime = parseInt(item.scheduledWorkingTime)
-      item.statutoryOverTime = parseInt(item.statutoryOverTime)
-      item.nonStatutoryOverTime = parseInt(item.nonStatutoryOverTime)
-      item.holidayWorkingTime = parseInt(item.holidayWorkingTime)
-      item.midnightWorkingTime = parseInt(item.midnightWorkingTime)
-      item.scheduledWorkingDays = parseInt(item.scheduledWorkingDays)
-      item.statutoryWorkingDays = parseInt(item.statutoryWorkingDays)
-      item.holidayWorkingDays = parseInt(item.holidayWorkingDays)
-      item.absenceDays = parseInt(item.absenceDays)
-      item.annualVacationDays = parseInt(item.annualVacationDays)
-      return item
-    })
-    const batchArray = []
-    newItems.forEach((item, index) => {
-      this.initialize(item)
-      this.createAt = this.dateUtc.getTime()
-      this.createDate = this.dateJst.toLocaleString()
-      this.updateAt = this.dateUtc.getTime()
-      this.updateDate = this.dateJst.toLocaleString()
-      this.uid = this.auth.currentUser.uid
-      if (index % 500 === 0) batchArray.push(writeBatch(this.firestore))
-      const docId = this.employeeId + this.month
-      const docRef = doc(this.firestore, `AttendanceRecords/${docId}`)
-      batchArray[batchArray.length - 1].set(docRef, {
-        ...structuredClone(this),
+  }
+  // 仮にアプリ側でAttendanceRecordsドキュメントを作成する場合はこちらを有効化
+  // async create() {
+  //   // `docId` を `${employeeId}-${month}` に固定します。
+  //   await super.create({ docId: this.employeeId + this.month })
+  // }
+
+  /****************************************************************************
+   * beforeCreateをオーバーライドします。
+   * - `employeeId`に該当する`employee`オブジェクトを取得・セットします。
+   * - validatePropertiesを行う為、super.beforeCreateを呼び出します。
+   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   ****************************************************************************/
+  async beforeCreate() {
+    try {
+      if (!this.employeeId) {
+        throw new Error('従業員の指定が必要です。')
+      }
+      const employee = await new Employee().fetchDoc(this.employeeId)
+      if (!employee) {
+        throw new Error('従業員情報が取得できませんでした。')
+      }
+      this.employee = employee
+      await super.beforeCreate()
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err.message)
+      throw err
+    }
+  }
+
+  /****************************************************************************
+   * updateメソッドを無効化します。
+   * - アプリ側でAttendanceRecordsドキュメントを更新することはできません。
+   * @returns {Promise<never>} - 常に拒否された Promise を返します。
+   ****************************************************************************/
+  update() {
+    return Promise.reject(
+      new Error(
+        '[AttendanceRecord.js] アプリではAttendanceRecordsドキュメントを更新できません。'
+      )
+    )
+  }
+
+  // 仮にアプリ側でAttendanceRecordsドキュメントを更新する場合はこちらを有効化
+  // beforeUpdate() {
+  //   const [employeeId, month] = this.docId
+  //   if(employeeId !== this.employeeId || month !== this.month){
+  //     throw new Error(`[AttendanceRecords.js] 従業員IDまたは年月を変更することはできません。`)
+  //   }
+  // }
+
+  /****************************************************************************
+   * beforeUpdateをオーバーライドします。
+   * - `employeeId`に該当する`employee`オブジェクトを取得・セットします。
+   * - validatePropertiesを行う為、super.beforeUpdateを呼び出します。
+   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   ****************************************************************************/
+  async beforeUpdate() {
+    try {
+      if (!this.employeeId) {
+        throw new Error('従業員の指定が必要です。')
+      }
+      if (this.employeeId !== this.employee.docId) {
+        const employee = await new Employee().fetchDoc(this.employeeId)
+        if (!employee) {
+          throw new Error('従業員情報が取得できませんでした。')
+        }
+        this.employee = employee
+      }
+      await super.beforeUpdate()
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err.message)
+      throw err
+    }
+  }
+
+  /****************************************************************************
+   * deleteメソッドを無効化します。
+   * - アプリ側でAttendanceRecordsドキュメントを削除することはできません。
+   ****************************************************************************/
+  delete() {
+    return Promise.reject(
+      new Error(
+        '[AttendanceRecord.js] アプリではAttendanceRecordsドキュメントを削除できません。'
+      )
+    )
+  }
+
+  /****************************************************************************
+   * MS-Access版AirGuardから出力された勤怠実績データをAttendanceRecordsドキュメント
+   * としてインポートします。
+   * - 既存のドキュメントはすべて削除されます。
+   * @param {Array<Object>} data MS-Access版AirGuardから出力されたcsvデータ
+   * @returns すべての処理が完了すると解決されるPromise
+   ****************************************************************************/
+  async importFromAirGuard(data) {
+    try {
+      // 既存ドキュメントをすべて削除します。
+      await this.deleteAll()
+
+      // data内に含まれる`code`（列名は`employeeId`）からemployeesドキュメントを取得
+      const employeeModel = new Employee()
+      const employees = await employeeModel.fetchByCodes(
+        data.map(({ employeeId }) => employeeId)
+      )
+
+      // dataの各値をAttendanceRecordsドキュメント用に変換する。
+      const newItems = data.map((item) => {
+        item.employeeId = employees.find(
+          ({ code }) => code === item.employeeId
+        ).docId
+        item.employee = employees.find(({ docId }) => docId === item.employeeId)
+        item.scheduledWorkingTime = parseInt(item.scheduledWorkingTime)
+        item.statutoryOverTime = parseInt(item.statutoryOverTime)
+        item.nonStatutoryOverTime = parseInt(item.nonStatutoryOverTime)
+        item.holidayWorkingTime = parseInt(item.holidayWorkingTime)
+        item.midnightWorkingTime = parseInt(item.midnightWorkingTime)
+        item.scheduledWorkingDays = parseInt(item.scheduledWorkingDays)
+        item.statutoryWorkingDays = parseInt(item.statutoryWorkingDays)
+        item.holidayWorkingDays = parseInt(item.holidayWorkingDays)
+        item.absenceDays = parseInt(item.absenceDays)
+        item.annualVacationDays = parseInt(item.annualVacationDays)
+        return item
       })
-    })
-    await Promise.all(batchArray.map((batch) => batch.commit()))
+
+      // 変換後のデータをAttendanceRecordsドキュメントとして作成する。
+      const promises = newItems.map(async (item) => {
+        const newModel = new this(item)
+        await newModel.create()
+      })
+      await Promise.all(promises)
+    } catch (err) {
+      // eslint-disable-next-line
+      console.error(err)
+      throw err
+    }
   }
 }

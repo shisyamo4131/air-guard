@@ -1,93 +1,226 @@
+import { runTransaction, where } from 'firebase/firestore'
+import { FireModel, firestore } from 'air-firebase'
+import { classProps } from './propsDefinition/OperationResult'
+import Site from './Site'
+import OperationResultWorker from './OperationResultWorker'
+import OperationWorkResult from './OperationWorkResult'
 /**
  * ## OperationResult.js
  *
  * 稼働実績のデータモデルです。
  *
+ * @version 2.0.0
  * @author shisyamo4131
- * @version 1.2.0
- *
  * @updates
- * - version 1.2.0 - 2024-08-16 - `Sites`のサブコレクションからコレクションに変更。
- * - version 1.1.0 - 2024-08-09 - `fetchByCode()`を実装。
- *                              - `fetchByCodes()`を実装。
- * - version 1.0.0 - 2024-08-07 - 初版作成
+ * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
-import { collection, getDocs, query, where } from 'firebase/firestore'
-import FireModel from './FireModel'
-
-const props = {
-  props: {
-    docId: { type: String, default: '', required: false },
-    code: { type: String, default: '', required: false },
-    siteId: { type: String, default: '', required: false },
-    site: { type: Object, default: () => ({}), required: false },
-    date: { type: String, default: '', required: false },
-    dayDiv: {
-      type: String,
-      default: 'weekday',
-      validator: (v) => ['weekday', 'saturday', 'sunday', 'holiday'],
-      required: false,
-    },
-    workShift: {
-      type: String,
-      default: 'day',
-      validator: (v) => ['day', 'night'].includes(v),
-      required: false,
-    },
-    deadline: { type: String, default: '', required: false },
-    workers: { type: Array, default: () => [], required: false },
-    remarks: { type: String, default: '', required: false },
-  },
-}
-export { props }
-
 export default class OperationResult extends FireModel {
-  constructor(context, item = {}) {
-    super(context, item)
-    this.collection = 'OperationResults'
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item, 'OperationResults', [], false, [], classProps)
   }
 
-  initialize(item = {}) {
-    Object.keys(props.props).forEach((key) => {
-      const propDefault = props.props[key].default
-      this[key] =
-        typeof propDefault === 'function' ? propDefault() : propDefault
-    })
-    super.initialize(item)
-  }
-
-  /**
-   * 指定されたcodeに該当する稼働実績ドキュメントデータを配列で返します。
-   * @param {string} code 稼働実績のcode
-   * @returns {Promise<Array>} 稼働実績ドキュメントデータの配列
-   */
-  async fetchByCode(code) {
-    const colRef = collection(this.firestore, 'OperationResults')
-    const q = query(colRef, where('code', '==', code))
-    const snapshots = await getDocs(q)
-    if (snapshots.empty) return []
-    return snapshots.docs.map((doc) => doc.data())
-  }
-
-  /**
-   * 稼働実績のcodeの配列を受け取り、該当する稼働実績ドキュメントデータを配列で返します。
-   * 稼働実績のcodeの配列は、重複があれば一意に整理されます。
-   * @param {Array<string>} codes
-   * @returns {Promise<Array>} 稼働実績ドキュメントデータの配列
-   */
-  async fetchByCodes(codes) {
-    const unique = [...new Set(codes)]
-    const chunked = unique.flatMap((_, i) =>
-      i % 30 ? [] : [unique.slice(i, i + 30)]
-    )
-    const colRef = collection(this.firestore, 'OperationResults')
-    const snapshots = await Promise.all(
-      chunked.map(async (arr) => {
-        const q = query(colRef, where('code', 'in', arr))
-        const snapshot = await getDocs(q)
-        return snapshot.docs.map((doc) => doc.data())
+  /****************************************************************************
+   * FireModelのcreateをオーバーライドします。
+   * - コレクションを自動採番対象として、createのuseAutonumberをtrueに固定します。
+   * - `workers`配列の内容に応じて`OperationWorkResults`ドキュメントを同期生成します。
+   * @param {string} docId - 作成するドキュメントのID
+   * @returns {Promise<void>} 処理が完了すると解決されるPromise
+   * @throws {Error} ドキュメントの作成に失敗した場合
+   ****************************************************************************/
+  async create(docId = null) {
+    try {
+      await runTransaction(firestore, async (transaction) => {
+        // 親ドキュメントの作成
+        await super.create({ docId, useAutonumber: true })
+        // `workers`配列に基づいて`OperationWorkResults`ドキュメントを作成
+        for (const worker of this.workers) {
+          const workResultInstance = new OperationWorkResult(worker)
+          await workResultInstance.create({ transaction })
+        }
       })
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('ドキュメントの作成に失敗しました:', error)
+      throw new Error('ドキュメントの作成中にエラーが発生しました。')
+    }
+  }
+
+  /****************************************************************************
+   * FireModelのbeforeCreateをオーバーライドします。
+   * - `siteId`、`date`、`dayDiv`、`workShift`の入力を確認します。
+   * - `site`を取得・セットします。
+   * @returns {Promise<void>} 処理が完了すると解決されるPromise
+   ****************************************************************************/
+  async beforeCreate() {
+    if (!this.siteId || !this.date || !this.dayDiv || !this.workShift) {
+      throw new Error('現場、日付、曜日区分、勤務区分の指定が必要です。')
+    }
+    const site = await new Site().fetchDoc(this.siteId)
+    if (!site) {
+      throw new Error('現場情報が取得できませんでした。')
+    }
+    this.site = site
+    await super.beforeCreate()
+  }
+
+  /****************************************************************************
+   * FireModelのbeforeUpdateをオーバーライドします。
+   * - `siteId`、`date`、`dayDiv`、`workShift`の入力を確認します。
+   * - `site`を取得・セットします。
+   * @returns {Promise<void>} 処理が完了すると解決されるPromise
+   ****************************************************************************/
+  async beforeUpdate() {
+    if (!this.siteId || !this.date || !this.dayDiv || !this.workShift) {
+      throw new Error('現場、日付、曜日区分、勤務区分の指定が必要です。')
+    }
+    if (this.siteId !== this.site.docId) {
+      const site = await new Site().fetchDoc(this.siteId)
+      if (!site) {
+        throw new Error('現場情報が取得できませんでした。')
+      }
+      this.site = site
+    }
+    await super.beforeUpdate()
+  }
+
+  /****************************************************************************
+   * クラスインスタンスをオブジェクト形式に変換します。
+   * - `site`プロパティの値をtoObject()でオブジェクトに変換します。
+   * - `workers`内の`worker`をtoObject()でオブジェクトに変換します。
+   * - スーパークラスの `toObject` と結合した値を返します。
+   * @returns {Object} - クラスインスタンスを表すオブジェクト
+   ****************************************************************************/
+  toObject() {
+    const workers = this.workers.map((worker) => {
+      return typeof worker.toObject === 'function'
+        ? worker.toObject()
+        : worker || {}
+    })
+    return {
+      ...super.toObject(),
+      site:
+        this.site && typeof this.site.toObject === 'function'
+          ? this.site.toObject()
+          : this.site || {},
+      workers,
+    }
+  }
+
+  /****************************************************************************
+   * Firestoreから取得したデータをクラスインスタンスに変換します。
+   * - `site`を`Site`クラスのインスタンスに変換します。
+   * - `workers`内の`worker`を`Worker`クラスのインスタンスに変換します。
+   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
+   * @returns {Object} - クラスインスタンス
+   ****************************************************************************/
+  fromFirestore(snapshot) {
+    // スーパークラスから基本のインスタンスを生成
+    const instance = super.fromFirestore(snapshot)
+    // site データを新しい Site クラスのインスタンスに変換
+    instance.site = new Site(instance.site)
+    instance.workers = instance.workers.map((worker) => {
+      return new OperationResultWorker(worker)
+    })
+    // 変換したインスタンスを返す
+    return instance
+  }
+
+  /****************************************************************************
+   * 指定されたcodeに該当するドキュメントデータを配列で返します。
+   * @param {string} code - コード
+   * @returns {Promise<Array>} - ドキュメントデータの配列
+   * @throws {Error} - エラーが発生した場合にスローされます
+   ****************************************************************************/
+  async fetchByCode(code) {
+    if (!code) throw new Error('Code is required.')
+    try {
+      const constraints = [where('code', '==', code)]
+      const snapshots = await this.fetchDocs(constraints)
+      return snapshots
+    } catch (err) {
+      const message = `[OperationResult.js fetchByCode] Error fetching documents for code ${code}: ${err.message}`
+      // eslint-disable-next-line no-console
+      console.error(message)
+      throw new Error(message)
+    }
+  }
+
+  /****************************************************************************
+   * codeの配列を受け取り、該当するドキュメントデータを配列で返します。
+   * codeの配列は、重複があれば一意に整理されます。
+   * @param {Array<string>} codes - コードの配列
+   * @returns {Promise<Array>} - ドキュメントデータの配列
+   * @throws {Error} - 処理中にエラーが発生した場合にスローされます
+   ****************************************************************************/
+  async fetchByCodes(codes) {
+    if (!Array.isArray(codes) || codes.length === 0) return []
+    try {
+      const unique = [...new Set(codes)]
+      const chunked = unique.flatMap((_, i) =>
+        i % 30 ? [] : [unique.slice(i, i + 30)]
+      )
+      const promises = chunked.map(async (arr) => {
+        const constraints = [where('code', 'in', arr)]
+        return await this.fetchDocs(constraints)
+      })
+      const snapshots = await Promise.all(promises)
+      return snapshots.flat()
+    } catch (err) {
+      const message = `[OperationResult.js fetchByCodes] Error fetching documents: ${err.message}`
+      // eslint-disable-next-line no-console
+      console.error(message)
+      throw new Error(message)
+    }
+  }
+
+  /****************************************************************************
+   * workersに従業員の稼働実績を追加します。
+   * @param {Object} item 従業員の稼働実績オブジェクト
+   ****************************************************************************/
+  addWorker(item) {
+    const worker = new OperationResultWorker(item)
+    if (!worker.employeeId) {
+      throw new Error('従業員IDが指定されていません。')
+    }
+    const isExist = this.workers.some(
+      ({ employeeId }) => employeeId === worker.employeeId
     )
-    return snapshots.flat()
+    if (isExist) {
+      throw new Error('既に登録されている従業員です。')
+    }
+    if (!worker.isValid) {
+      throw new Error('勤務実績としての妥当性が損なわれています。')
+    }
+    this.workers.push(worker)
+  }
+
+  /****************************************************************************
+   * workersの指定された稼働実績を更新します。
+   * @param {Object} item 従業員の稼働実績オブジェクト
+   ****************************************************************************/
+  changeWorker(item) {
+    const worker = new OperationResultWorker(item)
+    const index = this.workers.findIndex(
+      (worker) => worker.employeeId === item.employeeId
+    )
+    if (index !== -1) {
+      this.workers.splice(index, 1, worker)
+    }
+  }
+
+  /****************************************************************************
+   * workersから指定された従業員の稼働実績を削除します。
+   * @param {Object} item 従業員の稼働実績オブジェクト
+   ****************************************************************************/
+  removeWorker(item) {
+    const index = this.workers.findIndex(
+      (worker) => worker.employeeId === item.employeeId
+    )
+    if (index !== -1) {
+      this.workers.splice(index, 1)
+    }
   }
 }

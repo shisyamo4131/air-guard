@@ -14,7 +14,7 @@
   "main": "index.js",
   "dependencies": {
     "dayjs": "^1.11.12",
-    "firebase-admin": "^11.8.0",
+    "firebase-admin": "^11.11.1",
     "firebase-functions": "^5.0.1"
   },
   "devDependencies": {

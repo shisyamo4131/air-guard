@@ -1,58 +1,60 @@
 <script>
-import { props } from '~/models/Equipment'
-import EditMode from '~/components/mixins/GMixinEditMode'
-import GTextField from '~/components/atoms/inputs/GTextField.vue'
-import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
-import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
-import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 /**
  * ### GInputEquipment
  * @author shisayamo4131
  */
+import GCardInputForm from '../cards/GCardInputForm.vue'
+import GTextField from '~/components/atoms/inputs/GTextField.vue'
+import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
+import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import Equipment from '~/models/Equipment'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextField, GTextarea, GComboboxDate, GNumeric },
+  components: { GTextField, GTextarea, GCardInputForm },
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GInputSubmitMixin],
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [props, EditMode],
+  props: {
+    instance: {
+      type: Object,
+      required: true,
+      validator(instance) {
+        return instance instanceof Equipment
+      },
+    },
+  },
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
+  data() {
+    return {
+      editModel: new Equipment(),
+    }
+  },
 }
 </script>
 
 <template>
-  <div>
-    <g-text-field
-      :value="name"
-      label="名称"
-      required
-      @input="$emit('update:name', $event)"
-    />
-    <g-text-field
-      :value="code"
-      label="商品コード"
-      @input="$emit('update:code', $event)"
-    />
-    <g-combobox-date
-      :value="inventoryDate"
-      label="棚卸日"
-      @input="$emit('update:inventoryDate', $event)"
-    />
-    <g-numeric
-      class="right-input"
-      :value="inventoryAmount"
-      label="棚卸時在庫数"
-      :required="!!inventoryDate"
-      @input="$emit('update:inventoryAmount', $event)"
-    />
-    <g-textarea
-      :value="remarks"
-      label="備考"
-      hide-details
-      @input="$emit('update:remarks', $event)"
-    />
-  </div>
+  <g-card-input-form
+    v-bind="$attrs"
+    label="制服・装備品情報編集"
+    :edit-mode="editMode"
+    @click:submit="submit"
+    v-on="$listeners"
+  >
+    <v-form ref="form" @submit.prevent>
+      <g-text-field v-model="editModel.name" label="名称" required />
+      <g-text-field v-model="editModel.code" label="商品コード" />
+      <g-text-field v-model="editModel.colorSize" label="色・サイズ" />
+      <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+    </v-form>
+  </g-card-input-form>
 </template>
 
 <style></style>

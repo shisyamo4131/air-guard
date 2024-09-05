@@ -11,13 +11,13 @@
  * @version 1.0.0
  */
 import GDialogFileUploader from '~/components/molecules/dialogs/GDialogFileUploader.vue'
-import { props } from '~/models/Employee'
+import { vueProps } from '~/models/propsDefinition/Employee'
 export default {
   components: { GDialogFileUploader },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [props],
+  props: vueProps,
   /***************************************************************************
    * DATA
    ***************************************************************************/

@@ -9,70 +9,76 @@
  *
  * @author shisyamo4131
  */
+import GCardInputForm from '../cards/GCardInputForm.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
+import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
+import Autonumber from '~/models/Autonumber'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextField, GNumeric, GSwitch },
+  components: { GTextField, GNumeric, GSwitch, GCardInputForm },
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GInputSubmitMixin],
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
-    editMode: {
-      type: String,
-      default: 'REGIST',
-      validator: (v) => ['REGIST', 'UPDATE', 'DELETE'].includes(v),
-      required: false,
+    instance: {
+      type: Object,
+      required: true,
+      validator(instance) {
+        return instance instanceof Autonumber
+      },
     },
-    collectionId: { type: String, default: '', required: false },
-    current: { type: Number, default: null, required: false },
-    length: { type: Number, default: null, required: false },
-    field: { type: String, default: '', required: false },
-    status: { type: Boolean, default: false, required: false },
+  },
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
+  data() {
+    return {
+      editModel: new Autonumber(),
+    }
   },
 }
 </script>
 
 <template>
-  <div>
-    <!-- 追加モード時以外は編集不可 -->
-    <g-text-field
-      :value="collectionId"
-      label="コレクション名"
-      required
-      :disabled="editMode !== 'REGIST'"
-      hint="コレクション名は変更できません。"
-      :persistent-hint="editMode !== 'REGIST'"
-      @input="$emit('update:collectionId', $event)"
-    />
-    <g-numeric
-      :value="current"
-      label="現在値"
-      required
-      :decimal-places="0"
-      @input="$emit('update:current', $event)"
-    />
-    <g-numeric
-      :value="length"
-      label="桁数"
-      required
-      @input="$emit('update:length', $event)"
-    />
-    <g-text-field
-      :value="field"
-      label="フィールド名"
-      required
-      @input="$emit('update:field', $event)"
-    />
-    <g-switch
-      :input-value="status"
-      :label="`状態：${status ? '有効' : '無効'}`"
-      @change="$emit('update:status', $event)"
-    />
-  </div>
+  <g-card-input-form
+    v-bind="$attrs"
+    label="自動採番設定編集"
+    :edit-mode="editMode"
+    @click:submit="submit"
+    v-on="$listeners"
+  >
+    <v-form ref="form" @submit.prevent>
+      <!-- 追加モード時以外は編集不可 -->
+      <g-text-field
+        v-model="editModel.collectionId"
+        label="コレクション名"
+        required
+        :disabled="editMode !== CREATE"
+        hint="コレクション名は変更できません。"
+        :persistent-hint="editMode !== CREATE"
+      />
+      <g-numeric
+        v-model="editModel.current"
+        label="現在値"
+        required
+        :decimal-places="0"
+      />
+      <g-numeric v-model="editModel.length" label="桁数" required />
+      <g-text-field v-model="editModel.field" label="フィールド名" required />
+      <g-switch
+        v-model="editModel.status"
+        :label="`状態：${editModel.status ? '有効' : '無効'}`"
+      />
+    </v-form>
+  </g-card-input-form>
 </template>
 
 <style></style>

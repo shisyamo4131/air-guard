@@ -10,24 +10,17 @@
  * @version 1.0.0
  */
 import GDataTable from '../../atoms/tables/GDataTable.vue'
-import GDialogEditor from '../dialogs/GDialogEditor.vue'
-import GInputEmployeeMedicalCheckup from '../inputs/GInputEmployeeMedicalCheckup.vue'
-import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
     GDataTable,
-    GBtnRegistIcon,
-    GDialogEditor,
-    GInputEmployeeMedicalCheckup,
   },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
-    docId: { type: String, required: true },
     sortBy: { type: [String, Array], default: 'date', required: false },
     sortDesc: { type: [Boolean, Array], default: true, required: false },
   },
@@ -49,47 +42,18 @@ export default {
       ]
     },
   },
-  /***************************************************************************
-   * METHODS
-   ***************************************************************************/
-  methods: {
-    onClickEdit(item) {
-      this.$refs.editor.open({ item, editMode: 'UPDATE' })
-    },
-  },
 }
 </script>
 
 <template>
   <g-data-table
     v-bind="{ ...$props, ...$attrs }"
-    :actions="['edit']"
     :headers="headers"
     :mobile-breakpoint="0"
-    @click:edit="onClickEdit"
     v-on="$listeners"
   >
-    <template #top>
-      <v-toolbar dense>
-        <v-spacer />
-        <g-dialog-editor
-          ref="editor"
-          :default-item="{ employeeId: docId }"
-          label="健康診断結果"
-          max-width="480"
-          model-id="EmployeeMedicalCheckup"
-        >
-          <template #activator="{ attrs, on }">
-            <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
-          </template>
-          <template #default="{ attrs, on }">
-            <g-input-employee-medical-checkup v-bind="attrs" v-on="on" />
-          </template>
-        </g-dialog-editor>
-      </v-toolbar>
-    </template>
     <template #[`item.bloodPressure`]="{ item }">
-      {{ `${item.bloodPressure.top} - ${item.bloodPressure.bottom}` }}
+      {{ `${item.bloodTop} - ${item.bloodBottom}` }}
     </template>
   </g-data-table>
 </template>

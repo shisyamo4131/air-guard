@@ -7,13 +7,15 @@
  * - `status === 'active'`である取引先情報のみ、Firestoreから取得しストアとして提供します。
  *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.2.0
  *
  * @updates
+ * - version 1.2.0 - 2024-08-22 - FireModelの仕様変更に伴う修正
  * - version 1.1.0 - 2024-07-25 - `status === 'active'`のもののみを抽出するように修正。
  * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
+import Customer from '~/models/Customer'
 
 /******************************************************************
  * STATE
@@ -66,8 +68,11 @@ export const mutations = {
  ******************************************************************/
 export const actions = {
   subscribe({ commit }) {
+    const Model = new Customer()
     const colRef = collection(this.$firestore, 'Customers')
-    const q = query(colRef, where('status', '==', 'active'))
+    const q = query(colRef, where('status', '==', 'active')).withConverter(
+      Model.converter()
+    )
     const listener = onSnapshot(q, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === 'added') commit('setItem', change.doc.data())

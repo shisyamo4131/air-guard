@@ -132,7 +132,8 @@ export default (context, inject) => {
   /* Connect to emulators if environment is 'local'. */
   if (process.env.NODE_ENV === 'local') {
     console.log('[firebase.js] firebase is using emulators!')
-    connectAuthEmulator(inAuth, 'http://localhost:9099')
+    // connectAuthEmulator(inAuth, 'http://localhost:9099')
+    connectAuthEmulator(inAuth, 'http://127.0.0.1:9099')
     connectFunctionsEmulator(inFunctions, 'localhost', 5001)
     connectFirestoreEmulator(inFirestore, 'localhost', 8080)
     connectDatabaseEmulator(inDatabase, 'localhost', 9000)

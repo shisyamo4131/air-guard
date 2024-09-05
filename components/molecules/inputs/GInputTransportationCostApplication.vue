@@ -11,7 +11,7 @@
  * - version 1.0.0 - 2024-08-14 - 初版作成
  */
 import { props } from '~/models/TransportationCostApplication'
-import EditMode from '~/components/mixins/GMixinEditMode'
+import EditMode from '~/mixins/GMixinEditMode'
 export default {
   /***************************************************************************
    * COMPONENTS

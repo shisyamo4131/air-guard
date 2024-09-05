@@ -1,5 +1,5 @@
 <script>
-import EditMode from '~/components/mixins/GMixinEditMode'
+import EditMode from '~/mixins/GMixinEditMode'
 /**
  * ### ARenderlessCrud[should be deleted]
  * props.modelに指定されたモデルに対するCREATE、UPDATE、DELETEを実行する

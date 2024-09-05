@@ -12,14 +12,19 @@
  * - version 1.2.0 - 2024-07-02 - 生年月日を追加
  * - version 1.1.0 - 2024-07-01 - 血液型を追加
  */
+import GCardInputForm from '../cards/GCardInputForm.vue'
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
-import { props } from '~/models/Employee'
+import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import Employee from '~/models/Employee'
 export default {
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
   components: {
     GTextField,
     GTextarea,
@@ -27,174 +32,167 @@ export default {
     GSwitch,
     GSelect,
     GComboboxDate,
+    GCardInputForm,
   },
-  mixins: [props],
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GInputSubmitMixin],
+  /***************************************************************************
+   * PROPS
+   ***************************************************************************/
+  props: {
+    instance: {
+      type: Object,
+      required: true,
+      validator(instance) {
+        return instance instanceof Employee
+      },
+    },
+  },
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
+  data() {
+    return {
+      editModel: new Employee(),
+    }
+  },
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
   methods: {
     /**
      * `lastName`または`firstName`のchangeイベントで呼び出されます。
-     * `lastName`と`firstName`を結合して最初の5文字を生成し、
-     * `update:abbr`イベントをemitします。
+     * `lastName`と`firstName`を結合して最初の5文字を生成し、`abbr`にセットします。
      */
     refreshAbbr() {
       const combined = `${this.lastName}${this.firstName}`
       const sliced = combined.slice(0, 5)
-      this.$emit('update:abbr', sliced)
+      this.editModel.abbr = sliced
     },
   },
 }
 </script>
 
 <template>
-  <div>
-    <g-text-field
-      :value="code"
-      label="CODE"
-      disabled
-      @input="$emit('update:code', $event)"
-    />
-    <v-row dense>
-      <v-col cols="12" md="6">
-        <g-text-field
-          :value="lastName"
-          label="氏"
-          required
-          @input="$emit('update:lastName', $event)"
-          @change="refreshAbbr"
-        />
-      </v-col>
-      <v-col cols="12" md="6">
-        <g-text-field
-          :value="firstName"
-          label="名"
-          @input="$emit('update:firstName', $event)"
-          @change="refreshAbbr"
-        />
-      </v-col>
-      <v-col cols="12" md="6">
-        <g-text-field
-          :value="lastNameKana"
-          label="氏カナ"
-          required
-          hint="検索に使用されます"
-          ignore-surrogate-pair
-          input-type="katakana"
-          @input="$emit('update:lastNameKana', $event)"
-        />
-      </v-col>
-      <v-col cols="12" md="6">
-        <g-text-field
-          :value="firstNameKana"
-          label="名カナ"
-          required
-          hint="検索に使用されます"
-          ignore-surrogate-pair
-          input-type="katakana"
-          @input="$emit('update:firstNameKana', $event)"
-        />
-      </v-col>
-      <v-col cols="12" md="6">
-        <g-text-field
-          :value="abbr"
-          label="略称"
-          required
-          hint="検索に使用されます"
-          ignore-surrogate-pair
-          counter
-          maxlength="5"
-          @input="$emit('update:abbr', $event)"
-        />
-      </v-col>
-      <v-col cols="12" md="6">
-        <g-combobox-date
-          :value="hireDate"
-          label="入社日"
-          required
-          @input="$emit('update:hireDate', $event)"
-        />
-      </v-col>
-      <v-col cols="12" md="6">
-        <g-switch
-          class="mt-1"
-          :input-value="isForeigner"
-          label="外国籍"
-          @change="$emit('update:isForeigner', $event)"
-        />
-      </v-col>
-      <v-col cols="12" md="6">
-        <g-text-field
-          :value="nationality"
-          label="国籍"
-          :required="isForeigner"
-          :disabled="!isForeigner"
-          @input="$emit('update:nationality', $event)"
-        />
-      </v-col>
-      <v-col cols="12" md="6">
-        <g-combobox-date
-          :value="birth"
-          label="生年月日"
-          required
-          @input="$emit('update:birth', $event)"
-        />
-      </v-col>
-      <v-col cols="12" md="6">
-        <v-radio-group
-          class="mt-1 mb-2"
-          :value="gender"
-          row
-          @change="$emit('update:gender', $event)"
-        >
-          <v-radio label="男性" value="male" />
-          <v-radio label="女性" value="female" />
-        </v-radio-group>
-      </v-col>
-    </v-row>
-    <g-select
-      :value="bloodType"
-      label="血液型"
-      :items="['A', 'B', 'O', 'AB', '-']"
-      required
-      @input="$emit('update:bloodType', $event)"
-    />
-    <a-renderless-zipcode
-      :value="zipcode"
-      @input="$emit('update:zipcode', $event)"
-      @loaded="$emit('update:address1', $event.full)"
-    >
-      <template #default="{ attrs, on }">
-        <g-text-field v-bind="attrs" label="郵便番号" v-on="on" />
-      </template>
-    </a-renderless-zipcode>
-    <g-text-field
-      :value="address1"
-      label="住所"
-      required
-      @input="$emit('update:address1', $event)"
-    />
-    <g-text-field
-      :value="address2"
-      label="建物名・階数"
-      @input="$emit('update:address2', $event)"
-    />
-    <g-text-field
-      :value="tel"
-      label="電話番号"
-      input-type="tel"
-      @input="$emit('update:tel', $event)"
-    />
-    <g-text-field
-      :value="mobile"
-      label="携帯番号"
-      input-type="tel"
-      @input="$emit('update:mobile', $event)"
-    />
-    <g-textarea
-      :value="remarks"
-      label="備考"
-      hide-details
-      @input="$emit('update:remarks', $event)"
-    />
-  </div>
+  <g-card-input-form
+    v-bind="$attrs"
+    label="従業員情報編集"
+    :edit-mode="editMode"
+    @click:submit="submit"
+    v-on="$listeners"
+  >
+    <v-form ref="form" @submit.prevent>
+      <g-text-field v-model="editModel.code" label="CODE" disabled />
+      <v-row dense>
+        <v-col cols="12" md="6">
+          <g-text-field
+            v-model="editModel.lastName"
+            label="氏"
+            required
+            @change="refreshAbbr"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <g-text-field
+            v-model="editModel.firstName"
+            label="名"
+            @change="refreshAbbr"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <g-text-field
+            v-model="editModel.lastNameKana"
+            label="氏カナ"
+            required
+            hint="検索に使用されます"
+            ignore-surrogate-pair
+            input-type="katakana"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <g-text-field
+            v-model="editModel.firstNameKana"
+            label="名カナ"
+            required
+            hint="検索に使用されます"
+            ignore-surrogate-pair
+            input-type="katakana"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <g-text-field
+            v-model="editModel.abbr"
+            label="略称"
+            required
+            hint="検索に使用されます"
+            ignore-surrogate-pair
+            counter
+            maxlength="5"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <g-combobox-date
+            v-model="editModel.hireDate"
+            label="入社日"
+            required
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <g-switch
+            v-model="editModel.isForeigner"
+            class="mt-1"
+            label="外国籍"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <g-text-field
+            v-model="editModel.nationality"
+            label="国籍"
+            :required="editModel.isForeigner"
+            :disabled="!editModel.isForeigner"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <g-combobox-date
+            v-model="editModel.birth"
+            label="生年月日"
+            required
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-radio-group v-model="editModel.gender" class="mt-1 mb-2" row>
+            <v-radio label="男性" value="male" />
+            <v-radio label="女性" value="female" />
+          </v-radio-group>
+        </v-col>
+      </v-row>
+      <g-select
+        v-model="editModel.bloodType"
+        label="血液型"
+        :items="['A', 'B', 'O', 'AB', '-']"
+        required
+      />
+      <a-renderless-zipcode
+        v-model="editModel.zipcode"
+        @loaded="editModel.address1 = $event.full"
+      >
+        <template #default="{ attrs, on }">
+          <g-text-field v-bind="attrs" label="郵便番号" v-on="on" />
+        </template>
+      </a-renderless-zipcode>
+      <g-text-field v-model="editModel.address1" label="住所" required />
+      <g-text-field v-model="editModel.address2" label="建物名・階数" />
+      <g-text-field v-model="editModel.tel" label="電話番号" input-type="tel" />
+      <g-text-field
+        v-model="editModel.mobile"
+        label="携帯番号"
+        input-type="tel"
+      />
+      <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+    </v-form>
+  </g-card-input-form>
 </template>
 
 <style></style>

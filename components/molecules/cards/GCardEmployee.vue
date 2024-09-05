@@ -28,7 +28,7 @@ import GSimpleTableEmployeeAddress from '../tables/GSimpleTableEmployeeAddress.v
 import GSimpleTableEmployeeContact from '../tables/GSimpleTableEmployeeContact.vue'
 import GDataTableEmployeeMedicalCheckups from '../tables/GDataTableEmployeeMedicalCheckups.vue'
 import GCardImgEmployee from './GCardImgEmployee.vue'
-import { props } from '~/models/Employee'
+import { vueProps } from '~/models/propsDefinition/Employee'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -43,8 +43,8 @@ export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [props],
   props: {
+    ...vueProps,
     docId: { type: String, required: true },
     medicalCheckups: { type: Array, default: () => [], required: false },
   },

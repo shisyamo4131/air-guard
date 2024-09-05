@@ -1,34 +1,29 @@
 <script>
-import GAutocompleteFirestore from './GAutocompleteFirestore.vue'
+import GAutocomplete from './GAutocomplete.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GAutocompleteFirestore },
+  components: { GAutocomplete },
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      itemText: ['abbr', 'address1'],
-      model: this.$Customer(),
+      itemText: 'abbr',
     }
   },
 }
 </script>
 
 <template>
-  <g-autocomplete-firestore
+  <g-autocomplete
     v-bind="$attrs"
     :item-text="itemText"
-    :model="model"
+    item-value="docId"
+    :items="$store.state.customers.items"
     v-on="$listeners"
   >
-    <template #selection="{ item }">
-      <v-chip color="primary" label small>
-        {{ `[${item.code}] ${item.abbr}` }}
-      </v-chip>
-    </template>
     <template #item="{ item }">
       <v-list-item-icon>
         <v-icon v-if="item.status === 'active'" color="green" small
@@ -41,7 +36,7 @@ export default {
         <v-list-item-subtitle>{{ item.name2 }}</v-list-item-subtitle>
       </v-list-item-content>
     </template>
-  </g-autocomplete-firestore>
+  </g-autocomplete>
 </template>
 
 <style></style>

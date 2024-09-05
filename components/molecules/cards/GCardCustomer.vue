@@ -13,12 +13,12 @@
  * #### 更新履歴
  * - version 1.0.0 - 2024-07-10 - 初版作成
  */
-import { props } from '~/models/Customer'
+import { vueProps } from '~/models/propsDefinition/Customer'
 export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [props],
+  props: vueProps,
 }
 </script>
 

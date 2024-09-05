@@ -23,7 +23,7 @@
   "dependencies": {
     "@nuxtjs/axios": "^5.13.6",
     "@nuxtjs/pwa": "^3.3.5",
-    "air-firemodel": "^0.0.3",
+    "air-firebase": "file:../../AirFirebase/air-firebase/air-firebase-0.3.0.tgz",
     "air-vuetify": "^0.13.3",
     "axios-jsonp": "^1.0.4",
     "browser-image-compression": "^2.0.2",
@@ -31,6 +31,7 @@
     "core-js": "^3.25.3",
     "cross-env": "^7.0.3",
     "dayjs": "^1.11.10",
+    "dotenv": "^16.4.5",
     "firebase": "10.6.0",
     "nuxt": "^2.15.8",
     "vue": "^2.7.10",

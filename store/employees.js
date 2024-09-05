@@ -7,9 +7,10 @@
  * - 在職中の従業員情報のみ、Firestoreから取得しストアとして提供します。
  *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.2.0
  *
  * @updates
+ * - version 1.2.0 - 2024-08-22 - FireModelの仕様変更に伴う修正
  * - version 1.1.0 - 2024-08-15 - `state.temporary`を新規実装。
  *                              - `actions.loadTemporary`と`actions.clearTemporary`を実装。
  *                              - `getters.get`が`state.temporary`も対象にするよう修正。
@@ -23,6 +24,7 @@ import {
   query,
   where,
 } from 'firebase/firestore'
+import Employee from '~/models/Employee'
 
 /******************************************************************
  * STATE
@@ -96,8 +98,11 @@ export const mutations = {
  ******************************************************************/
 export const actions = {
   subscribe({ commit }) {
+    const Model = new Employee()
     const colRef = collection(this.$firestore, 'Employees')
-    const q = query(colRef, where('status', '==', 'active'))
+    const q = query(colRef, where('status', '==', 'active')).withConverter(
+      Model.converter()
+    )
     const listener = onSnapshot(q, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === 'added') commit('setItem', change.doc.data())

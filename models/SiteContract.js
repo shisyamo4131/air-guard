@@ -1,36 +1,19 @@
 /**
- * ### SiteContract.js
+ * SiteContractsドキュメントデータモデル
  *
- * 現場の取極めデータモデルです。
- *
- * #### 機能詳細:
- * - 現場、開始日付、勤務区分ごとに管理します。
- * - `docId`は`${startDate}-${workShift}`に固定されます。
- *
- * #### 注意事項:
- * - `startDate`と`workShift`がドキュメントのkeyになるため、変更してはいけません。
- *
+ * @version 2.0.0
  * @author shisyamo4131
- * @version 1.1.0
- *
  * @updates
- * - version 1.1.0 - 2024-08-09 - `fetchBySiteId()`を実装。
- *                              - `fetchBySiteIds()`を実装。
- * - version 1.0.0 - 2024-07-12 - 初版作成
+ * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
-import {
-  collectionGroup,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from 'firebase/firestore'
-import FireModel from './FireModel'
+import { FireModel } from 'air-firebase'
+import Site from './Site'
+
 const props = {
   props: {
     docId: { type: String, default: '', required: false },
     siteId: { type: String, default: '', required: false },
+    site: { type: Object, default: null, required: false },
     startDate: { type: String, default: '', required: false },
     workShift: {
       type: String,
@@ -73,8 +56,8 @@ const props = {
 export { props }
 
 export default class SiteContract extends FireModel {
-  constructor(context, item = {}) {
-    super(context, item)
+  constructor(item = {}) {
+    super(item, 'SiteContracts', [], false)
     Object.defineProperties(this, {
       workTime: {
         enumerable: true,
@@ -92,12 +75,6 @@ export default class SiteContract extends FireModel {
     })
   }
 
-  get collection() {
-    return `Sites/${this.siteId}/SiteContracts`
-  }
-
-  set collection(v) {}
-
   initialize(item = {}) {
     Object.keys(props.props).forEach((key) => {
       const propDefault = props.props[key].default
@@ -108,67 +85,92 @@ export default class SiteContract extends FireModel {
   }
 
   /**
-   * 同一の開始日付、勤務区分での取極めが存在する場合は作成不可です。
+   * クラスインスタンスをオブジェクト形式に変換します。
+   * - スーパークラスの `toObject` メソッドを呼び出し、その結果に `site` プロパティを追加します。
+   * - `site` プロパティが存在し、かつ `toObject` メソッドを持つ場合、そのメソッドを呼び出してオブジェクトに変換します。
+   * - `site` が存在しない場合、もしくは `toObject` メソッドを持たない場合、そのままの値か、空のオブジェクトを返します。
+   *
+   * @returns {Object} - クラスインスタンスを表すオブジェクト
    */
-  async beforeCreate() {
-    if (await this.isExist()) {
-      const errMsg = '同一日、同一勤務区分の取極めが既に登録されています。'
-      // eslint-disable-next-line
-      console.error(errMsg)
-      throw new Error(errMsg)
+  toObject() {
+    return {
+      ...super.toObject(),
+      site:
+        this.site && typeof this.site.toObject === 'function'
+          ? this.site.toObject()
+          : this.site || {},
     }
   }
 
   /**
-   * `docId`を`${startDate}-${workShift}`に固定します。
+   * Firestoreから取得したデータをクラスインスタンスに変換します。
+   * - スーパークラスの `fromFirestore` メソッドを呼び出して基本のインスタンスを取得します。
+   * - 取得した `site` データを新しい `Site` クラスのインスタンスに変換します。
+   *
+   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
+   * @returns {Object} - クラスインスタンス
+   */
+  fromFirestore(snapshot) {
+    // スーパークラスから基本のインスタンスを生成
+    const instance = super.fromFirestore(snapshot)
+    // site データを新しい Site クラスのインスタンスに変換
+    instance.site = new Site(instance.site)
+    // 変換したインスタンスを返す
+    return instance
+  }
+
+  /**
+   * 同一の現場、開始日、勤務区分での取極めが存在する場合は作成不可です。
+   */
+  async beforeCreate() {
+    if (!this.siteId) {
+      throw new Error('現場の指定が必要です。')
+    }
+    if (!this.startDate) {
+      throw new Error('開始日の指定が必要です。')
+    }
+    if (!this.workShift) {
+      throw new Error('勤務区分の指定が必要です。')
+    }
+    const id = `${this.siteId}-${this.startDate}-${this.workShit}`
+    const existingContract = await this.fetchDoc(id)
+    if (existingContract) {
+      throw new Error('同一の取極めが既に登録されています。')
+    }
+    const site = await new Site().fetchDoc(this.siteId)
+    if (!site) {
+      throw new Error('現場情報が取得できませんでした。')
+    }
+    this.site = site
+  }
+
+  /**
+   * ドキュメントが更新される前に実行される処理です。
+   * - 現場、開始日、勤務区分が変更されていないか確認します。
+   * @throws {Error} - 現場、開始日、勤務区分が変更されている場合にエラーをスローします。
+   * @returns {Promise<void>} - 成功すると解決されるPromise
+   */
+  beforeUpdate() {
+    return new Promise((resolve, reject) => {
+      const [siteId, startDate, workShift] = this.docId.split('-')
+
+      if (
+        siteId !== this.siteId ||
+        startDate !== this.startDate ||
+        workShift !== this.workShift
+      ) {
+        return reject(new Error('現場、開始日、勤務区分は変更できません。'))
+      }
+
+      resolve()
+    })
+  }
+
+  /**
+   * `docId`を`${siteId}-${startDate}-${workShift}`に固定します。
    */
   async create() {
-    const docId = `${this.startDate}-${this.workShift}`
+    const docId = `${this.siteId}-${this.startDate}-${this.workShift}`
     await super.create({ docId })
-  }
-
-  /**
-   * 指定された開始日、勤務区分での取極めが存在するかどうかを返します。
-   */
-  async isExist() {
-    const path = `${this.collection}/${this.startDate}-${this.workShift}`
-    const docRef = doc(this.firestore, path)
-    const snapshot = await getDoc(docRef)
-    return snapshot.exists()
-  }
-
-  /**
-   * 指定された現場の取極めデータを取得して配列で返します。
-   * @param {string} siteId 現場のドキュメントid
-   * @returns {Promise<Array>} 取極めドキュメントデータの配列
-   */
-  async fetchBySiteId(siteId) {
-    const colRef = collectionGroup(this.firestore, 'SiteContracts')
-    const q = query(colRef, where('siteId', '==', siteId))
-    const snapshots = await getDocs(q)
-    if (snapshots.empty) return []
-    return snapshots.docs.map((doc) => doc.data())
-  }
-
-  /**
-   * 現場のドキュメントidの配列を受け取り、該当する取極めドキュメントデータを配列で返します。
-   * 現場のドキュメントidの配列は、重複があれば一意に整理されます。
-   * @param {Array<string>} ids
-   * @returns {Promise<Array>} 取極めドキュメントデータの配列
-   */
-  async fetchBySiteIds(ids) {
-    const unique = [...new Set(ids)]
-    const chunked = unique.flatMap((_, i) =>
-      i % 30 ? [] : [unique.slice(i, i + 30)]
-    )
-    const colRef = collectionGroup(this.firestore, 'SiteContracts')
-    const snapshots = await Promise.all(
-      chunked.map(async (arr) => {
-        const q = query(colRef, where('siteId', 'in', arr))
-        const snapshot = await getDocs(q)
-        return snapshot.docs.map((doc) => doc.data())
-      })
-    )
-    return snapshots.flat()
   }
 }

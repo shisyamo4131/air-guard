@@ -9,7 +9,6 @@ exports.role = require('./modules/role')
 
 exports.airGuard = require('./modules/air-guard')
 
-exports.leaveApplications = require('./modules/leave-applications')
 exports.employees = require('./modules/employees')
 
 exports.customers = require('./modules/customers')
@@ -17,6 +16,4 @@ exports.sites = require('./modules/sites')
 exports.siteOperationSchedules = require('./modules/site-operation-schedules')
 exports.siteOperationScheduleBulks = require('./modules/site-operation-schedule-bulks')
 
-exports.operationResults = require('./triggers/operation-results')
-// exports.siteDaylySales = require('./modules/site-dayly-sales')
-// exports.siteMonthlySales = require('./modules/site-monthly-sales')
+// exports.operationResults = require('./triggers/operation-results')

@@ -1,40 +1,14 @@
 /**
- * ### Site.js
+ * Sitesドキュメントデータモデル
  *
- * 現場ドキュメントのデータモデルです。
- *
- * #### 機能詳細
- * 1. ドキュメントの作成時、`customerId`に有効な値がセットされていればCustomerドキュメントを取得して`customer`プロパティにセットします。
- * 2. ドキュメントの更新時、`customerId`に有効な値がセットされており、`customer.docId`と異なる場合、Customerドキュメントを取得して`customer`プロパティを更新します。
- *
- * #### 注意事項
- * 1. AirGuardとの同期設定の都合上、`customer`プロパティの更新は`customerId`に有効な値がセットされている場合にのみ行われます。
- * 2. Customerドキュメントが更新された時の同期処理はCloud Functionsで行われます。
- *
+ * @version 2.0.0
  * @author shisyamo4131
- * @version 1.4.0
- *
  * @updates
- * - version 1.4.1 - 2024-08-16 - OperationResultsコレクションの変更に伴って`hasMany`を変更。
- * - version 1.4.0 - 2024-08-09 - `fetchByCode()`を実装。
- *                              - `fetchByCodes()`を実装。
- * - version 1.3.0 - 2024-08-07 - `hasMany`に`OperationResults`を追加。
- * - version 1.2.0 - 2024-07-22 - `props.customerId`を追加。
- *                              - getCustomer()を実装。
- *                              ‐ beforeCreate()で`customer`を取得するように追加。
- *                              - beforeUpdate()で`customer`を更新するように追加。
- * - version 1.1.0 - 2024-07-12 - `hasMany`に`SiteOperationSchedules`を追加。
- * - version 1.0.0 - 2024-07-10 - 初版作成
+ * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-} from 'firebase/firestore'
-import FireModel from './FireModel'
+import { doc, getDoc, where } from 'firebase/firestore'
+import { FireModel } from 'air-firebase'
+import Customer from './Customer'
 
 const props = {
   props: {
@@ -54,76 +28,139 @@ const props = {
     remarks: { type: String, default: '', required: false },
     favorite: { type: Boolean, default: false, required: false },
     sync: { type: Boolean, default: false, required: false },
-    // for spot site and bulk create.
     isSpot: { type: Boolean, default: false, required: false },
-    defaultDates: { type: Array, default: () => [], required: false }, // deletable
-    defaultSchedule: { type: Object, default: () => ({}), required: false }, // deletable
   },
 }
 export { props }
 
 export default class Site extends FireModel {
-  constructor(context, item = {}) {
-    super(context, item)
-    this.collection = 'Sites'
-    this.hasMany = [
-      {
-        collection: 'SiteOperationSchedules',
-        field: 'siteId',
-        condition: '==',
-        type: 'subCollection',
-      },
-      {
-        collection: 'OperationResults',
-        field: 'siteId',
-        condition: '==',
-        type: 'collection',
-      },
-    ]
-    this.tokenFields = ['abbr', 'abbrKana']
-    this.initialize(item)
+  constructor(item = {}) {
+    super(
+      item,
+      'Sites',
+      [
+        {
+          collection: 'SiteOperationSchedules',
+          field: 'siteId',
+          condition: '==',
+          type: 'subcollection',
+        },
+        {
+          collection: 'OperationResults',
+          field: 'siteId',
+          condition: '==',
+          type: 'collection',
+        },
+      ],
+      true,
+      ['abbr', 'abbrKana']
+    )
   }
 
-  /**
-   * 初期化メソッド
-   * @param {object} item - 初期化するアイテムオブジェクト
-   */
   initialize(item = {}) {
-    // デフォルト値を設定
     Object.keys(props.props).forEach((key) => {
       const propDefault = props.props[key].default
       this[key] =
         typeof propDefault === 'function' ? propDefault() : propDefault
     })
-    // 親クラスのinitializeメソッドを呼び出し
     super.initialize(item)
+  }
+
+  /**
+   * 自動採番対象
+   * @param {string} docId
+   */
+  async create(docId = null) {
+    await super.create({ docId, useAutonumber: true })
+  }
+
+  /**
+   * クラスインスタンスをオブジェクト形式に変換します。
+   * - スーパークラスの `toObject` メソッドを呼び出し、その結果に `customer` プロパティを追加します。
+   * - `customer` プロパティが存在し、かつ `toObject` メソッドを持つ場合、そのメソッドを呼び出してオブジェクトに変換します。
+   * - `customer` が存在しない場合、もしくは `toObject` メソッドを持たない場合、そのままの値か、空のオブジェクトを返します。
+   *
+   * @returns {Object} - クラスインスタンスを表すオブジェクト
+   */
+  toObject() {
+    return {
+      ...super.toObject(),
+      customer:
+        this.customer && typeof this.customer.toObject === 'function'
+          ? this.customer.toObject()
+          : this.customer || {},
+    }
+  }
+
+  /**
+   * Firestoreから取得したデータをクラスインスタンスに変換します。
+   * - スーパークラスの `fromFirestore` メソッドを呼び出して基本のインスタンスを取得します。
+   * - 取得した `customer` データを新しい `Customer` クラスのインスタンスに変換します。
+   *
+   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
+   * @returns {Object} - クラスインスタンス
+   */
+  fromFirestore(snapshot) {
+    // スーパークラスから基本のインスタンスを生成
+    const instance = super.fromFirestore(snapshot)
+    // customer データを新しい Customer クラスのインスタンスに変換
+    instance.customer = new Customer(instance.customer)
+    // 変換したインスタンスを返す
+    return instance
   }
 
   /**
    * ドキュメントが作成される前に実行される処理です。
    * - `customerId`に対応するCustomerドキュメントを取得して`customer`にセットします。
+   * @throws {Error} - 取引先が指定されていない、または取得できない場合にエラーをスローします。
    */
   async beforeCreate() {
-    if (this.customerId) {
-      this.customer = await this.getCustomer()
-      if (!this.customer) {
+    if (!this.customerId) {
+      throw new Error('取引先の指定が必要です。')
+    }
+
+    try {
+      const customer = await new Customer().fetchDoc(this.customerId)
+      if (!customer) {
         throw new Error('取引先情報が取得できませんでした。')
       }
+      this.customer = customer
+    } catch (err) {
+      // eslint-disable-next-line
+      console.error(
+        `[Site.js beforeCreate] Error fetching customer: ${err.message}`
+      )
+      throw err
     }
   }
 
   /**
    * ドキュメントが更新される前に実行される処理です。
    * - `customerId`と`customer.docId`が異なっていたら、Customerドキュメントを取得して`customer`にセットします。
+   * @throws {Error} - 取引先が指定されていない、または取得できない場合にエラーをスローします。
    */
   async beforeUpdate() {
-    if (this.customerId) {
-      if (this.customerId !== this.customer.docId) {
-        this.customer = await this.getCustomer()
-        if (!this.customer) {
-          throw new Error('取引先情報が取得できませんでした。')
-        }
+    if (!this.customerId) {
+      throw new Error('取引先の指定が必要です。')
+    }
+
+    if (this.customer && this.customer.docId === this.customerId) {
+      // customerId が変更されていない場合、再取得しない
+      return
+    }
+
+    try {
+      const customer = await new Customer().fetchDoc(this.customerId)
+      if (!customer) {
+        throw new Error('取引先情報が取得できませんでした。')
       }
+      this.customer = customer
+    } catch (err) {
+      // eslint-disable-next-line
+      console.error(
+        `[Site.js beforeUpdate] Error fetching customer: ${err.message}`
+      )
+      throw err
     }
   }
 
@@ -139,36 +176,51 @@ export default class Site extends FireModel {
 
   /**
    * 指定された現場codeに該当する現場ドキュメントデータを配列で返します。
-   * @param {string} code
-   * @returns {Promise<Array>} 現場ドキュメントデータの配列
+   * @param {string} code - 現場コード
+   * @returns {Promise<Array>} - 現場ドキュメントデータの配列
+   * @throws {Error} - エラーが発生した場合にスローされます
    */
   async fetchByCode(code) {
-    const colRef = collection(this.firestore, this.collection)
-    const q = query(colRef, where('code', '==', code))
-    const snapshots = await getDocs(q)
-    if (snapshots.empty) return []
-    return snapshots.docs.map((doc) => doc.data())
+    if (!code) throw new Error('Code is required.')
+    try {
+      const constraints = [where('code', '==', code)]
+      const snapshots = await this.fetchDocs(constraints)
+      return snapshots
+    } catch (err) {
+      // eslint-disable-next-line
+      console.error(
+        `[Site.js fetchByCode] Error fetching documents for code ${code}: ${err.message}`
+      )
+      throw err
+    }
   }
 
   /**
    * 現場codeの配列を受け取り、該当する現場ドキュメントデータを配列で返します。
    * 現場codeの配列は、重複があれば一意に整理されます。
-   * @param {Array<string>} codes
-   * @returns {Promise<Array>} 現場ドキュメントデータの配列
+   * @param {Array<string>} codes - 現場コードの配列
+   * @returns {Promise<Array>} - 現場ドキュメントデータの配列
+   * @throws {Error} - 処理中にエラーが発生した場合にスローされます
    */
   async fetchByCodes(codes) {
-    const unique = [...new Set(codes)]
-    const chunked = unique.flatMap((_, i) =>
-      i % 30 ? [] : [unique.slice(i, i + 30)]
-    )
-    const colRef = collection(this.firestore, this.collection)
-    const snapshots = await Promise.all(
-      chunked.map(async (arr) => {
-        const q = query(colRef, where('code', 'in', arr))
-        const snapshot = await getDocs(q)
-        return snapshot.docs.map((doc) => doc.data())
+    if (!Array.isArray(codes) || codes.length === 0) return []
+    try {
+      const unique = [...new Set(codes)]
+      const chunked = unique.flatMap((_, i) =>
+        i % 30 ? [] : [unique.slice(i, i + 30)]
+      )
+      const promises = chunked.map(async (arr) => {
+        const constraints = [where('code', 'in', arr)]
+        return await this.fetchDocs(constraints)
       })
-    )
-    return snapshots.flat()
+      const snapshots = await Promise.all(promises)
+      return snapshots.flat()
+    } catch (err) {
+      // eslint-disable-next-line
+      console.error(
+        `[Site.js fetchByCodes] Error fetching documents: ${err.message}`
+      )
+      throw err
+    }
   }
 }
