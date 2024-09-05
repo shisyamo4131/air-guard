@@ -23,7 +23,7 @@
  * @version 1.1.0
  */
 import GSimpleTableSiteContract from '../tables/GSimpleTableSiteContract.vue'
-import { props } from '~/models/SiteContract'
+import { vueProps } from '~/models/propsDefinition/SiteContract'
 import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 // import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
@@ -40,7 +40,7 @@ export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [props],
+  mixins: [vueProps],
 }
 </script>
 

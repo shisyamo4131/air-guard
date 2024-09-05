@@ -3,11 +3,10 @@ import { where } from 'firebase/firestore'
 import { classProps } from './propsDefinition/Customer'
 
 /**
- * Customersドキュメントデータモデル
+ * Customersドキュメントデータモデル【論理削除】
  *
  * - 取引先情報を管理するデータモデルです。
  * - `code`は Autonumbers による自動採番が行われます。
- * - 削除方法は論理削除です。
  *
  * @version 2.0.0
  * @author shisyamo4131

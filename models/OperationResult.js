@@ -5,7 +5,7 @@ import Site from './Site'
 import OperationResultWorker from './OperationResultWorker'
 import OperationWorkResult from './OperationWorkResult'
 /**
- * ## OperationResult.js
+ * ## OperationResults ドキュメントデータモデル【物理削除】
  *
  * 稼働実績のデータモデルです。
  *

@@ -3,7 +3,7 @@ import Employee from './Employee'
 import { classProps } from './propsDefinition/EmployeeMedicalCheckup'
 
 /**
- * EmployeeMedicalCheckupsドキュメントデータモデル
+ * EmployeeMedicalCheckupsドキュメントデータモデル【物理削除】
  *
  * 従業員の健康診断情報を管理するためのデータモデルです。
  *

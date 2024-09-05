@@ -13,12 +13,12 @@
  * @updates
  * - version 1.0.0 - 2024-07-12 - 初版作成
  */
-import { props } from '~/models/Site'
+import { vueProps } from '~/models/propsDefinition/SiteContract'
 export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [props],
+  mixins: [vueProps],
 }
 </script>
 

@@ -3,7 +3,7 @@ import Employee from './Employee'
 import { classProps } from './propsDefinition/AttendanceRecord'
 
 /**
- * AttendanceRecordsドキュメントデータモデル
+ * AttendanceRecordsドキュメントデータモデル【物理削除】
  *
  * - AttendanceRecordsは従業員の勤怠実績を月ごとに集計したデータです。
  * - MS-Access版AirGuardから出力されたデータを取り込む際にのみ使用されます。（2024-08-22時点）

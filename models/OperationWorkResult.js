@@ -1,7 +1,10 @@
 import { FireModel } from 'air-firebase'
 import { classProps } from './propsDefinition/OperationResultWorker'
 /**
+ * ## OperationWorkResults ドキュメントデータモデル【物理削除】
+ *
  * 稼働実績明細から作成される交通費申請のデータモデルです。
+ *
  * - OperationResultsドキュメントと同期して生成されるドキュメントです。
  * - 同期はCloud Functionsで行われるため、createメソッドを保有しません。
  * - 同様に、OperationResultsドキュメントと同期されるため、update、deleteメソッドも保有しません。

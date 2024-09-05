@@ -3,7 +3,7 @@ import Employee from './Employee'
 import { classProps } from './propsDefinition/EmployeeContract'
 
 /**
- * EmployeeContractsドキュメントデータモデル
+ * ## EmployeeContractsドキュメントデータモデル【物理削除】
  *
  * - 従業員の雇用契約情報を管理するデータモデルです。
  *
@@ -78,13 +78,21 @@ export default class EmployeeContract extends FireModel {
     if (existingContract) {
       throw new Error('同一契約日の雇用契約が既に登録されています。')
     }
-    const employee = await new Employee().fetchDoc(this.employeeId)
-    if (!employee) {
-      throw new Error('従業員情報が取得できませんでした。')
+    try {
+      const employee = await new Employee().fetchDoc(this.employeeId)
+      if (!employee) {
+        throw new Error('従業員情報が取得できませんでした。')
+      }
+      this.employee = employee
+      if (!this.hasPeriod) this.expiredDate = ''
+      await super.beforeCreate()
+    } catch (err) {
+      // eslint-disable-next-line
+      console.error(
+        `[EmployeeContract.js beforeCreate] Error fetching employee: ${err.message}`
+      )
+      throw err
     }
-    this.employee = employee
-    if (!this.hasPeriod) this.expiredDate = ''
-    await super.beforeCreate()
   }
 
   /****************************************************************************
@@ -92,6 +100,7 @@ export default class EmployeeContract extends FireModel {
    * - `employeeId`、`startDate`が変更されていないかをチェックします。
    * - validatePropertiesを行う為、super.beforeUpdateを呼び出します。
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   * @throws {Error} - 従業員、開始日が変更されている場合にエラーをスローします。
    ****************************************************************************/
   async beforeUpdate() {
     const match = this.docId.match(/^(.+)-(\d{4}-\d{2}-\d{2})$/) // YYYY-MM-DD形式の日付部分をキャプチャ

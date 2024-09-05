@@ -2,7 +2,7 @@ import { FireModel } from 'air-firebase'
 import { classProps } from './propsDefinition/Equipment'
 
 /**
- * Equipmentsドキュメントデータモデル
+ * Equipmentsドキュメントデータモデル【論理削除】
  *
  * @version 2.0.0
  * @author shisyamo4131

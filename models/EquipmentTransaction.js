@@ -2,7 +2,7 @@ import { FireModel } from 'air-firebase'
 import { classProps } from './propsDefinition/EquipmentTransaction'
 
 /**
- * EquipmentTransactionsドキュメントデータモデル
+ * EquipmentTransactionsドキュメントデータモデル【物理削除】
  *
  * @version 1.0.0
  * @author shisyamo4131
@@ -14,7 +14,7 @@ export default class Equipment extends FireModel {
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(item, 'EquipmentTransactions', [], true, ['name'], classProps)
+    super(item, 'EquipmentTransactions', [], false, ['name'], classProps)
   }
 
   /****************************************************************************

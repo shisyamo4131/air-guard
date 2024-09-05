@@ -10,7 +10,7 @@
  * @author shisyamo4131
  * @version 1.0.0
  */
-import { props } from '~/models/SiteContract'
+import { vueProps } from '~/models/propsDefinition/SiteContract'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -39,7 +39,7 @@ export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [props],
+  mixins: [vueProps],
   props: {
     workShift: {
       type: String,

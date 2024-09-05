@@ -3,7 +3,7 @@ import { FireModel, firestore } from 'air-firebase'
 import { classProps } from './propsDefinition/Autonumber'
 
 /**
- * Autonumbersドキュメントデータモデル
+ * Autonumbersドキュメントデータモデル【物理削除】
  *
  * - コレクションごとの自動採番を管理するデータモデルです。
  * - FireModelは、createメソッド実行時に`useAutonumber`フラグがtrueの場合、

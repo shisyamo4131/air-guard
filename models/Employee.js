@@ -3,11 +3,10 @@ import { FireModel } from 'air-firebase'
 import { classProps } from './propsDefinition/Employee'
 
 /**
- * Employeesドキュメントデータモデル
+ * Employeesドキュメントデータモデル【論理削除】
  *
  * - 従業員情報を管理するデータモデルです。
  * - `code`は Autonumbers による自動採番が行われます。
- * - 削除方法は論理削除です。
  *
  * @version 2.0.0
  * @author shisyamo4131
