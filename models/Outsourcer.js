@@ -1,5 +1,5 @@
 import { FireModel } from 'air-firebase'
-import { classProps } from './propsDefinition/Site'
+import { classProps } from './propsDefinition/Outsourcer'
 
 /**
  * ## Outsourcersドキュメントデータモデル【論理削除】

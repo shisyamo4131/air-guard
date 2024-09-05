@@ -2,7 +2,7 @@ import { generateVueProps, generateClassProps } from './propsUtil'
 
 const propsDefinition = {
   docId: { type: String, default: '', required: false, requiredByClass: false },
-  code: { type: String, default: '', required: false, requiredByClass: true },
+  code: { type: String, default: '', required: false, requiredByClass: false },
   name: { type: String, default: '', required: false, requiredByClass: true },
   abbr: { type: String, default: '', required: false, requiredByClass: true },
   abbrKana: {

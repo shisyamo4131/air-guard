@@ -51,7 +51,7 @@ export default {
     v-on="$listeners"
   >
     <v-form ref="form" @submit.prevent>
-      <g-text-field v-model="editModel.name" label="取引先名" required />
+      <g-text-field v-model="editModel.name" label="外注先名" required />
       <g-text-field
         v-model="editModel.abbr"
         label="略称"
