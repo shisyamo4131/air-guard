@@ -47,6 +47,7 @@ export default {
     v-bind="$attrs"
     label="入庫・出庫情報編集"
     :edit-mode="editMode"
+    :loading="loading"
     @click:submit="submit"
     v-on="$listeners"
   >

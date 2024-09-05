@@ -54,6 +54,7 @@ export default {
     v-bind="$attrs"
     label="月間勤怠実績"
     :edit-mode="editMode"
+    :loading="loading"
     @click:submit="submit"
     v-on="$listeners"
   >

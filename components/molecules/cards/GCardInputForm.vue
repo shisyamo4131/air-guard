@@ -24,12 +24,16 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: { GBtnCancelIcon, GBtnSubmitIcon },
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
   mixins: [GInputEditModeMixin],
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
     label: { type: String, required: true },
+    loading: { type: Boolean, default: false, required: false },
   },
 }
 </script>
@@ -48,6 +52,7 @@ export default {
       <g-btn-submit-icon
         color="primary"
         :disabled="loading"
+        :loading="loading"
         @click="$emit('click:submit')"
       />
     </v-card-actions>

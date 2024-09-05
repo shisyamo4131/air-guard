@@ -52,6 +52,7 @@ export default {
     v-bind="$attrs"
     label="自動採番設定編集"
     :edit-mode="editMode"
+    :loading="loading"
     @click:submit="submit"
     v-on="$listeners"
   >

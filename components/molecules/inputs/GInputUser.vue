@@ -53,6 +53,7 @@ export default {
     v-bind="$attrs"
     label="ユーザー情報編集"
     :edit-mode="editMode"
+    :loading="loading"
     @click:submit="submit"
     v-on="$listeners"
   >

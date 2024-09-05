@@ -61,15 +61,17 @@ import GInputInitializeMixin from '~/mixins/GInputInitializeMixin'
  * };
  * </script>
  *
- * @version 1.7.0
+ * @version 1.8.0
  * @creator shisyamo4131
  * @updates
- * - version 1.6.1 - 各種 Mixin の機能に関するコメントを追加し、コードの説明を改善。
+ * - version 1.8.0 - `data.loading`を追加。
+ *                 - `submit`処理で`data.loading`の状態を制御するように修正
  * - version 1.7.0 - `GInputInitializeMixin`の`data.clone`を`data.editModel`に変更したことに伴う修正。
  *                 - `submit`処理での`input`イベントのemitを削除。
  *                 - `data.submitType`を実装。
  *                 - `data.submitType`が`toFirestore`の場合、`submit`処理でインスタンスの更新メソッドをコールするように修正。
  *                 - `data.submitType`が`toParent`の場合、`submit`処理でインスタンスを伴った`submit:complete`イベントをemitするように修正。
+ * - version 1.6.1 - 各種 Mixin の機能に関するコメントを追加し、コードの説明を改善。
  */
 
 export default {
@@ -82,6 +84,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      loading: false,
       submitType: 'toFirestore',
     }
   },
@@ -118,6 +121,7 @@ export default {
       }
 
       try {
+        this.loading = true
         if (this.submitType === 'toFirestore') {
           if (this.editMode === this.CREATE) {
             await this.editModel.create()
@@ -135,6 +139,8 @@ export default {
         // eslint-disable-next-line no-console
         console.error('Submit failed:', error)
         this.$emit('submit:failed', error)
+      } finally {
+        this.loading = false
       }
     },
   },

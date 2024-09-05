@@ -101,6 +101,7 @@ export default {
     v-bind="$attrs"
     label="現場取極め情報編集"
     :edit-mode="editMode"
+    :loading="loading"
     @click:submit="submit"
     v-on="$listeners"
   >
