@@ -1,9 +1,23 @@
 <script>
+/**
+ * ## pages.OutsourcersIndex
+ *
+ * 外注先情報の一覧ページです。
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ * @updates
+ * - version 1.0.0 - 2024-09-06 - 初版作成
+ */
+import { where } from 'firebase/firestore'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputOutsourcer from '~/components/molecules/inputs/GInputOutsourcer.vue'
-import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
-import GDataTable from '~/components/atoms/tables/GDataTable.vue'
-import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
+import GDataTableOutsourcers from '~/components/molecules/tables/GDataTableOutsourcers.vue'
+import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
+import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
+import Outsourcer from '~/models/Outsourcer'
+import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -13,108 +27,111 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GTextFieldSearch,
     GBtnRegistIcon,
     GInputOutsourcer,
-    GDataTable,
-    GCardSubmitCancel,
+    GDataTableOutsourcers,
+    GTemplateIndex,
+    GSwitch,
+    GDialogInput,
   },
   /***************************************************************************
-   * ASYNCDATA
+   * MIXINS
    ***************************************************************************/
-  asyncData({ app }) {
-    const model = app.$Outsourcer()
-    const items = model.subscribe()
-    return { model, items }
-  },
+  mixins: [GEditModeMixin],
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
       dialog: false,
-      loading: false,
-      search: null,
+      instance: new Outsourcer(),
+      includeExpired: false,
+      items: {
+        active: this.$store.state.outsourcers.items,
+        expired: [],
+      },
+      listener: new Outsourcer(),
     }
   },
-  /***************************************************************************
-   * COMPUTED
-   ***************************************************************************/
-  computed: {},
   /***************************************************************************
    * WATCH
    ***************************************************************************/
   watch: {
     dialog(v) {
-      v || this.initialize()
+      if (!v) {
+        this.instance.initialize()
+        this.editMode = this.CREATE
+      }
     },
+    includeExpired: {
+      handler(newVal, oldVal) {
+        if (newVal === oldVal) return
+        this.subscribeInactiveDocs()
+      },
+    },
+  },
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.listener.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    initialize() {
-      this.model.initialize()
+    onClickRow(item) {
+      // 詳細ページが出来上がったらこちらを適用
+      // this.$router.push(`/customers/${item.docId}`)
+      this.instance.initialize(item)
+      this.editMode = this.UPDATE
+      this.dialog = true
     },
-    onClickDetail(item) {
-      this.$router.push(`/outsourcers/${item.docId}`)
-    },
-    async submit() {
-      try {
-        this.loading = true
-        const docRef = await this.model.create()
-        this.dialog = false
-        this.$router.push(`/outsourcers/${docRef.id}`)
-      } catch (err) {
-        // eslint-disable-next-line
-        console.error(err)
-        alert(err.message)
-      } finally {
-        this.loading = false
-      }
+    subscribeExpiredDocs() {
+      this.items.expired = this.listener.subscribeDocs([
+        where('status', '!=', 'active'),
+      ])
     },
   },
 }
 </script>
 
 <template>
-  <div>
-    <v-toolbar flat :color="$vuetify.theme.themes.light.background">
-      <g-text-field-search v-model="search" />
-      <v-dialog v-model="dialog" max-width="600" persistent scrollable>
+  <g-template-index :items="items.active.concat(items.expired)">
+    <template #append-search>
+      <g-dialog-input v-model="dialog">
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
         </template>
-        <g-card-submit-cancel
-          :dialog.sync="dialog"
-          label="外注先"
-          edit-mode="REGIST"
-          :loading="loading"
-          @click:submit="submit"
-        >
-          <g-input-outsourcer v-bind.sync="model" edit-mode="REGIST" />
-        </g-card-submit-cancel>
-      </v-dialog>
-    </v-toolbar>
-    <v-container fluid>
-      <g-data-table
-        :actions="['detail']"
-        :headers="[
-          { text: 'CODE', value: 'code', width: 84 },
-          { text: '略称', value: 'abbr' },
-          { text: '住所', value: 'address1' },
-        ]"
-        :items="items"
-        :loading="loading"
-        :search="search"
-        @click:detail="onClickDetail"
-      >
-        <template #[`item.abbr`]="{ item }">
-          {{ item.abbr }}
+        <template #default="{ attrs, on }">
+          <g-input-outsourcer
+            v-bind="attrs"
+            :edit-mode="editMode"
+            :instance="instance"
+            v-on="on"
+          />
         </template>
-      </g-data-table>
-    </v-container>
-  </div>
+      </g-dialog-input>
+    </template>
+    <template #nav>
+      <g-switch
+        v-model="includeExpired"
+        :disabled="includeExpired"
+        label="取引終了を含める"
+        hide-details
+      />
+    </template>
+    <template #default="{ attrs, on, search }">
+      <g-data-table-outsourcers
+        v-bind="attrs"
+        :search="search"
+        sort-by="code"
+        sort-desc
+        @click:row="onClickRow"
+        v-on="on"
+      />
+    </template>
+  </g-template-index>
 </template>
 
 <style></style>

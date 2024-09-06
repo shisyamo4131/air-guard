@@ -1,22 +1,23 @@
 <script>
 /**
- * ### pages.EmployeeIndex
+ * ## pages.EmployeeIndex
+ *
+ * 従業員情報の一覧ページです。
  *
  * @author shisyamo4131
- * @create 2024-06-28
- * @version 1.1.0
- *
- * 更新履歴:
- * version 1.1.0 - 2024-07-02
- *  - GDialogEditorの仕様変更に伴う改修。
+ * @version 1.0.0
+ * @updates
+ * - version 1.0.0 - 2024-09-06 - 初版作成
  */
 import { where } from 'firebase/firestore'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import GDataTableEmployees from '~/components/molecules/tables/GDataTableEmployees.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
-import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
+import GEditModeMixin from '~/mixins/GEditModeMixin'
+import Employee from '~/models/Employee'
+import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -29,86 +30,102 @@ export default {
     GTemplateIndex,
     GDataTableEmployees,
     GSwitch,
-    GDialogEditor,
     GBtnRegistIcon,
     GInputEmployee,
+    GDialogInput,
   },
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GEditModeMixin],
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      includesExpired: false,
-      itemsExpired: [],
-      loading: false,
-      search: null,
+      dialog: false,
+      instance: new Employee(),
+      includeExpired: false,
+      items: {
+        active: this.$store.state.employees.items,
+        expired: [],
+      },
+      listener: new Employee(),
     }
-  },
-  /***************************************************************************
-   * COMPUTED
-   ***************************************************************************/
-  computed: {
-    items() {
-      if (this.includesExpired) {
-        return this.$store.state.employees.items.concat(this.itemsExpired)
-      } else {
-        return this.$store.state.employees.items
-      }
-    },
   },
   /***************************************************************************
    * WATCH
    ***************************************************************************/
   watch: {
-    includesExpired(v) {
-      !v || this.fetchExpired()
+    dialog(v) {
+      if (!v) {
+        this.instance.initialize()
+        this.editMode = this.CREATE
+      }
     },
+    includeExpired: {
+      handler(newVal, oldVal) {
+        if (newVal === oldVal) return
+        this.subscribeExpiredDocs()
+      },
+    },
+  },
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.listener.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    async fetchExpired() {
-      if (this.itemsExpired.length) return
-      this.loading = true
-      try {
-        const model = this.$Employee()
-        this.itemsExpired = await model.fetchDocs(undefined, [
-          where('status', '==', 'expired'),
-        ])
-      } catch (err) {
-        // eslint-disable-next-line
-        console.error(err)
-        alert(err.message)
-      } finally {
-        this.loading = false
-      }
+    onClickRow(item) {
+      // 詳細ページが出来上がったらこちらを適用
+      // this.$router.push(`/customers/${item.docId}`)
+      this.instance.initialize(item)
+      this.editMode = this.UPDATE
+      this.dialog = true
+    },
+    subscribeExpiredDocs() {
+      this.items.expired = this.listener.subscribeDocs([
+        where('status', '!=', 'active'),
+      ])
     },
   },
 }
 </script>
 
 <template>
-  <g-template-index :items="items" extend :search.sync="search">
+  <g-template-index :items="items.active.concat(items.expired)">
     <template #append-search>
-      <g-dialog-editor model-id="Employee" label="従業員">
+      <g-dialog-input v-model="dialog">
         <template #activator="{ attrs, on }">
-          <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
+          <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
         </template>
         <template #default="{ attrs, on }">
-          <g-input-employee v-bind="attrs" v-on="on" />
+          <g-input-employee
+            v-bind="attrs"
+            :edit-mode="editMode"
+            :instance="instance"
+            v-on="on"
+          />
         </template>
-      </g-dialog-editor>
+      </g-dialog-input>
     </template>
-    <template #extension>
-      <g-switch v-model="includesExpired" hide-details label="退職者を含める" />
+    <template #nav>
+      <g-switch
+        v-model="includeExpired"
+        :disabled="includeExpired"
+        hide-details
+        label="退職者を含める"
+      />
     </template>
-    <template #default="{ attrs, on }">
+    <template #default="{ attrs, on, search }">
       <g-data-table-employees
         v-bind="attrs"
-        :loading="loading"
         :search="search"
-        @click:row="$router.push(`/employees/${$event.docId}`)"
+        @click:row="onClickRow"
         v-on="on"
       />
     </template>

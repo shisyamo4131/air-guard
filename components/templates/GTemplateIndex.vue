@@ -140,7 +140,16 @@ export default {
     class="d-flex flex-column"
     :style="{ height: `${templateHeight}px` }"
   >
-    <v-navigation-drawer v-model="drawer" absolute right temporary />
+    <v-navigation-drawer v-model="drawer" fixed right temporary>
+      <v-container>
+        <slot name="nav" />
+      </v-container>
+      <v-container>
+        <v-btn block color="primary" small depressed @click="drawer = false"
+          >閉じる</v-btn
+        >
+      </v-container>
+    </v-navigation-drawer>
     <!-- HEADER -->
     <v-toolbar class="flex-grow-0" :color="toolbarColor" flat dense>
       <div class="d-flex align-center flex-grow-1" style="gap: 8px">
@@ -156,7 +165,7 @@ export default {
         <!-- slot: append-search -->
         <slot name="append-search" />
         <v-btn icon class="ml-auto">
-          <v-icon @click="drawer = !drawer">mdi-filter</v-icon>
+          <v-icon color="primary" @click="drawer = !drawer">mdi-filter</v-icon>
         </v-btn>
       </div>
       <template v-if="extend" #extension>

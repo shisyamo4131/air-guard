@@ -10,9 +10,14 @@
  * The actions must return the Promise.
  *
  * @author shisyamo4131
- * @version 1.3.0
+ * @version 2.0.0
  *
  * @updates
+ * - version 2.0.0 - 2024-09-06 - firebase.authを'air-firebase'に切り替え
+ *                              - `outsourcers/subscribe`を追加
+ *                              - `outsourcers/unsubscribe`を追加
+ *                              - `equipments/subscribe`を追加
+ *                              - `equipments/unsubscribe`を追加
  * - version 1.3.0 - 2024-07-30 - `users/subscribe`を追加
  *                                `users/unsubscribe`を追加
  * - version 1.2.0 - 2024-07-25 - `sites/subscribe`を追加
@@ -22,6 +27,7 @@
  * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
 import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from 'air-firebase'
 
 // Specifies the name of the action in Vuex to be called.
 const ACTIVATE = 'auth/activate'
@@ -29,7 +35,6 @@ const DISACTIVATE = 'auth/disactivate'
 
 export default (context) => {
   return new Promise((resolve) => {
-    const auth = context.app.$auth
     onAuthStateChanged(auth, async (user) => {
       if (user && ACTIVATE) {
         await context.store.dispatch(ACTIVATE, user)
@@ -38,6 +43,8 @@ export default (context) => {
         await context.store.dispatch('sites/subscribe')
         await context.store.dispatch('employees/subscribe')
         await context.store.dispatch('employee-contracts/subscribe')
+        await context.store.dispatch('outsourcers/subscribe')
+        await context.store.dispatch('equipments/subscribe')
       } else if (!user && DISACTIVATE) {
         await context.store.dispatch(DISACTIVATE)
         await context.store.dispatch('users/unsubscribe')
@@ -45,6 +52,8 @@ export default (context) => {
         await context.store.dispatch('sites/unsubscribe')
         await context.store.dispatch('employees/unsubscribe')
         await context.store.dispatch('employee-contracts/unsubscribe')
+        await context.store.dispatch('outsourcers/unsubscribe')
+        await context.store.dispatch('equipments/subsunsubscribecribe')
       }
       resolve()
     })

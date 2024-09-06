@@ -11,6 +11,7 @@
  * ‐ ダイアログが終了すると、GInputコンポーネントの初期化メソッドを実行します。
  * - `props.value`を使用することでこのコンポーネントの開閉を制御可能です。
  * - `initialize`メソッドを実行することで、外部からGInputコンポーネントの初期化処理を実行することができます。
+ * - GInputコンポーネント内のVCardTextへの参照を取得し、ダイアログが終了したタイミングでスクロール位置を初期化します。
  *
  * ### 同一イベントをemitする理由
  * GInputコンポーネントの`submitType`が`toParent`であった場合、編集後のデータを親コンポーネントが
@@ -38,6 +39,7 @@ export default {
     return {
       dialog: false,
       inputRef: null,
+      scrollTargets: [],
     }
   },
   /***************************************************************************
@@ -113,7 +115,6 @@ export default {
         return
       }
       this.inputRef = el
-
       // initializeメソッドの存在確認
       if (typeof this.inputRef.initialize !== 'function') {
         // eslint-disable-next-line no-console
@@ -125,6 +126,10 @@ export default {
         // eslint-disable-next-line no-console
         console.warn('inputRef has no resetValidation method during DOM mount.')
       }
+
+      // GInputコンポーネント内のVCardTextへの参照を取得
+      this.scrollTargets.splice(0)
+      this.scrollTargets = Array.from(el.$el.querySelectorAll('.v-card__text'))
     },
     /**
      * defaultスロットに配置されたGInputコンポーネントの初期化メソッドを呼び出します。
@@ -156,6 +161,19 @@ export default {
           'inputRef has no resetValidation method when initialize is called.'
         )
       }
+
+      // VCardTextのスクロール位置を初期化
+      this.scrollTo()
+    },
+    /**
+     * defaultスロットに配置されたGInputコンポーネント内に存在するVCardTextについて
+     * スクロール位置を変更します。
+     * - 引数を既定値のままにするとTOPに初期化されます。
+     */
+    scrollTo({ top = 0, left = 0, behavior = 'instant' } = {}) {
+      this.scrollTargets.forEach((target) => {
+        target.scrollTo({ top, left, behavior })
+      })
     },
   },
 }

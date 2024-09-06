@@ -21,7 +21,11 @@ export default {
    ***************************************************************************/
   computed: {
     headers() {
-      return [{ text: 'CODE', value: 'code', width: 84 }]
+      return [
+        { text: 'CODE', value: 'code', width: 84 },
+        { text: '外注先名', value: 'name', sortable: false },
+        { text: '住所', value: 'address1', sortable: false },
+      ]
     },
   },
 }
@@ -34,6 +38,15 @@ export default {
     :mobile-breakpoint="0"
     v-on="$listeners"
   >
+    <template #[`item.name`]="{ item }">
+      <div class="d-flex">
+        <v-icon v-if="item.status === 'active'" color="green" left small
+          >mdi-play</v-icon
+        >
+        <v-icon v-else color="red" left small>mdi-stop</v-icon>
+        <div>{{ item.name }}</div>
+      </div>
+    </template>
   </g-data-table>
 </template>
 

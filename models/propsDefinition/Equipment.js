@@ -16,6 +16,13 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+  status: {
+    type: String,
+    default: 'active',
+    validator: (v) => ['active', 'expired'].includes(v),
+    required: false,
+    requiredByClass: true,
+  },
 }
 
 const vueProps = generateVueProps(propsDefinition)

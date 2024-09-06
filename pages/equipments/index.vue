@@ -1,16 +1,23 @@
 <script>
-import {
-  collection,
-  getDocs,
-  onSnapshot,
-  query,
-  where,
-} from 'firebase/firestore'
+/**
+ * ## pages.EquipmentsIndex
+ *
+ * 制服・装備品情報の一覧ページです。
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ * @updates
+ * - version 1.0.0 - 2024-09-06 - 初版作成
+ */
+import { where } from 'firebase/firestore'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputEquipment from '~/components/molecules/inputs/GInputEquipment.vue'
-import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
-import GDataTable from '~/components/atoms/tables/GDataTable.vue'
-import GCardSubmitCancel from '~/components/molecules/cards/GCardSubmitCancel.vue'
+import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
+import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
+import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
+import GDataTableEquipments from '~/components/molecules/tables/GDataTableEquipments.vue'
+import Equipment from '~/models/Equipment'
+import GEditModeMixin from '~/mixins/GEditModeMixin'
 export default {
   /***************************************************************************
    * NAME
@@ -20,188 +27,109 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GTextFieldSearch,
     GBtnRegistIcon,
     GInputEquipment,
-    GDataTable,
-    GCardSubmitCancel,
+    GTemplateIndex,
+    GDialogInput,
+    GSwitch,
+    GDataTableEquipments,
   },
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GEditModeMixin],
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
       dialog: false,
-      editMode: 'REGIST',
-      items: [],
-      listener: null,
-      loading: false,
-      model: this.$Equipment(),
-      search: null,
+      instance: new Equipment(),
+      includeExpired: false,
+      items: {
+        active: this.$store.state.equipments.items,
+        expired: [],
+      },
+      listener: new Equipment(),
     }
   },
-  /***************************************************************************
-   * COMPUTED
-   ***************************************************************************/
-  computed: {},
   /***************************************************************************
    * WATCH
    ***************************************************************************/
   watch: {
     dialog(v) {
-      v || this.initialize()
+      if (!v) {
+        this.instance.initialize()
+        this.editMode = this.CREATE
+      }
     },
-  },
-  /***************************************************************************
-   * MOUNTED
-   ***************************************************************************/
-  mounted() {
-    this.subscribe()
+    includeExpired: {
+      handler(newVal, oldVal) {
+        if (newVal === oldVal) return
+        this.subscribeInactiveDocs()
+      },
+    },
   },
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    if (this.listener) this.listener()
+    this.listener.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    async getEquipmentRecords(equipmentId, date = undefined) {
-      const path = `Equipments/${equipmentId}/EquipmentRecords`
-      const ref = date
-        ? query(collection(this.$firestore, path), where('date', '>', date))
-        : collection(this.$firestore, path)
-      const snapshot = await getDocs(ref)
-      return snapshot.docs.reduce(
-        (acc, i) => {
-          acc[i.type] += i.amount
-          return acc
-        },
-        { receiving: 0, shipping: 0 }
-      )
-    },
-    subscribe() {
-      const colRef = collection(this.$firestore, this.model.collection)
-      this.listener = onSnapshot(colRef, (snapshot) => {
-        snapshot.docChanges().forEach(async (change) => {
-          const item = change.doc.data()
-          const index = this.items.findIndex(
-            ({ docId }) => docId === item.docId
-          )
-          item.history = await this.getEquipmentRecords(item.docId)
-          item.currentAmount =
-            (item?.inventoryAmount || 0) +
-            item.history.receiving -
-            item.history.shipping
-          if (change.type === 'added') this.items.push(item)
-          if (change.type === 'modified') this.items.splice(index, 1, item)
-          if (change.type === 'removed') this.items.splice(index, 1)
-        })
-      })
-    },
-    initialize() {
-      this.editMode = 'REGIST'
-      this.model.initialize()
-    },
-    onClickEdit(item) {
-      this.editMode = 'UPDATE'
-      this.model.initialize(item)
+    onClickRow(item) {
+      // 詳細ページが出来上がったらこちらを適用
+      // this.$router.push(`/customers/${item.docId}`)
+      this.instance.initialize(item)
+      this.editMode = this.UPDATE
       this.dialog = true
     },
-    onClickDelete(item) {
-      this.editMode = 'DELETE'
-      this.model.initialize(item)
-      this.dialog = true
-    },
-    async submit() {
-      try {
-        this.loading = true
-        if (this.editMode === 'REGIST') await this.model.create()
-        if (this.editMode === 'UPDATE') await this.model.update()
-        if (this.editMode === 'DELETE') await this.model.delete()
-        this.dialog = false
-      } catch (err) {
-        // eslint-disable-next-line
-        console.error(err)
-        alert(err.message)
-      } finally {
-        this.loading = false
-      }
-    },
-    toggledFavorite(item) {
-      item.favorite = !item.favorite
+    subscribeExpiredDocs() {
+      this.items.expired = this.listener.subscribeDocs([
+        where('status', '!=', 'active'),
+      ])
     },
   },
 }
 </script>
 
 <template>
-  <div>
-    <v-toolbar flat :color="$vuetify.theme.themes.light.background">
-      <g-text-field-search v-model="search" />
-      <v-dialog v-model="dialog" max-width="360" persistent scrollable>
+  <g-template-index :items="items.active.concat(items.expired)">
+    <template #append-search>
+      <g-dialog-input v-model="dialog">
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
         </template>
-        <g-card-submit-cancel
-          :dialog.sync="dialog"
-          label="制服・装備品"
-          :edit-mode="editMode"
-          :loading="loading"
-          @click:submit="submit"
-        >
-          <g-input-equipment v-bind.sync="model" :edit-mode="editMode" />
-        </g-card-submit-cancel>
-      </v-dialog>
-    </v-toolbar>
-    <v-container fluid>
-      <g-data-table
-        :actions="['edit', 'delete']"
-        :headers="[
-          { text: '名称', value: 'name' },
-          {
-            text: '棚卸日',
-            value: 'inventoryDate',
-            align: 'center',
-            sortable: false,
-          },
-          {
-            text: '棚卸時在庫数',
-            value: 'inventoryAmount',
-            align: 'right',
-            sortable: false,
-          },
-          {
-            text: '入庫数',
-            value: 'history.receiving',
-            align: 'right',
-            sortable: false,
-          },
-          {
-            text: '出庫数',
-            value: 'history.shipping',
-            align: 'right',
-            sortable: false,
-          },
-          {
-            text: '現在在庫数',
-            value: 'currentAmount',
-            align: 'right',
-            sortable: false,
-          },
-        ]"
-        :items="items"
-        :loading="loading"
+        <template #default="{ attrs, on }">
+          <g-input-equipment
+            v-bind="attrs"
+            :edit-mode="editMode"
+            :instance="instance"
+            v-on="on"
+          />
+        </template>
+      </g-dialog-input>
+    </template>
+    <template #nav>
+      <g-switch
+        v-model="includeExpired"
+        :disabled="includeExpired"
+        label="使用終了を含める"
+        hide-details
+      />
+    </template>
+    <template #default="{ attrs, on, search }">
+      <g-data-table-equipments
+        v-bind="attrs"
         :search="search"
-        sort-by="name"
-        @click:edit="onClickEdit"
-        @click:delete="onClickDelete"
-      >
-      </g-data-table>
-    </v-container>
-  </div>
+        @click:row="onClickRow"
+        v-on="on"
+      />
+    </template>
+  </g-template-index>
 </template>
 
 <style></style>

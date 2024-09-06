@@ -1,25 +1,25 @@
 <script>
 /**
- * # pages.SitesIndex
+ * ## pages.SitesIndex
  *
  * 現場情報の一覧ページです。
  *
- * @author shisyamo4131
- * @version 1.2.0
+ * - Sitesドキュメントの数が多いため、この画面では稼働中の現場のみを管理します。
+ * - 稼働終了となった現場の管理機能は別コンポーネントで提供します。
  *
+ * @author shisyamo4131
+ * @version 1.0.0
  * @updates
- * - version 1.2.0 - 2024-07-31 - `GDataTableSites`への`sort-by`と`sort-desc`を削除。
- *                              - 稼働終了現場の取得・表示に関する機能を削除
- *                                -> 稼働終了現場の一覧画面を別に実装したため。
- * - version 1.1.0 - 2024-07-25 - Vuex.sitesの実装により仕様変更。
- * - version 1.0.0 - 2024-07-10 - 初版作成
+ * - version 1.0.0 - 2024-09-06 - 初版作成
  */
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
-import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
 import GDataTableSites from '~/components/molecules/tables/GDataTableSites.vue'
 import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
+import Site from '~/models/Site'
+import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -32,16 +32,22 @@ export default {
     GTemplateIndex,
     GBtnRegistIcon,
     GInputSite,
-    GDialogEditor,
     GDataTableSites,
     GAutocompleteCustomer,
+    GDialogInput,
   },
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GEditModeMixin],
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
       customerId: '',
+      dialog: false,
+      instance: new Site(),
       items: this.$store.state.sites.items,
     }
   },
@@ -58,7 +64,14 @@ export default {
   /***************************************************************************
    * WATCH
    ***************************************************************************/
-  watch: {},
+  watch: {
+    dialog(v) {
+      if (!v) {
+        this.instance.initialize()
+        this.editMode = this.CREATE
+      }
+    },
+  },
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
@@ -66,45 +79,48 @@ export default {
   /***************************************************************************
    * METHODS
    ***************************************************************************/
-  methods: {},
+  methods: {
+    onClickRow(item) {
+      // 詳細ページが出来上がったらこちらを適用
+      // this.$router.push(`/sites/${item.docId}`)
+      this.instance.initialize(item)
+      this.editMode = this.UPDATE
+      this.dialog = true
+    },
+  },
 }
 </script>
 
 <template>
-  <g-template-index extend :items="filteredItems">
+  <g-template-index :items="filteredItems">
     <template #append-search>
-      <g-dialog-editor
-        model-id="Site"
-        label="現場"
-        @submit:complete="$router.push(`/sites/${$event.item.docId}`)"
-      >
+      <g-dialog-input v-model="dialog">
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
         </template>
         <template #default="{ attrs, on }">
-          <g-input-site v-bind="attrs" v-on="on" />
+          <g-input-site
+            v-bind="attrs"
+            :edit-mode="editMode"
+            :instance="instance"
+            v-on="on"
+          />
         </template>
-      </g-dialog-editor>
+      </g-dialog-input>
     </template>
-    <template #extension>
-      <div
-        class="d-flex align-center flex-nowrap flex-grow-1"
-        style="gap: 12px"
-      >
-        <g-autocomplete-customer
-          v-model="customerId"
-          label="取引先"
-          class="flex-grow-1"
-          clearable
-          hide-details
-        />
-      </div>
+    <template #nav>
+      <g-autocomplete-customer
+        v-model="customerId"
+        label="取引先"
+        clearable
+        hide-details
+      />
     </template>
     <template #default="{ attrs, search, on }">
       <g-data-table-sites
         v-bind="attrs"
         :search="search"
-        @click:row="$router.push(`/sites/${$event.docId}`)"
+        @click:row="onClickRow"
         v-on="on"
       />
     </template>
