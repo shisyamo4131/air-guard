@@ -44,7 +44,7 @@ export default {
       {{ label }}
       <v-chip label class="ml-auto">{{ editMode }}</v-chip>
     </v-card-title>
-    <v-card-text>
+    <v-card-text class="pt-3">
       <slot name="default" v-bind="{ attrs: { editMode, label, loading } }" />
     </v-card-text>
     <v-card-actions class="justify-space-between">
