@@ -51,7 +51,7 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form ref="form" @submit.prevent>
+    <v-form @submit.prevent>
       <g-combobox-date v-model="editModel.date" label="入庫日" />
       <g-select
         v-model="editModel.transactionType"

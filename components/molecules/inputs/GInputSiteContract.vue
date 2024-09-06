@@ -105,7 +105,7 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form ref="form" @submit.prevent>
+    <v-form @submit.prevent>
       <g-autocomplete-site
         v-if="!editModel.hideSite"
         v-model="editModel.siteId"

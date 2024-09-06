@@ -58,7 +58,7 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form ref="form" @submit.prevent>
+    <v-form @submit.prevent>
       <g-autocomplete-employee v-model="editModel.employeeId" readonly />
       <g-text-field v-model="editModel.month" readonly />
       <g-numeric v-model="editModel.scheduledWorkingTime" readonly />

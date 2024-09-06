@@ -84,7 +84,7 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form ref="form" @submit.prevent>
+    <v-form @submit.prevent>
       <g-text-field v-model="editModel.code" label="CODE" disabled />
       <v-row dense>
         <v-col cols="12" md="6">

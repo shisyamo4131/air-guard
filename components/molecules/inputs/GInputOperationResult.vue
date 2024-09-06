@@ -121,7 +121,7 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form ref="form" @submit.prevent>
+    <v-form @submit.prevent>
       <g-text-field v-model="editModel.code" label="CODE" disabled />
       <g-autocomplete-site v-model="editModel.siteId" label="現場" required />
       <g-select

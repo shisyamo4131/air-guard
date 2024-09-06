@@ -70,7 +70,7 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form ref="form" @submit.prevent>
+    <v-form @submit.prevent>
       <g-autocomplete-employee
         v-if="!hideEmployee"
         v-model="editModel.employeeId"

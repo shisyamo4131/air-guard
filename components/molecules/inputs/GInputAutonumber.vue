@@ -56,7 +56,7 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form ref="form" @submit.prevent>
+    <v-form @submit.prevent>
       <!-- 追加モード時以外は編集不可 -->
       <g-text-field
         v-model="editModel.collectionId"

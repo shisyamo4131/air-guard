@@ -49,7 +49,7 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form ref="form" @submit.prevent>
+    <v-form @submit.prevent>
       <g-text-field v-model="editModel.name" label="名称" required />
       <g-text-field v-model="editModel.code" label="商品コード" />
       <g-text-field v-model="editModel.colorSize" label="色・サイズ" />

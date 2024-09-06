@@ -71,7 +71,7 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form ref="form" @submit.prevent>
+    <v-form @submit.prevent>
       <g-text-field
         v-model="editModel.name1"
         label="取引先名1"
