@@ -6,6 +6,12 @@
     "lists": []
   },
   {
+    "name": "稼働実績管理",
+    "icon": "mdi-train-bus",
+    "to": "/operation-results",
+    "lists": []
+  },
+  {
     "name": "交通費管理",
     "icon": "mdi-train-bus",
     "to": "/transportation-cost-applications",

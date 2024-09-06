@@ -14,6 +14,7 @@
  * @updates
  * - version 1.0.0 - 初版作成
  */
+import GDialogInput from '../dialogs/GDialogInput.vue'
 import GInputOperationResultWorker from './GInputOperationResultWorker.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import OperationResultWorker from '~/models/OperationResultWorker'
@@ -25,6 +26,7 @@ export default {
   components: {
     GDataTable,
     GInputOperationResultWorker,
+    GDialogInput,
   },
   /***************************************************************************
    * MIXINS
@@ -139,12 +141,6 @@ export default {
       this.$emit('changeWorker', instance.clone())
       this.dialog = false
     },
-    /**
-     * `data.editModel`を`removeWorker`イベントとともにemitします。
-     */
-    removeWorker() {
-      this.$emit('removeWorker', this.editModel.clone())
-    },
   },
 }
 </script>
@@ -161,10 +157,10 @@ export default {
       :headers="headers"
       :items="value"
       item-key="employeeId"
-      :actions="['delete']"
+      :actions="['edit', 'delete']"
       disable-sort
-      @click:row="onClickRow"
-      @click:delete="removeWorker"
+      @click:edit="onClickRow"
+      @click:delete="$emit('removeWorker', $event)"
     >
       <template #[`item.employeeId`]="{ item }">
         {{
@@ -192,15 +188,14 @@ export default {
       </template>
     </g-data-table>
 
-    <!-- 稼働実績編集ダイアログ -->
-    <v-dialog v-model="dialog" max-width="480" scrollable>
+    <g-dialog-input v-model="dialog" max-width="480">
       <g-input-operation-result-worker
         :instance="editModel"
         :edit-mode="UPDATE"
         @submit:complete="changeWorker"
-        @cancel="dialog = false"
+        @click:cancel="dialog = false"
       />
-    </v-dialog>
+    </g-dialog-input>
   </div>
 </template>
 

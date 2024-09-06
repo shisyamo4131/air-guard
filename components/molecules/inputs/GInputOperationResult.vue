@@ -20,6 +20,7 @@ import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
 import OperationResultWorker from '~/models/OperationResultWorker'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import { isValidDateFormat } from '~/utils/utility'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -66,6 +67,10 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    isValidDate() {
+      if (!this.editModel.date) return false
+      return isValidDateFormat(this.editModel.date)
+    },
     selectableEmployees() {
       return this.$store.state.employees.items.filter((item) => {
         return !this.instance.workers.some(
@@ -154,7 +159,7 @@ export default {
             <template #activator="{ attrs, on }">
               <v-btn
                 v-bind="attrs"
-                :disabled="!editModel.date"
+                :disabled="!isValidDate"
                 small
                 color="primary"
                 v-on="on"

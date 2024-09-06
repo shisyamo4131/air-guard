@@ -20,6 +20,17 @@ export default class OperationResult extends FireModel {
    ****************************************************************************/
   constructor(item = {}) {
     super(item, 'OperationResults', [], false, [], classProps)
+    Object.defineProperties(this, {
+      month: {
+        enumerable: true,
+        configurable: true,
+        get() {
+          if (!this.date) return ''
+          return this.date.slice(0, 7)
+        },
+        set(v) {},
+      },
+    })
   }
 
   /****************************************************************************

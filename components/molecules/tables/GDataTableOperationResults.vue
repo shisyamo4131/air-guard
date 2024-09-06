@@ -67,18 +67,6 @@ export default {
         {{ item.site.customer.abbr }}
       </div>
     </template>
-    <template #[`item.workers`]="{ item }">
-      {{
-        `${
-          item.workers.standard.normal +
-          item.workers.standard.half +
-          item.workers.standard.canceled +
-          item.workers.qualified.normal +
-          item.workers.qualified.half +
-          item.workers.qualified.canceled
-        } 人工`
-      }}
-    </template>
     <template #[`item.sales`]="{ item }">
       {{ `${(item.sales || 0).toLocaleString()} 円` }}
     </template>

@@ -1,15 +1,27 @@
 <script>
+/**
+ * ## pages.OperationResultsIndex
+ *
+ * 稼働実績情報の一覧ページです。
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ * @updates
+ * - version 1.0.0 - 2024-09-06 - 初版作成
+ */
 import { where } from 'firebase/firestore'
 import GInputOperationResult from '~/components/molecules/inputs/GInputOperationResult.vue'
 import GDataTableOperationResults from '~/components/molecules/tables/GDataTableOperationResults.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
-import GTextField from '~/components/atoms/inputs/GTextField.vue'
-import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
-/**
- * ### pages.operation-results.index
- * @author shisyamo4131
- */
+import OperationResult from '~/models/OperationResult'
+import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
+import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
+import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 export default {
+  /***************************************************************************
+   * NAME
+   ***************************************************************************/
   name: 'OperationResultsIndex',
   /***************************************************************************
    * COMPONENTS
@@ -18,9 +30,14 @@ export default {
     GInputOperationResult,
     GTemplateIndex,
     GDataTableOperationResults,
-    GTextField,
-    GDatePicker,
+    GDialogInput,
+    GBtnRegistIcon,
+    GDialogMonthPicker,
   },
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GEditModeMixin],
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -28,9 +45,9 @@ export default {
     return {
       customerId: '',
       siteId: '',
+      dialog: false,
+      instance: new OperationResult(),
       items: [],
-      loading: false,
-      model: this.$OperationResult(),
       month: this.$dayjs().format('YYYY-MM'),
       monthPicker: false,
     }
@@ -55,12 +72,17 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
+    dialog(v) {
+      if (!v) {
+        this.instance.initialize()
+        this.editMode = this.CREATE
+      }
+    },
     month: {
       handler(newVal, oldVal) {
         if (newVal === oldVal) return
-        // this.fetchDocs()
         const constraints = [where('month', '==', newVal)]
-        this.items = this.model.subscribe(undefined, constraints)
+        this.items = this.instance.subscribeDocs(constraints)
       },
       immediate: true,
     },
@@ -69,67 +91,63 @@ export default {
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.model.unsubscribe()
+    this.instance.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    // async fetchDocs() {
-    //   const constraints = [where('month', '==', this.month)]
-    //   this.loading = true
-    //   this.items = await this.model.fetchDocs(undefined, constraints)
-    //   this.loading = false
-    // },
+    onClickRow(item) {
+      // 詳細ページが出来上がったらこちらを適用
+      // this.$router.push(`/customers/${item.docId}`)
+      this.instance.initialize(item)
+      this.editMode = this.UPDATE
+      this.dialog = true
+    },
   },
 }
 </script>
 
 <template>
-  <g-template-index
-    label="稼働実績管理"
-    :items="filteredItems"
-    :loading="loading"
-    :model="model"
-    regist-at-page
-    :search-drawer-badge="!!customerId || !!siteId"
-    use-search-drawer
-  >
-    <template #input="{ attrs, on }">
-      <g-input-operation-result v-bind="attrs" v-on="on" />
-    </template>
-    <template #search-box>
-      <v-menu
-        ref="monthPicker"
-        v-model="monthPicker"
-        min-width="auto"
-        :return-value.sync="month"
-      >
+  <g-template-index :items="filteredItems">
+    <template #search>
+      <g-dialog-month-picker v-model="month">
         <template #activator="{ attrs, on }">
-          <g-text-field
+          <v-text-field
             v-bind="attrs"
             class="center-input"
             style="max-width: 120px"
-            :value="$dayjs(`${month}-01`).format('YYYY年MM月')"
+            flat
+            solo-inverted
+            dense
             hide-details
-            readonly
-            :loading="loading"
             v-on="on"
           />
         </template>
-        <g-date-picker
-          :value="month"
-          type="month"
-          @change="$refs.monthPicker.save($event)"
-        />
-      </v-menu>
+      </g-dialog-month-picker>
       <v-spacer />
     </template>
-    <template #search-drawer>
-      <v-container> </v-container>
+    <template #append-search>
+      <g-dialog-input v-model="dialog" fullscreen>
+        <template #activator="{ attrs, on }">
+          <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
+        </template>
+        <template #default="{ attrs, on }">
+          <g-input-operation-result
+            v-bind="attrs"
+            :edit-mode="editMode"
+            :instance="instance"
+            v-on="on"
+          />
+        </template>
+      </g-dialog-input>
     </template>
-    <template #data-table="{ attrs, on }">
-      <g-data-table-operation-results v-bind="attrs" v-on="on" />
+    <template #default="{ attrs, on }">
+      <g-data-table-operation-results
+        v-bind="attrs"
+        @click:row="onClickRow"
+        v-on="on"
+      />
     </template>
   </g-template-index>
 </template>
