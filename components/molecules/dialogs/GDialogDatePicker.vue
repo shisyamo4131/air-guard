@@ -1,17 +1,20 @@
 <script>
 /**
- * ### GDialogMonthPicker
- * 月選択用のダイアログピッカーコンポーネントです。
+ * ### GDialogDatePicker
+ * 日付選択用のダイアログピッカーコンポーネントです。
+ *
+ * GDialogMonthPickerが不要では・・・・？
  *
  * @component
  * @example
- * <GDialogMonthPicker v-model="selectedMonth" />
+ * <GDialogDatePicker v-model="value" />
  *
  * @props {String} value - v-modelバインディング用の月データ
  *
- * @version 1.0.0
- * @date 2024-06-21
  * @author shisyamo4131
+ * @version 1.0.0
+ * @updates
+ * - version 1.0.0 - 2024-09-07 - 初版作成
  */
 import GBtnCancelIcon from '../../atoms/btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '../../atoms/btns/GBtnSubmitIcon.vue'
@@ -27,6 +30,12 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    type: {
+      type: String,
+      default: 'date',
+      validator: (v) => ['date', 'month'].includes(v),
+      required: false,
+    },
     value: { type: String, default: undefined, required: false },
   },
 
@@ -37,7 +46,7 @@ export default {
     return {
       dialog: false,
       pickerDate: undefined,
-      internalValue: undefined,
+      pickerValue: undefined,
     }
   },
 
@@ -47,7 +56,7 @@ export default {
   computed: {
     computedValue: {
       get() {
-        return this.internalValue
+        return this.pickerValue
       },
       set(v) {
         if (this.pickerValue === this.value) return
@@ -66,7 +75,7 @@ export default {
     },
     value: {
       handler(newVal, oldVal) {
-        this.internalValue = newVal
+        this.pickerValue = newVal
       },
       immediate: true,
     },
@@ -92,16 +101,16 @@ export default {
       />
     </template>
     <g-date-picker
-      v-model="internalValue"
+      v-model="pickerValue"
       :picker-date.sync="pickerDate"
-      type="month"
+      :type="type"
       no-title
     >
       <g-btn-cancel-icon @click="dialog = false" />
       <v-spacer />
       <g-btn-submit-icon
         color="primary"
-        @click="$refs.dialog.save(internalValue)"
+        @click="$refs.dialog.save(pickerValue)"
       />
     </g-date-picker>
   </v-dialog>

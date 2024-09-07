@@ -30,7 +30,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
-  deadline: {
+  closingDate: {
     type: String,
     default: '',
     required: false,

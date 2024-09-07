@@ -1,4 +1,26 @@
 /**
+ * 指定された日付文字列がweekday、saturday、sundayのどれかを判定する関数
+ * @param {string} dateString - YYYY-MM-DD形式の日付文字列
+ * @returns {string} - 'weekday', 'saturday', 'sunday' のいずれかを返す
+ */
+export function getDayType(dateString) {
+  // 日付文字列をDateオブジェクトに変換
+  const date = new Date(dateString)
+
+  // getDay()メソッドで曜日を取得（0: 日曜, 1: 月曜, ..., 6: 土曜）
+  const dayOfWeek = date.getDay()
+
+  // 曜日に基づいて平日、土曜、日曜を判定
+  if (dayOfWeek === 0) {
+    return 'sunday' // 日曜
+  } else if (dayOfWeek === 6) {
+    return 'saturday' // 土曜
+  } else {
+    return 'weekday' // 平日
+  }
+}
+
+/**
  * 指定された日付と締日区分をもとに締日を返す関数
  * @param {string} dateString - YYYY-MM-DD形式の日付文字列
  * @param {string} closingCode - 締日区分 ('05', '10', '15', '20', '25', '99')

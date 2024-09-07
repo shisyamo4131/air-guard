@@ -4,6 +4,7 @@ import { classProps } from './propsDefinition/OperationResult'
 import Site from './Site'
 import OperationResultWorker from './OperationResultWorker'
 import OperationWorkResult from './OperationWorkResult'
+import { getClosingDate, isValidDateFormat } from '~/utils/utility'
 /**
  * ## OperationResults ドキュメントデータモデル【物理削除】
  *
@@ -12,6 +13,7 @@ import OperationWorkResult from './OperationWorkResult'
  * @version 2.0.0
  * @author shisyamo4131
  * @updates
+ * - version 2.1.0 - 2024-09-07 - refreshClosingDate()を実装
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class OperationResult extends FireModel {
@@ -233,5 +235,72 @@ export default class OperationResult extends FireModel {
     if (index !== -1) {
       this.workers.splice(index, 1)
     }
+  }
+
+  /**
+   * 締日を更新する非同期メソッド
+   * @returns {void}
+   */
+  async refreshClosingDate() {
+    // siteIdが設定されているか確認
+    if (!this.siteId) {
+      // eslint-disable-next-line no-console
+      console.warn('siteId is required to refresh closing date.')
+      return // siteIdがない場合は処理を終了
+    }
+
+    // 日付が正しい形式かどうかを確認
+    if (!this.date || !isValidDateFormat(this.date)) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        'A correctly formatted date is required to refresh closing date.'
+      )
+      return // 日付が無効な場合は処理を終了
+    }
+
+    try {
+      // Siteインスタンスを生成し、siteIdに基づいてデータを取得
+      const site = await new Site().fetchDoc(this.siteId)
+
+      // siteオブジェクトからcustomer情報を取得し、締日を取得
+      const deadline = site?.customer?.deadline
+
+      if (!deadline) {
+        // eslint-disable-next-line no-console
+        console.warn('No deadline information found for the site.')
+        return // 締日情報がない場合は処理を終了
+      }
+
+      // 日付と締日区分をもとに締日を計算してセット
+      this.closingDate = getClosingDate(this.date, deadline)
+    } catch (err) {
+      // エラーハンドリング：サイトデータ取得や締日計算でエラーが発生した場合
+      // eslint-disable-next-line no-console
+      console.error('Error occurred while refreshing the closing date:', err)
+    }
+  }
+
+  /**
+   * workers配列内のオブジェクトのdateプロパティを一括変更するメソッド
+   * @param {string|null} [date=null] - 設定する日付。nullの場合はthis.dateを使用
+   * @returns {void}
+   */
+  refreshWorkersDate(date = null) {
+    // dateが渡されなかった場合、this.dateを使用する
+    const effectiveDate = date || this.date
+
+    // 有効な日付フォーマットでない場合は警告を出して処理を終了する
+    if (!isValidDateFormat(effectiveDate)) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        'Invalid date format. The date must be in YYYY-MM-DD format.'
+      )
+      return
+    }
+
+    // workers配列内の各workerオブジェクトのdateプロパティを更新
+    this.workers.forEach((worker) => {
+      worker.date = effectiveDate
+    })
   }
 }

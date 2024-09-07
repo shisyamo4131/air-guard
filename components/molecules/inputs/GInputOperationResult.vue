@@ -8,6 +8,7 @@
  * - version 1.0.0 - 初版作成
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
+import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
 import GInputOperationResultWorkers from './GInputOperationResultWorkers.vue'
 import OperationResult from '~/models/OperationResult'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
@@ -20,7 +21,7 @@ import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
 import OperationResultWorker from '~/models/OperationResultWorker'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
-import { isValidDateFormat } from '~/utils/utility'
+import { getDayType, isValidDateFormat } from '~/utils/utility'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -36,6 +37,7 @@ export default {
     GBtnCancelIcon,
     GBtnSubmitIcon,
     GCardInputForm,
+    GDialogDatePicker,
   },
   /***************************************************************************
    * MIXINS
@@ -92,6 +94,53 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    /**
+     * 現場が変更された時の処理です。
+     * - 締日を更新します。
+     * @returns {Promise<void>}
+     */
+    async onSiteChanged() {
+      this.loading = true // ローディング状態を開始
+
+      try {
+        // 締日をリフレッシュするメソッドを実行
+        await this.editModel.refreshClosingDate()
+      } catch (err) {
+        // エラーハンドリング：refreshClosingDateでエラーが発生した場合
+        // eslint-disable-next-line no-console
+        console.error('Failed to set the closing date:', err)
+      } finally {
+        // 処理が完了したらローディング状態を終了
+        this.loading = false
+      }
+    },
+    /**
+     * 日付が変更された時の処理です。
+     * - 曜日区分を更新します。
+     * - 締日を更新します。
+     * - 稼働実績明細の勤務日を更新します。
+     * @returns {Promise<void>}
+     */
+    async onDateChanged() {
+      this.loading = true // ローディング状態を開始
+
+      try {
+        this.editModel.dayDiv = getDayType(this.editModel.date)
+        // 締日をリフレッシュするメソッドを実行
+        await this.editModel.refreshClosingDate()
+        this.editModel.refreshWorkersDate()
+      } catch (err) {
+        // エラーハンドリング：refreshClosingDateでエラーが発生した場合
+        // eslint-disable-next-line no-console
+        console.error('Failed to set the closing date:', err)
+      } finally {
+        // 処理が完了したらローディング状態を終了
+        this.loading = false
+      }
+    },
+    /**
+     * 従業員選択画面で選択された従業員の稼働実績明細を`editModel.workers`に追加します。
+     */
     addWorker() {
       try {
         this.selectedEmployees.forEach((employee) => {
@@ -107,9 +156,15 @@ export default {
         alert(err.message)
       }
     },
+    /**
+     * 引数で受け取った稼働実績明細を`editModel.workers`に反映させます。
+     */
     changeWorker(item) {
       this.editModel.changeWorker(item)
     },
+    /**
+     * 引数で受け取った稼働実績明細を`editModel.workers`から削除します。
+     */
     removeWorker(item) {
       this.editModel.removeWorker(item)
     },
@@ -134,7 +189,16 @@ export default {
             v-model="editModel.siteId"
             label="現場"
             required
+            @change="onSiteChanged"
           />
+          <g-dialog-date-picker
+            v-model="editModel.date"
+            @change="onDateChanged"
+          >
+            <template #activator="{ attrs, on }">
+              <g-date v-bind="attrs" label="日付" required v-on="on" />
+            </template>
+          </g-dialog-date-picker>
           <g-select
             v-model="editModel.dayDiv"
             label="曜日区分"
@@ -147,13 +211,11 @@ export default {
             :items="['day', 'night']"
             required
           />
-          <g-date
-            v-model="editModel.date"
-            label="日付"
-            :disabled="!!editModel.workers.length"
-            required
-          />
-          <g-date v-model="editModel.deadline" label="締日" required />
+          <g-dialog-date-picker v-model="editModel.closingDate">
+            <template #activator="{ attrs, on }">
+              <g-date v-bind="attrs" label="締日" required v-on="on" />
+            </template>
+          </g-dialog-date-picker>
           <g-textarea v-model="editModel.remarks" label="備考" />
         </v-col>
         <v-col cols="9">
