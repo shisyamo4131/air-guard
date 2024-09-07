@@ -1,18 +1,47 @@
 /**
+ * 指定された日付と締日区分をもとに締日を返す関数
+ * @param {string} dateString - YYYY-MM-DD形式の日付文字列
+ * @param {string} closingCode - 締日区分 ('05', '10', '15', '20', '25', '99')
+ * @returns {string} - 締日をYYYY-MM-DD形式で返す
+ */
+export function getClosingDate(dateString, closingCode) {
+  const date = new Date(dateString)
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1 // 月は0から始まるため、1を加える
+
+  let closingDay
+
+  // 締日区分によって処理を分岐
+  if (closingCode === '99') {
+    // 末日の場合
+    closingDay = new Date(year, month, 0).getDate() // 次月の0日を指定してその月の末日を取得
+  } else {
+    // 締日区分が特定の日付の場合
+    closingDay = parseInt(closingCode, 10)
+  }
+
+  // 締日が指定された日より前か後かをチェックして、締日を返す
+  const closingDate = new Date(year, month - 1, closingDay)
+  if (closingDate < date) {
+    // 締日が指定日より前なら翌月の締日を計算
+    closingDate.setMonth(closingDate.getMonth() + 1)
+  }
+
+  // YYYY-MM-DD形式で締日を返す
+  const result = `${closingDate.getFullYear()}-${String(
+    closingDate.getMonth() + 1
+  ).padStart(2, '0')}-${String(closingDate.getDate()).padStart(2, '0')}`
+  return result
+}
+
+/**
  * 指定された文字列が 'YYYY-MM-DD' 形式であり、かつ有効な日付かどうかを判定する関数。
  *
  * @param {string} dateString - 判定対象の日付文字列。
  * @returns {boolean} - 'YYYY-MM-DD'形式であり、実在する日付なら true、そうでなければ false を返す。
  */
-function isValidDateFormat(dateString) {
+export function isValidDateFormat(dateString) {
   // YYYY-MM-DD形式の正規表現パターン
-  // ^   : 文字列の先頭
-  // \d{4} : 4桁の数字（年）
-  // -   : ハイフン
-  // \d{2} : 2桁の数字（月）
-  // -   : ハイフン
-  // \d{2} : 2桁の数字（日）
-  // $   : 文字列の末尾
   const regex = /^\d{4}-\d{2}-\d{2}$/
 
   // 文字列が 'YYYY-MM-DD' 形式に一致しない場合は false を返す
@@ -20,19 +49,12 @@ function isValidDateFormat(dateString) {
     return false
   }
 
-  // 一致した場合、さらに有効な日付かどうかを確認
-  // ここでは new Date() で日付をパースし、無効な日付なら NaN を返すため、それを利用する
+  // 有効な日付かどうかを確認
   const date = new Date(dateString)
 
-  // getTime() が NaN でないことを確認し、さらに元の文字列が日付のISO形式の一部と一致することをチェック
-  // toISOString() で 'YYYY-MM-DD' 部分が一致しているかどうかを確認することで、
-  // 不正な日付（例: '2024-13-01' や '2024-09-31' など）を排除する
+  // 日付の妥当性を確認
   const isValidDate =
     !isNaN(date.getTime()) && dateString === date.toISOString().slice(0, 10)
 
-  // 有効な日付であれば true、無効であれば false を返す
   return isValidDate
 }
-
-// 関数をモジュールとしてエクスポート
-export { isValidDateFormat }
