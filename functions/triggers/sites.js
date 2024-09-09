@@ -1,16 +1,14 @@
 const {
-  // onDocumentCreated,
   onDocumentDeleted,
   onDocumentUpdated,
 } = require('firebase-functions/v2/firestore')
-// const { getFirestore } = require('firebase-admin/firestore')
 const { info, error } = require('firebase-functions/logger')
 const { getDatabase } = require('firebase-admin/database')
 const {
   removeDependentDocuments,
   isDocumentChanged,
   syncDocuments,
-} = require('./utils')
+} = require('../modules/utils')
 // const firestore = getFirestore()
 const database = getDatabase()
 

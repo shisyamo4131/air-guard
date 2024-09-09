@@ -15,7 +15,7 @@ const {
   removeDependentDocuments,
   syncDocuments,
   isDocumentChanged,
-} = require('./utils')
+} = require('../modules/utils')
 const database = getDatabase()
 const storage = getStorage()
 

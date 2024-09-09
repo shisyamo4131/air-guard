@@ -1,146 +1,153 @@
-/**
- * ### air-guard.js
+/****************************************************************************
+ * Realtime Databaseに登録されているAirGuardのマスタデータを受け取り、
+ * 対応するFirestoreドキュメントの同期処理を行うモジュールを提供します。
  *
- * MS-Access版AirGuardのデータをFirestoreのドキュメントに同期させるためのCloud Functionsモジュール。
+ * 主な機能:
+ * - `AirGuard/Customers/{code}`が更新された際のFirestoreドキュメント同期
+ * - `AirGuard/Sites/{code}`が更新された際のFirestoreドキュメント同期
+ * - `AirGuard/Employees/{code}`が更新された際のFirestoreドキュメント同期
  *
- * 機能詳細:
- * - アプリ側からMS-Access版AirGuardのCSVデータをRealtimeDatabaseに取り込みます。
- * - 更新トリガーを利用してFirestoreのドキュメントを更新します。
- *
- * 注意事項:
- * - 更新トリガーでデータの更新を監視し、更新されたデータがdocIdを保有していればFirestoreドキュメントと同期します。
- * - RealtimeDatabaseの各データのdocIdはアプリ側から更新します。（Firestoreドキュメントとの関連付けを行う）
- * - 同期時、`sync`プロパティは強制的にtrueに更新されます。-> Firestore側から同期済みデータを判断するため。
- * - docIdがないデータはFirestoreドキュメントと同期されません。
- * - 上記を理由に、作成トリガーでの処理はありません。
- * - RealtimeDatabaseのデータが削除されてもFirestoreドキュメントには影響させません。
+ * 同期処理はそれぞれのデータのdocIdをもとに行われ、Firestore上の
+ * ドキュメントを更新するために使用されます。
  *
  * @author shisyamo4131
- * @version 1.3.0
- *
- * @updates
- * - version 1.3.0 - 2024-07-22 - Siteモデルの仕様変更に伴ってSiteの同期処理時に`customerId`プロパティをセットするように修正。
- * - version 1.2.1 - 2024-07-11 - Siteの同期処理時に`customer`プロパティをセットするように修正。
- * - version 1.2.0 - 2024-07-10 - Cloud Functions版FireModelの実装に伴ってデータモデルを使用するように修正。
- *                              - Siteの同期処理を実装。
- * - version 1.1.1 - 2024-07-09 - Customerとの同期時、`code`が同期されていなかったのを修正。
- * - version 1.1.0 - 2024-07-08 - Customerモデルの`sync`プロパティ追加に伴ってcustomerUpdatedを更新
- *                              -> `sync`を強制的にtrueに更新するように変更。
- * - version 1.0.0 - 2024-07-05 - 初版作成
- *
- * NOTE:
- * - Siteの同期処理で、Customerが見つからなかった場合にnullがセットされるのに注意。
- *   -> アプリ側で制御するしかない。
- */
-const { getFirestore } = require('firebase-admin/firestore')
+ * @version 1.0.0
+ * @created 2024-09-09
+ ****************************************************************************/
+
 const { info, error } = require('firebase-functions/logger')
-const { onValueUpdated } = require('firebase-functions/v2/database')
 const Customer = require('../models/Customer')
 const Site = require('../models/Site')
 const Employee = require('../models/Employee')
-const firestore = getFirestore()
 
-/**
- * `AirGuard/Customers/{code}`が更新された時の処理です。
- * 対象データが有効なdocIdを保有していた場合、対象のFirestoreドキュメントと同期します。
- */
-exports.customerUpdated = onValueUpdated(
-  { ref: `/AirGuard/Customers/{code}`, region: 'us-central1' },
-  async (event) => {
-    const data = event.data.after.val()
-    info(`[air-guard.js] Customerデータの更新を検知しました。`, {
-      code: data.code,
-      name1: data.name1,
-      name2: data.name2,
-    })
+/****************************************************************************
+ * Realtime Databaseの`AirGuard/Customers`の内容で、FirestoreのCustomersドキュメントを更新します。
+ * @param {Object} data Realtime Databaseの更新トリガーが保有するdataオブジェクト
+ * @returns {Promise<void>} Firestoreの更新結果を返します
+ ****************************************************************************/
+exports.syncAirGuardCustomerToFirestore = async (data) => {
+  const functionName = '[syncAirGuardCustomerToFirestore]'
+  try {
+    const docId = data.docId
+    // Customerインスタンスを作成し、データを取得
+    const instance = new Customer()
+    await instance.fetch(docId)
+    // インスタンスのデータを更新し、同期フラグをセット
+    instance.initialize({ ...instance.toObject(), ...data, sync: true })
+    // Firestoreドキュメントを更新
+    await instance.update()
+  } catch (err) {
+    // エラーハンドリング
+    error(
+      `${functionName} Firestoreドキュメントとの同期中にエラーが発生しました: ${err.message}`,
+      { err }
+    )
+    throw err
+  }
+}
+
+/****************************************************************************
+ * Realtime Databaseの`AirGuard/Sites`の内容で、FirestoreのSitesドキュメントを更新します。
+ * 顧客コードを使用して顧客情報を同期します。
+ * @param {Object} data Realtime Databaseの更新トリガーが保有するdataオブジェクト
+ * @returns {Promise<void>} Firestoreの更新結果を返します
+ ****************************************************************************/
+exports.syncAirGuardSiteToFirestore = async (data) => {
+  const functionName = '[syncAirGuardSiteToFirestore]'
+
+  /**
+   * 顧客コードを使用して顧客ドキュメントを取得します。
+   * @param {string} code 顧客コード
+   * @returns {Promise<Object>} 顧客情報を返します
+   * @throws 顧客が見つからない場合にエラーをスローします
+   */
+  const getCustomerByCode = async (code) => {
     try {
-      const docId = data.docId
-      if (!docId) {
-        info(`[air-guard.js] docIdが設定されていないため、処理を終了します。`)
-        return
+      const customerInstance = new Customer()
+      const customers = await customerInstance.fetchByCode(code)
+      if (!customers.length) {
+        throw new Error(
+          `${functionName} Could not find customer document(s). code: ${code}`
+        )
       }
-      info(`[air-guard.js] Firestoreドキュメントと同期します。`, { docId })
-      const model = new Customer(data)
-      model.depositMonth = parseInt(data.depositMonth)
-      model.sync = true
-      const docRef = firestore.collection('Customers').doc(docId)
-      await docRef.set({ ...model }, { merge: true })
-      info('Firestoreドキュメントとの同期が正常に完了しました。', { docId })
+      return customers[0] // 顧客情報を返す
     } catch (err) {
-      error(err)
+      // エラーが発生した場合、ログを記録しエラーを再スロー
+      error(
+        `${functionName} Error while fetching customer by code: ${err.message}`,
+        { err }
+      )
+      throw err
     }
   }
-)
 
-/**
- * `AirGuard/Sites/{code}`が更新された時の処理です。
- * - 対象データが有効なdocIdを保有していた場合、対象のFirestoreドキュメントと同期します。
- * - 同期時、取引先ドキュメントを取得してセットします。
- * - 取引先が存在しなかった場合、`customer`プロパティは`null`になります。
- */
-exports.siteUpdated = onValueUpdated(
-  { ref: `/AirGuard/Sites/{code}`, region: 'us-central1' },
-  async (event) => {
-    const data = event.data.after.val()
-    info(`[air-guard.js] Siteデータの更新を検知しました。`, {
-      code: data.code,
-      name: data.name,
+  try {
+    const docId = data.docId
+    // Siteインスタンスを作成し、データを取得
+    const instance = new Site()
+    await instance.fetch(docId)
+    // 顧客コードを使用して顧客情報を取得
+    const customer = await getCustomerByCode(data.customerCode)
+    // インスタンスのデータを更新し、同期フラグをセット
+    instance.initialize({
+      ...instance.toObject(),
+      ...data,
+      customer,
+      customerId: customer.docId,
+      sync: true,
     })
-    const getCustomerByCode = async (code) => {
-      const colRef = firestore.collection('Customers')
-      const q = colRef.where('code', '==', code)
-      const querySnapshot = await q.get()
-      if (querySnapshot.empty) return null
-      return querySnapshot.docs[0].data()
-    }
-    try {
-      const docId = data.docId
-      if (!docId) {
-        info(`[air-guard.js] docIdが設定されていないため、処理を終了します。`)
-        return
-      }
-      info(`[air-guard.js] Firestoreドキュメントと同期します。`, { docId })
-      const model = new Site(data)
-      model.customer = await getCustomerByCode(data.customerCode)
-      model.customerId = model.customer.docId
-      model.sync = true
-      const docRef = firestore.collection('Sites').doc(docId)
-      await docRef.set({ ...model }, { merge: true })
-      info('Firestoreドキュメントとの同期が正常に完了しました。', { docId })
-    } catch (err) {
-      error(err)
-    }
+    // Firestoreドキュメントを更新
+    await instance.update()
+    // 正常に完了した場合のログを記録
+    info(
+      `${functionName} Firestoreドキュメントとの同期が正常に完了しました。`,
+      { docId }
+    )
+  } catch (err) {
+    // Firestoreとの同期中にエラーが発生した場合、エラーログを記録
+    error(
+      `${functionName} Firestoreドキュメントとの同期中にエラーが発生しました: ${err.message}`,
+      { err }
+    )
+    throw err
   }
-)
+}
 
-/**
- * `AirGuard/Employees/{code}`が更新された時の処理です。
- * 対象データが有効なdocIdを保有していた場合、対象のFirestoreドキュメントと同期します。
- */
-exports.employeeUpdated = onValueUpdated(
-  { ref: `/AirGuard/Employees/{code}`, region: 'us-central1' },
-  async (event) => {
-    const data = event.data.after.val()
-    info(`[air-guard.js] Employeeデータの更新を検知しました。`, {
-      code: data.code,
-      name: `${data.lastName} ${data.firstName}`,
+/****************************************************************************
+ * Realtime Databaseの`AirGuard/Employees`の内容で、FirestoreのEmployeesドキュメントを更新します。
+ * @param {Object} data Realtime Databaseの更新トリガーが保有するdataオブジェクト
+ * @returns {Promise<void>} Firestoreの更新結果を返します
+ ****************************************************************************/
+exports.syncAirGuardEmployeeToFirestore = async (data) => {
+  const functionName = '[syncAirGuardEmployeeToFirestore]'
+
+  try {
+    const docId = data.docId
+    // Employeeインスタンスを作成し、データを取得
+    const instance = new Employee()
+    await instance.fetch(docId)
+
+    // インスタンスのデータを更新し、同期フラグといくつかのプロパティをセット
+    instance.initialize({
+      ...instance.toObject(),
+      ...data,
+      isForeigner: data.isForeigner === '1', // '1' ならば true に変換
+      hasSendAddress: data.hasSendAddress === '2', // '2' ならば true に変換
+      sync: true,
     })
-    try {
-      const docId = data.docId
-      if (!docId) {
-        info(`[air-guard.js] docIdが設定されていないため、処理を終了します。`)
-        return
-      }
-      info(`[air-guard.js] Firestoreドキュメントと同期します。`, { docId })
-      const model = new Employee(data)
-      model.isForeigner = data.isForeigner === '1'
-      model.hasSendAddress = data.hasSendAddress === '2'
-      model.sync = true
-      const docRef = firestore.collection('Employees').doc(docId)
-      await docRef.set({ ...model }, { merge: true })
-      info('Firestoreドキュメントとの同期が正常に完了しました。', { docId })
-    } catch (err) {
-      error(err)
-    }
+
+    // Firestoreドキュメントを更新
+    await instance.update()
+
+    info(
+      `${functionName} Firestoreドキュメントとの同期が正常に完了しました。`,
+      { docId }
+    )
+  } catch (err) {
+    // Firestoreとの同期中にエラーが発生した場合、エラーログを記録
+    error(
+      `${functionName} Firestoreドキュメントとの同期中にエラーが発生しました: ${err.message}`,
+      { err }
+    )
   }
-)
+}

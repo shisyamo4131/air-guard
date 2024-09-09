@@ -18,7 +18,7 @@ const {
 } = require('firebase-functions/v2/firestore')
 const { info, error } = require('firebase-functions/logger')
 const { getDatabase } = require('firebase-admin/database')
-const { isDocumentChanged, syncDocuments } = require('./utils')
+const { isDocumentChanged, syncDocuments } = require('../modules/utils')
 const database = getDatabase()
 
 /**
