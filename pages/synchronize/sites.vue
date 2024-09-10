@@ -37,9 +37,13 @@ import {
   update,
 } from 'firebase/database'
 import { where } from 'firebase/firestore'
+import { database } from 'air-firebase/dist/firebase.init'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
+import Site from '~/models/Site'
+import Autonumber from '~/models/Autonumber'
+import Customer from '~/models/Customer'
 export default {
   /***************************************************************************
    * NAME
@@ -58,12 +62,12 @@ export default {
       added: null,
       changed: null,
       removed: null,
-      unsync: app.$Site(),
+      unsync: new Site(),
     }
     /**
      * `AirGuard/Sites`の同期設定がされていないデータへのリスナーをセット
      */
-    const dbRef = ref(app.$database, 'AirGuard/Sites')
+    const dbRef = ref(database, 'AirGuard/Sites')
     const q = query(dbRef, orderByChild('docId'), equalTo(null))
     const updateItem = (data, type) => {
       const item = data.val()
@@ -83,9 +87,7 @@ export default {
     /**
      * 同期設定がされていないSiteドキュメントコレクションへのリスナーをセット
      */
-    items.unsync = listeners.unsync.subscribe(undefined, [
-      where('sync', '==', false),
-    ])
+    items.unsync = listeners.unsync.subscribeDocs([where('sync', '==', false)])
     return { items, listeners }
   },
   /***************************************************************************
@@ -158,10 +160,22 @@ export default {
          * - 空ドキュメント作成時は自動採番を行わず、作成後に自動採番を更新します。
          */
         const getDocumentId = async () => {
+          const item = this.selectedUnsync[0]
           if (this.asNewItem) {
-            const model = this.$Site({ code }) // codeを初期設定しておかないと自動採番が正常に更新されない。
-            const docRef = await model.create({ useAutonum: false })
-            await this.$Autonumber().refresh('Sites')
+            const customerCode = item.customerCode
+            const customerInstance = new Customer()
+            const customers = await customerInstance.fetchByCode(customerCode)
+            if (!customers.length) {
+              throw new Error('取引先情報が取得できませんでした。')
+            }
+            const customer = customers[0]
+            const instance = new Site({
+              ...item,
+              customer,
+              customerId: customer.docId,
+            }) // codeを初期設定しておかないと自動採番が正常に更新されない。
+            const docRef = await instance.create({ useAutonum: false })
+            await Autonumber.refresh('Sites')
             return docRef.id
           } else {
             return this.selectedToSync[0].docId
@@ -172,7 +186,7 @@ export default {
         const docId = await getDocumentId()
 
         /* 同期設定対象データへの参照を取得 */
-        const dbRef = ref(this.$database, `AirGuard/Sites/${code}`)
+        const dbRef = ref(database, `AirGuard/Sites/${code}`)
 
         /* 同期設定対象データのdocIdを更新 */
         await update(dbRef, { docId })
@@ -195,6 +209,9 @@ export default {
      * 一度に大量に処理すると重すぎる上、Cloud Functionsの制限に引っかかる。
      * バッチ的なやり方でエラーが発生すると手戻りできないため、
      * 時間をかけてでも1件ずつ、丁寧に処理する。
+     *
+     * Firestoreへ登録 -> Realtime Database更新 -> Cloud FunctionsによりFirestoreを更新
+     * と、無駄な更新処理が発生してしまうが、Autonumberとの整合性を保つためには回避不可能
      */
     async forceRegist() {
       /* 処理確認 */
@@ -204,10 +221,31 @@ export default {
       /* 事前処理 */
       this.loading = true
       try {
+        // `customerCode`に該当するすべてのCustomersドキュメントを取得
+        const customerCodes = this.selectedUnsync.map(
+          ({ customerCode }) => customerCode
+        )
+        const customerInstance = new Customer()
+        const customers = await customerInstance.fetchByCodes(customerCodes)
+        // インポート対象の現場のうち、該当するCustomersドキュメントが存在しなければエラー
         for (const item of this.selectedUnsync) {
-          const model = this.$Site({ code: item.code }) // codeを初期設定しておかないと自動採番が正常に更新されない。
-          const docRef = await model.create({ useAutonum: false })
-          const dbRef = ref(this.$database, `AirGuard/Sites/${item.code}`)
+          const customer = customers.filter(
+            ({ code }) => code === item.customerCode
+          )
+          if (!customer) {
+            throw new Error(
+              `取引先情報が取得できない現場が存在します。item: ${item}`
+            )
+          }
+        }
+        for (const item of this.selectedUnsync) {
+          const instance = new Site({
+            ...item,
+            customerId: customers[0].docId,
+            customer: customers[0],
+          })
+          const docRef = await instance.create({ useAutonum: false })
+          const dbRef = ref(database, `AirGuard/Sites/${item.code}`)
           await update(dbRef, { docId: docRef.id })
         }
         this.initialize()
@@ -218,7 +256,7 @@ export default {
         alert(err.message)
       } finally {
         /* Autonumberを更新 -> エラー発生時にも更新が必須 */
-        await this.$Autonumber().refresh('Sites')
+        await Autonumber.refresh('Sites')
         this.loading = false
       }
     },

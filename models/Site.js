@@ -37,15 +37,17 @@ export default class Site extends FireModel {
   }
 
   /****************************************************************************
-   * FireModelのcreateをオーバーライドします。
-   * - コレクションを自動採番対象として、createのuseAutonumberをtrueに固定します。
-   * @param {string} docId - 作成するドキュメントのID
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
-   * @throws {Error} ドキュメントの作成に失敗した場合
+   * FireModelのcreateメソッドをオーバーライドします。
+   * - コレクションを自動採番対象として、useAutonumberをデフォルトでtrueに設定します。
+   * - AirGuardとの同期処理を行う場合、自動採番を行わず登録するケースにも対応します。
+   * @param {string|null} docId - 作成するドキュメントのID（省略可能）
+   * @param {boolean} [useAutonumber=true] - 自動採番を行うかどうか（デフォルト: true）
+   * @returns {Promise<DocumentReference>} - 作成されたドキュメントのリファレンス
+   * @throws {Error} ドキュメントの作成に失敗した場合にエラーをスローします
    ****************************************************************************/
-  async create(docId = null) {
+  async create({ docId = null, useAutonumber = true } = {}) {
     try {
-      await super.create({ docId, useAutonumber: true })
+      return await super.create({ docId, useAutonumber })
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('ドキュメントの作成に失敗しました:', error)

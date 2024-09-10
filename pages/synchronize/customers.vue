@@ -36,8 +36,11 @@ import {
   ref,
   update,
 } from 'firebase/database'
+import { database } from 'air-firebase'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
+import Customer from '~/models/Customer'
+import Autonumber from '~/models/Autonumber'
 export default {
   /***************************************************************************
    * NAME
@@ -50,12 +53,12 @@ export default {
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
-  asyncData({ app }) {
+  asyncData() {
     /**
      * `AirGuard/Customers`の同期設定がされていないデータへのリスナーをセット
      */
     const items = { airGuard: [], unsync: [] }
-    const dbRef = ref(app.$database, 'AirGuard/Customers')
+    const dbRef = ref(database, 'AirGuard/Customers')
     const q = query(dbRef, orderByChild('docId'), equalTo(null))
 
     const updateItem = (data, type) => {
@@ -151,10 +154,11 @@ export default {
          * - 空ドキュメント作成時は自動採番を行わず、作成後に自動採番を更新します。
          */
         const getDocumentId = async () => {
+          const item = this.selectedUnsync[0]
           if (this.asNewItem) {
-            const model = this.$Customer({ code }) // codeを初期設定しておかないと自動採番が正常に更新されない。
-            const docRef = await model.create({ useAutonum: false })
-            await this.$Autonumber().refresh('Customers')
+            const instance = new Customer(item)
+            const docRef = await instance.create({ useAutonum: false })
+            await Autonumber.refresh('Customers')
             return docRef.id
           } else {
             return this.selectedToSync[0].docId
@@ -165,7 +169,7 @@ export default {
         const docId = await getDocumentId()
 
         /* 同期設定対象データへの参照を取得 */
-        const dbRef = ref(this.$database, `AirGuard/Customers/${code}`)
+        const dbRef = ref(database, `AirGuard/Customers/${code}`)
 
         /* 同期設定対象データのdocIdを更新 */
         await update(dbRef, { docId })
@@ -198,9 +202,9 @@ export default {
       this.loading = true
       try {
         for (const item of this.selectedUnsync) {
-          const model = this.$Customer({ code: item.code }) // codeを初期設定しておかないと自動採番が正常に更新されない。
-          const docRef = await model.create({ useAutonum: false })
-          const dbRef = ref(this.$database, `AirGuard/Customers/${item.code}`)
+          const instance = new Customer(item) // codeを初期設定しておかないと自動採番が正常に更新されない。
+          const docRef = await instance.create({ useAutonum: false })
+          const dbRef = ref(database, `AirGuard/Customers/${item.code}`)
           await update(dbRef, { docId: docRef.id })
         }
         this.initialize()
@@ -211,7 +215,7 @@ export default {
         alert(err.message)
       } finally {
         /* Autonumberを更新 -> エラー発生時にも更新が必須 */
-        await this.$Autonumber().refresh('Customers')
+        await Autonumber.refresh('Customers')
         this.loading = false
       }
     },

@@ -33,8 +33,11 @@ import {
   update,
 } from 'firebase/database'
 import { where } from 'firebase/firestore'
+import { database } from 'air-firebase'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
+import Employee from '~/models/Employee'
+import Autonumber from '~/models/Autonumber'
 export default {
   /***************************************************************************
    * NAME
@@ -47,18 +50,18 @@ export default {
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
-  asyncData({ app }) {
+  asyncData() {
     const items = { airGuard: [], unsync: [] }
     const listeners = {
       added: null,
       changed: null,
       removed: null,
-      unsync: app.$Employee(),
+      unsync: new Employee(),
     }
     /**
      * `AirGuard/Employees`の同期設定がされていないデータへのリスナーをセット
      */
-    const dbRef = ref(app.$database, 'AirGuard/Employees')
+    const dbRef = ref(database, 'AirGuard/Employees')
     const q = query(dbRef, orderByChild('docId'), equalTo(null))
     const updateItem = (data, type) => {
       const index = items.airGuard.findIndex((item) => item.code === data.key)
@@ -73,9 +76,7 @@ export default {
     /**
      * 同期設定がされていないSiteドキュメントコレクションへのリスナーをセット
      */
-    items.unsync = listeners.unsync.subscribe(undefined, [
-      where('sync', '==', false),
-    ])
+    items.unsync = listeners.unsync.subscribeDocs([where('sync', '==', false)])
     return { items, listeners }
   },
   /***************************************************************************
@@ -147,10 +148,11 @@ export default {
          * - 空ドキュメント作成時は自動採番を行わず、作成後に自動採番を更新します。
          */
         const getDocumentId = async () => {
+          const item = this.selectedUnsync[0]
           if (this.asNewItem) {
-            const model = this.$Employee({ code }) // codeを初期設定しておかないと自動採番が正常に更新されない。
-            const docRef = await model.create({ useAutonum: false })
-            await this.$Autonumber().refresh('Employees')
+            const instance = new Employee(item) // codeを初期設定しておかないと自動採番が正常に更新されない。
+            const docRef = await instance.create({ useAutonum: false })
+            await Autonumber.refresh('Employees')
             return docRef.id
           } else {
             return this.selectedToSync[0].docId
@@ -161,7 +163,7 @@ export default {
         const docId = await getDocumentId()
 
         /* 同期設定対象データへの参照を取得 */
-        const dbRef = ref(this.$database, `AirGuard/Employees/${code}`)
+        const dbRef = ref(database, `AirGuard/Employees/${code}`)
 
         /* 同期設定対象データのdocIdを更新 */
         await update(dbRef, { docId })
@@ -194,9 +196,9 @@ export default {
       this.loading = true
       try {
         for (const item of this.selectedUnsync) {
-          const model = this.$Employee({ code: item.code }) // codeを初期設定しておかないと自動採番が正常に更新されない。
-          const docRef = await model.create({ useAutonum: false })
-          const dbRef = ref(this.$database, `AirGuard/Employees/${item.code}`)
+          const instance = new Employee(item) // codeを初期設定しておかないと自動採番が正常に更新されない。
+          const docRef = await instance.create({ useAutonum: false })
+          const dbRef = ref(database, `AirGuard/Employees/${item.code}`)
           await update(dbRef, { docId: docRef.id })
         }
         this.initialize()
@@ -207,7 +209,7 @@ export default {
         alert(err.message)
       } finally {
         /* Autonumberを更新 -> エラー発生時にも更新が必須 */
-        await this.$Autonumber().refresh('Employees')
+        await Autonumber.refresh('Employees')
         this.loading = false
       }
     },

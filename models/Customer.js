@@ -39,12 +39,12 @@ export default class Customer extends FireModel {
    * FireModelのcreateをオーバーライドします。
    * - コレクションを自動採番対象として、createのuseAutonumberをtrueに固定します。
    * @param {string} docId - 作成するドキュメントのID
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
+   * @returns {Promise<DocumentReference>} - 作成されたドキュメントのリファレンス
    * @throws {Error} ドキュメントの作成に失敗した場合
    ****************************************************************************/
-  async create(docId = null) {
+  async create({ docId = null, useAutonumber = true } = {}) {
     try {
-      await super.create({ docId, useAutonumber: true })
+      return await super.create({ docId, useAutonumber })
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('ドキュメントの作成に失敗しました:', error)
