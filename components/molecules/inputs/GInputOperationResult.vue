@@ -223,11 +223,6 @@ export default {
         <v-col cols="9">
           <v-input>
             <div class="d-flex flex-column flex-grow-1">
-              <g-input-operation-result-workers
-                :value="editModel.workers"
-                @changeWorker="changeWorker($event)"
-                @removeWorker="removeWorker($event)"
-              />
               <v-dialog v-model="employeeSelector" max-width="240">
                 <template #activator="{ attrs, on }">
                   <v-btn
@@ -257,6 +252,11 @@ export default {
                   </v-card-actions>
                 </v-card>
               </v-dialog>
+              <g-input-operation-result-workers
+                :value="editModel.workers"
+                @changeWorker="changeWorker($event)"
+                @removeWorker="removeWorker($event)"
+              />
             </div>
           </v-input>
         </v-col>
