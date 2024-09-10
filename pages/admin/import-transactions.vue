@@ -1,4 +1,11 @@
 <script>
+import Autonumber from '~/models/Autonumber'
+import Employee from '~/models/Employee'
+import EmployeeContract from '~/models/EmployeeContract'
+import OperationResult from '~/models/OperationResult'
+import OperationResultWorker from '~/models/OperationResultWorker'
+import Site from '~/models/Site'
+import SiteContract from '~/models/SiteContract'
 /**
  * ### pages.import-transactions
  *
@@ -79,7 +86,7 @@ export default {
             this.progress.current = 0
             try {
               // 1. dataに含まれる現場ドキュメントを取得しておく
-              this.fetchedItems.sites = await this.$Site().fetchByCodes(
+              this.fetchedItems.sites = await new Site().fetchByCodes(
                 data.map(({ siteCode }) => siteCode)
               )
               // 2. dataにsite、siteIdを付与
@@ -97,13 +104,14 @@ export default {
                 )
               }
               // 4. 既登録の取極め情報を取得
+              const SiteContractInstance = new SiteContract()
               this.fetchedItems.siteContracts =
-                await this.$SiteContract().fetchBySiteIds(
+                await SiteContractInstance.fetchBySiteIds(
                   data.map(({ siteId }) => siteId)
                 )
               for (const item of data) {
                 item.endAtNextday = item.endAtNextday === 1
-                item.breakMinutes = parseInt(item.breakMinutes)
+                item.breakMinutes = parseInt(item.breakTime)
                 item.halfRate = parseInt(item.halfRate) * 100
                 item.cancelRate = parseInt(item.cancelRate) * 100
                 // 単価情報をセット
@@ -125,10 +133,12 @@ export default {
                     startDate === item.startDate &&
                     workShift === item.workShift
                 )
-                const model = this.$SiteContract(
+                SiteContractInstance.initialize(
                   existDoc ? { ...existDoc, ...item } : { ...item }
                 )
-                model.docId ? await model.update() : await model.create()
+                SiteContractInstance.docId
+                  ? await SiteContractInstance.update()
+                  : await SiteContractInstance.create()
                 this.progress.current++
               }
             } catch (err) {
@@ -156,7 +166,7 @@ export default {
             this.progress.current = 0
             try {
               // 1. dataに含まれる従業員ドキュメントを取得
-              this.fetchedItems.employees = await this.$Employee().fetchByCodes(
+              this.fetchedItems.employees = await new Employee().fetchByCodes(
                 data.map(({ employeeCode }) => employeeCode)
               )
               // 2. dataにemployeeId、employeeを付与
@@ -174,8 +184,9 @@ export default {
                 )
               }
               // 4. 既登録の雇用契約情報を取得
+              const EmployeeContractInstance = new EmployeeContract()
               this.fetchedItems.employeeContracts =
-                await this.$EmployeeContract().fetchByEmployeeIds(
+                await EmployeeContractInstance.fetchByEmployeeIds(
                   data.map(({ employeeId }) => employeeId)
                 )
               for (const item of data) {
@@ -186,10 +197,12 @@ export default {
                     employeeId === item.employeeId &&
                     startDate === item.startDate
                 )
-                const model = this.$EmployeeContract(
+                EmployeeContractInstance.initialize(
                   existDoc ? { ...existDoc, ...item } : { ...item }
                 )
-                model.docId ? await model.update() : await model.create()
+                EmployeeContractInstance.docId
+                  ? await EmployeeContractInstance.update()
+                  : await EmployeeContractInstance.create()
                 this.progress.current++
               }
             } catch (err) {
@@ -235,7 +248,7 @@ export default {
                 ? await this.readCsv(workersFile)
                 : []
               // 2. `workersData`に含まれる従業員データを取得しておく
-              this.fetchedItems.employees = await this.$Employee().fetchByCodes(
+              this.fetchedItems.employees = await new Employee().fetchByCodes(
                 workersData.map(({ employeeCode }) => employeeCode)
               )
               // 3. `workersData`に`employeeId`をセット
@@ -265,7 +278,7 @@ export default {
                 item.ojt = item.ojt === '1'
               })
               // 6. dataに含まれる現場ドキュメントを取得しておく
-              this.fetchedItems.sites = await this.$Site().fetchByCodes(
+              this.fetchedItems.sites = await new Site().fetchByCodes(
                 data.map(({ siteCode }) => siteCode)
               )
               // 7. dataにsite、siteIdを付与し、workersをセット
@@ -275,8 +288,12 @@ export default {
                 item.workers = workersData
                   .filter(({ code }) => code === item.code)
                   .map((item) => {
-                    return { ...this.$OperationResultWorker(item) }
+                    const OperationResultWorkerInstance =
+                      new OperationResultWorker()
+                    OperationResultWorkerInstance.initialize(item)
+                    return { ...OperationResultWorkerInstance.toObject() }
                   })
+                item.closingDate = item.deadline
               })
               // 8. siteIdが取得できなかったdataが存在すればエラー
               const unknown = data.filter((item) => !item.siteId)
@@ -288,27 +305,26 @@ export default {
                 )
               }
               // 9. 既登録の稼働実績を取得
+              const OperationResultInstance = new OperationResult()
               this.fetchedItems.operationResults =
-                await this.$OperationResult().fetchByCodes(
+                await OperationResultInstance.fetchByCodes(
                   data.map(({ code }) => code)
                 )
               for (const item of data) {
                 const existDoc = this.fetchedItems.operationResults.find(
                   ({ code }) => code === item.code
                 )
-                const model = this.$OperationResult(
+                OperationResultInstance.initialize(
                   existDoc ? { ...existDoc, ...item } : { ...item }
                 )
-                model.docId
-                  ? await model.update()
-                  : await model.create({ useAutonum: false })
+                OperationResultInstance.docId
+                  ? await OperationResultInstance.update()
+                  : await OperationResultInstance.create({
+                      useAutonumber: false,
+                    })
                 this.progress.current++
               }
-              await this.$Autonumber().refresh(
-                'OperationResults',
-                undefined,
-                true
-              )
+              await Autonumber.refresh('OperationResults')
             } catch (err) {
               // eslint-disable-next-line
               console.error(err)

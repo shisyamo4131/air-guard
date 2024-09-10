@@ -1,4 +1,5 @@
 import { FireModel } from 'air-firebase'
+import { where } from 'firebase/firestore'
 import Site from './Site'
 import { classProps } from './propsDefinition/SiteContract'
 
@@ -84,7 +85,7 @@ export default class SiteContract extends FireModel {
     if (!this.workShift) {
       throw new Error('勤務区分の指定が必要です。')
     }
-    const id = `${this.siteId}-${this.startDate}-${this.workShit}`
+    const id = `${this.siteId}-${this.startDate}-${this.workShift}`
     const existingContract = await this.fetchDoc(id)
     if (existingContract) {
       throw new Error('同一の取極めが既に登録されています。')
@@ -112,7 +113,9 @@ export default class SiteContract extends FireModel {
    * @throws {Error} - 現場、開始日、勤務区分が変更されている場合にエラーをスローします。
    ****************************************************************************/
   async beforeUpdate() {
-    const [siteId, startDate, workShift] = this.docId.split('-')
+    // 正規表現を使用して、siteId, startDate, workShiftを抽出
+    const match = this.docId.match(/^([^-]+)-(\d{4}-\d{2}-\d{2})-([^-]+)$/)
+    const [, siteId, startDate, workShift] = match
 
     if (
       siteId !== this.siteId ||
@@ -127,13 +130,75 @@ export default class SiteContract extends FireModel {
   }
 
   /****************************************************************************
-   * createをオーバーライドします。
+   * createメソッドをオーバーライドします。
    * `docId`を`${siteId}-${startDate}-${workShift}`に固定します。
-   * - super.create({docId})を呼び出します。
+   * - 生成した`docId`を使用して親クラスのcreateメソッドを呼び出します。
+   *
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   * @throws {Error} ドキュメント作成中にエラーが発生した場合にエラーをスローします
    ****************************************************************************/
   async create() {
-    const docId = `${this.siteId}-${this.startDate}-${this.workShift}`
-    await super.create({ docId })
+    try {
+      // `docId`を`${siteId}-${startDate}-${workShift}`の形式で生成
+      const docId = `${this.siteId}-${this.startDate}-${this.workShift}`
+
+      // 親クラスのcreateメソッドを`docId`を渡して呼び出し
+      await super.create({ docId })
+    } catch (err) {
+      // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
+      // eslint-disable-next-line no-console
+      console.error(`[create] Failed to create document: ${err.message}`, {
+        err,
+      })
+
+      // エラーを再スローして呼び出し元に通知
+      throw err
+    }
+  }
+
+  /****************************************************************************
+   * 指定された複数の`siteId`に該当するドキュメントを取得します。
+   * - 30件ずつチャンクに分けてFirestoreにクエリを実行します。
+   * - 各クエリ結果をまとめて返します。
+   *
+   * @param {Array<string>} ids - 取得対象のsiteIdsの配列
+   * @returns {Promise<Array>} - 一致するドキュメントの配列を返すPromise
+   * @throws {Error} ドキュメント取得中にエラーが発生した場合にエラーをスローします
+   ****************************************************************************/
+  async fetchBySiteIds(ids) {
+    // 引数が配列でない、または空の場合は空配列を返す
+    if (!Array.isArray(ids) || ids.length === 0) return []
+
+    try {
+      // 重複を排除した`ids`を取得
+      const unique = [...new Set(ids)]
+
+      // `unique`配列を30件ずつのチャンクに分割
+      const chunked = unique.flatMap((_, i) =>
+        i % 30 ? [] : [unique.slice(i, i + 30)]
+      )
+
+      // 各チャンクに対してFirestoreクエリを実行し、ドキュメントを取得
+      const promises = chunked.map(async (arr) => {
+        const constraints = [where('siteId', 'in', arr)]
+        return await this.fetchDocs(constraints)
+      })
+
+      // すべてのクエリ結果が解決されるまで待機
+      const snapshots = await Promise.all(promises)
+
+      // 各クエリ結果をフラットにまとめて返す
+      return snapshots.flat()
+    } catch (err) {
+      // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
+      // eslint-disable-next-line no-console
+      console.error(
+        `[fetchBySiteIds] Error fetching documents: ${err.message}`,
+        { err }
+      )
+
+      // エラーを再スローして呼び出し元に通知
+      throw err
+    }
   }
 }

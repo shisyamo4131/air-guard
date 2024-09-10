@@ -1,4 +1,5 @@
 import { FireModel } from 'air-firebase'
+import { where } from 'firebase/firestore'
 import Employee from './Employee'
 import { classProps } from './propsDefinition/EmployeeContract'
 
@@ -124,5 +125,51 @@ export default class EmployeeContract extends FireModel {
   async create() {
     const docId = `${this.employeeId}-${this.startDate}`
     await super.create({ docId })
+  }
+
+  /****************************************************************************
+   * 指定された複数の`employeeId`に該当するドキュメントを取得します。
+   * - 30件ずつチャンクに分けてFirestoreにクエリを実行します。
+   * - 各クエリ結果をまとめて返します。
+   *
+   * @param {Array<string>} ids - 取得対象のemployeeIdの配列
+   * @returns {Promise<Array>} - 一致するドキュメントの配列を返すPromise
+   * @throws {Error} ドキュメント取得中にエラーが発生した場合にエラーをスローします
+   ****************************************************************************/
+  async fetchByEmployeeIds(ids) {
+    // 引数が配列でない、または空の場合は空配列を返す
+    if (!Array.isArray(ids) || ids.length === 0) return []
+
+    try {
+      // 重複を排除した`ids`を取得
+      const unique = [...new Set(ids)]
+
+      // `unique`配列を30件ずつのチャンクに分割
+      const chunked = unique.flatMap((_, i) =>
+        i % 30 ? [] : [unique.slice(i, i + 30)]
+      )
+
+      // 各チャンクに対してFirestoreクエリを実行し、ドキュメントを取得
+      const promises = chunked.map(async (arr) => {
+        const constraints = [where('employeeId', 'in', arr)]
+        return await this.fetchDocs(constraints)
+      })
+
+      // すべてのクエリ結果が解決されるまで待機
+      const snapshots = await Promise.all(promises)
+
+      // 各クエリ結果をフラットにまとめて返す
+      return snapshots.flat()
+    } catch (err) {
+      // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
+      // eslint-disable-next-line no-console
+      console.error(
+        `[fetchByEmployeeIds] Error fetching documents: ${err.message}`,
+        { err }
+      )
+
+      // エラーを再スローして呼び出し元に通知
+      throw err
+    }
   }
 }
