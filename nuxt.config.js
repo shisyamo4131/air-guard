@@ -42,7 +42,6 @@ export default {
     './plugins/firebase.auth.js',
     './plugins/dayjs.js',
     './plugins/air-vuetify.js',
-    './plugins/models.js',
     './plugins/constants.js',
     './plugins/vue-papa-parse.js',
   ],

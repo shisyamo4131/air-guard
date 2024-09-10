@@ -36,7 +36,7 @@ export default {
   data() {
     return {
       dialog: false,
-      pickerDate: undefined,
+      pickerValue: undefined,
       internalValue: undefined,
     }
   },
@@ -62,7 +62,7 @@ export default {
    ***************************************************************************/
   watch: {
     dialog(v) {
-      if (!v) this.pickerDate = undefined
+      if (!v) this.pickerValue = undefined
     },
     value: {
       handler(newVal, oldVal) {
@@ -93,7 +93,7 @@ export default {
     </template>
     <g-date-picker
       v-model="internalValue"
-      :picker-date.sync="pickerDate"
+      :picker-date.sync="pickerValue"
       type="month"
       no-title
     >

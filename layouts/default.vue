@@ -42,6 +42,7 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
 import GNavigationDrawer from '~/components/organisms/GNavigationDrawer.vue'
+import User from '~/models/User'
 export default {
   name: 'DefaultLayout',
   components: { GNavigationDrawer, GTextField, GBtnCancelIcon, GBtnSubmitIcon },
@@ -50,7 +51,7 @@ export default {
       drawer: false,
       dialog: false,
       loading: false,
-      model: this.$User(),
+      model: new User(),
     }
   },
   computed: {
