@@ -39,25 +39,146 @@ export default class OperationResult extends FireModel {
    * FireModelのcreateをオーバーライドします。
    * - コレクションを自動採番対象として、createのuseAutonumberをtrueに固定します。
    * - `workers`配列の内容に応じて`OperationWorkResults`ドキュメントを同期生成します。
-   * @param {string} docId - 作成するドキュメントのID
+   * @param {string} docId - 作成するドキュメントのID。デフォルトはnull。
+   * @param {boolean} useAutonumber - 自動採番を使用するかどうか。デフォルトはtrue。
    * @returns {Promise<void>} 処理が完了すると解決されるPromise
    * @throws {Error} ドキュメントの作成に失敗した場合
    ****************************************************************************/
-  async create(docId = null) {
+  async create({ docId = null, useAutonumber = true } = {}) {
     try {
+      // トランザクションを使用してドキュメントの作成を管理
       await runTransaction(firestore, async (transaction) => {
         // 親ドキュメントの作成
-        await super.create({ docId, useAutonumber: true })
-        // `workers`配列に基づいて`OperationWorkResults`ドキュメントを作成
+        const docRef = await super.create({ docId, useAutonumber, transaction })
+
+        // `workers`配列の各workerに対して、`OperationWorkResults`ドキュメントを生成
         for (const worker of this.workers) {
-          const workResultInstance = new OperationWorkResult(worker)
+          // workerのデータと親ドキュメントのIDを使用してOperationWorkResultのインスタンスを生成
+          const workResultInstance = new OperationWorkResult({
+            ...worker,
+            operationResultId: docRef.id, // 親ドキュメントのIDを関連付け
+          })
+
+          // トランザクションを使用して`OperationWorkResult`ドキュメントを作成
           await workResultInstance.create({ transaction })
         }
       })
-    } catch (error) {
+    } catch (err) {
+      // エラー時にエラーメッセージを出力 (ESLintの警告を無効化)
       // eslint-disable-next-line no-console
-      console.error('ドキュメントの作成に失敗しました:', error)
-      throw new Error('ドキュメントの作成中にエラーが発生しました。')
+      console.error(`[create] An error has occurred: ${err.message}`, { err })
+
+      // エラーをスローして、呼び出し元にエラーが発生したことを通知
+      throw err
+    }
+  }
+
+  /****************************************************************************
+   * FireModelのupdateメソッドをオーバーライドします。
+   * - `OperationWorkResults`ドキュメントを`workers`に基づいて更新します。
+   * - `workers`に存在しない従業員IDに対応するドキュメントを削除します。
+   * - トランザクションを使用して、一貫した更新処理を保証します。
+   *
+   * @returns {Promise<void>} 更新処理が完了すると解決されるPromise
+   * @throws {Error} 更新処理中にエラーが発生した場合にエラーをスローします
+   ****************************************************************************/
+  async update() {
+    try {
+      // 現在登録されている`OperationWorkResults`ドキュメントをすべて取得
+      const WorkResultInstance = new OperationWorkResult()
+      const currentDocuments =
+        await WorkResultInstance.fetchByOperationResultId(this.docId)
+
+      // 取得したドキュメントから従業員IDを取得
+      const currentEmployeeIds = currentDocuments.map(
+        ({ employeeId }) => employeeId
+      )
+
+      // `workers`に存在しない従業員IDを取得（削除対象の従業員）
+      const deleteEmployeeIds = currentEmployeeIds.filter((employeeId) => {
+        return !this.workers.some((worker) => worker.employeeId === employeeId)
+      })
+
+      // トランザクションを使用して更新処理を実行
+      await runTransaction(firestore, async (transaction) => {
+        // 親クラスのupdateメソッドを呼び出し、自身を更新
+        await super.update({ transaction })
+
+        // `workers`配列に基づいて、`OperationWorkResults`ドキュメントを更新または作成
+        for (const worker of this.workers) {
+          const existDocument = currentDocuments.find(
+            ({ employeeId }) => employeeId === worker.employeeId
+          )
+
+          // `currentDocuments`から既存のドキュメントを検索し、それにworkerのデータをマージ
+          const workResultInstance = new OperationWorkResult({
+            ...existDocument,
+            ...worker,
+            operationResultId: this.docId, // 親ドキュメントのIDを関連付け
+          })
+
+          // トランザクション内で`OperationWorkResult`ドキュメントを作成または更新
+          if (existDocument) {
+            await workResultInstance.update({ transaction })
+          } else {
+            await workResultInstance.create({ transaction })
+          }
+        }
+
+        // `workers`に存在しない従業員に対応する`OperationWorkResults`ドキュメントを削除
+        for (const employeeId of deleteEmployeeIds) {
+          const workResultInstance = new OperationWorkResult({
+            docId: `${this.docId}-${employeeId}`, // 削除対象のドキュメントIDを生成
+          })
+          await workResultInstance.delete({ transaction }) // 削除処理を実行
+        }
+      })
+    } catch (err) {
+      // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
+      // eslint-disable-next-line no-console
+      console.error(`[update] An error has occurred: ${err.message}`, { err })
+
+      // エラーを再スローして、呼び出し元に通知
+      throw err
+    }
+  }
+
+  /****************************************************************************
+   * FireModelのdeleteメソッドをオーバーライドします。
+   * - 自身に依存するOperationWorkResultsドキュメントも同期削除します。
+   * - トランザクションを使用して、全ての削除処理を一貫して行います。
+   *
+   * @returns {Promise<void>} 削除処理が完了すると解決されるPromise
+   * @throws {Error} ドキュメント削除中にエラーが発生した場合にエラーをスローします
+   ****************************************************************************/
+  async delete() {
+    try {
+      // Firestoreトランザクションを使用して削除操作を実行
+      await runTransaction(firestore, async (transaction) => {
+        // 親クラスのdeleteメソッドを呼び出し、現在のドキュメントを削除
+        await super.delete({ transaction })
+
+        // 自身に依存する`workers`配列のOperationWorkResultsドキュメントも削除
+        for (const worker of this.workers) {
+          /**
+           * 2024-09-10 トリッキーな処理
+           * 本来であればfetchでインスタンスにデータを読み込んでからdeleteを削除するものを
+           * 強引にdocIdをセットして削除している。
+           */
+          // OperationWorkResultsドキュメントを特定するためのIDを用意
+          const docId = `${this.docId}-${worker.employeeId}`
+          // 各workerに対応するOperationWorkResultインスタンスを作成し、削除を実行
+          const workResultInstance = new OperationWorkResult({ docId })
+          await workResultInstance.delete({ transaction }) // 非同期操作のためawaitを使用
+        }
+      })
+    } catch (err) {
+      // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
+      // eslint-disable-next-line no-console
+      console.error(`[delete] An error has occurred: ${err.message}`, { err })
+
+      // 発生したエラーを再スローして、呼び出し元に通知
+      throw err
     }
   }
 

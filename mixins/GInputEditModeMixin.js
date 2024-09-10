@@ -1,11 +1,11 @@
 import { EDIT_MODES } from '~/utils/EDIT_MODES'
 
 /**
- * GInputEditModeMixin
+ * ## GInputEditModeMixin
  *
  * `GInput`を接頭辞として持つコンポーネントに対して、編集モードの管理機能を提供するMixinです。
  *
- * - 編集モードを示す `editMode` プロパティを提供します。
+ * - 編集モードを示す `props.editMode` が実装されます。
  *
  * @prop {String} editMode - コンポーネントの操作モード (`CREATE` | `UPDATE` | `DELETE`)。
  *

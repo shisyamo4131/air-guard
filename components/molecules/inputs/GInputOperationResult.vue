@@ -22,6 +22,7 @@ import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
 import OperationResultWorker from '~/models/OperationResultWorker'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import { getDayType, isValidDateFormat } from '~/utils/utility'
+import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -38,6 +39,7 @@ export default {
     GBtnSubmitIcon,
     GCardInputForm,
     GDialogDatePicker,
+    GCheckbox,
   },
   /***************************************************************************
    * MIXINS
@@ -75,7 +77,7 @@ export default {
     },
     selectableEmployees() {
       return this.$store.state.employees.items.filter((item) => {
-        return !this.instance.workers.some(
+        return !this.editModel.workers.some(
           ({ employeeId }) => employeeId === item.docId
         )
       })
@@ -260,6 +262,11 @@ export default {
         </v-col>
       </v-row>
     </v-form>
+    <g-checkbox
+      v-if="editMode !== CREATE"
+      v-model="forceDelete"
+      label="このデータを削除する"
+    />
   </g-card-input-form>
 </template>
 

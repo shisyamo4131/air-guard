@@ -1,4 +1,5 @@
 import { FireModel } from 'air-firebase'
+import { where } from 'firebase/firestore'
 import { classProps } from './propsDefinition/OperationResultWorker'
 /**
  * ## OperationWorkResults ドキュメントデータモデル【物理削除】
@@ -6,9 +7,7 @@ import { classProps } from './propsDefinition/OperationResultWorker'
  * 稼働実績明細から作成される交通費申請のデータモデルです。
  *
  * - OperationResultsドキュメントと同期して生成されるドキュメントです。
- * - 同期はCloud Functionsで行われるため、createメソッドを保有しません。
- * - 同様に、OperationResultsドキュメントと同期されるため、update、deleteメソッドも保有しません。
- * - 但し、交通費申請に関わるデータの更新処理を行う為、独自のメソッドの中でsuper.update()をコールしています。
+ * - 交通費申請に関わるデータの更新処理を行う為、独自のメソッドの中でsuper.update()をコールしています。
  * - 保有するプロパティはOperationResultWorkerを継承しつつ、交通費申請に必要なプロパティが追加されています。
  *
  * @version 2.0.0
@@ -49,6 +48,69 @@ export default class OperationWorkResult extends FireModel {
       updateAt: null,
     }
     super.initialize(item)
+  }
+
+  /****************************************************************************
+   * FireModelのcreateメソッドをオーバーライドします。
+   * - `docId`を`${operationResultId}-${employeeId}`に固定します。
+   * - operationResultId と employeeId が必須で、指定されていない場合はエラーをスローします。
+   * @param {string|null} [docId=null] - 作成するドキュメントのID（省略可能だが固定されます）
+   * @param {boolean} [useAutonumber=false] - 自動採番を行うかどうか（デフォルト: false）
+   * @param {Object|null} [transaction=null] - Firestoreトランザクションオブジェクト（省略可能）
+   * @returns {Promise<void>} 処理が完了すると解決されるPromise
+   * @throws {Error} operationResultIdまたはemployeeIdが指定されていない場合、または作成時にエラーが発生した場合にエラーをスローします
+   ****************************************************************************/
+  async create({
+    docId = null,
+    useAutonumber = false,
+    transaction = null,
+  } = {}) {
+    // operationResultId と employeeId が必須であることを確認
+    if (!this.operationResultId) {
+      throw new Error(`[create] operationResultId is required.`)
+    }
+    if (!this.employeeId) {
+      throw new Error(`[create] employeeId is required.`)
+    }
+
+    // docIdを`${operationResultId}-${employeeId}`に固定
+    docId = `${this.operationResultId}-${this.employeeId}`
+
+    try {
+      // 親クラスのcreateメソッドを呼び出し
+      return await super.create({ docId, useAutonumber, transaction })
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(`[create] An error has occurred: ${err.message}`, { err })
+      throw err
+    }
+  }
+
+  /****************************************************************************
+   * 指定されたoperationResultIdに基づいて`OperationWorkResults`ドキュメントを取得します。
+   * - `operationResultId`と一致するドキュメントをFirestoreから取得します。
+   *
+   * @param {string} operationResultId - 取得対象のoperationResultId
+   * @returns {Promise<Array>} 一致するドキュメントの配列を返すPromise
+   * @throws {Error} ドキュメント取得中にエラーが発生した場合にエラーをスローします
+   ****************************************************************************/
+  async fetchByOperationResultId(operationResultId) {
+    try {
+      // operationResultIdに一致するドキュメントをFirestoreから取得
+      return await this.fetchDocs([
+        where('operationResultId', '==', operationResultId),
+      ])
+    } catch (err) {
+      // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
+      // eslint-disable-next-line no-console
+      console.error(
+        `[fetchByOperationResultId] Failed to fetch documents: ${err.message}`,
+        { err }
+      )
+
+      // エラーを再スローして呼び出し元に通知
+      throw err
+    }
   }
 
   /****************************************************************************

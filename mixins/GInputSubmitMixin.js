@@ -30,6 +30,7 @@ import GInputInitializeMixin from '~/mixins/GInputInitializeMixin'
  * - `data.submitType`の値が`toFirestore`の場合、`props.editMode`に応じて`data.editModel`のcreate()、update()、またはdelete()が呼び出され、処理が完了すると`submit:complete`イベントがemitされます。
  * - `data.submitType`の既定値は`toFirestore`です。書き換える場合はオーバーライドします。
  * - `submit:complete`イベントでは`instance`として`data.editModel`を、`editMode`として`props.editMode`を受け取ることができます。
+ * - `data.forceDelete`の値が true の場合、editModeを無視して削除処理が行われます。
  *
  * @method submit - フォーム送信処理を実行します。`editMode` や `validate` が未定義の場合は警告を出し、処理を中止します。
  *                  フォーム送信が成功した場合は `submit:complete` イベントを、失敗した場合は `submit:failed` イベントを emit します。
@@ -61,9 +62,10 @@ import GInputInitializeMixin from '~/mixins/GInputInitializeMixin'
  * };
  * </script>
  *
- * @version 1.8.0
+ * @version 1.9.0
  * @creator shisyamo4131
  * @updates
+ * - version 1.9.0 - `data.forceDelete` を追加。
  * - version 1.8.0 - `data.loading`を追加。
  *                 - `submit`処理で`data.loading`の状態を制御するように修正
  * - version 1.7.0 - `GInputInitializeMixin`の`data.clone`を`data.editModel`に変更したことに伴う修正。
@@ -84,6 +86,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      forceDelete: false,
       loading: false,
       submitType: 'toFirestore',
     }
@@ -107,7 +110,7 @@ export default {
         return
       }
 
-      if (this.editMode !== this.DELETE) {
+      if (this.editMode !== this.DELETE && !this.forceDelete) {
         if (typeof this.validate !== 'function') {
           // eslint-disable-next-line no-console
           console.warn('Validation method not found. Submit action aborted.')
@@ -123,18 +126,19 @@ export default {
       try {
         this.loading = true
         if (this.submitType === 'toFirestore') {
-          if (this.editMode === this.CREATE) {
-            await this.editModel.create()
+          if (this.editMode === this.DELETE || this.forceDelete) {
+            await this.editModel.delete()
           } else if (this.editMode === this.UPDATE) {
             await this.editModel.update()
           } else {
-            await this.editModel.delete()
+            await this.editModel.create()
           }
         }
         this.$emit('submit:complete', {
           instance: this.editModel.clone(),
-          editMode: this.editMode,
+          editMode: this.forceDelete ? this.DELETE : this.editMode,
         })
+        this.forceDelete = false
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('Submit failed:', error)
