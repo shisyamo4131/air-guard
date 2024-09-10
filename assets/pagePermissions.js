@@ -14,7 +14,6 @@ module.exports = {
   'admin-work-regulations-docId': ['admin', 'developer'],
   'attendance-records': ['admin', 'developer'],
   'leave-applications-unapproved': ['admin'],
-  'temporary-site-schedules': ['admin', 'developer'],
   customers: ['admin'],
   'customers-docId': ['admin'],
   equipments: ['admin'],

@@ -1,3 +1,4 @@
+import { auth } from 'air-firebase'
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { doc, onSnapshot } from 'firebase/firestore'
 
@@ -80,13 +81,13 @@ export const actions = {
   async signInWithEmailAndPassword(_, payload) {
     const email = payload?.email || undefined
     const password = payload?.password || undefined
-    await signInWithEmailAndPassword(this.$auth, email, password)
+    await signInWithEmailAndPassword(auth, email, password)
   },
 
   /**
    * Firebase Authenticationの認証を解除（sign-out）します。
    */
   async signOut() {
-    await signOut(this.$auth)
+    await signOut(auth)
   },
 }
