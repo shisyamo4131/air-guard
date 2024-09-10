@@ -38,6 +38,7 @@ import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
 import Employee from '~/models/Employee'
 import Autonumber from '~/models/Autonumber'
+import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -46,7 +47,7 @@ export default {
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
-  components: { GDataTable, GTemplateFixed },
+  components: { GDataTable, GTemplateFixed, GCheckbox },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -85,6 +86,7 @@ export default {
   data() {
     return {
       asNewItem: false,
+      itemsPerPage: 10,
       loading: false,
       multiple: false,
       page: { toSync: 1, airGuard: 1 },
@@ -225,13 +227,23 @@ export default {
       <v-window v-model="step" style="height: 100%">
         <v-window-item style="height: inherit">
           <v-container class="d-flex flex-column" style="height: inherit">
-            <v-card-text class="d-flex justify-end">
-              <v-checkbox
+            <v-card-text class="d-flex justify-space-between">
+              <g-checkbox
                 v-model="multiple"
                 label="選択した従業員を強制登録する"
                 :disabled="
                   !!items.unsync.length || !items.airGuard.length || loading
                 "
+                hide-details
+              />
+              <air-select
+                v-model="itemsPerPage"
+                style="width: 120px; max-width: 120px"
+                label="表示件数"
+                :items="[
+                  { text: '10件', value: 10 },
+                  { text: '20件', value: 20 },
+                ]"
                 hide-details
               />
             </v-card-text>
@@ -247,6 +259,7 @@ export default {
                 ]"
                 :items="items.airGuard"
                 item-key="code"
+                :items-per-page="itemsPerPage"
                 show-select
                 :single-select="!multiple"
                 :page.sync="page.airGuard"

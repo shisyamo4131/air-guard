@@ -117,9 +117,9 @@ const propsDefinition = {
   bloodType: {
     type: String,
     default: '-',
-    validator: (v) => ['A', 'B', 'O', 'AB', '-'].includes(v),
+    validator: (v) => !v || ['A', 'B', 'O', 'AB', '-'].includes(v),
     required: false,
-    requiredByClass: true,
+    requiredByClass: false,
   },
   status: {
     type: String,
