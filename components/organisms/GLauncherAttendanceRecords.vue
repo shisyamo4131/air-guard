@@ -2,6 +2,7 @@
 import { limit, orderBy, where } from 'firebase/firestore'
 import { get, ref } from 'firebase/database'
 import GDataTableAttendanceRecords from '../molecules/tables/GDataTableAttendanceRecords.vue'
+import AttendanceRecord from '~/models/AttendanceRecord'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -15,7 +16,7 @@ export default {
       fetchedEmployee: [],
       items: [],
       loading: false,
-      model: this.$AttendanceRecord(),
+      model: new AttendanceRecord(),
       month: this.$dayjs().format('YYYY-MM'),
     }
   },
