@@ -39,24 +39,25 @@ export default {
    ***************************************************************************/
   computed: {
     headers() {
+      const result = [{ text: 'CODE', value: 'code', width: 84 }]
       switch (this.$vuetify.breakpoint.name) {
         case 'xs':
-          return [
-            { text: 'CODE', value: 'code', width: 84 },
-            { text: '略称', value: 'name-xs' },
-          ]
+          result.push({ text: '略称', value: 'name-xs', sortable: false })
+          break
         case 'sm':
-          return [
-            { text: 'CODE', value: 'code', width: 84 },
-            { text: '現場名/住所', value: 'name-sm' },
-          ]
+          result.push({
+            text: '現場名/住所',
+            value: 'name-sm',
+            sortable: false,
+          })
+          break
         default:
-          return [
-            { text: 'CODE', value: 'code', width: 84 },
-            { text: '現場名', value: 'name' },
-            { text: '住所', value: 'address' },
-          ]
+          result.push(
+            { text: '現場名', value: 'name', sortable: false },
+            { text: '住所', value: 'address', sortable: false }
+          )
       }
+      return result
     },
   },
 }

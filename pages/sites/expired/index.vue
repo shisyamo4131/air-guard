@@ -21,6 +21,7 @@
  */
 import GDataTableSites from '~/components/molecules/tables/GDataTableSites.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
+import Site from '~/models/Site'
 export default {
   /***************************************************************************
    * NAME
@@ -38,7 +39,7 @@ export default {
       items: [],
       lazySearch: null,
       loading: false,
-      model: this.$Site(),
+      model: new Site(),
     }
   },
   /***************************************************************************
