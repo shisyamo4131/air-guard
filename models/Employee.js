@@ -1,4 +1,3 @@
-import { where } from 'firebase/firestore'
 import { FireModel } from 'air-firebase'
 import { classProps } from './propsDefinition/Employee'
 import EmployeeContract from './EmployeeContract'
@@ -189,7 +188,7 @@ export default class Employee extends FireModel {
   async fetchByCode(code) {
     if (!code) throw new Error('従業員コードは必須です。')
     try {
-      const constraints = [where('code', '==', code)]
+      const constraints = [['where', 'code', '==', code]]
       const snapshots = await this.fetchDocs(constraints)
       return snapshots
     } catch (err) {
@@ -215,7 +214,7 @@ export default class Employee extends FireModel {
         i % 30 ? [] : [unique.slice(i, i + 30)]
       )
       const promises = chunked.map((arr) => {
-        const constraints = [where('code', 'in', arr)]
+        const constraints = [['where', 'code', 'in', arr]]
         return this.fetchDocs(constraints)
       })
       const snapshots = await Promise.all(promises)

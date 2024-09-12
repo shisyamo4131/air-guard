@@ -9,7 +9,6 @@
  * @updates
  * - version 1.0.0 - 2024-09-06 - 初版作成
  */
-import { where } from 'firebase/firestore'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import GDataTableEmployees from '~/components/molecules/tables/GDataTableEmployees.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
@@ -86,7 +85,7 @@ export default {
     },
     subscribeExpiredDocs() {
       this.items.expired = this.listener.subscribeDocs([
-        where('status', '!=', 'active'),
+        ['where', 'status', '!=', 'active'],
       ])
     },
   },

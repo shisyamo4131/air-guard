@@ -1,5 +1,4 @@
 import { FireModel } from 'air-firebase'
-import { where } from 'firebase/firestore'
 import Employee from './Employee'
 import { classProps } from './propsDefinition/EmployeeContract'
 
@@ -151,7 +150,7 @@ export default class EmployeeContract extends FireModel {
 
       // 各チャンクに対してFirestoreクエリを実行し、ドキュメントを取得
       const promises = chunked.map(async (arr) => {
-        const constraints = [where('employeeId', 'in', arr)]
+        const constraints = [['where', 'employeeId', 'in', arr]]
         return await this.fetchDocs(constraints)
       })
 
