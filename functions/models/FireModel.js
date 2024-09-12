@@ -695,31 +695,48 @@ class FireModel {
   }
 
   /****************************************************************************
-   * Firestoreコレクションから条件に一致するドキュメントを取得し、そのデータを返します。
-   * - 返り値の配列に格納されるのは取得したドキュメントデータで初期化された、インスタンス化された当該クラスのオブジェクトです。
-   * @param {Array} constraints - Firestoreクエリの条件（whereなど）を格納した配列
-   * @returns {Promise<Array<Object>>} - 取得したドキュメントのデータで初期化された、インスタンス化された当該クラスのオブジェクトの配列
+   * Firestoreコレクションから条件に一致するドキュメントを取得します。
+   * @param {Array|string} constraints - クエリ条件の配列
+   * @returns {Promise<Array<Object>>} - 取得したドキュメントのデータで初期化されたオブジェクトの配列
+   * @throws {Error} 不明なクエリタイプが指定された場合
    ****************************************************************************/
   async fetchDocs(constraints = []) {
-    /* eslint-disable */
-    const sender = 'FireModel - fetchDocs'
-    info(getMessage(sender, 'FETCH_DOCS_CALLED', this.#collectionPath))
-    try {
-      const colRef = firestore.collection(this.#collectionPath)
-      // const q = query(colRef, ...constraints).withConverter(this.converter());
-      let q = colRef
-      constraints.forEach((constraint) => {
-        q = q.where(...constraint)
-      })
-      q.withConverter(this.converter())
-      // const querySnapshot = await getDocs(q)
-      const querySnapshot = await q.get()
-      return querySnapshot.docs.map((doc) => doc.data())
-    } catch (err) {
-      error(`[${sender}] ${err.message}`)
-      throw err
-    }
-    /* eslint-enable */
+    const colRef = firestore.collection(this.#collectionPath)
+    const q = colRef
+    const validQueryTypes = ['where', 'orderBy', 'limit']
+    constraints.forEach((constraint) => {
+      const [type, ...args] = constraint
+      switch (type) {
+        case 'where':
+          q.where(...args)
+          break
+        case 'orderBy':
+          q.orderBy(args[0], args[1] || 'asc')
+          break
+        case 'limit':
+          q.limit(args[0])
+          break
+        default:
+          warn(
+            `Unknown query type: ${type}. Valid query types are: ${validQueryTypes.join(
+              ', '
+            )}`
+          )
+          throw new Error(
+            `Invalid query type: ${type}. Please use one of: ${validQueryTypes.join(
+              ', '
+            )}`
+          )
+      }
+    })
+
+    q.withConverter(this.converter())
+
+    // Firestoreクエリの実行
+    const querySnapshot = await q.get()
+
+    // 取得したドキュメントデータをオブジェクトの配列に変換して返却
+    return querySnapshot.docs.map((doc) => doc.data())
   }
 
   /****************************************************************************
@@ -733,7 +750,6 @@ class FireModel {
     const sender = 'FireModel - update'
 
     // 更新呼び出しのログ出力
-    // eslint-disable-next-line no-console
     info(getMessage(sender, 'UPDATE_CALLED', this.docId))
 
     try {
@@ -763,7 +779,6 @@ class FireModel {
       await this.afterUpdate()
 
       // 成功ログ出力
-      // eslint-disable-next-line no-console
       info(
         getMessage(
           sender,

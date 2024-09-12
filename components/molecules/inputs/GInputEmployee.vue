@@ -67,7 +67,7 @@ export default {
      * `lastName`と`firstName`を結合して最初の5文字を生成し、`abbr`にセットします。
      */
     refreshAbbr() {
-      const combined = `${this.lastName}${this.firstName}`
+      const combined = `${this.editModel.lastName}${this.editModel.firstName}`
       const sliced = combined.slice(0, 5)
       this.editModel.abbr = sliced
     },

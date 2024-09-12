@@ -1,3 +1,5 @@
+const { info, error } = require('firebase-functions/logger')
+const { getDatabase } = require('firebase-admin/database')
 const FireModel = require('./FireModel')
 const { classProps } = require('./propsDefinition/Employee')
 
@@ -199,6 +201,86 @@ class Employee extends FireModel {
       // eslint-disable-next-line no-console
       console.error(message)
       throw new Error(message)
+    }
+  }
+
+  /****************************************************************************
+   * Realtime DatabaseのEmployeesインデックスを更新します。
+   * - 指定されたdocIdに対応するEmployeesインデックスをRealtime Databaseに作成・更新します。
+   * - 入力データのバリデーションを行い、エラー時にはメッセージを出力します。
+   *
+   * @param {string} docId - 更新するEmployeesインデックスのドキュメントID
+   * @param {object} data - 更新するデータ
+   * @throws {Error} インデックスの更新に失敗した場合、エラーをスローします。
+   ****************************************************************************/
+  static async syncIndex(docId, data) {
+    // Input validation for docId and data
+    if (!docId || typeof docId !== 'string') {
+      throw new Error(`[${this.name} - syncIndex]: Invalid document ID`)
+    }
+    if (!data || typeof data !== 'object') {
+      throw new Error(`[${this.name} - syncIndex]: Invalid data object`)
+    }
+
+    // Create a new data for the index
+    const indexData = {
+      code: data.code,
+      fullName: data.fullName,
+      fullNameKana: data.fullNameKana,
+      abbr: data.abbr,
+      status: data.status,
+    }
+
+    try {
+      // Update the Realtime Database Employees index
+      const database = getDatabase()
+      await database.ref(`Employees/${docId}`).set(indexData)
+
+      info(
+        `[${this.name} - syncIndex]: Successfully updated index for docId: ${docId}`
+      )
+    } catch (err) {
+      error(
+        `[${this.name} - syncIndex]: Failed to update index for docId: ${docId}`,
+        err
+      )
+      throw new Error(
+        `[${this.name} - syncIndex]: Error updating index for docId: ${docId}`
+      )
+    }
+  }
+
+  /****************************************************************************
+   * Realtime DatabaseのEmployeesインデックスを削除します。
+   * - 指定されたdocIdに対応するEmployeesインデックスをRealtime Databaseから削除します。
+   *
+   * @param {string} docId - 削除するEmployeesインデックスのドキュメントID
+   * @throws {Error} インデックスの削除に失敗した場合、エラーをスローします。
+   ****************************************************************************/
+  static async deleteIndex(docId) {
+    // docIdのバリデーション
+    if (!docId || typeof docId !== 'string') {
+      throw new Error(`[${this.name} - deleteIndex]: Invalid document ID`)
+    }
+
+    try {
+      // Realtime DatabaseのEmployeesインデックスを削除
+      const database = getDatabase()
+      await database.ref(`Employees/${docId}`).remove()
+
+      // ログ: 削除成功
+      info(
+        `[${this.name} - deleteIndex]: Successfully deleted index for docId: ${docId}`
+      )
+    } catch (err) {
+      // ログ: 削除失敗
+      error(
+        `[${this.name} - deleteIndex]: Failed to delete index for docId: ${docId}`,
+        err
+      )
+      throw new Error(
+        `[${this.name} - deleteIndex]: Error deleting index for docId: ${docId}`
+      )
     }
   }
 }

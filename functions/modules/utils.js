@@ -57,7 +57,12 @@ exports.isDocumentChanged = (event) => {
  * - version 2.0.0 - 2024-07-22 - [破壊]比較対象のプロパティ、更新対象のプロパティを引数で指定できるように修正。
  * - version 1.0.0 - 2024-07-10 - 初版作成
  */
-exports.syncDocuments = async (collectionId, compareProp, updateProp, data) => {
+exports.syncDependentDocuments = async (
+  collectionId,
+  compareProp,
+  updateProp,
+  data
+) => {
   const BATCH_SIZE = 500
   info(`${collectionId}コレクション内のドキュメントと同期します。`)
   try {
@@ -88,33 +93,48 @@ exports.syncDocuments = async (collectionId, compareProp, updateProp, data) => {
   }
 }
 
-/**
- * 指定されたドキュメントパスにある指定されたコレクション内のドキュメントをすべて削除します。
+/****************************************************************************
+ * 指定されたコレクションのドキュメントを削除します。
+ * - comparePropに基づき、docIdと一致するドキュメントを削除します。
+ * - BATCH_LIMITごとにFirestoreのバッチ処理を行い、大量のドキュメントも効率的に削除します。
  *
- * @param {string} path - ドキュメントパス
- * @param {array} collectionIds - 従属するコレクションのID
- *
- * #### 更新履歴
- * - version 1.0.0 - 2024-07-10 - 初版作成
- *
- * @author shisyamo4131
- * @version 1.0.0
- */
-exports.removeDependentDocuments = async (path, collectionIds) => {
+ * @param {Array<string>} collectionIds - 削除対象のコレクションIDの配列
+ * @param {string} compareProp - docIdと比較するプロパティの名前
+ * @param {string} docId - 削除条件となるドキュメントID
+ * @throws {Error} 削除処理中にエラーが発生した場合、エラーをスローします。
+ ****************************************************************************/
+exports.removeDependentDocuments = async (
+  collectionIds,
+  compareProp,
+  docId
+) => {
   for (const collectionId of collectionIds) {
     try {
-      const colRef = firestore.collection(`${path}/${collectionId}`)
-      const snapshots = await colRef.get()
+      const colRef = firestore.collection(`${collectionId}`)
+      const q = colRef.where(compareProp, '==', docId)
+      const snapshots = await q.get()
       const batchArray = []
+
+      // バッチ処理でドキュメントを削除
       snapshots.docs.forEach((doc, index) => {
         if (index % BATCH_LIMIT === 0) batchArray.push(firestore.batch())
         batchArray[batchArray.length - 1].delete(doc.ref)
       })
+
+      // すべてのバッチをコミットして削除を実行
       await Promise.all(batchArray.map((batch) => batch.commit()))
-      info(`Documents in ${collectionId} deleted.`)
+
+      // 削除成功のログを出力
+      info(
+        `Documents in ${collectionId} deleted successfully for docId: ${docId}.`
+      )
     } catch (err) {
-      error(`Error deleting ${collectionId}.`, err)
-      throw err // Rethrow error to be caught by the caller
+      // エラーログを出力
+      error(
+        `Error deleting documents in ${collectionId} for docId: ${docId}.`,
+        err
+      )
+      throw err // エラーを呼び出し元に再スロー
     }
   }
 }
