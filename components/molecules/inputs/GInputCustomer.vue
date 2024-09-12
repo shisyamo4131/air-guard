@@ -13,6 +13,7 @@ import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import Customer from '~/models/Customer'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 
 export default {
   /***************************************************************************
@@ -25,6 +26,7 @@ export default {
     GNumeric,
     GTextarea,
     GCardInputForm,
+    GCheckbox,
   },
   /***************************************************************************
    * MIXINS
@@ -157,6 +159,11 @@ export default {
       </v-row>
       <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
+    <g-checkbox
+      v-if="editMode !== CREATE"
+      v-model="forceDelete"
+      label="このデータを削除する"
+    />
   </g-card-input-form>
 </template>
 

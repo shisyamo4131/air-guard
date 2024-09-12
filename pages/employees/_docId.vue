@@ -5,25 +5,21 @@
  * 従業員の詳細画面です。
  *
  * @author shisyamo4131
- * @version 1.4.0
+ * @version 1.0.0
  *
  * @updates
- * - version 1.4.0 - 2024-07-24 - 雇用契約の管理をGEmployeeContractsManagerに変更。
- *                              - 雇用契約に対するリアルタイムリスナーを削除。
- * - version 1.3.0 - 2024-07-18 - 雇用契約に対するリアルタイムリスナーを用意。
- *                              - GCardEmployeeに雇用契約情報をセット。
- * - version 1.2.1 - 2024-07-17 - ページ遷移に$routeを使用。
- * - version 1.2.0 - 2024-07-16 - GTempleteDetailを使用
- * - version 1.1.0 - 2024-07-03 - 健康診断履歴（EmployeeMedicalCheckups）へのリアルタイムリスナーを実装
- * - version 1.0.0 - xxxx-xx-xx - 初版作成
+ * - version 1.0.0 - 2024-09-12 - 初版作成
  *
  */
 import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GCardEmployee from '~/components/molecules/cards/GCardEmployee.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
-import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
 import GEmployeeContractsManager from '~/components/organisms/GEmployeeContractsManager.vue'
+import Employee from '~/models/Employee'
+import EmployeeMedicalCheckup from '~/models/EmployeeMedicalCheckup'
+import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
+import GEditModeMixin from '~/mixins/GEditModeMixin'
 export default {
   /***************************************************************************
    * NAME
@@ -37,9 +33,13 @@ export default {
     GCardEmployee,
     GTemplateDetail,
     GInputEmployee,
-    GDialogEditor,
     GEmployeeContractsManager,
+    GDialogInput,
   },
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GEditModeMixin],
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -49,18 +49,20 @@ export default {
       medicalCheckups: [],
     }
     const listeners = {
-      employee: app.$Employee(),
-      medicalCheckup: app.$EmployeeMedicalCheckup({ employeeId: docId }),
+      employee: new Employee(),
+      medicalCheckup: new EmployeeMedicalCheckup(),
     }
-    listeners.employee.subscribeDoc(docId)
-    items.medicalCheckups = listeners.medicalCheckup.subscribe()
+    listeners.employee.subscribe(docId)
+    items.medicalCheckups = listeners.medicalCheckup.subscribeDocs()
     return { docId, listeners, items }
   },
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
-    return {}
+    return {
+      dialog: false,
+    }
   },
   /***************************************************************************
    * COMPUTED
@@ -90,9 +92,7 @@ export default {
    ***************************************************************************/
   methods: {
     onClickEdit() {
-      const item = JSON.parse(JSON.stringify(this.listeners.employee))
-      const editMode = 'UPDATE'
-      this.$refs[`employee-editor`].open({ item, editMode })
+      this.dialog = true
     },
     onSubmitComplete(event) {
       if (event.editMode === 'DELETE') {
@@ -112,13 +112,16 @@ export default {
     <v-row>
       <v-col cols="12">
         <g-card-employee
-          v-bind="listeners.employee"
+          :instance="listeners.employee"
           outlined
           :medical-checkups="items.medicalCheckups"
         />
       </v-col>
       <v-col cols="12">
-        <g-employee-contracts-manager :employee-id="docId" />
+        <g-employee-contracts-manager
+          :employee-id="docId"
+          :instance="listeners.employee"
+        />
       </v-col>
       <v-col cols="12" md="5">
         <g-card-map
@@ -136,16 +139,16 @@ export default {
       </v-col>
     </v-row>
     <!-- editor -->
-    <g-dialog-editor
-      ref="employee-editor"
-      label="従業員"
-      model-id="Employee"
-      @submit:complete="onSubmitComplete"
-    >
+    <g-dialog-input v-model="dialog">
       <template #default="{ attrs, on }">
-        <g-input-employee v-bind="attrs" v-on="on" />
+        <g-input-employee
+          v-bind="attrs"
+          :edit-mode="UPDATE"
+          :instance="listeners.employee"
+          v-on="on"
+        />
       </template>
-    </g-dialog-editor>
+    </g-dialog-input>
   </g-template-detail>
 </template>
 

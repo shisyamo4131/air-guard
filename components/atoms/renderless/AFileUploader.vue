@@ -40,6 +40,7 @@
  * @create 2024-07-03
  * @version 1.0.0
  */
+import { uploadFile } from 'air-firebase'
 import imageCompression from 'browser-image-compression'
 export default {
   /***************************************************************************
@@ -125,12 +126,12 @@ export default {
       this.loading = true
       try {
         // originalをアップロード
-        const uploadFile = await this.compressImage(this.compressOptions)
-        result.url = await this.$fileUploader(uploadFile, path.original)
+        const file = await this.compressImage(this.compressOptions)
+        result.url = await uploadFile(file, path.original)
         // thumbをアップロード
         if (!this.noThumb) {
-          const thumbFile = await this.compressImage({ maxSizeMB: 0.2 })
-          result.thumb = await this.$fileUploader(thumbFile, path.thumb)
+          const thumb = await this.compressImage({ maxSizeMB: 0.2 })
+          result.thumb = await uploadFile(thumb, path.thumb)
         }
         this.file = null
         this.$emit('upload:complete', result)

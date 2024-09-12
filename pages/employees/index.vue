@@ -82,10 +82,7 @@ export default {
   methods: {
     onClickRow(item) {
       // 詳細ページが出来上がったらこちらを適用
-      // this.$router.push(`/customers/${item.docId}`)
-      this.instance.initialize(item)
-      this.editMode = this.UPDATE
-      this.dialog = true
+      this.$router.push(`/employees/${item.docId}`)
     },
     subscribeExpiredDocs() {
       this.items.expired = this.listener.subscribeDocs([

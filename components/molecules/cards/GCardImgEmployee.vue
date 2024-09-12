@@ -1,23 +1,38 @@
 <script>
 /**
- * ### GCardImgEmployee
+ * ## GCardImgEmployee
  *
- * 概要:
  * 従業員のイメージ写真を表示するコンポーネントです。
- * 新しいイメージ写真をアップロードすることも可能です。
+ *
+ * - `props.instance`で`Employee`インスタンスを受け取ります。
+ * - インスタンスの`imgRef`を参照し、該当するイメージをstorageからDL、表示します。
+ * - 新しいイメージに差し替えるためのUIを提供します。
  *
  * @author shisyamo4131
- * @create 2024-07-03
  * @version 1.0.0
+ * @updates
+ * - version 1.0.0 - 2024-09-12 - 初版作成
  */
+import { getFileDownloadURL } from 'air-firebase'
 import GDialogFileUploader from '~/components/molecules/dialogs/GDialogFileUploader.vue'
-import { vueProps } from '~/models/propsDefinition/Employee'
+import Employee from '~/models/Employee'
 export default {
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
   components: { GDialogFileUploader },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  props: vueProps,
+  props: {
+    instance: {
+      type: Object,
+      required: true,
+      validator(instance) {
+        return instance instanceof Employee
+      },
+    },
+  },
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -39,10 +54,10 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
-    imgRef: {
-      handler(newVal, oldVal) {
-        if (!newVal || newVal === oldVal) return
-        this.loadPicture()
+    'instance.imgRef': {
+      handler(v) {
+        if (!v) return
+        this.loadPicture(v)
       },
       immediate: true,
     },
@@ -51,13 +66,12 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
-    async loadPicture() {
-      this.src = await this.$getFileUrl(this.imgRef)
+    async loadPicture(url) {
+      this.src = await getFileDownloadURL(url)
     },
     async onUploadComplete(event) {
-      const model = this.$Employee()
       try {
-        await model.updateImgRef(this.docId, event.url)
+        await Employee.updateImgRef(this.instance.docId, event.url)
       } catch (err) {
         // eslint-disable-next-line
         console.error(err)
@@ -70,7 +84,12 @@ export default {
 
 <template>
   <v-card flat>
-    <v-chip v-if="leaveDate" class="status-chip" color="warning" label small
+    <v-chip
+      v-if="instance.leaveDate"
+      class="status-chip"
+      color="warning"
+      label
+      small
       >退職</v-chip
     >
     <v-img
@@ -81,13 +100,13 @@ export default {
     >
       <v-sheet v-if="isMobile" class="white--text" color="rgb(0,0,0,.5)">
         <v-card-title class="g-card__title d-block text-truncate">{{
-          fullName
+          instance.fullName
         }}</v-card-title>
-        <v-card-subtitle>{{ fullNameKana }}</v-card-subtitle>
+        <v-card-subtitle>{{ instance.fullNameKana }}</v-card-subtitle>
       </v-sheet>
     </v-img>
     <g-dialog-file-uploader
-      :directory="`/images/employees/${docId}`"
+      :directory="`/images/employees/${instance.docId}`"
       file-name="id"
       @upload:complete="onUploadComplete"
     >

@@ -1,6 +1,7 @@
 import { where } from 'firebase/firestore'
 import { FireModel } from 'air-firebase'
 import { classProps } from './propsDefinition/Employee'
+import EmployeeContract from './EmployeeContract'
 
 /**
  * Employeesドキュメントデータモデル【論理削除】
@@ -14,6 +15,7 @@ import { classProps } from './propsDefinition/Employee'
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class Employee extends FireModel {
+  #EmployeeContractInstance = new EmployeeContract()
   /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
@@ -122,34 +124,56 @@ export default class Employee extends FireModel {
   }
 
   /****************************************************************************
-   * 従業員ドキュメントのイメージファイルパスを更新します。
-   * - インスタンス外から`imgRef`フィールドのみを更新するときに便利です。
-   * @param {string} docId - ドキュメントID
-   * @param {string} url - Storageへの参照URL
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
-   * @throws {Error} - ドキュメントの更新中にエラーが発生した場合にエラーをスローします。
+   * 指定されたドキュメントIDのimgRefを更新します。
+   * - ドキュメントIDとURLを受け取り、該当ドキュメントのimgRefを更新します。
+   *
+   * @param {string} docId - 更新対象の従業員ドキュメントのID
+   * @param {string} url - 更新するimgRefのURL
+   * @throws {Error} ドキュメントIDまたはURLが無効な場合、あるいはドキュメントが存在しない場合にエラーをスロー
    ****************************************************************************/
   static async updateImgRef(docId, url) {
+    // クラス名を取得
+    const className = this.name
+
+    // docIdが無効でないかチェック
     if (!docId || typeof docId !== 'string') {
-      throw new Error('有効なドキュメントIDを指定してください。')
+      throw new Error(
+        `[${className} - updateImgRef]: A valid document ID must be provided.`
+      )
     }
+
+    // urlが無効でないかチェック
     if (!url || typeof url !== 'string') {
-      throw new Error('有効なURLを指定してください。')
+      throw new Error(
+        `[${className} - updateImgRef]: A valid URL must be provided.`
+      )
     }
 
     try {
+      // インスタンスを生成し、ドキュメントを取得
       const instance = new this()
-      if (!(await instance.fetch(docId))) {
+
+      // ドキュメントが存在するか確認
+      const docExists = await instance.fetch(docId)
+      if (!docExists) {
         throw new Error(
-          `Employeesコレクションに指定されたドキュメントが存在しません。ドキュメントID: ${docId}`
+          `[${className} - updateImgRef]: Document not found in Employees collection. Document ID: ${docId}`
         )
       }
 
+      // imgRefを更新
       instance.imgRef = url
 
+      // ドキュメントを更新
       await instance.update()
+
+      // eslint-disable-next-line no-console
+      console.info(
+        `[${className} - updateImgRef]: Successfully updated imgRef for document ID: ${docId}`
+      )
     } catch (error) {
-      const message = `ドキュメントID: ${docId} のimgRefの更新に失敗しました: ${error.message}`
+      // エラーメッセージの整形と出力
+      const message = `[${className} - updateImgRef]: Failed to update imgRef for document ID: ${docId}. Error: ${error.message}`
       // eslint-disable-next-line no-console
       console.error(message)
       throw new Error(message)
@@ -201,6 +225,44 @@ export default class Employee extends FireModel {
       // eslint-disable-next-line no-console
       console.error(message)
       throw new Error(message)
+    }
+  }
+
+  /****************************************************************************
+   * 従業員の雇用契約情報に対して、Firestoreコレクションのリアルタイムリスナーを設定します。
+   * - EmployeeContractクラスを使用し、該当従業員の契約情報に対するリアルタイム監視を開始します。
+   * - docIdが設定されていない場合、エラーメッセージを出力して処理を中断します。
+   *
+   * @returns {Array<Object>|undefined} リアルタイムで監視している契約情報のデータ
+   ****************************************************************************/
+  subscribeContracts() {
+    // docIdが設定されているか確認
+    if (!this.docId) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[${this.constructor.name} - subscribeContracts]: docId is not set.`
+      )
+      return // docIdが未設定の場合、処理を中断
+    }
+
+    // EmployeeContractクラスを使用して、該当する従業員の契約情報に対するリアルタイムリスナーを設定
+    return this.#EmployeeContractInstance.subscribeDocs([
+      ['where', 'employeeId', '==', this.docId], // employeeIdを条件にしたクエリを実行
+    ])
+  }
+
+  /****************************************************************************
+   * 従業員の雇用契約情報に対するリアルタイムリスナーを解除します。
+   * - EmployeeContractクラスで設定されているFirestoreのリアルタイムリスナーを解除します。
+   ****************************************************************************/
+  unsubscribeContracts() {
+    if (this.#EmployeeContractInstance) {
+      this.#EmployeeContractInstance.unsubscribe()
+    } else {
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[${this.constructor.name} - unsubscribeContracts]: No active listener found.`
+      )
     }
   }
 }

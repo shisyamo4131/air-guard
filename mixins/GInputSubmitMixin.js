@@ -31,6 +31,7 @@ import GInputInitializeMixin from '~/mixins/GInputInitializeMixin'
  * - `data.submitType`の既定値は`toFirestore`です。書き換える場合はオーバーライドします。
  * - `submit:complete`イベントでは`instance`として`data.editModel`を、`editMode`として`props.editMode`を受け取ることができます。
  * - `data.forceDelete`の値が true の場合、editModeを無視して削除処理が行われます。
+ * - 削除の指示をユーザーから受け付けるようにする場合、`data.forceDelete`をtrueにするためのUIを用意してください。
  *
  * @method submit - フォーム送信処理を実行します。`editMode` や `validate` が未定義の場合は警告を出し、処理を中止します。
  *                  フォーム送信が成功した場合は `submit:complete` イベントを、失敗した場合は `submit:failed` イベントを emit します。
@@ -142,6 +143,7 @@ export default {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('Submit failed:', error)
+        alert(error.message)
         this.$emit('submit:failed', error)
       } finally {
         this.loading = false
