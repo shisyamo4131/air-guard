@@ -12,14 +12,15 @@
  * - version 1.0.0 - 2024-07-18 - 初版作成
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
+import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
-import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GAutocompleteEmployee from '~/components/atoms/inputs/GAutocompleteEmployee.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import EmployeeContract from '~/models/EmployeeContract'
+import GDate from '~/components/atoms/inputs/GDate.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -27,11 +28,12 @@ export default {
   components: {
     GSelect,
     GTextarea,
-    GComboboxDate,
     GNumeric,
     GCheckbox,
     GAutocompleteEmployee,
     GCardInputForm,
+    GDialogDatePicker,
+    GDate,
   },
   /***************************************************************************
    * MIXINS
@@ -79,26 +81,41 @@ export default {
         :disabled="editMode !== CREATE"
       />
       <v-row dense>
-        <v-col cols="12">
-          <g-checkbox v-model="editModel.hasPeriod" label="期間の定め" />
+        <v-col cols="12" md="3">
+          <g-dialog-date-picker v-model="editModel.startDate">
+            <template #activator="{ attrs, on }">
+              <g-date
+                class="center-input"
+                v-bind="attrs"
+                label="契約日"
+                required
+                :disabled="editMode !== CREATE"
+                v-on="on"
+              />
+            </template>
+          </g-dialog-date-picker>
         </v-col>
-        <v-col cols="12" md="6">
-          <g-combobox-date
-            v-model="editModel.startDate"
-            label="契約日"
-            required
-            :disabled="editMode !== CREATE"
+        <v-col cols="12" md="9">
+          <g-checkbox
+            v-model="editModel.hasPeriod"
+            class="mt-1"
+            label="期間の定め"
           />
         </v-col>
-        <v-col cols="12" md="6">
-          <g-combobox-date
-            v-model="editModel.expiredDate"
-            label="契約満了日"
-            :disabled="!editModel.hasPeriod"
-            :required="editModel.hasPeriod"
-          />
+        <v-col cols="12" md="3">
+          <g-dialog-date-picker v-model="editModel.expiredDate">
+            <template #activator="{ attrs, on }">
+              <g-date
+                class="center-input"
+                v-bind="attrs"
+                label="契約満了日"
+                :required="editModel.hasPeriod"
+                v-on="on"
+              />
+            </template>
+          </g-dialog-date-picker>
         </v-col>
-        <v-col cols="12" md="6">
+        <v-col cols="12" md="9">
           <g-select
             v-model="editModel.contractType"
             label="雇用形態"
@@ -111,7 +128,7 @@ export default {
             attach
           />
         </v-col>
-        <v-col cols="12" md="6">
+        <v-col cols="12" md="3">
           <g-select
             v-model="editModel.paymentType"
             label="支給形態"
@@ -123,7 +140,7 @@ export default {
             attach
           />
         </v-col>
-        <v-col cols="12" md="6">
+        <v-col cols="12" md="9">
           <g-numeric
             v-model="editModel.basicWage"
             class="center-input"
