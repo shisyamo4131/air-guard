@@ -231,14 +231,14 @@ export default class OperationResult extends FireModel {
     const workers = this.workers.map((worker) => {
       return typeof worker.toObject === 'function'
         ? worker.toObject()
-        : worker || {}
+        : worker || null
     })
     return {
       ...super.toObject(),
       site:
         this.site && typeof this.site.toObject === 'function'
           ? this.site.toObject()
-          : this.site || {},
+          : this.site || null,
       workers,
     }
   }

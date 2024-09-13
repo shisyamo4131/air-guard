@@ -51,7 +51,7 @@ export default class AttendanceRecord extends FireModel {
       employee:
         this.employee && typeof this.employee.toObject === 'function'
           ? this.employee.toObject()
-          : this.employee || {},
+          : this.employee || null,
     }
   }
 

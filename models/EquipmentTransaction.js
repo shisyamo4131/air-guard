@@ -31,7 +31,7 @@ export default class Equipment extends FireModel {
       equipment:
         this.equipment && typeof this.equipment.toObject === 'function'
           ? this.equipment.toObject()
-          : this.equipment || {},
+          : this.equipment || null,
     }
   }
 
@@ -49,7 +49,7 @@ export default class Equipment extends FireModel {
     const instance = super.fromFirestore(snapshot)
 
     // equipment データを新しい Equipment クラスのインスタンスに変換
-    instance.equipment = new Equipment(instance?.equipment || null)
+    instance.equipment = new Equipment(instance?.equipment || undefined)
 
     // 変換したインスタンスを返す
     return instance

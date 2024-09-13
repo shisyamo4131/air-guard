@@ -14,11 +14,11 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
-  workRegulationId: {
-    type: String,
-    default: '',
+  workRegulation: {
+    type: Object,
+    default: null,
     required: false,
-    requiredByClass: false,
+    requiredByClass: true,
   },
   startDate: {
     type: String,
@@ -37,13 +37,6 @@ const propsDefinition = {
     default: '',
     required: false,
     requiredByClass: false,
-  },
-  contractType: {
-    type: String,
-    default: 'part-time',
-    validator: (v) => ['part-time', 'contract', 'full-time'].includes(v),
-    required: false,
-    requiredByClass: true,
   },
   paymentType: {
     type: String,

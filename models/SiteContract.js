@@ -48,7 +48,7 @@ export default class SiteContract extends FireModel {
       site:
         this.site && typeof this.site.toObject === 'function'
           ? this.site.toObject()
-          : this.site || {},
+          : this.site || null,
     }
   }
 

@@ -71,7 +71,7 @@ class Site extends FireModel {
       customer:
         this.customer && typeof this.customer.toObject === 'function'
           ? this.customer.toObject()
-          : this.customer || {},
+          : this.customer || null,
     }
   }
 
@@ -89,7 +89,7 @@ class Site extends FireModel {
     const instance = super.fromFirestore(snapshot)
 
     // customer データを新しい Customer クラスのインスタンスに変換
-    instance.customer = new Customer(instance?.customer || null)
+    instance.customer = new Customer(instance?.customer || undefined)
 
     // 変換したインスタンスを返す
     return instance

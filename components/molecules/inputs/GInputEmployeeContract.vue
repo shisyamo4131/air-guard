@@ -21,6 +21,9 @@ import GAutocompleteEmployee from '~/components/atoms/inputs/GAutocompleteEmploy
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import EmployeeContract from '~/models/EmployeeContract'
 import GDate from '~/components/atoms/inputs/GDate.vue'
+import GAutocomplete from '~/components/atoms/inputs/GAutocomplete.vue'
+import WorkRegulation from '~/models/WorkRegulation'
+import { isValidDateFormat } from '~/utils/utility'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -34,6 +37,7 @@ export default {
     GCardInputForm,
     GDialogDatePicker,
     GDate,
+    GAutocomplete,
   },
   /***************************************************************************
    * MIXINS
@@ -58,7 +62,23 @@ export default {
   data() {
     return {
       editModel: new EmployeeContract(),
+      workRegulations: [],
     }
+  },
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    'editModel.startDate': {
+      async handler(v) {
+        if (!v || !isValidDateFormat(v)) return
+        const year = v.slice(0, 4)
+        this.workRegulations = await new WorkRegulation().fetchDocs([
+          ['where', 'year', '>=', year],
+        ])
+      },
+      immediate: true,
+    },
   },
 }
 </script>
@@ -110,21 +130,21 @@ export default {
                 v-bind="attrs"
                 label="契約満了日"
                 :required="editModel.hasPeriod"
+                :disabled="!editModel.hasPeriod"
                 v-on="on"
               />
             </template>
           </g-dialog-date-picker>
         </v-col>
         <v-col cols="12" md="9">
-          <g-select
-            v-model="editModel.contractType"
-            label="雇用形態"
-            :items="[
-              { text: 'アルバイト', value: 'part-time' },
-              { text: '契約社員', value: 'contract' },
-              { text: '正社員', value: 'full-time' },
-            ]"
+          <g-autocomplete
+            v-model="editModel.workRegulation"
+            label="就業規則"
+            :items="workRegulations"
+            item-key="docId"
+            :item-text="(item) => `${item.name}(${item.year})`"
             required
+            return-object
             attach
           />
         </v-col>

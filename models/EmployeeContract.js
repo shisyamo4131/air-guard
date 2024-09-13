@@ -1,6 +1,7 @@
 import { FireModel } from 'air-firebase'
 import Employee from './Employee'
 import { classProps } from './propsDefinition/EmployeeContract'
+import WorkRegulation from './WorkRegulation'
 
 /**
  * ## EmployeeContractsドキュメントデータモデル【物理削除】
@@ -34,7 +35,12 @@ export default class EmployeeContract extends FireModel {
       employee:
         this.employee && typeof this.employee.toObject === 'function'
           ? this.employee.toObject()
-          : this.employee || {},
+          : this.employee || null,
+      workRegulation:
+        this.workRegulation &&
+        typeof this.workRegulation.toObject === 'function'
+          ? this.workRegulation.toObject()
+          : this.workRegulation || null,
     }
   }
 
@@ -52,7 +58,12 @@ export default class EmployeeContract extends FireModel {
     const instance = super.fromFirestore(snapshot)
 
     // employee データを新しい Employee クラスのインスタンスに変換
-    instance.employee = new Employee(instance?.employee || null)
+    instance.employee = new Employee(instance?.employee || undefined)
+
+    // workRegulation データを新しい WorkRegulation クラスのインスタンスに変換
+    instance.workRegulation = new WorkRegulation(
+      instance?.workRegulation || undefined
+    )
 
     // 変換したインスタンスを返す
     return instance
