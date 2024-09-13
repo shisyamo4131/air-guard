@@ -11,7 +11,7 @@
  * @version 1.0.0
  *
  * @updates
- * - version 1.0.0 - 2024-07-24 - 初版作成
+ * - version 1.0.0 - 2024-09-12 - 初版作成
  */
 import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
 import GInputEmployeeContract from '../molecules/inputs/GInputEmployeeContract.vue'

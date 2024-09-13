@@ -8,7 +8,7 @@
  * @version 1.0.0
  *
  * @updates
- * - version 1.0.0 - 2024-07-17 - 初版作成
+ * - version 1.0.0 - 2024-09-13 - 初版作成
  */
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 export default {
@@ -39,20 +39,25 @@ export default {
     headers() {
       switch (this.$vuetify.breakpoint.name) {
         case 'xs':
-          return [{ text: '就業規則名', value: 'name' }]
+          return [
+            { text: '適用年度', value: 'year' },
+            { text: '就業規則名', value: 'name' },
+          ]
         case 'sm':
           return [
+            { text: '適用年度', value: 'year' },
             { text: '就業規則名', value: 'name' },
             { text: '所定労働日', value: 'scheduledWorkDays' },
           ]
         default:
           return [
+            { text: '適用年度', value: 'year' },
             { text: '就業規則名', value: 'name' },
             { text: '所定労働日', value: 'scheduledWorkDays' },
             { text: '法定休日', value: 'legalHoliday', align: 'center' },
             { text: '時間外', value: 'overtimePayRate', align: 'center' },
             { text: '休日', value: 'holidayPayRate', align: 'center' },
-            { text: '賞与対象', value: 'bonusEligibility', align: 'center' },
+            { text: '賞与', value: 'bonusEligibility', align: 'center' },
           ]
       }
     },
@@ -68,6 +73,9 @@ export default {
     :mobile-breakpoint="0"
     v-on="$listeners"
   >
+    <template #[`item.year`]="{ item }">
+      {{ `${item.year} 年` }}
+    </template>
     <template #[`item.scheduledWorkDays`]="{ item }">
       <div class="d-flex" style="gap: 4px">
         <v-chip

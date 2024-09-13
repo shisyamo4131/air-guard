@@ -6,6 +6,12 @@
     "lists": []
   },
   {
+    "name": "就業規則管理",
+    "icon": "mdi-train-bus",
+    "to": "/work-regulations",
+    "lists": []
+  },
+  {
     "name": "稼働実績管理",
     "icon": "mdi-train-bus",
     "to": "/operation-results",

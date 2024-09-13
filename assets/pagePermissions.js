@@ -33,6 +33,8 @@ module.exports = {
   'synchronize-employees': ['admin', 'developer'],
   'synchronize-sites': ['admin', 'developer'],
   'transportation-cost-applications': [],
+  'work-regulations': ['admin', 'developer'],
+  'work-regulations-docId': ['admin', 'developer'],
   // 以下、開発用ページ
   'developments-model-input': ['admin', 'developer'],
   'developments-sandbox': ['admin', 'developer'],

@@ -1,31 +1,39 @@
 <script>
 /**
  * ### GInputWorkRegulation
- *
- * 就業規則の編集用コンポーネントです。
- *
  * @author shisayamo4131
  * @version 1.0.0
- *
  * @updates
- * - version 1.0.1 - 2024-07-18 - 月平均所定労働日数を追加
- * - version 1.0.0 - 2024-07-17 - 初版作成
+ * - version 1.0.0 - 2024-09-13 - 初版作成
  */
+import GCardInputForm from '../cards/GCardInputForm.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
-import { props } from '~/models/WorkRegulation'
-import EditMode from '~/mixins/GMixinEditMode'
+import WorkRegulation from '~/models/WorkRegulation'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
+import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextarea, GNumeric, GTextField, GCheckbox },
+  components: { GTextarea, GNumeric, GTextField, GCheckbox, GCardInputForm },
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GInputSubmitMixin],
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [props, EditMode],
+  props: {
+    instance: {
+      type: Object,
+      required: true,
+      validator(instance) {
+        return instance instanceof WorkRegulation
+      },
+    },
+  },
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -40,6 +48,7 @@ export default {
         { text: '土曜日', value: 'sat' },
         { text: '日曜日', value: 'sun' },
       ],
+      editModel: new WorkRegulation(),
       /**
        * 所定労働に関するルールです。
        * - 所定労働日は1つ以上選択されていなければなりません。
@@ -48,10 +57,11 @@ export default {
       rules: {
         length: (v) => !!v.length || '1つ以上選択してください',
         overTime: (v) =>
-          this.scheduledWorkMinutes * this.scheduledWorkDays.length <= 2400 ||
-          '週の所定労働時間が40時間を超過しています',
+          this.editModel.scheduledWorkMinutes *
+            this.editModel.scheduledWorkDays.length <=
+            2400 || '週の所定労働時間が40時間を超過しています',
         allDays: (v) =>
-          this.scheduledWorkDays.length < 7 ||
+          this.editModel.scheduledWorkDays.length < 7 ||
           '全曜日を所定労働日にすることはできません',
       },
     }
@@ -72,164 +82,176 @@ export default {
    ***************************************************************************/
   methods: {
     onInputScheduledWorkingDays(arr) {
-      this.$emit('update:legalHoliday', '')
+      this.editModel.legalHoliday = ''
       const result = arr.sort(
         (a, b) =>
           this.days.findIndex((day) => day.value === a) -
           this.days.findIndex((day) => day.value === b)
       )
-      this.$emit('update:scheduledWorkDays', result)
+      this.editModel.scheduledWorkDays = result
     },
   },
 }
 </script>
 
 <template>
-  <v-row dense>
-    <v-col cols="12">
-      <g-text-field
-        :value="name"
-        label="就業規則名"
-        required
-        hint="'正社員'、'契約社員'など"
-        persistent-hint
-        @input="$emit('update:name', $event)"
-      />
-    </v-col>
-    <v-col cols="12" sm="4">
-      <g-text-field
-        class="center-input"
-        :value="startTime"
-        label="始業時刻"
-        required
-        input-type="time"
-        @input="$emit('update:startTime', $event)"
-      />
-    </v-col>
-    <v-col cols="12" sm="4">
-      <g-text-field
-        class="center-input"
-        :value="endTime"
-        label="終業時刻"
-        required
-        input-type="time"
-        @input="$emit('update:endTime', $event)"
-      />
-    </v-col>
-    <v-col cols="12" sm="4">
-      <g-numeric
-        class="center-input"
-        :value="breakMinutes"
-        label="休憩時間"
-        required
-        suffix="分"
-        @input="$emit('update:breakMinutes', $event)"
-      />
-    </v-col>
-    <v-col cols="12">
-      <v-card outlined class="flex-grow-1 mb-4">
-        <v-card-text>
-          <h4>所定労働日</h4>
-          <v-input
-            ref="scheduledWorkDays"
-            :value="scheduledWorkDays"
-            :rules="[rules.length, rules.overTime, rules.allDays]"
-            hint="必ず就業する曜日を選択します"
-            persistent-hint
-          >
-            <v-chip-group
-              :value="scheduledWorkDays"
-              active-class="primary--text"
-              column
-              multiple
-              @change="onInputScheduledWorkingDays"
-            >
-              <v-chip
-                v-for="day of days"
-                :key="day.value"
-                outlined
-                small
-                :value="day.value"
-              >
-                {{ day.text }}
-              </v-chip>
-            </v-chip-group>
-          </v-input>
-          <g-checkbox
-            :input-value="isHolidayWorkDay"
-            label="祝日を所定労働日とする"
-            @change="$emit('update:isHolidayWorkDay', $event)"
+  <g-card-input-form
+    v-bind="$attrs"
+    label="就業規則編集"
+    :edit-mode="editMode"
+    :loading="loading"
+    @click:submit="submit"
+    v-on="$listeners"
+  >
+    <v-form @submit.prevent>
+      <v-row dense>
+        <v-col cols="12" md="3">
+          <g-text-field
+            v-model="editModel.year"
+            class="center-input"
+            label="適用年度"
+            :rules="[(v) => !v || v.length === 4 || '西暦で入力']"
+            required
+            suffix="年"
           />
-          <h4>法定休日</h4>
-          <v-chip-group
-            :value="legalHoliday"
-            active-class="primary--text"
-            column
-            mandatory
-            @change="$emit('update:legalHoliday', $event)"
-          >
-            <v-chip
-              v-for="day of days"
-              :key="day.value"
-              :disabled="scheduledWorkDays.includes(day.value)"
-              outlined
-              small
-              :value="day.value"
-            >
-              {{ day.text }}
-            </v-chip>
-          </v-chip-group>
-        </v-card-text>
-      </v-card>
-    </v-col>
-    <v-col cols="12" sm="4">
-      <g-numeric
-        class="center-input"
-        :value="averageMonthlyScheduledWorkDays"
-        label="月平均所定日数"
-        required
-        decimal-places="2"
-        suffix="日／月"
-        @input="$emit('update:averageMonthlyScheduledWorkDays', $event)"
-      />
-    </v-col>
-    <v-col cols="12" sm="4">
-      <g-numeric
-        class="center-input"
-        :value="overtimePayRate"
-        label="時間外割増"
-        required
-        suffix="％"
-        @input="$emit('update:overtimePayRate', $event)"
-      />
-    </v-col>
-    <v-col cols="12" sm="4">
-      <g-numeric
-        class="center-input"
-        :value="holidayPayRate"
-        label="休日割増"
-        required
-        suffix="％"
-        @input="$emit('update:holidayPayRate', $event)"
-      />
-    </v-col>
-    <v-col cols="12">
-      <g-checkbox
-        class="mt-0"
-        :input-value="bonusEligibility"
-        label="賞与対象"
-        @change="$emit('update:bonusEligibility', $event)"
-      />
-    </v-col>
-    <v-col cols="12">
-      <g-textarea
-        :value="remarks"
-        label="備考"
-        hide-details
-        @input="$emit('update:remarks', $event)"
-      />
-    </v-col>
-  </v-row>
+        </v-col>
+
+        <v-col cols="12" md="9">
+          <g-text-field
+            v-model="editModel.name"
+            label="就業規則名"
+            required
+            hint="'正社員'、'契約社員'など"
+            persistent-hint
+          />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <g-text-field
+            v-model="editModel.startTime"
+            class="center-input"
+            label="始業時刻"
+            required
+            input-type="time"
+          />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <g-text-field
+            v-model="editModel.endTime"
+            class="center-input"
+            label="終業時刻"
+            required
+            input-type="time"
+          />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <g-numeric
+            v-model="editModel.breakMinutes"
+            class="center-input"
+            label="休憩時間"
+            required
+            suffix="分"
+          />
+        </v-col>
+        <v-col cols="12">
+          <v-card outlined class="flex-grow-1 mb-4">
+            <v-card-text>
+              <h4>所定労働日</h4>
+              <v-input
+                ref="scheduledWorkDays"
+                v-model="editModel.scheduledWorkDays"
+                :rules="[rules.length, rules.overTime, rules.allDays]"
+                hint="必ず就業する曜日を選択します"
+                persistent-hint
+              >
+                <v-chip-group
+                  v-model="editModel.scheduledWorkDays"
+                  active-class="primary--text"
+                  column
+                  multiple
+                  @change="onInputScheduledWorkingDays"
+                >
+                  <v-chip
+                    v-for="day of days"
+                    :key="day.value"
+                    :value="day.value"
+                    outlined
+                    small
+                  >
+                    {{ day.text }}
+                  </v-chip>
+                </v-chip-group>
+              </v-input>
+              <g-checkbox
+                v-model="editModel.isHolidayWorkDay"
+                label="祝日を所定労働日とする"
+              />
+              <h4>法定休日</h4>
+              <v-chip-group
+                v-model="editModel.legalHoliday"
+                active-class="primary--text"
+                column
+                mandatory
+              >
+                <v-chip
+                  v-for="day of days"
+                  :key="day.value"
+                  :value="day.value"
+                  :disabled="editModel.scheduledWorkDays.includes(day.value)"
+                  outlined
+                  small
+                >
+                  {{ day.text }}
+                </v-chip>
+              </v-chip-group>
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="4">
+          <g-numeric
+            v-model="editModel.averageMonthlyScheduledWorkDays"
+            class="center-input"
+            label="月平均所定日数"
+            required
+            decimal-places="2"
+            suffix="日／月"
+          />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <g-numeric
+            v-model="editModel.overtimePayRate"
+            class="center-input"
+            label="時間外割増"
+            required
+            suffix="％"
+          />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <g-numeric
+            v-model="editModel.holidayPayRate"
+            class="center-input"
+            label="休日割増"
+            required
+            suffix="％"
+          />
+        </v-col>
+        <v-col cols="12">
+          <g-checkbox
+            v-model="editModel.bonusEligibility"
+            class="mt-0"
+            label="賞与対象"
+          />
+        </v-col>
+        <v-col cols="12">
+          <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+        </v-col>
+      </v-row>
+    </v-form>
+    <g-checkbox
+      v-if="editMode !== CREATE"
+      v-model="forceDelete"
+      label="このデータを削除する"
+    />
+  </g-card-input-form>
 </template>
 
 <style></style>
