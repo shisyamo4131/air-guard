@@ -52,12 +52,12 @@ export default {
         case 'sm':
           return [
             { text: '契約日', value: 'startDate' },
-            { text: '雇用形態', value: 'contractType', sortable: false },
+            { text: '就業規則', value: 'workRegulation', sortable: false },
           ]
         default:
           return [
             { text: '契約日', value: 'startDate' },
-            { text: '雇用形態', value: 'contractType', sortable: false },
+            { text: '就業規則', value: 'workRegulation', sortable: false },
             {
               text: '基本給',
               value: 'basicWage',
@@ -89,9 +89,9 @@ export default {
       {{ item.startDate }}
     </template>
 
-    <!-- `contractType` -->
-    <template #[`item.contractType`]="{ item }">
-      {{ $EMPLOYEE_CONTRACT_TYPE[item.contractType] }}
+    <!-- `workRegulation` -->
+    <template #[`item.workRegulation`]="{ item }">
+      {{ item.workRegulation.name }}
     </template>
 
     <!-- `basicWage` -->
