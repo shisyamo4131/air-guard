@@ -9,9 +9,10 @@
  * - Range（範囲）選択の切り替えを行うことができます。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.2.0
  *
  * @updates
+ * - version 1.2.0 - 2024-09-16 - defaultスロットを用意
  * - version 1.1.0 - 2024-07-26 - 各種設定をダイアログ上で行うUIに変更
  * - version 1.0.0 - 2024-06-21 - 初版作成
  */
@@ -262,6 +263,7 @@ export default {
           </v-card>
         </v-dialog>
       </div>
+      <slot name="default" />
     </div>
   </g-date-picker>
 </template>
