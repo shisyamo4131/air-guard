@@ -26,9 +26,10 @@
  * <GComboboxDate v-model="selectedDate" :multiple="true" />
  *
  * @author shisyamo4131
- * @version 1.2.0
+ * @version 1.2.1
  *
  * @updates
+ * - version 1.2.1 - 2024-09-16 - OK、Cancelボタンの配置を修正。
  * - version 1.2.0 - 2024-08-12 - `multiple`が`false`の場合、GComboboxの`width`を指定。
  *                              - GComboboxに`center-input`を適用。
  * - version 1.1.0 - 2024-06-29 - props.allowedDatesを用意し、date-pickerに適用。
@@ -156,9 +157,13 @@ export default {
       no-title
       :picker-date.sync="pickerDate"
     >
-      <v-btn text color="primary" @click="dialog = false"> Cancel </v-btn>
-      <v-spacer />
-      <v-btn text color="primary" @click="$refs.dialog.save(value)"> OK </v-btn>
+      <div class="d-flex flex-grow-1">
+        <v-btn text color="primary" @click="dialog = false"> Cancel </v-btn>
+        <v-spacer />
+        <v-btn text color="primary" @click="$refs.dialog.save(value)">
+          OK
+        </v-btn>
+      </div>
     </component>
   </v-dialog>
 </template>
