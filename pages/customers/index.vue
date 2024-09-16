@@ -9,7 +9,6 @@
  * @updates
  * - version 1.0.0 - 2024-09-06 - 初版作成
  */
-import { where } from 'firebase/firestore'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import GDataTableCustomers from '~/components/molecules/tables/GDataTableCustomers.vue'
@@ -89,7 +88,7 @@ export default {
     },
     subscribeExpiredDocs() {
       this.items.expired = this.listener.subscribeDocs([
-        where('status', '!=', 'active'),
+        ['where', 'status', '!=', 'active'],
       ])
     },
   },

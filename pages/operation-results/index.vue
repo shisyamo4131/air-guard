@@ -9,7 +9,6 @@
  * @updates
  * - version 1.0.0 - 2024-09-06 - 初版作成
  */
-import { where } from 'firebase/firestore'
 import GInputOperationResult from '~/components/molecules/inputs/GInputOperationResult.vue'
 import GDataTableOperationResults from '~/components/molecules/tables/GDataTableOperationResults.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
@@ -81,7 +80,7 @@ export default {
     month: {
       handler(newVal, oldVal) {
         if (newVal === oldVal) return
-        const constraints = [where('month', '==', newVal)]
+        const constraints = [['where', 'month', '==', newVal]]
         this.items = this.instance.subscribeDocs(constraints)
       },
       immediate: true,

@@ -16,7 +16,6 @@
  * - version 1.1.0 - `period`イベントを実装。現在カレンダーで選択されている期間の開始・終了をemitする。
  * - version 1.0.0 - 初版作成
  */
-import { where } from 'firebase/firestore'
 import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
 import GInputSiteOperationSchedule from '../molecules/inputs/GInputSiteOperationSchedule.vue'
 import GDivMonthChooser from '../molecules/divs/GDivMonthChooser.vue'
@@ -121,9 +120,9 @@ export default {
       })
     },
     subscribe() {
-      this.items = this.listener.subscribe(undefined, [
-        where('date', '>=', this.from),
-        where('date', '<=', this.to),
+      this.items = this.listener.subscribeDocs([
+        ['where', 'date', '>=', this.from],
+        ['where', 'date', '<=', this.to],
       ])
     },
   },

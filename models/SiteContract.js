@@ -1,5 +1,4 @@
 import { FireModel } from 'air-firebase'
-import { where } from 'firebase/firestore'
 import Site from './Site'
 import { classProps } from './propsDefinition/SiteContract'
 
@@ -180,7 +179,7 @@ export default class SiteContract extends FireModel {
 
       // 各チャンクに対してFirestoreクエリを実行し、ドキュメントを取得
       const promises = chunked.map(async (arr) => {
-        const constraints = [where('siteId', 'in', arr)]
+        const constraints = [['where', 'siteId', 'in', arr]]
         return await this.fetchDocs(constraints)
       })
 

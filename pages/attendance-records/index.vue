@@ -1,6 +1,5 @@
 <script>
-import { where } from 'firebase/firestore'
-import { get, ref } from 'firebase/database'
+// import { get, ref } from 'firebase/database'
 import GDataTableAttendanceRecords from '~/components/molecules/tables/GDataTableAttendanceRecords.vue'
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 /**
@@ -62,38 +61,36 @@ export default {
    ***************************************************************************/
   methods: {
     async fetch() {
-      const callBack = async (item) => {
-        try {
-          const fetched = this.fetchedEmployee.find(
-            ({ docId }) => docId === item.employeeId
-          )
-          if (fetched) {
-            item.employee = fetched
-          } else {
-            const dbRef = ref(this.$database, `Employees/${item.employeeId}`)
-            const snapshot = await get(dbRef)
-            if (!snapshot.exists()) {
-              item.employee = { fullName: 'error', code: 'error' }
-            } else {
-              const employeeData = { docId: item.employeeId, ...snapshot.val() }
-              this.fetchedEmployee.push(employeeData)
-              item.employee = employeeData
-            }
-          }
-          return item
-        } catch (err) {
-          // eslint-disable-next-line
-          console.error('Error fetching employee data:', err)
-          item.employee = { fullName: 'error', code: 'error' }
-        }
-      }
+      // const callBack = async (item) => {
+      //   try {
+      //     const fetched = this.fetchedEmployee.find(
+      //       ({ docId }) => docId === item.employeeId
+      //     )
+      //     if (fetched) {
+      //       item.employee = fetched
+      //     } else {
+      //       const dbRef = ref(this.$database, `Employees/${item.employeeId}`)
+      //       const snapshot = await get(dbRef)
+      //       if (!snapshot.exists()) {
+      //         item.employee = { fullName: 'error', code: 'error' }
+      //       } else {
+      //         const employeeData = { docId: item.employeeId, ...snapshot.val() }
+      //         this.fetchedEmployee.push(employeeData)
+      //         item.employee = employeeData
+      //       }
+      //     }
+      //     return item
+      //   } catch (err) {
+      //     // eslint-disable-next-line
+      //     console.error('Error fetching employee data:', err)
+      //     item.employee = { fullName: 'error', code: 'error' }
+      //   }
+      // }
       this.loading = true
       try {
-        this.items = await this.model.fetchDocs(
-          undefined,
-          [where('month', '==', this.month)],
-          callBack
-        )
+        this.items = await this.model.fetchDocs([
+          ['where', 'month', '==', this.month],
+        ])
       } catch (err) {
         // eslint-disable-next-line
         console.error(err)

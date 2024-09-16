@@ -1,5 +1,4 @@
 import { FireModel } from 'air-firebase'
-import { where } from 'firebase/firestore'
 import { classProps } from './propsDefinition/OperationResultWorker'
 /**
  * ## OperationWorkResults ドキュメントデータモデル【物理削除】
@@ -98,7 +97,7 @@ export default class OperationWorkResult extends FireModel {
     try {
       // operationResultIdに一致するドキュメントをFirestoreから取得
       return await this.fetchDocs([
-        where('operationResultId', '==', operationResultId),
+        ['where', 'operationResultId', '==', operationResultId],
       ])
     } catch (err) {
       // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
