@@ -6,6 +6,7 @@ import OperationResult from '~/models/OperationResult'
 import OperationResultWorker from '~/models/OperationResultWorker'
 import Site from '~/models/Site'
 import SiteContract from '~/models/SiteContract'
+import WorkRegulation from '~/models/WorkRegulation'
 /**
  * ### pages.import-transactions
  *
@@ -162,6 +163,14 @@ export default {
               )
               return fetched || undefined
             }
+            const getWorkRegulations = async () => {
+              const instance = new WorkRegulation()
+              const result = await instance.fetchDocs([
+                ['where', 'year', '==', '2024'],
+              ])
+              return result
+            }
+            const workRegulations = await getWorkRegulations()
             this.progress.max = data.length
             this.progress.current = 0
             try {
@@ -173,6 +182,13 @@ export default {
               data.forEach((item) => {
                 item.employee = getEmployee(item.employeeCode)
                 item.employeeId = item.employee?.docId || undefined
+                const workRegulation = workRegulations.find(
+                  ({ contractType }) => contractType === item.contractType
+                )
+                if (!workRegulation) {
+                  throw new Error(`就業規則が取得できませんでした。`)
+                }
+                item.workRegulation = workRegulation
               })
               // 3. employeeIdが取得できなかったdataが存在すればエラー
               const unknown = data.filter((item) => !item.employeeId)
