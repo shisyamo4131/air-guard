@@ -32,7 +32,6 @@ import {
   ref,
   update,
 } from 'firebase/database'
-import { where } from 'firebase/firestore'
 import { database } from 'air-firebase'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
@@ -77,7 +76,9 @@ export default {
     /**
      * 同期設定がされていないSiteドキュメントコレクションへのリスナーをセット
      */
-    items.unsync = listeners.unsync.subscribeDocs([where('sync', '==', false)])
+    items.unsync = listeners.unsync.subscribeDocs([
+      ['where', 'sync', '==', false],
+    ])
     return { items, listeners }
   },
   /***************************************************************************
