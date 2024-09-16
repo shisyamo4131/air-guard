@@ -178,7 +178,7 @@ export default {
               this.fetchedItems.employees = await new Employee().fetchByCodes(
                 data.map(({ employeeCode }) => employeeCode)
               )
-              // 2. dataにemployeeId、employeeを付与
+              // 2. dataにemployeeId、employee、workRegulation、providesTransportationAllowanceを付与
               data.forEach((item) => {
                 item.employee = getEmployee(item.employeeCode)
                 item.employeeId = item.employee?.docId || undefined
@@ -189,6 +189,9 @@ export default {
                   throw new Error(`就業規則が取得できませんでした。`)
                 }
                 item.workRegulation = workRegulation
+                item.providesTransportationAllowance =
+                  item.contractType !== 'part-time' &&
+                  item.basicWage !== '10000'
               })
               // 3. employeeIdが取得できなかったdataが存在すればエラー
               const unknown = data.filter((item) => !item.employeeId)

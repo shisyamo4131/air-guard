@@ -51,6 +51,12 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+  providesTransportationAllowance: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
   remarks: {
     type: String,
     default: '',

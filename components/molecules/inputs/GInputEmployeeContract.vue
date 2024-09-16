@@ -24,6 +24,7 @@ import GDate from '~/components/atoms/inputs/GDate.vue'
 import GAutocomplete from '~/components/atoms/inputs/GAutocomplete.vue'
 import WorkRegulation from '~/models/WorkRegulation'
 import { isValidDateFormat } from '~/utils/utility'
+import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -38,6 +39,7 @@ export default {
     GDialogDatePicker,
     GDate,
     GAutocomplete,
+    GSwitch,
   },
   /***************************************************************************
    * MIXINS
@@ -167,6 +169,17 @@ export default {
             label="基本給"
             required
             suffix="円"
+          />
+        </v-col>
+        <v-col cols="12">
+          <g-switch
+            v-model="editModel.providesTransportationAllowance"
+            class="mt-1"
+            :label="`交通費: ${
+              editModel.providesTransportationAllowance
+                ? '支給する'
+                : '支給しない'
+            }`"
           />
         </v-col>
       </v-row>
