@@ -85,7 +85,7 @@ exports.syncDependentDocuments = async (
       info('同期処理が正常に完了しました。')
     }
   } catch (err) {
-    error('syncDocumentsでエラーが発生しました。詳細:', {
+    error('syncDependentDocumentsでエラーが発生しました。詳細:', {
       message: err.message,
       stack: err.stack,
     })

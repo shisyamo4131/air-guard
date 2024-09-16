@@ -7,7 +7,7 @@ const { getDatabase } = require('firebase-admin/database')
 const {
   removeDependentDocuments,
   isDocumentChanged,
-  syncDocuments,
+  syncDependentDocuments,
 } = require('../modules/utils')
 // const firestore = getFirestore()
 const database = getDatabase()
@@ -20,7 +20,7 @@ const database = getDatabase()
  *
  * #### 注意事項
  * - ドキュメントの内容に変更があったかどうかは`isDocumentChanged()を利用します。
- * - ドキュメントの同期にはsyncDocuments()を利用します。
+ * - ドキュメントの同期にはsyncDependentDocuments()を利用します。
  *
  * @author shisyamo4131
  * @version 1.0.0
@@ -32,7 +32,7 @@ exports.onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
   if (!isDocumentChanged(event)) return
   info('Siteドキュメントが更新されました。')
   // OperationResultsと同期
-  await syncDocuments(
+  await syncDependentDocuments(
     `Sites/${event.params.docId}/OperationResults`,
     'siteId',
     'site',

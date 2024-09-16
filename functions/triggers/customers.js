@@ -18,7 +18,10 @@ const {
 } = require('firebase-functions/v2/firestore')
 const { info, error } = require('firebase-functions/logger')
 const { getDatabase } = require('firebase-admin/database')
-const { isDocumentChanged, syncDocuments } = require('../modules/utils')
+const {
+  isDocumentChanged,
+  syncDependentDocuments,
+} = require('../modules/utils')
 const database = getDatabase()
 
 /**
@@ -27,19 +30,19 @@ const database = getDatabase()
  *
  * #### 注意事項
  * - ドキュメントの内容に変更があったかどうかは`isDocumentChanged()を利用します。
- * - ドキュメントの同期にはsyncDocuments()を利用します。
+ * - ドキュメントの同期にはsyncDependentDocuments()を利用します。
  *
  * @author shisyamo4131
  * @version 1.0.0
  *
  * @updates
- * - version 1.1.0 - 2024-07-22 - syncDocuments()およびSiteドキュメントの仕様変更に伴う修正。
+ * - version 1.1.0 - 2024-07-22 - syncDependentDocuments()およびSiteドキュメントの仕様変更に伴う修正。
  * - version 1.0.0 - 2024-07-10 - 初版作成
  */
 exports.onUpdate = onDocumentUpdated('Customers/{docId}', async (event) => {
   if (!isDocumentChanged(event)) return
   info('Customerドキュメントが更新されました。')
-  await syncDocuments(
+  await syncDependentDocuments(
     'Sites',
     'customerId',
     'customer',
