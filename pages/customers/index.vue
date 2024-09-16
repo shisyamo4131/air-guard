@@ -65,7 +65,7 @@ export default {
     includeExpired: {
       handler(newVal, oldVal) {
         if (newVal === oldVal) return
-        this.subscribeInactiveDocs()
+        this.subscribeExpiredDocs()
       },
     },
   },
