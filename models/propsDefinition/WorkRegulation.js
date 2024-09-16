@@ -4,6 +4,14 @@ const propsDefinition = {
   docId: { type: String, default: '', required: false, requiredByClass: false },
   year: { type: String, default: '', required: false, requiredByClass: true },
   name: { type: String, default: '', required: false, requiredByClass: true },
+  contractType: {
+    type: String,
+    default: 'full-time',
+    validator: (v) =>
+      ['exective', 'full-time', 'contract', 'part-time'].includes(v),
+    required: false,
+    requiredByClass: true,
+  },
   scheduledWorkDays: {
     type: Array,
     default: () => ['mon', 'tue', 'wed', 'thu', 'fri'],

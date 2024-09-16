@@ -13,11 +13,19 @@ import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import GSelect from '~/components/atoms/inputs/GSelect.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextarea, GNumeric, GTextField, GCheckbox, GCardInputForm },
+  components: {
+    GTextarea,
+    GNumeric,
+    GTextField,
+    GCheckbox,
+    GCardInputForm,
+    GSelect,
+  },
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
@@ -123,6 +131,15 @@ export default {
             required
             hint="'正社員'、'契約社員'など"
             persistent-hint
+          />
+        </v-col>
+        <v-col cols="12">
+          <g-select
+            v-model="editModel.contractType"
+            label="雇用形態"
+            :items="$CONTRACT_TYPE_ARRAY"
+            required
+            attach
           />
         </v-col>
         <v-col cols="12" sm="4">

@@ -26,6 +26,20 @@ const CHAR_REGEXP_ARRAY = [
   { text: 'ワ', value: '[ワ-ン]' },
 ]
 
+const CONTRACT_TYPE = {
+  exective: '0: 役員',
+  'full-time': '1: 正社員',
+  contract: '2: 契約社員',
+  'part-time': '3: アルバイト',
+}
+
+const CONTRACT_TYPE_ARRAY = [
+  { value: 'exective', text: '0: 役員' },
+  { value: 'full-time', text: '1: 正社員' },
+  { value: 'contract', text: '2: 契約社員' },
+  { value: 'part-time', text: '3: アルバイト' },
+]
+
 const CUSTOMER_STATUS = {
   active: '契約中',
   expired: '契約終了',
@@ -226,6 +240,8 @@ const WORK_SHIFT_ARRAY = [
 export default (context, inject) => {
   inject('CHAR_REGEXP', CHAR_REGEXP)
   inject('CHAR_REGEXP_ARRAY', CHAR_REGEXP_ARRAY)
+  inject('CONTRACT_TYPE', CONTRACT_TYPE)
+  inject('CONTRACT_TYPE_ARRAY', CONTRACT_TYPE_ARRAY)
   inject('CUSTOMER_STATUS', CUSTOMER_STATUS)
   inject('CUSTOMER_STATUS_ARRAY', CUSTOMER_STATUS_ARRAY)
   inject('DAY_OF_WEEK_JA', DAY_OF_WEEK_JA)
