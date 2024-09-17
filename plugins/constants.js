@@ -168,6 +168,7 @@ const OUTSOURCER_STATUS_ARRAY = [
 ]
 
 const SECURITY_TYPE = {
+  'newly-training': '新任教育',
   traffic: '交通誘導警備',
   jam: '雑踏警備',
   facility: '施設警備',
@@ -176,6 +177,7 @@ const SECURITY_TYPE = {
 }
 
 const SECURITY_TYPE_ARRAY = [
+  { value: 'newly-training', text: '新任教育' },
   { value: 'traffic', text: '交通誘導警備' },
   { value: 'jam', text: '雑踏警備' },
   { value: 'facility', text: '施設警備' },

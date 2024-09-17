@@ -142,7 +142,7 @@ export default class SiteContract extends FireModel {
       const docId = `${this.siteId}-${this.startDate}-${this.workShift}`
 
       // 親クラスのcreateメソッドを`docId`を渡して呼び出し
-      await super.create({ docId })
+      return await super.create({ docId })
     } catch (err) {
       // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
       // eslint-disable-next-line no-console

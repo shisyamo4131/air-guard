@@ -5,7 +5,6 @@
  * 現場の稼働予定を管理するためのモデルクラスです。
  *
  * #### 機能詳細:
- * - 稼働予定としてカレンダーで頻繁に表示されることを想定して、`event`プロパティを定義しています。
  * - 同一日、同一勤務区分でのドキュメントは作成できません。（keyにはsiteIdを含みますが、サブコレクションなので日付と勤務区分でのValidationです）
  *
  * #### 注意事項:
@@ -18,120 +17,104 @@
  *      0人で更新すべきです。
  *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.0.0
  *
  * @updates
- * - version 1.1.0 - 2024-07-26 - ドキュメントidを`siteId` + `date` + `workShift`に固定。
- *                              - `props.dates`を追加 -> `SiteOperationScheduleBulk`で使用するため。
- * - version 1.0.0 - 2024-07-12 - 初版作成
+ * - version 1.0.0 - 2024-09-16 - 初版作成
  */
 
-import { collection, getDocs, limit, query, where } from 'firebase/firestore'
-import FireModel from './FireModel'
-
-const props = {
-  props: {
-    docId: { type: String, default: '', required: false },
-    date: { type: String, default: '', required: false },
-    /**
-     * `SiteOperationScheduleBulk`で使用します。
-     */
-    dates: { type: Array, default: () => [], required: false },
-    siteId: { type: String, default: '', required: false },
-    workShift: {
-      type: String,
-      default: 'day',
-      validator: (v) => ['day', 'night'].includes(v),
-      required: false,
-    },
-    start: { type: String, default: '', required: false },
-    end: { type: String, default: '', required: false },
-    requiredWorkers: { type: Number, default: null, required: false },
-    qualification: { type: Boolean, default: false, required: false },
-    workers: { type: Array, default: () => [], required: false },
-    outsourcers: { type: Array, default: () => [], required: false },
-    remarks: { type: String, default: '', required: false },
-  },
-}
-export { props }
+import { runTransaction } from 'firebase/firestore'
+import { FireModel, firestore } from 'air-firebase'
+import { classProps } from './propsDefinition/SiteOperationSchedule'
 
 export default class SiteOperationSchedule extends FireModel {
-  constructor(context, item = {}) {
-    super(context, item)
-    this.tokenFields = []
-    Object.defineProperties(this, {
-      /**
-       * VCalendarコンポーネントで容易に使用できるよう、eventプロパティを定義。
-       */
-      event: {
-        enumerable: true,
-        get() {
-          return {
-            name: this.siteId,
-            date: this.date,
-            workShift: this.workShift,
-            requiredWorkers: this.requiredWorkers,
-            start: this.start,
-            color: this.workShift === 'day' ? 'blue' : 'red',
-          }
-        },
-        set(v) {},
-      },
-    })
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item, 'SiteOperationSchedules', [], false, [], classProps)
   }
 
-  get collection() {
-    return `Sites/${this.siteId}/SiteOperationSchedules`
-  }
-
-  set collection(v) {}
-
-  initialize(item = {}) {
-    Object.keys(props.props).forEach((key) => {
-      const propDefault = props.props[key].default
-      this[key] =
-        typeof propDefault === 'function' ? propDefault() : propDefault
-    })
-    super.initialize(item)
-  }
-
+  /****************************************************************************
+   * beforeCreateをオーバーライドします。
+   * - 同一の現場、日付、勤務区分での稼働予定が存在する場合は作成不可です。
+   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   ****************************************************************************/
   async beforeCreate() {
-    const colRef = collection(this.firestore, this.collection)
-    const q = query(
-      colRef,
-      where('date', '==', this.date),
-      where('workShift', '==', this.workShift),
-      limit(1)
-    )
-    const querySnapshot = await getDocs(q)
-    if (!querySnapshot.empty) {
-      const errMsg = '同一日、同一勤務区分の稼働予定が既に登録されています。'
+    if (!this.siteId) {
+      throw new Error('現場の指定が必要です。')
+    }
+    if (!this.date) {
+      throw new Error('日付の指定が必要です。')
+    }
+    if (!this.workShift) {
+      throw new Error('勤務区分の指定が必要です。')
+    }
+    try {
+      const id = `${this.siteId}-${this.date}-${this.workShift}`
+      const existingSchedule = await this.fetchDoc(id)
+      if (existingSchedule) {
+        throw new Error('同一の稼働予定が既に登録されています。')
+      }
+      await super.beforeCreate()
+    } catch (err) {
       // eslint-disable-next-line
-      console.error(errMsg)
-      throw new Error(errMsg)
+      console.error(`[beforeCreate] An error has occured: ${err.message}`)
+      throw err
     }
   }
 
+  /****************************************************************************
+   * beforeUpdateをオーバーライドします。
+   * - 現場、日付、勤務区分が変更されていないか確認します。
+   * @returns {Promise<void>} - 成功すると解決されるPromise
+   * @throws {Error} - 現場、日付、勤務区分が変更されている場合にエラーをスローします。
+   ****************************************************************************/
   async beforeUpdate() {
-    const colRef = collection(this.firestore, this.collection)
-    const q = query(
-      colRef,
-      where('docId', '!=', this.docId),
-      where('date', '==', this.date),
-      where('workShift', '==', this.workShift),
-      limit(1)
-    )
-    const querySnapshot = await getDocs(q)
-    if (!querySnapshot.empty && querySnapshot.docs[0].id !== this.docId) {
-      const errMsg = '同一日、同一勤務区分の稼働予定が既に登録されています。'
-      // eslint-disable-next-line
-      console.error(errMsg)
-      throw new Error(errMsg)
+    // 正規表現を使用して、siteId, date, workShiftを抽出
+    const match = this.docId.match(/^([^-]+)-(\d{4}-\d{2}-\d{2})-([^-]+)$/)
+    const [, siteId, date, workShift] = match
+
+    if (
+      siteId !== this.siteId ||
+      date !== this.date ||
+      workShift !== this.workShift
+    ) {
+      throw new Error('現場、日付、勤務区分は変更できません。')
     }
+
+    // 親クラスの beforeUpdate メソッドを呼び出す
+    await super.beforeUpdate()
   }
 
+  /****************************************************************************
+   * createメソッドをオーバーライドします。
+   * - ドキュメントの作成時は、`dates`プロパティに格納されているすべての日付について一括で作成します。
+   * - `docId`は`${siteId}-${date}-${workShift}`に固定されます。
+   * - 生成した`docId`を使用して親クラスのcreateメソッドを呼び出します。
+   *
+   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   * @throws {Error} ドキュメント作成中にエラーが発生した場合にエラーをスローします
+   ****************************************************************************/
   async create() {
-    const docId = `${this.siteId}-${this.date}-${this.workShift}`
-    await super.create({ docId })
+    if (!this.dates.length) {
+      throw new Error('[create] 日付が選択されていません。')
+    }
+    try {
+      await runTransaction(firestore, async (transaction) => {
+        for (const date of this.dates) {
+          // `docId`を`${siteId}-${date}-${workShift}`の形式で生成
+          const docId = `${this.siteId}-${date}-${this.workShift}`
+          this.date = date
+          await super.create({ docId, transaction })
+        }
+      })
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(`[create] Failed to create document: ${err.message}`, {
+        err,
+      })
+      throw err
+    }
   }
 }

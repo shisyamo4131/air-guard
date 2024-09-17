@@ -1,6 +1,4 @@
 <script>
-import GIconNext from '~/components/atoms/icons/GIconNext.vue'
-import GIconPrev from '~/components/atoms/icons/GIconPrev.vue'
 /**
  * ### GDivMonthChooser
  * 月の選択を行うコンポーネントです。
@@ -11,23 +9,24 @@ import GIconPrev from '~/components/atoms/icons/GIconPrev.vue'
  *
  * @props {String} value - v-modelバインディング用の月データ
  *
- * @version 1.0.0
- * @date 2024-06-21
  * @author shisyamo4131
+ * @version 1.0.0
+ * @updates
+ * - version 1.0.0 - 2024-06-21 - 初版作成
  */
+import GIconNext from '~/components/atoms/icons/GIconNext.vue'
+import GIconPrev from '~/components/atoms/icons/GIconPrev.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: { GIconPrev, GIconNext },
-
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
     value: { type: String, default: undefined, required: false },
   },
-
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -36,7 +35,6 @@ export default {
       internalValue: this.$dayjs().format('YYYY-MM-DD'),
     }
   },
-
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
@@ -60,7 +58,6 @@ export default {
       return this.$dayjs(this.internalValue).format('YYYY-MM')
     },
   },
-
   /***************************************************************************
    * WATCH
    ***************************************************************************/
@@ -69,9 +66,8 @@ export default {
      * props.valueの値を監視し、変更があればinternalValueに反映します。
      */
     value: {
-      handler(newVal, oldVal) {
-        if (!newVal || newVal === oldVal) return
-        this.internalValue = newVal
+      handler(v) {
+        this.internalValue = v
       },
       immediate: true,
     },

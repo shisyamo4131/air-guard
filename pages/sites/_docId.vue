@@ -5,23 +5,17 @@
  * 現場の詳細画面です。
  *
  * @author shisyamo4131
- * @version 1.1.1
- *
+ * @version 1.0.0
  * @updates
- * - version 1.1.1 - 2024-07-30 - 稼働予定のカレンダー部と履歴部の`$vuetify.breakpoint.md`におけるサイズ配分を調整。
- * - version 1.1.0 - 2024-07-29 - レイアウトを変更（tab化）
- *                              - 稼働予定の更新履歴を表示する`GSiteOperationScheduleHistory`を配置。
- * - version 1.0.1 - 2024-07-17 - ページ遷移に$routeを使用。
- * - version 1.0.0 - xxxx-xx-xx - 初版作成
  */
 import GCardMap from '~/components/molecules/cards/GCardMap.vue'
-import GDialogEditor from '~/components/molecules/dialogs/GDialogEditor.vue'
+import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
-import GCardSite from '~/components/organisms/GCardSite.vue'
-import GSiteContractsTimeline from '~/components/organisms/GSiteContractsTimeline.vue'
-import GSiteOperationScheduleCalendar from '~/components/organisms/GSiteOperationScheduleCalendar.vue'
-import GSiteOperationScheduleHistory from '~/components/organisms/GSiteOperationScheduleHistory.vue'
+import GCardSite from '~/components/molecules/cards/GCardSite.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
+import GEditModeMixin from '~/mixins/GEditModeMixin'
+import Site from '~/models/Site'
+import GSiteOperationScheduleManager from '~/components/organisms/GSiteOperationScheduleManager.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -31,32 +25,31 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GSiteOperationScheduleCalendar,
     GCardMap,
     GCardSite,
-    GSiteContractsTimeline,
     GTemplateDetail,
     GInputSite,
-    GDialogEditor,
-    GSiteOperationScheduleHistory,
+    GDialogInput,
+    GSiteOperationScheduleManager,
   },
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GEditModeMixin],
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
-  asyncData({ app, route }) {
+  asyncData({ route }) {
     const docId = route.params.docId
-    const listeners = {
-      site: app.$Site(),
-    }
-    listeners.site.subscribeDoc(docId)
-    return { docId, listeners }
+    return { docId }
   },
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      schedulePeriod: { from: '', to: '' },
+      dialog: false,
+      listener: new Site(),
       tab: 0,
     }
   },
@@ -76,19 +69,30 @@ export default {
     },
   },
   /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {},
+  /***************************************************************************
+   * MOUNTED
+   ***************************************************************************/
+  mounted() {
+    this.listener.subscribe(this.docId)
+  },
+  /***************************************************************************
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.listeners.site.unsubscribe()
+    this.listener.unsubscribe()
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
+    /**
+     * 現場データの編集画面を開きます。
+     */
     onClickEdit() {
-      const item = JSON.parse(JSON.stringify(this.listeners.site))
-      const editMode = 'UPDATE'
-      this.$refs[`site-editor`].open({ item, editMode })
+      this.dialog = true
     },
     onSubmitComplete(event) {
       if (event.editMode === 'DELETE') {
@@ -108,7 +112,7 @@ export default {
 
     <!-- 現場概要 -->
     <v-container>
-      <g-card-site v-bind="listeners.site" outlined />
+      <g-card-site :instance="listener" outlined />
     </v-container>
 
     <v-container>
@@ -124,48 +128,33 @@ export default {
         <v-tabs-items v-model="tab">
           <v-tab-item>
             <v-row no-gutters>
-              <v-col cols="12" md="7" style="height: 612px">
-                <g-site-operation-schedule-calendar
-                  :site-id="docId"
-                  flat
-                  height="100%"
-                  @period="schedulePeriod = $event"
-                />
-              </v-col>
-              <v-col cols="12" md="5" style="height: 612px">
-                <v-container style="height: 100%">
-                  <g-site-operation-schedule-history
-                    height="100%"
-                    class="overflow-y-auto"
-                    :site-id="docId"
-                    :from="schedulePeriod.from"
-                    :to="schedulePeriod.to"
-                    outlined
-                  />
+              <v-col cols="12">
+                <v-container fluid>
+                  <g-site-operation-schedule-manager :instance="listener" />
                 </v-container>
               </v-col>
             </v-row>
           </v-tab-item>
           <v-tab-item>
-            <g-card-map :value="listeners.site.address" height="612" />
+            <g-card-map :value="listener.address" height="612" />
           </v-tab-item>
           <v-tab-item>
-            <g-site-contracts-timeline :site-id="docId" />
+            <!-- <g-site-contracts-timeline :site-id="docId" /> -->
           </v-tab-item>
         </v-tabs-items>
       </v-card>
     </v-container>
     <!-- editor -->
-    <g-dialog-editor
-      ref="site-editor"
-      label="現場"
-      model-id="Site"
-      @submit:complete="onSubmitComplete"
-    >
+    <g-dialog-input v-model="dialog">
       <template #default="{ attrs, on }">
-        <g-input-site v-bind="attrs" hide-customer v-on="on" />
+        <g-input-site
+          v-bind="attrs"
+          :edit-mode="UPDATE"
+          :instance="listener"
+          v-on="on"
+        />
       </template>
-    </g-dialog-editor>
+    </g-dialog-input>
   </g-template-detail>
 </template>
 

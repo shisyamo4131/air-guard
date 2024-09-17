@@ -64,10 +64,11 @@ export default {
   watch: {
     /**
      * `data.dialog` を監視します。
+     * - 開かれるときに`initialize`メソッドを実行します。
      * - 値が変更された場合、inputイベントをemitします。
      */
     dialog(newVal) {
-      if (!newVal) this.initialize()
+      if (newVal) this.initialize()
       this.$emit('input', newVal)
     },
     /**

@@ -130,7 +130,7 @@ export default {
       >
         <g-combobox
           v-bind="{ ...attrs, ...props.attrs }"
-          :style="{ maxWidth: `${multiple ? 'auto' : '156px'}` }"
+          :style="{ maxWidth: `${multiple ? '100%' : '156px'}` }"
           class="center-input"
           :dense="!multiple"
           :required="dialog ? false : required"

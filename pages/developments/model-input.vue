@@ -154,6 +154,12 @@ export default {
           table: 'GDataTableSiteContracts',
         },
         {
+          text: 'SiteOperationSchedule',
+          model: 'SiteOperationSchedule',
+          input: 'GInputSiteOperationSchedule',
+          table: 'GDataTableSiteOperationSchedules',
+        },
+        {
           text: 'User',
           model: 'User',
           input: 'GInputUser',

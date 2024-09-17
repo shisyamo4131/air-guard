@@ -1,42 +1,51 @@
 <script>
+import Site from '~/models/Site'
 /**
  * ### GSiteCard
  *
  * 現場情報を表示・編集するためのCardコンポーネントです。
  *
- * 機能詳細:
- * - propsはモデルで定義されているものを使用しています。
- *
  * @author shisyamo4131
  * @version 1.0.0
- *
  * @updates
  * - version 1.0.0 - 2024-07-12 - 初版作成
  */
-import { vueProps } from '~/models/propsDefinition/SiteContract'
 export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [vueProps],
+  props: {
+    instance: {
+      type: Object,
+      required: true,
+      validator: (v) => v instanceof Site,
+    },
+  },
 }
 </script>
 
 <template>
   <v-card v-bind="$attrs" v-on="$listeners">
     <v-card-title class="g-card__title text-truncate d-block"
-      >{{ name }}
-      <v-chip v-if="status === 'expired'" color="red" label x-small outlined>
-        {{ `${$CUSTOMER_STATUS[status]}` }}
+      >{{ instance.name }}
+      <v-chip
+        v-if="instance.status === 'expired'"
+        color="red"
+        label
+        x-small
+        outlined
+      >
+        {{ `${$SITE_STATUS[status]}` }}
       </v-chip>
     </v-card-title>
     <v-card-subtitle>
-      {{ abbr }}
+      {{ instance.abbr }}
     </v-card-subtitle>
     <v-card-text>
       <v-chip-group column>
         <v-chip color="primary" label outlined
-          ><v-icon left>mdi-domain</v-icon>{{ customer?.abbr || '' }}</v-chip
+          ><v-icon left>mdi-domain</v-icon
+          >{{ instance.customer?.abbr || '' }}</v-chip
         >
       </v-chip-group>
     </v-card-text>

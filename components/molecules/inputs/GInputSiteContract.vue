@@ -107,7 +107,7 @@ export default {
   >
     <v-form @submit.prevent>
       <g-autocomplete-site
-        v-if="!editModel.hideSite"
+        v-if="!hideSite"
         v-model="editModel.siteId"
         label="現場"
         required
@@ -117,7 +117,7 @@ export default {
         <v-col cols="12" md="6">
           <g-combobox-date
             v-model="editModel.startDate"
-            :allowed-dates="editModel.allowedDates"
+            :allowed-dates="allowedDates"
             label="開始日"
             required
             :disabled="editMode !== CREATE"
