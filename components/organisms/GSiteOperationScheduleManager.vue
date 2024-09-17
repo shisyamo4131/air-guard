@@ -134,12 +134,18 @@ export default {
       this.editModel.initialize(item)
       this.dialog = true
     },
+    /**
+     * 現場の稼働予定ドキュメントに対するリアルタイムリスナーをセットします。
+     */
     subscribeSchedules() {
-      this.items.schedules = this.listeners.schedules.subscribeDocs([
-        ['where', 'date', '>=', this.from],
-        ['where', 'date', '<=', this.to],
-      ])
+      this.items.schedules = this.instance.subscribeSchedules({
+        from: this.from,
+        to: this.to,
+      })
     },
+    /**
+     * 稼働予定の更新履歴に対するリアルタイムリスナーをセットします。
+     */
     subscribeHistories() {
       this.items.histories.splice(0)
       const path = `History/SiteOperationSchedules/${this.instance.docId}`

@@ -1,6 +1,8 @@
 import { FireModel } from 'air-firebase'
 import Customer from './Customer'
 import { classProps } from './propsDefinition/Site'
+import SiteOperationSchedule from './SiteOperationSchedule'
+import { isValidDateFormat } from '~/utils/utility'
 
 /**
  * ## Sitesドキュメントデータモデル【論理削除】
@@ -11,6 +13,10 @@ import { classProps } from './propsDefinition/Site'
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class Site extends FireModel {
+  #SiteOperationScheduleInstance = new SiteOperationSchedule()
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
   constructor(item = {}) {
     super(
       item,
@@ -194,6 +200,70 @@ export default class Site extends FireModel {
         `[Site.js fetchByCodes] Error fetching documents: ${err.message}`
       )
       throw err
+    }
+  }
+
+  /****************************************************************************
+   * 現場の稼働予定に対して、Firestoreコレクションのリアルタイムリスナーを設定します。
+   * - SiteOperationScheduleクラスを使用し、当該現場の稼働予定ドキュメントに対するリアルタイム監視を開始します。
+   * - docIdが設定されていない場合、エラーメッセージを出力して処理を中断します。
+   *
+   * @param {Object} param0 - fromとtoの日付範囲を持つオブジェクト
+   * @param {string} param0.from - 開始日 (YYYY-MM-DD形式)
+   * @param {string} param0.to - 終了日 (YYYY-MM-DD形式)
+   * @returns {Array<Object>|undefined} リアルタイムで監視しているデータ
+   ****************************************************************************/
+  subscribeSchedules({ from, to }) {
+    try {
+      // docIdが設定されているか確認
+      if (!this.docId) {
+        throw new Error(`[Site.js - subscribeSchedules]: docId is not set.`)
+      }
+
+      // from、toがYYYY-MM-DD形式の日付であることを確認
+      if (!isValidDateFormat(from) || !isValidDateFormat(to)) {
+        throw new Error(
+          `[Site.js - subscribeSchedules]: 'from' and 'to' must be valid dates in 'YYYY-MM-DD' format.`
+        )
+      }
+
+      // SiteOperationScheduleクラスを使用して、当該現場の稼働予定ドキュメントに対するリアルタイムリスナーを設定
+      return this.#SiteOperationScheduleInstance.subscribeDocs([
+        ['where', 'siteId', '==', this.docId],
+        ['where', 'date', '>=', from],
+        ['where', 'date', '<=', to],
+      ])
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err.message, { from, to })
+      return []
+    }
+  }
+
+  /****************************************************************************
+   * 現場の稼働予定ドキュメントに対するリアルタイムリスナーを解除します。
+   * - SiteOperationScheduleクラスで設定されているFirestoreのリアルタイムリスナーを解除します。
+   ****************************************************************************/
+  unsubscribeSchedules() {
+    try {
+      if (this.#SiteOperationScheduleInstance) {
+        this.#SiteOperationScheduleInstance.unsubscribe()
+        // eslint-disable-next-line no-console
+        console.info(
+          `[Site.js - unsubscribeSchedules]: Listener successfully unsubscribed.`
+        )
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[Site.js - unsubscribeSchedules]: No active listener found.`
+        )
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[Site.js - unsubscribeSchedules]: Error during listener unsubscribe: ${err.message}`,
+        { err }
+      )
     }
   }
 }
