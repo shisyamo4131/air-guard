@@ -9,44 +9,52 @@ const {
   isDocumentChanged,
   syncDependentDocuments,
 } = require('../modules/utils')
-// const firestore = getFirestore()
+
 const database = getDatabase()
 
-// const BATCH_LIMIT = 500
+// siteドキュメントの同期対象コレクション
+// `site`プロパティを持たないドキュメントの削除処理は個別に行う。
+const collectionsToSyncAndRemove = ['SiteContracts', 'OperationResults']
 
 /**
  * Siteドキュメントの更新トリガーです。
  * - ドキュメントの内容に変更があった場合に、従属するドキュメントのsiteプロパティを同期します。
  *
- * #### 注意事項
- * - ドキュメントの内容に変更があったかどうかは`isDocumentChanged()を利用します。
- * - ドキュメントの同期にはsyncDependentDocuments()を利用します。
- *
- * @author shisyamo4131
  * @version 1.0.0
- *
  * @updates
  * - version 1.0.0 - 2024-08-07 - 初版作成
  */
 exports.onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
   if (!isDocumentChanged(event)) return
+
   info('Siteドキュメントが更新されました。')
-  // OperationResultsと同期
-  await syncDependentDocuments(
-    `Sites/${event.params.docId}/OperationResults`,
-    'siteId',
-    'site',
-    event.data.after.data()
-  )
+
+  const updatedSiteData = event.data.after.data()
+
+  try {
+    // ループ処理でsyncDependentDocumentsを呼び出す
+    for (const collection of collectionsToSyncAndRemove) {
+      await syncDependentDocuments(
+        collection,
+        'siteId',
+        'site',
+        updatedSiteData
+      )
+    }
+
+    info('従属するすべてのドキュメントの同期が完了しました。')
+  } catch (err) {
+    // eslint-disable-next-line no-console
+    error('Siteドキュメントの同期中にエラーが発生しました。', err)
+  }
 })
 
 /**
  * Siteドキュメントの削除トリガーです。
  * - AirGuardとの同期設定を解除します。
+ * - 従属するドキュメントを削除します。
  *
- * @author shisyamo4131
  * @version 1.2.0
- *
  * @updates
  * - version 1.2.0 - 2024-08-07 - OperationResultsの削除処理を追加。
  * - version 1.1.0 - 2024-07-12 - SiteOperationSchedulesの削除処理を追加。
@@ -54,27 +62,32 @@ exports.onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
  * - version 1.0.0 - 2024-07-11 - 初版作成
  */
 exports.onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
-  info(`Siteドキュメントが削除されました。`)
   const docId = event.params.docId
+  info(`Siteドキュメントが削除されました。docId: ${docId}`)
+
   try {
     // 同期設定済みの取引先ドキュメントであれば同期を解除する
-    if (event.data.data().sync) {
-      const code = event.data.data().code
+    const siteData = event.data.data()
+    if (siteData.sync) {
+      const code = siteData.code
       await database.ref(`AirGuard/Sites/${code}`).update({ docId: null })
-      info(`AirGuardとの同期設定を解除しました。。`)
+      info(`AirGuardとの同期設定を解除しました。code: ${code}`)
     }
   } catch (err) {
-    error(`Siteドキュメントの同期設定解除処理でエラーが発生しました。`, err)
+    // eslint-disable-next-line no-console
+    error(`AirGuardとの同期設定解除処理でエラーが発生しました。`, err)
   }
+
   try {
-    // 従属するドキュメントを削除
-    await removeDependentDocuments(`Sites/${docId}`, [
+    // 削除対象に`SiteOperationSchedules`を追加
+    const allCollectionsToRemove = [
+      ...collectionsToSyncAndRemove,
       'SiteOperationSchedules',
-      'SiteContracts',
-      'OperationResults',
-    ])
+    ]
+    await removeDependentDocuments(allCollectionsToRemove, 'siteId', docId)
     info('従属するドキュメントを削除しました。')
   } catch (err) {
-    error(`Siteドキュメントの同期設定解除処理でエラーが発生しました。`, err)
+    // eslint-disable-next-line no-console
+    error(`従属するドキュメントの削除処理でエラーが発生しました。`, err)
   }
 })
