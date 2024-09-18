@@ -10,9 +10,10 @@ import { getClosingDate, isValidDateFormat } from '~/utils/utility'
  *
  * 稼働実績のデータモデルです。
  *
- * @version 2.0.0
+ * @version 2.1.0
  * @author shisyamo4131
  * @updates
+ * - version 2.2.0 - 2024-09-18 - `operationCount`プロパティを追加。
  * - version 2.1.0 - 2024-09-07 - refreshClosingDate()を実装
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
@@ -29,6 +30,14 @@ export default class OperationResult extends FireModel {
         get() {
           if (!this.date) return ''
           return this.date.slice(0, 7)
+        },
+        set(v) {},
+      },
+      operationCount: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.workers.length
         },
         set(v) {},
       },
