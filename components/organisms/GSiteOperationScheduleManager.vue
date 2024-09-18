@@ -66,7 +66,6 @@ export default {
         histories: [],
       },
       listeners: {
-        schedules: new SiteOperationSchedule(),
         histories: null,
       },
     }
@@ -119,7 +118,7 @@ export default {
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.listeners.schedules.unsubscribe()
+    this.instance.unsubscribeSchedules()
     if (this.listeners.histories) this.listeners.histories()
   },
   /***************************************************************************
@@ -175,7 +174,7 @@ export default {
             @click:next="$refs.calendar.next()"
           />
           <v-spacer />
-          <g-dialog-input v-model="dialog" max-width="600">
+          <g-dialog-input v-model="dialog" max-width="480">
             <template #activator="{ attrs, on }">
               <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
             </template>

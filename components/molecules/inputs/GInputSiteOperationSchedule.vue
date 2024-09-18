@@ -154,6 +154,7 @@ export default {
       v-if="editMode !== CREATE"
       v-model="forceDelete"
       label="このデータを削除する"
+      hide-details
     />
   </g-card-input-form>
 </template>

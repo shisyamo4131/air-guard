@@ -1,6 +1,7 @@
 import { FireModel } from 'air-firebase'
 import Customer from './Customer'
 import { classProps } from './propsDefinition/Site'
+import SiteContract from './SiteContract'
 import SiteOperationSchedule from './SiteOperationSchedule'
 import { isValidDateFormat } from '~/utils/utility'
 
@@ -13,6 +14,7 @@ import { isValidDateFormat } from '~/utils/utility'
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class Site extends FireModel {
+  #SiteContractInstance = new SiteContract()
   #SiteOperationScheduleInstance = new SiteOperationSchedule()
   /****************************************************************************
    * CONSTRUCTOR
@@ -200,6 +202,58 @@ export default class Site extends FireModel {
         `[Site.js fetchByCodes] Error fetching documents: ${err.message}`
       )
       throw err
+    }
+  }
+
+  /****************************************************************************
+   * 現場の取極めに対して、Firestoreコレクションのリアルタイムリスナーを設定します。
+   * - SiteContractクラスを使用し、当該現場の取極めドキュメントに対するリアルタイム監視を開始します。
+   * - docIdが設定されていない場合、エラーメッセージを出力して処理を中断します。
+   *
+   * @returns {Array<Object>|undefined} リアルタイムで監視しているデータ
+   ****************************************************************************/
+  subscribeContracts() {
+    try {
+      // docIdが設定されているか確認
+      if (!this.docId) {
+        throw new Error(`[Site.js - subscribeContracts]: docId is not set.`)
+      }
+
+      // SiteContractクラスを使用して、当該現場の取極めドキュメントに対するリアルタイムリスナーを設定
+      return this.#SiteContractInstance.subscribeDocs([
+        ['where', 'siteId', '==', this.docId],
+      ])
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err.message)
+      return []
+    }
+  }
+
+  /****************************************************************************
+   * 現場の取極めドキュメントに対するリアルタイムリスナーを解除します。
+   * - SiteContractクラスで設定されているFirestoreのリアルタイムリスナーを解除します。
+   ****************************************************************************/
+  unsubscribeContracts() {
+    try {
+      if (this.#SiteContractInstance) {
+        this.#SiteContractInstance.unsubscribe()
+        // eslint-disable-next-line no-console
+        console.info(
+          `[Site.js - unsubscribeContracts]: Listener successfully unsubscribed.`
+        )
+      } else {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[Site.js - unsubscribeContracts]: No active listener found.`
+        )
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[Site.js - unsubscribeContracts]: Error during listener unsubscribe: ${err.message}`,
+        { err }
+      )
     }
   }
 

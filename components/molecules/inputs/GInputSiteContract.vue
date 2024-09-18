@@ -17,6 +17,7 @@ import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -29,6 +30,7 @@ export default {
     GSwitch,
     GAutocompleteSite,
     GCardInputForm,
+    GCheckbox,
   },
   /***************************************************************************
    * MIXINS
@@ -79,7 +81,7 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
-    initialize() {
+    afterInitialize() {
       this.tab = null
     },
     updateUnitPrices(val, path) {
@@ -230,6 +232,11 @@ export default {
       </v-row>
       <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
+    <g-checkbox
+      v-if="editMode !== CREATE"
+      v-model="forceDelete"
+      label="このデータを削除する"
+    />
   </g-card-input-form>
 </template>
 

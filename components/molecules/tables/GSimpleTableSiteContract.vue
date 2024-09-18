@@ -2,20 +2,27 @@
 /**
  * ### GSimpleTableSiteContract
  *
- * 現場の取極め情報のうち、単価情報を表示するTableコンポーネントです。
+ * 単一の現場取極め情報を表示するSimpleTableコンポーネントです。
  *
- * @updates
- * - version 1.0.0 - 2024-07-12 - 初版作成
+ * - `SiteContract`インスタンスを受け取り、SimpleTableコンポーネントで情報を表示します。
  *
  * @author shisyamo4131
  * @version 1.0.0
+ * @updates
+ * - version 1.0.0 - 2024-09-18 - 初版作成
  */
-import { vueProps } from '~/models/propsDefinition/SiteContract'
+import SiteContract from '~/models/SiteContract'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
+    /**
+     * 単価情報を表示するためのインラインコンポーネント
+     * - `props.value`で単価（数値）を受け取ります。
+     * - 受け取った値を桁区切りにし、divで出力します。
+     * - `props.asOvertime`が true の場合、値が括弧で括られます。
+     */
     UnitPrice: {
       props: {
         asOvertime: { type: Boolean, default: false, required: false },
@@ -39,13 +46,11 @@ export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [vueProps],
   props: {
-    workShift: {
-      type: String,
-      default: 'day',
-      validator: (v) => ['day', 'night'].includes(v),
-      required: false,
+    instance: {
+      type: Object,
+      required: true,
+      validator: (instance) => instance instanceof SiteContract,
     },
   },
   /***************************************************************************
@@ -53,7 +58,10 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      divs: [
+      /**
+       * 曜日区分ごとの出力をループさせるための変数です。
+       */
+      dayDivs: [
         { value: 'weekdays', text: '平日' },
         { value: 'saturday', text: '土曜' },
         { value: 'sunday', text: '日曜' },
@@ -74,21 +82,28 @@ export default {
       </tr>
     </thead>
     <tbody>
-      <tr v-for="(div, index) of divs" :key="`div-${index}`">
-        <td style="text-align: center">{{ div.text }}</td>
+      <tr v-for="(dayDiv, index) of dayDivs" :key="`dayDiv-${index}`">
+        <!-- 曜日区分 -->
+        <td style="text-align: center">{{ dayDiv.text }}</td>
+        <!-- 通常単価 -->
         <td style="text-align: center">
-          <unit-price :value="unitPrices[div.value].standard.price" />
+          <unit-price
+            :value="instance.unitPrices[dayDiv.value].standard.price"
+          />
           <unit-price
             class="grey--text text--darken-1"
-            :value="unitPrices[div.value].standard.overtime"
+            :value="instance.unitPrices[dayDiv.value].standard.overtime"
             as-overtime
           />
         </td>
+        <!-- 資格者単価 -->
         <td style="text-align: center">
-          <unit-price :value="unitPrices[div.value].qualified.price" />
+          <unit-price
+            :value="instance.unitPrices[dayDiv.value].qualified.price"
+          />
           <unit-price
             class="grey--text text--darken-1"
-            :value="unitPrices[div.value].qualified.overtime"
+            :value="instance.unitPrices[dayDiv.value].qualified.overtime"
             as-overtime
           />
         </td>

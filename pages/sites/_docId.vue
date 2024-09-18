@@ -16,6 +16,7 @@ import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
 import Site from '~/models/Site'
 import GSiteOperationScheduleManager from '~/components/organisms/GSiteOperationScheduleManager.vue'
+import GSiteContractsManager from '~/components/organisms/GSiteContractsManager.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -31,6 +32,7 @@ export default {
     GInputSite,
     GDialogInput,
     GSiteOperationScheduleManager,
+    GSiteContractsManager,
   },
   /***************************************************************************
    * MIXINS
@@ -139,7 +141,9 @@ export default {
             <g-card-map :value="listener.address" height="612" />
           </v-tab-item>
           <v-tab-item>
-            <!-- <g-site-contracts-timeline :site-id="docId" /> -->
+            <v-container fluid>
+              <g-site-contracts-manager :instance="listener" />
+            </v-container>
           </v-tab-item>
         </v-tabs-items>
       </v-card>

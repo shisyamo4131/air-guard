@@ -16,7 +16,8 @@
  * - `data.editModel` を特定のクラスのインスタンスとしてオーバーライドし、クラスに依存した実装を明確にします。
  *
  * 使用例：
- * ‐ `GInput`コンポーネントでMixinsとして読み込み、`data.close`を必要なUIコンポーネントに紐づけます。
+ * ‐ GInputSubmitMixinで読み込まれるため、このミックスインを単体で読み込む必要はありません。
+ * - GInputコンポーネント特有の初期化処理が必要な場合はafterInitializeメソッドをオーバーライドします。
  *
  * @example
  * import SpecifiedClass from '~/models/SpecifiedClass'
@@ -43,9 +44,10 @@
  * @version 1.0.2
  * @creator shisyamo4131
  * @updates
- * - version 1.0.0 - 初版作成
- * - version 1.0.1 - 特定のクラスに依存する場合のオーバーライド方法に関するコメントを追加
+ * - version 1.0.3 - afterInitializeメソッドを実装。
  * - version 1.0.2 - `props.value`を`props.instance`に変更
+ * - version 1.0.1 - 特定のクラスに依存する場合のオーバーライド方法に関するコメントを追加
+ * - version 1.0.0 - 初版作成
  */
 
 export default {
@@ -110,6 +112,12 @@ export default {
         )
         this.editModel.initialize(this.instance)
       }
+      this.afterInitialize()
     },
+    /**
+     * initializeメソッドの最後に実行されるメソッドです。
+     * - GInputコンポーネント特有の初期化処理が必要な場合に、このメソッドをオーバーライドします。
+     */
+    afterInitialize() {},
   },
 }

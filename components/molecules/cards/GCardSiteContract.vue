@@ -2,31 +2,24 @@
 /**
  * ### GCardSiteContract
  *
- * 現場の取引目情報を表示・編集するためのCardコンポーネントです。
+ * 単一の現場取極め情報を表示するためのCardコンポーネントです。
  *
- * #### 機能詳細:
- * - SiteContractモデルをv-bindで引き渡してください。
- * - 編集ボタンがクリックされると`click:edit`イベントをemitします。
- * - 取極の開始日は表示を切り替えることが可能です。（Timelineコンポーネントのopposit対応）
+ * - 情報の詳細表示には`GSimpleTableSiteContract`を使用しています。
+ * - `props.instance`で`SiteContract`インスタンスを受け取ります。
+ * - 編集ボタンがクリックされると、click:editイベントをemitします。
  *
  * #### 注事事項:
  * - ドキュメントボタンが用意されていますが、使用不可です。
  * - PDFをアップロードできるようにする予定です。
  *
- * @updates
- * - version 1.1.0 - 2024-07-13 - `props.docId`が空の場合、登録がないことを表示。
- *                              - `props.docId`が空の場合、編集ボタンを使用不可に。
- *                              - 登録ボタンを追加し、`click:regist`イベントをemitするように。
- * - version 1.0.0 - 2024-07-12 - 初版作成
- *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.0.0
+ * @updates
+ * - version 1.0.0 - 2024-09-08 - 初版作成
  */
 import GSimpleTableSiteContract from '../tables/GSimpleTableSiteContract.vue'
-import { vueProps } from '~/models/propsDefinition/SiteContract'
 import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
-import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
-// import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
+import SiteContract from '~/models/SiteContract'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -34,32 +27,41 @@ export default {
   components: {
     GSimpleTableSiteContract,
     GBtnEditIcon,
-    GBtnRegistIcon,
-    // GBtnEditIcon,
   },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [vueProps],
+  props: {
+    instance: {
+      type: Object,
+      required: true,
+      validator: (instance) => instance instanceof SiteContract,
+    },
+  },
 }
 </script>
 
 <template>
   <v-card v-bind="$attrs" v-on="$listeners">
-    <v-subheader class="text-subtitle-2 black--text">
-      <span v-if="docId">
-        {{ $dayjs(startDate).format('YYYY年MM月DD日～') }}
-      </span>
-      <span v-else> 登録がありません。 </span>
-    </v-subheader>
-    <g-simple-table-site-contract v-bind="$props" work-shift="day" />
+    <div
+      class="d-flex pa-4 text-subtitle-2 black--text flex-wrap"
+      style="gap: 12px"
+    >
+      <div>
+        {{ `開始日: ${$dayjs(instance.startDate).format('YYYY年MM月DD日～')}` }}
+      </div>
+      <div>{{ `開始時刻: ${instance.startTime}` }}</div>
+      <div>{{ `終了時刻: ${instance.endTime}` }}</div>
+    </div>
+    <g-simple-table-site-contract :instance="instance" />
+    <v-card-text v-if="instance.remarks">
+      {{ instance.remarks }}
+    </v-card-text>
     <v-divider />
     <v-card-actions class="justify-end">
-      <g-btn-regist-icon color="primary" @click="$emit('click:regist')" />
       <g-btn-edit-icon
         color="primary"
-        :disabled="!docId"
-        @click="$emit('click:edit')"
+        @click="$emit('click:edit', instance.clone())"
       />
       <v-btn icon disabled><v-icon>mdi-file-document</v-icon></v-btn>
     </v-card-actions>

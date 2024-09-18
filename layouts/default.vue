@@ -70,9 +70,9 @@ export default {
       const topLevelPath = this.$route.path.split('/').slice(0, 2).join('/')
       switch (topLevelPath) {
         case '/customers':
-          return ['CustomersIndex', 'CustomerDetail']
+          return ['CustomersIndex']
         case '/sites':
-          return ['SitesIndex', 'SiteDetail', 'SitesExpiredIndex']
+          return ['SitesIndex']
         // case '/employees':
         //   return ['EmployeesIndex', 'EmployeeDetail']
         default:

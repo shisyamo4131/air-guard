@@ -20,8 +20,9 @@
  * このコンポーネントは`props.value`を使用することでその開閉を制御可能です。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.0.1
  * @updates
+ * - version 1.0.1 - 2024-09-17 - initializeメソッドの実行について、dialogの変更内容にかかわらず実行するように修正。
  * - version 1.0.0 - 2024-09-06 - 初版作成
  */
 export default {
@@ -64,11 +65,11 @@ export default {
   watch: {
     /**
      * `data.dialog` を監視します。
-     * - 開かれるときに`initialize`メソッドを実行します。
-     * - 値が変更された場合、inputイベントをemitします。
+     * - `initialize`メソッドを実行します。
+     * - inputイベントをemitします。
      */
     dialog(newVal) {
-      if (newVal) this.initialize()
+      this.initialize()
       this.$emit('input', newVal)
     },
     /**
@@ -185,6 +186,7 @@ export default {
     v-bind="$attrs"
     v-model="dialog"
     :max-width="maxWidth"
+    eager
     persistent
     scrollable
   >
