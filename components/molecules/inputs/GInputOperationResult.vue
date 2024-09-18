@@ -227,6 +227,7 @@ export default {
                 <template #activator="{ attrs, on }">
                   <v-btn
                     v-bind="attrs"
+                    class="mb-2"
                     :disabled="!isValidDate"
                     small
                     color="primary"
@@ -252,11 +253,13 @@ export default {
                   </v-card-actions>
                 </v-card>
               </v-dialog>
-              <g-input-operation-result-workers
-                :value="editModel.workers"
-                @changeWorker="changeWorker($event)"
-                @removeWorker="removeWorker($event)"
-              />
+              <v-card outlined>
+                <g-input-operation-result-workers
+                  :value="editModel.workers"
+                  @changeWorker="changeWorker($event)"
+                  @removeWorker="removeWorker($event)"
+                />
+              </v-card>
             </div>
           </v-input>
         </v-col>
