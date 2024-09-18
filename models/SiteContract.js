@@ -1,6 +1,7 @@
 import { FireModel } from 'air-firebase'
 import Site from './Site'
 import { classProps } from './propsDefinition/SiteContract'
+import { isValidDateFormat } from '~/utils/utility'
 
 /**
  * ## SiteContractsドキュメントデータモデル【物理削除】
@@ -197,6 +198,66 @@ export default class SiteContract extends FireModel {
       )
 
       // エラーを再スローして呼び出し元に通知
+      throw err
+    }
+  }
+
+  /****************************************************************************
+   * 指定されたsiteId、日付、勤務区分に基づいて契約情報を取得します。
+   * - 指定された条件で最も新しい契約情報を1件取得します。
+   *
+   * @param {Object} params - siteId、date、workShiftを含むオブジェクト
+   * @param {string} params.siteId - 契約情報を取得する現場のID
+   * @param {string} params.date - 検索する日付（YYYY-MM-DD形式）
+   * @param {string} params.workShift - 勤務区分 ('day' または 'night')
+   * @returns {Object|null} - 該当する契約情報があればそれを返し、存在しない場合はnullを返す
+   * @throws {Error} - siteId、日付、または勤務区分が不正な場合にエラーをスローします
+   ****************************************************************************/
+  static async getContract({ siteId, date, workShift }) {
+    // siteIdが指定されているかを確認
+    if (!siteId) {
+      throw new Error('[getContract] siteId is required.')
+    }
+
+    // 日付が正しいフォーマットかを確認
+    if (!isValidDateFormat(date)) {
+      throw new Error('[getContract] date must be in YYYY-MM-DD format.')
+    }
+
+    // 勤務区分が適切に指定されているかを確認
+    if (!workShift || (workShift !== 'day' && workShift !== 'night')) {
+      throw new Error('[getContract] workShift must be "day" or "night".')
+    }
+
+    try {
+      // インスタンスの初期化
+      const instance = new this()
+
+      // 指定された条件に基づいて契約情報を取得
+      const contracts = await instance.fetchDocs([
+        ['where', 'siteId', '==', siteId],
+        ['where', 'startDate', '<=', date],
+        ['where', 'workShift', '==', workShift],
+        ['orderBy', 'startDate', 'desc'],
+        ['limit', 1],
+      ])
+
+      // 契約情報が存在しない場合は警告を出力し、nullを返す
+      if (!contracts.length) {
+        // eslint-disable-next-line no-console
+        console.warn(
+          `[getContract] No contract found for siteId: ${siteId}, date: ${date}, workShift: ${workShift}.`
+        )
+        return null
+      }
+
+      // 最も新しい契約情報を返す
+      return contracts[0]
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[getContract] An error occurred while fetching contracts: ${err.message}`
+      )
       throw err
     }
   }
