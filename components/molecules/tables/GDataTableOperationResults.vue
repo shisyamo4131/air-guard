@@ -5,6 +5,9 @@ import GDataTable from '../../atoms/tables/GDataTable.vue'
  * OperationResult用DataTableコンポーネント
  *
  * @author shisyamo4131
+ * @version 1.0.1
+ * @updates
+ * - version 1.0.1 - 2024-09-18 - 稼働数が表示されるように修正。
  */
 export default {
   /***************************************************************************
@@ -38,7 +41,12 @@ export default {
           sortable: false,
         },
         { text: '現場', value: 'site.abbr', sortable: false },
-        { text: '稼働数', value: 'workers', align: 'right', sortable: false },
+        {
+          text: '稼働数',
+          value: 'operationCount',
+          align: 'right',
+          sortable: false,
+        },
         { text: '売上', value: 'sales', align: 'right', sortable: false },
       ]
     },
@@ -66,6 +74,9 @@ export default {
       <div class="text-caption grey--text text--darken-1">
         {{ item.site.customer.abbr }}
       </div>
+    </template>
+    <template #[`item.operationCount`]="{ item }">
+      {{ `${(item.operationCount || 0).toLocaleString()} 稼働` }}
     </template>
     <template #[`item.sales`]="{ item }">
       {{ `${(item.sales || 0).toLocaleString()} 円` }}
