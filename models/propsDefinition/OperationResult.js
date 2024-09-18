@@ -5,6 +5,7 @@
  * - 2024-09-18 - `siteId`をコメントアウト。
  *                アプリ側から`site`オブジェクトをセットする仕様に変更し、
  *                `siteId`はObjectDefinePropertyで定義。
+ *              ‐ `unitPrices`を追加。
  */
 import { generateVueProps, generateClassProps } from './propsUtil'
 
@@ -47,6 +48,17 @@ const propsDefinition = {
   remarks: {
     type: String,
     default: '',
+    required: false,
+    requiredByClass: false,
+  },
+  unitPrices: {
+    type: Object,
+    default: () => {
+      return {
+        standard: { price: 0, overtime: 0 },
+        qualified: { price: 0, overtime: 0 },
+      }
+    },
     required: false,
     requiredByClass: false,
   },
