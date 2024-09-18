@@ -14,6 +14,7 @@
  * - version 1.1.0 - 2024-07-25 - `status === 'active'`のもののみを抽出するように修正。
  * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
+import { firestore } from 'air-firebase'
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import Customer from '~/models/Customer'
 
@@ -69,7 +70,7 @@ export const mutations = {
 export const actions = {
   subscribe({ commit }) {
     const Model = new Customer()
-    const colRef = collection(this.$firestore, 'Customers')
+    const colRef = collection(firestore, 'Customers')
     const q = query(colRef, where('status', '==', 'active')).withConverter(
       Model.converter()
     )

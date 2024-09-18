@@ -11,6 +11,7 @@
  * @updates
  * - version 1.0.0 - 2024-09-06 - 初版作成
  */
+import { firestore } from 'air-firebase'
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import Outsourcer from '~/models/Outsourcer'
 
@@ -66,7 +67,7 @@ export const mutations = {
 export const actions = {
   subscribe({ commit }) {
     const Model = new Outsourcer()
-    const colRef = collection(this.$firestore, 'Outsourcers')
+    const colRef = collection(firestore, 'Outsourcers')
     const q = query(colRef, where('status', '==', 'active')).withConverter(
       Model.converter()
     )

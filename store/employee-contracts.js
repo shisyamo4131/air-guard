@@ -17,6 +17,7 @@
  * @updates
  * - version 1.0.0 - 2024-07-xx - 初版作成
  */
+import { firestore } from 'air-firebase'
 import dayjs from 'dayjs'
 import {
   and,
@@ -169,7 +170,7 @@ export const mutations = {
 export const actions = {
   subscribe({ commit }) {
     const today = dayjs().format('YYYY-MM-DD')
-    const colRef = collectionGroup(this.$firestore, 'EmployeeContracts')
+    const colRef = collectionGroup(firestore, 'EmployeeContracts')
     /**
      * 契約開始日が現在日付以前で、かつ契約満了日が有効な値で現在日付以降または未設定である雇用契約ドキュメントへのリスナーをセットします。
      */

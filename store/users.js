@@ -11,6 +11,7 @@
  * @updates
  * - version 1.0.0 - 2024-07-30 - 初版作成
  */
+import { firestore } from 'air-firebase'
 import { collection, onSnapshot } from 'firebase/firestore'
 
 /******************************************************************
@@ -65,7 +66,7 @@ export const mutations = {
  ******************************************************************/
 export const actions = {
   subscribe({ commit }) {
-    const colRef = collection(this.$firestore, 'Users')
+    const colRef = collection(firestore, 'Users')
     const listener = onSnapshot(colRef, (snapshot) => {
       snapshot.docChanges().forEach((change) => {
         if (change.type === 'added') commit('setItem', change.doc.data())

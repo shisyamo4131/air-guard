@@ -17,6 +17,7 @@
  *                              - `getters.all`を実装。
  * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
+import { firestore } from 'air-firebase'
 import {
   collection,
   getDocs,
@@ -99,7 +100,7 @@ export const mutations = {
 export const actions = {
   subscribe({ commit }) {
     const Model = new Employee()
-    const colRef = collection(this.$firestore, 'Employees')
+    const colRef = collection(firestore, 'Employees')
     const q = query(colRef, where('status', '==', 'active')).withConverter(
       Model.converter()
     )
@@ -123,7 +124,7 @@ export const actions = {
    */
   async loadTemporary({ commit, state }, { docIds }) {
     const loaded = state.items.concat(state.temporary)
-    const colRef = collection(this.$firestore, 'Employees')
+    const colRef = collection(firestore, 'Employees')
     const uniqueIds = [...new Set(docIds)]
     const missingIds = uniqueIds.filter((id) => {
       return !loaded.some(({ docId }) => docId === id)

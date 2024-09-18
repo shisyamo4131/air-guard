@@ -1,4 +1,4 @@
-import { auth } from 'air-firebase'
+import { auth, firestore } from 'air-firebase'
 import { signInWithEmailAndPassword, signOut } from 'firebase/auth'
 import { doc, onSnapshot } from 'firebase/firestore'
 
@@ -58,7 +58,7 @@ export const actions = {
       isEmailVerified: user.emailVerified,
       roles: idTokenResult.claims.roles || [],
     })
-    const docRef = doc(this.$firestore, `Users/${user.uid}`)
+    const docRef = doc(firestore, `Users/${user.uid}`)
     const listener = onSnapshot(docRef, (doc) => {
       context.commit('setData', doc.data())
     })
