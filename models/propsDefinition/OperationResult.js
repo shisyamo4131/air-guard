@@ -1,14 +1,16 @@
+/**
+ * ## OperationResults ドキュメントプロパティ定義
+ *
+ * @updates
+ * - 2024-09-18 - `siteId`をコメントアウト。
+ *                アプリ側から`site`オブジェクトをセットする仕様に変更し、
+ *                `siteId`はObjectDefinePropertyで定義。
+ */
 import { generateVueProps, generateClassProps } from './propsUtil'
 
 const propsDefinition = {
   docId: { type: String, default: '', required: false, requiredByClass: false },
   code: { type: String, default: '', required: false, requiredByClass: false },
-  siteId: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: true,
-  },
   site: {
     type: Object,
     default: null,

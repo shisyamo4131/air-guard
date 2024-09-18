@@ -10,10 +10,13 @@ import { getClosingDate, isValidDateFormat } from '~/utils/utility'
  *
  * 稼働実績のデータモデルです。
  *
- * @version 2.1.0
+ * @version 2.2.0
  * @author shisyamo4131
  * @updates
  * - version 2.2.0 - 2024-09-18 - `operationCount`プロパティを追加。
+ *                              - アプリ側から`site`オブジェクトがセットされる仕様に変更し、
+ *                                `siteId`をObjectDefinePropertyによる`site`プロパティから取得するように修正。
+ *                                結果、Firestoreのread件数を抑制。
  * - version 2.1.0 - 2024-09-07 - refreshClosingDate()を実装
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
@@ -38,6 +41,14 @@ export default class OperationResult extends FireModel {
         enumerable: true,
         get() {
           return this.workers.length
+        },
+        set(v) {},
+      },
+      siteId: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.site?.docId || ''
         },
         set(v) {},
       },
@@ -182,51 +193,12 @@ export default class OperationResult extends FireModel {
         }
       })
     } catch (err) {
-      // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
       // eslint-disable-next-line no-console
       console.error(`[delete] An error has occurred: ${err.message}`, { err })
 
       // 発生したエラーを再スローして、呼び出し元に通知
       throw err
     }
-  }
-
-  /****************************************************************************
-   * FireModelのbeforeCreateをオーバーライドします。
-   * - `siteId`、`date`、`dayDiv`、`workShift`の入力を確認します。
-   * - `site`を取得・セットします。
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
-   ****************************************************************************/
-  async beforeCreate() {
-    if (!this.siteId || !this.date || !this.dayDiv || !this.workShift) {
-      throw new Error('現場、日付、曜日区分、勤務区分の指定が必要です。')
-    }
-    const site = await new Site().fetchDoc(this.siteId)
-    if (!site) {
-      throw new Error('現場情報が取得できませんでした。')
-    }
-    this.site = site
-    await super.beforeCreate()
-  }
-
-  /****************************************************************************
-   * FireModelのbeforeUpdateをオーバーライドします。
-   * - `siteId`、`date`、`dayDiv`、`workShift`の入力を確認します。
-   * - `site`を取得・セットします。
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
-   ****************************************************************************/
-  async beforeUpdate() {
-    if (!this.siteId || !this.date || !this.dayDiv || !this.workShift) {
-      throw new Error('現場、日付、曜日区分、勤務区分の指定が必要です。')
-    }
-    if (this.siteId !== this.site.docId) {
-      const site = await new Site().fetchDoc(this.siteId)
-      if (!site) {
-        throw new Error('現場情報が取得できませんでした。')
-      }
-      this.site = site
-    }
-    await super.beforeUpdate()
   }
 
   /****************************************************************************
@@ -367,37 +339,41 @@ export default class OperationResult extends FireModel {
     }
   }
 
-  /**
-   * 締日を更新する非同期メソッド
+  /****************************************************************************
+   * `date`と`site`に応じて締日を計算して更新します。
+   * - siteが設定されていない、または`date`が無効な場合は処理を中断します。
    * @returns {void}
-   */
-  async refreshClosingDate() {
-    // siteIdが設定されているか確認
-    if (!this.siteId) {
+   * @updates
+   * - 2024-09-18 - `site`プロパティがアプリからセットされる仕様変更に伴って修正。
+   ****************************************************************************/
+  refreshClosingDate() {
+    // siteが設定されているか確認
+    if (!this.site) {
       // eslint-disable-next-line no-console
-      console.warn('siteId is required to refresh closing date.')
-      return // siteIdがない場合は処理を終了
+      console.warn(
+        '[refreshClosingDate]: site is required to refresh the closing date.'
+      )
+      return // siteがない場合は処理を終了
     }
 
     // 日付が正しい形式かどうかを確認
     if (!this.date || !isValidDateFormat(this.date)) {
       // eslint-disable-next-line no-console
       console.warn(
-        'A correctly formatted date is required to refresh closing date.'
+        '[refreshClosingDate]: A correctly formatted date is required to refresh the closing date.'
       )
       return // 日付が無効な場合は処理を終了
     }
 
     try {
-      // Siteインスタンスを生成し、siteIdに基づいてデータを取得
-      const site = await new Site().fetchDoc(this.siteId)
-
       // siteオブジェクトからcustomer情報を取得し、締日を取得
-      const deadline = site?.customer?.deadline
+      const deadline = this.site?.customer?.deadline
 
       if (!deadline) {
         // eslint-disable-next-line no-console
-        console.warn('No deadline information found for the site.')
+        console.warn(
+          '[refreshClosingDate]: No deadline information found for the site.'
+        )
         return // 締日情報がない場合は処理を終了
       }
 
@@ -406,15 +382,18 @@ export default class OperationResult extends FireModel {
     } catch (err) {
       // エラーハンドリング：サイトデータ取得や締日計算でエラーが発生した場合
       // eslint-disable-next-line no-console
-      console.error('Error occurred while refreshing the closing date:', err)
+      console.error(
+        '[refreshClosingDate]: Error occurred while refreshing the closing date:',
+        err
+      )
     }
   }
 
-  /**
+  /****************************************************************************
    * workers配列内のオブジェクトのdateプロパティを一括変更するメソッド
    * @param {string|null} [date=null] - 設定する日付。nullの場合はthis.dateを使用
    * @returns {void}
-   */
+   ****************************************************************************/
   refreshWorkersDate(date = null) {
     // dateが渡されなかった場合、this.dateを使用する
     const effectiveDate = date || this.date

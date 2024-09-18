@@ -3,9 +3,11 @@
  * OperationResultsドキュメント入力コンポーネント
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  * @updates
- * - version 1.0.0 - 初版作成
+ * - version 1.1.0 - 2024-09-18 - 現場選択コンポーネントに`return-object`を設定。
+ *                                `site`に現場オブジェクトをセットするように変更。
+ * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
@@ -99,20 +101,17 @@ export default {
     /**
      * 現場が変更された時の処理です。
      * - 締日を更新します。
-     * @returns {Promise<void>}
+     * @returns {void}
      */
-    async onSiteChanged() {
+    onSiteChanged() {
       this.loading = true // ローディング状態を開始
-
       try {
         // 締日をリフレッシュするメソッドを実行
-        await this.editModel.refreshClosingDate()
+        this.editModel.refreshClosingDate()
       } catch (err) {
-        // エラーハンドリング：refreshClosingDateでエラーが発生した場合
         // eslint-disable-next-line no-console
         console.error('Failed to set the closing date:', err)
       } finally {
-        // 処理が完了したらローディング状態を終了
         this.loading = false
       }
     },
@@ -121,18 +120,17 @@ export default {
      * - 曜日区分を更新します。
      * - 締日を更新します。
      * - 稼働実績明細の勤務日を更新します。
-     * @returns {Promise<void>}
+     * @returns {void}
      */
-    async onDateChanged() {
+    onDateChanged() {
       this.loading = true // ローディング状態を開始
-
       try {
         this.editModel.dayDiv = getDayType(this.editModel.date)
         // 締日をリフレッシュするメソッドを実行
-        await this.editModel.refreshClosingDate()
+        this.editModel.refreshClosingDate()
+        // workersの`date`を更新
         this.editModel.refreshWorkersDate()
       } catch (err) {
-        // エラーハンドリング：refreshClosingDateでエラーが発生した場合
         // eslint-disable-next-line no-console
         console.error('Failed to set the closing date:', err)
       } finally {
@@ -188,9 +186,10 @@ export default {
         <v-col cols="3">
           <g-text-field v-model="editModel.code" label="CODE" disabled />
           <g-autocomplete-site
-            v-model="editModel.siteId"
+            v-model="editModel.site"
             label="現場"
             required
+            return-object
             @change="onSiteChanged"
           />
           <g-dialog-date-picker
