@@ -107,6 +107,20 @@
       ]
     },
     {
+      "collectionGroup": "SiteOperationSchedules",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "siteId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "Sites",
       "queryScope": "COLLECTION",
       "fields": [
