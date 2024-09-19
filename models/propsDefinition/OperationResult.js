@@ -21,8 +21,8 @@ const propsDefinition = {
   date: { type: String, default: '', required: false, requiredByClass: true },
   dayDiv: {
     type: String,
-    default: 'weekday',
-    validator: (v) => ['weekday', 'saturday', 'sunday', 'holiday'],
+    default: 'weekdays',
+    validator: (v) => ['weekdays', 'saturday', 'sunday', 'holiday'],
     required: false,
     requiredByClass: true,
   },
@@ -51,16 +51,11 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
-  unitPrices: {
+  siteContract: {
     type: Object,
-    default: () => {
-      return {
-        standard: { price: 0, overtime: 0 },
-        qualified: { price: 0, overtime: 0 },
-      }
-    },
+    default: null,
     required: false,
-    requiredByClass: false,
+    requiredByClass: true,
   },
 }
 
