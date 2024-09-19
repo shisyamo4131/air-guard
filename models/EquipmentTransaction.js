@@ -11,6 +11,13 @@ import { classProps } from './propsDefinition/EquipmentTransaction'
  */
 export default class Equipment extends FireModel {
   /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    equipment: Equipment,
+  }
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {

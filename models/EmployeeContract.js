@@ -15,6 +15,14 @@ import WorkRegulation from './WorkRegulation'
  */
 export default class EmployeeContract extends FireModel {
   /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    employee: Employee,
+    workRegulation: WorkRegulation,
+  }
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {

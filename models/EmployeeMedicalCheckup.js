@@ -14,6 +14,13 @@ import { classProps } from './propsDefinition/EmployeeMedicalCheckup'
  */
 export default class EmployeeMedicalCheckup extends FireModel {
   /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    employee: Employee,
+  }
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {

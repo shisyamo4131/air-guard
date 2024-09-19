@@ -22,6 +22,13 @@ import { classProps } from './propsDefinition/AttendanceRecord'
  */
 export default class AttendanceRecord extends FireModel {
   /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    employee: Employee,
+  }
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {

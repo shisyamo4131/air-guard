@@ -4,6 +4,7 @@ import { classProps } from './propsDefinition/OperationResult'
 import Site from './Site'
 import OperationResultWorker from './OperationResultWorker'
 import OperationWorkResult from './OperationWorkResult'
+import SiteContract from './SiteContract'
 import { getClosingDate, isValidDateFormat } from '~/utils/utility'
 /**
  * ## OperationResults ドキュメントデータモデル【物理削除】
@@ -21,6 +22,15 @@ import { getClosingDate, isValidDateFormat } from '~/utils/utility'
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class OperationResult extends FireModel {
+  /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    site: Site,
+    siteContract: SiteContract,
+    workers: OperationResultWorker,
+  }
+
   /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
@@ -52,60 +62,16 @@ export default class OperationResult extends FireModel {
         },
         set(v) {},
       },
+      siteContractId: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.siteContract?.docId || ''
+        },
+        set(v) {},
+      },
     })
   }
-
-  // /****************************************************************************
-  //  * beforeCreateをオーバーライドします。
-  //  * - インスタンスに設定されているsiteに基づいて契約情報を取得し、単価を設定します。
-  //  * - 見つからない場合はエラーをスローします。
-  //  *
-  //  * @throws {Error} - 契約情報が見つからない場合、または契約情報に必要なプロパティがない場合にエラーをスローします。
-  //  ****************************************************************************/
-  // async beforeCreate() {
-  //   try {
-  //     // 現場の契約情報を取得
-  //     const contract = await this.site.getContract({
-  //       date: this.date,
-  //       workShift: this.workShift,
-  //     })
-
-  //     // 契約情報が見つからなかった場合はエラーをスロー
-  //     if (!contract) {
-  //       throw new Error(
-  //         `[OperationResults.beforeCreate] No contract found for siteId: ${this.site.siteId}, date: ${this.date}, workShift: ${this.workShift}.`
-  //       )
-  //     }
-
-  //     // dayDivに対応する契約情報が存在するかを確認し、エラーをスロー
-  //     if (!contract.unitPrices[this.dayDiv]) {
-  //       throw new Error(
-  //         `[OperationResults.beforeCreate] No pricing information found for dayDiv: ${this.dayDiv}.`
-  //       )
-  //     }
-
-  //     // 単価を設定
-  //     if (
-  //       contract.unitPrices[this.dayDiv].standard === undefined ||
-  //       contract.unitPrices[this.dayDiv].qualified === undefined
-  //     ) {
-  //       throw new Error(
-  //         `[OperationResults.beforeCreate] Pricing information is incomplete for dayDiv: ${this.dayDiv}.`
-  //       )
-  //     }
-  //     this.unitPrices.standard = contract.unitPrices[this.dayDiv].standard
-  //     this.unitPrices.qualified = contract.unitPrices[this.dayDiv].qualified
-
-  //     // super.beforeCreate()を呼び出し、元の処理を実行
-  //     await super.beforeCreate()
-  //   } catch (err) {
-  //     // eslint-disable-next-line no-console
-  //     console.error(
-  //       `[OperationResults.beforeCreate] An error occurred: ${err.message}`
-  //     )
-  //     throw err
-  //   }
-  // }
 
   /****************************************************************************
    * FireModelのcreateをオーバーライドします。
@@ -257,6 +223,7 @@ export default class OperationResult extends FireModel {
    * クラスインスタンスをオブジェクト形式に変換します。
    * - `site`プロパティの値をtoObject()でオブジェクトに変換します。
    * - `workers`内の`worker`をtoObject()でオブジェクトに変換します。
+   * - `siteContract`プロパティの値をtoObject()でオブジェクトに変換します。
    * - スーパークラスの `toObject` と結合した値を返します。
    * @returns {Object} - クラスインスタンスを表すオブジェクト
    ****************************************************************************/
@@ -273,6 +240,10 @@ export default class OperationResult extends FireModel {
           ? this.site.toObject()
           : this.site || null,
       workers,
+      siteContract:
+        this.siteContract && typeof this.siteContract.toObject === 'function'
+          ? this.siteContract.toObject()
+          : this.siteContract || null,
     }
   }
 
@@ -280,6 +251,7 @@ export default class OperationResult extends FireModel {
    * Firestoreから取得したデータをクラスインスタンスに変換します。
    * - `site`を`Site`クラスのインスタンスに変換します。
    * - `workers`内の`worker`を`Worker`クラスのインスタンスに変換します。
+   * - `siteContract`を`SiteContract`クラスのインスタンスに変換します。
    * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
    * @returns {Object} - クラスインスタンス
    ****************************************************************************/
@@ -291,6 +263,7 @@ export default class OperationResult extends FireModel {
     instance.workers = instance.workers.map((worker) => {
       return new OperationResultWorker(worker)
     })
+    instance.siteContract = new SiteContract(instance.siteContract)
     // 変換したインスタンスを返す
     return instance
   }
