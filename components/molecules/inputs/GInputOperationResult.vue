@@ -87,7 +87,7 @@ export default {
       if (this.loading) return false
 
       // siteContractが存在しない場合はtrueを返す
-      return !this.editModel.siteContract.docId
+      return !this.editModel?.siteContract?.docId
     },
     selectableEmployees() {
       return this.$store.state.employees.items.filter((item) => {
