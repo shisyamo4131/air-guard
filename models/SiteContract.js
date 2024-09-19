@@ -203,8 +203,9 @@ export default class SiteContract extends FireModel {
   }
 
   /****************************************************************************
-   * 指定されたsiteId、日付、勤務区分に基づいて契約情報を取得し、自身を初期化します。
+   * 指定されたsiteId、日付、勤務区分に基づいて契約情報を取得して返します。
    * - 指定された条件で最も新しい契約情報を1件取得します。
+   * - 条件に該当する契約情報がない場合はnullを返します。
    *
    * @param {Object} params - siteId、date、workShiftを含むオブジェクト
    * @param {string} params.siteId - 契約情報を取得する現場のID
@@ -213,25 +214,29 @@ export default class SiteContract extends FireModel {
    * @returns {Object|null} - 該当する契約情報があればそれを返し、存在しない場合はnullを返す
    * @throws {Error} - siteId、日付、または勤務区分が不正な場合にエラーをスローします
    ****************************************************************************/
-  async loadContract({ siteId, date, workShift }) {
+  static async getContract({ siteId, date, workShift }) {
     // siteIdが指定されているかを確認
     if (!siteId) {
-      throw new Error('[getContract] siteId is required.')
+      throw new Error('[getContract] "siteId" is required.')
     }
 
     // 日付が正しいフォーマットかを確認
     if (!isValidDateFormat(date)) {
-      throw new Error('[getContract] date must be in YYYY-MM-DD format.')
+      throw new Error('[getContract] "date" must be in YYYY-MM-DD format.')
     }
 
     // 勤務区分が適切に指定されているかを確認
     if (!workShift || (workShift !== 'day' && workShift !== 'night')) {
-      throw new Error('[getContract] workShift must be "day" or "night".')
+      throw new Error(
+        '[getContract] "workShift" must be either "day" or "night".'
+      )
     }
 
     try {
+      const instance = new this()
+
       // 指定された条件に基づいて契約情報を取得
-      const contracts = await this.fetchDocs([
+      const contracts = await instance.fetchDocs([
         ['where', 'siteId', '==', siteId],
         ['where', 'startDate', '<=', date],
         ['where', 'workShift', '==', workShift],
@@ -245,16 +250,19 @@ export default class SiteContract extends FireModel {
         console.warn(
           `[getContract] No contract found for siteId: ${siteId}, date: ${date}, workShift: ${workShift}.`
         )
-        this.initialize()
-      } else {
-        this.initialize(contracts[0])
+        return null
       }
+
+      // 最も新しい契約情報を返す
+      return contracts[0]
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(
         `[getContract] An error occurred while fetching contracts: ${err.message}`
       )
-      throw err
+      throw new Error(
+        `[getContract] Failed to fetch contracts for siteId: ${siteId}, date: ${date}, workShift: ${workShift}.`
+      )
     }
   }
 }
