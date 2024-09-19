@@ -220,27 +220,6 @@ export default class OperationResult extends FireModel {
   }
 
   /****************************************************************************
-   * Firestoreから取得したデータをクラスインスタンスに変換します。
-   * - `site`を`Site`クラスのインスタンスに変換します。
-   * - `workers`内の`worker`を`Worker`クラスのインスタンスに変換します。
-   * - `siteContract`を`SiteContract`クラスのインスタンスに変換します。
-   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
-   * @returns {Object} - クラスインスタンス
-   ****************************************************************************/
-  fromFirestore(snapshot) {
-    // スーパークラスから基本のインスタンスを生成
-    const instance = super.fromFirestore(snapshot)
-    // site データを新しい Site クラスのインスタンスに変換
-    instance.site = new Site(instance.site)
-    instance.workers = instance.workers.map((worker) => {
-      return new OperationResultWorker(worker)
-    })
-    instance.siteContract = new SiteContract(instance.siteContract)
-    // 変換したインスタンスを返す
-    return instance
-  }
-
-  /****************************************************************************
    * 指定されたcodeに該当するドキュメントデータを配列で返します。
    * @param {string} code - コード
    * @returns {Promise<Array>} - ドキュメントデータの配列

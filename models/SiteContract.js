@@ -42,24 +42,6 @@ export default class SiteContract extends FireModel {
   }
 
   /****************************************************************************
-   * Firestoreから取得したデータをクラスインスタンスに変換します。
-   * - スーパークラスの `fromFirestore` メソッドを呼び出して基本のインスタンスを取得します。
-   * - 取得した `site` データを新しい `Site` クラスのインスタンスに変換します。
-   * - `site` が存在しない場合、`null` を引数として渡して `Site` のインスタンスを作成します。
-   *
-   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
-   * @returns {Object} - クラスインスタンス
-   ****************************************************************************/
-  fromFirestore(snapshot) {
-    // スーパークラスから基本のインスタンスを生成
-    const instance = super.fromFirestore(snapshot)
-    // site データを新しい Site クラスのインスタンスに変換
-    instance.site = new Site(instance.site)
-    // 変換したインスタンスを返す
-    return instance
-  }
-
-  /****************************************************************************
    * beforeCreateをオーバーライドします。
    * - 同一の現場、開始日、勤務区分での取極めが存在する場合は作成不可です。
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise

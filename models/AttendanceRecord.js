@@ -45,20 +45,6 @@ export default class AttendanceRecord extends FireModel {
   }
 
   /****************************************************************************
-   * Firestoreから取得したデータをクラスインスタンスに変換します。
-   * - スーパークラスの `fromFirestore` メソッドを呼び出して基本のインスタンスを取得します。
-   * - 取得した `employee` データを `Employee` クラスのインスタンスに変換します。
-   *
-   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
-   * @returns {Object} - クラスインスタンス
-   ****************************************************************************/
-  fromFirestore(snapshot) {
-    const instance = super.fromFirestore(snapshot)
-    instance.employee = new Employee(instance.employee)
-    return instance
-  }
-
-  /****************************************************************************
    * createメソッドを無効化します。
    * - アプリ側で AttendanceRecords ドキュメントを作成することはできません。
    * @returns {Promise<never>} - 常に拒否された Promise を返します。

@@ -28,26 +28,6 @@ export default class EmployeeMedicalCheckup extends FireModel {
   }
 
   /****************************************************************************
-   * Firestoreから取得したデータをクラスインスタンスに変換します。
-   * - スーパークラスの `fromFirestore` メソッドを呼び出して基本のインスタンスを取得します。
-   * - 取得した `employee` データを新しい `Employee` クラスのインスタンスに変換します。
-   * - `employee` が存在しない場合、`null` を引数として渡して `Employee` のインスタンスを作成します。
-   *
-   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
-   * @returns {Object} - クラスインスタンス
-   ****************************************************************************/
-  fromFirestore(snapshot) {
-    // スーパークラスから基本のインスタンスを生成
-    const instance = super.fromFirestore(snapshot)
-
-    // employee データを新しい Employee クラスのインスタンスに変換
-    instance.employee = new Employee(instance?.employee || undefined)
-
-    // 変換したインスタンスを返す
-    return instance
-  }
-
-  /****************************************************************************
    * beforeCreateをオーバーライドします。
    * - `employeeId`、`date`の入力チェックを行います。
    * - `employeeId`と`date`が同一である他のドキュメントが存在した場合はエラーをスローします。

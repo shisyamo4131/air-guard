@@ -25,26 +25,6 @@ export default class Equipment extends FireModel {
   }
 
   /****************************************************************************
-   * Firestoreから取得したデータをクラスインスタンスに変換します。
-   * - スーパークラスの `fromFirestore` メソッドを呼び出して基本のインスタンスを取得します。
-   * - 取得した `equipment` データを新しい `Equipment` クラスのインスタンスに変換します。
-   * - `equipment` が存在しない場合、`null` を引数として渡して `Equipment` のインスタンスを作成します。
-   *
-   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
-   * @returns {Object} - クラスインスタンス
-   ****************************************************************************/
-  fromFirestore(snapshot) {
-    // スーパークラスから基本のインスタンスを生成
-    const instance = super.fromFirestore(snapshot)
-
-    // equipment データを新しい Equipment クラスのインスタンスに変換
-    instance.equipment = new Equipment(instance?.equipment || undefined)
-
-    // 変換したインスタンスを返す
-    return instance
-  }
-
-  /****************************************************************************
    * beforeCreateをオーバーライドします。
    * - `equipmentId`、`date`の入力チェックを行います。
    * - `equipmentId`と`date`が同一である他のドキュメントが存在した場合はエラーをスローします。

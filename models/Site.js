@@ -70,26 +70,6 @@ export default class Site extends FireModel {
   }
 
   /****************************************************************************
-   * Firestoreから取得したデータをクラスインスタンスに変換します。
-   * - スーパークラスの `fromFirestore` メソッドを呼び出して基本のインスタンスを取得します。
-   * - 取得した `customer` データを新しい `Customer` クラスのインスタンスに変換します。
-   * - `customer` が存在しない場合、`null` を引数として渡して `Customer` のインスタンスを作成します。
-   *
-   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
-   * @returns {Object} - クラスインスタンス
-   ****************************************************************************/
-  fromFirestore(snapshot) {
-    // スーパークラスから基本のインスタンスを生成
-    const instance = super.fromFirestore(snapshot)
-
-    // customer データを新しい Customer クラスのインスタンスに変換
-    instance.customer = new Customer(instance?.customer || undefined)
-
-    // 変換したインスタンスを返す
-    return instance
-  }
-
-  /****************************************************************************
    * beforeCreateをオーバーライドします。
    * - `customerId`の入力チェックを行います。
    * - `customerId`に該当する`customer`オブジェクトを取得・セットします。
