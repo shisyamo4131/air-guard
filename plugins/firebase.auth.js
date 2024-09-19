@@ -53,7 +53,7 @@ export default (context) => {
         await context.store.dispatch('employees/unsubscribe')
         await context.store.dispatch('employee-contracts/unsubscribe')
         await context.store.dispatch('outsourcers/unsubscribe')
-        await context.store.dispatch('equipments/subsunsubscribecribe')
+        await context.store.dispatch('equipments/unsubscribecribe')
       }
       resolve()
     })
