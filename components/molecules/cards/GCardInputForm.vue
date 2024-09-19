@@ -34,6 +34,7 @@ export default {
   props: {
     label: { type: String, required: true },
     loading: { type: Boolean, default: false, required: false },
+    disableSubmit: { type: Boolean, default: false, required: false },
   },
 }
 </script>
@@ -51,7 +52,7 @@ export default {
       <g-btn-cancel-icon :disabled="loading" @click="$emit('click:cancel')" />
       <g-btn-submit-icon
         color="primary"
-        :disabled="loading"
+        :disabled="loading || disableSubmit"
         :loading="loading"
         @click="$emit('click:submit')"
       />
