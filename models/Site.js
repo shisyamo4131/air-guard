@@ -17,6 +17,13 @@ export default class Site extends FireModel {
   #SiteContractInstance = new SiteContract()
   #SiteOperationScheduleInstance = new SiteOperationSchedule()
   /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    customer: Customer,
+  }
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
@@ -59,24 +66,6 @@ export default class Site extends FireModel {
       // eslint-disable-next-line no-console
       console.error('ドキュメントの作成に失敗しました:', error)
       throw new Error('ドキュメントの作成中にエラーが発生しました。')
-    }
-  }
-
-  /****************************************************************************
-   * クラスインスタンスをオブジェクト形式に変換します。
-   * - スーパークラスの `toObject` メソッドを呼び出し、その結果に `customer` プロパティを追加します。
-   * - `customer` プロパティが存在し、かつ `toObject` メソッドを持つ場合、そのメソッドを呼び出してオブジェクトに変換します。
-   * - `customer` が存在しない場合、もしくは `toObject` メソッドを持たない場合、そのままの値か、空のオブジェクトを返します。
-   *
-   * @returns {Object} - クラスインスタンスを表すオブジェクト
-   ****************************************************************************/
-  toObject() {
-    return {
-      ...super.toObject(),
-      customer:
-        this.customer && typeof this.customer.toObject === 'function'
-          ? this.customer.toObject()
-          : this.customer || null,
     }
   }
 

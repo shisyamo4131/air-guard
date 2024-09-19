@@ -220,34 +220,6 @@ export default class OperationResult extends FireModel {
   }
 
   /****************************************************************************
-   * クラスインスタンスをオブジェクト形式に変換します。
-   * - `site`プロパティの値をtoObject()でオブジェクトに変換します。
-   * - `workers`内の`worker`をtoObject()でオブジェクトに変換します。
-   * - `siteContract`プロパティの値をtoObject()でオブジェクトに変換します。
-   * - スーパークラスの `toObject` と結合した値を返します。
-   * @returns {Object} - クラスインスタンスを表すオブジェクト
-   ****************************************************************************/
-  toObject() {
-    const workers = this.workers.map((worker) => {
-      return typeof worker.toObject === 'function'
-        ? worker.toObject()
-        : worker || null
-    })
-    return {
-      ...super.toObject(),
-      site:
-        this.site && typeof this.site.toObject === 'function'
-          ? this.site.toObject()
-          : this.site || null,
-      workers,
-      siteContract:
-        this.siteContract && typeof this.siteContract.toObject === 'function'
-          ? this.siteContract.toObject()
-          : this.siteContract || null,
-    }
-  }
-
-  /****************************************************************************
    * Firestoreから取得したデータをクラスインスタンスに変換します。
    * - `site`を`Site`クラスのインスタンスに変換します。
    * - `workers`内の`worker`を`Worker`クラスのインスタンスに変換します。

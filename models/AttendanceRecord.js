@@ -45,24 +45,6 @@ export default class AttendanceRecord extends FireModel {
   }
 
   /****************************************************************************
-   * クラスインスタンスをオブジェクト形式に変換します。
-   * - スーパークラスの `toObject` メソッドを呼び出し、その結果に `employee` プロパティを追加します。
-   * - `employee` プロパティが存在し、かつ `toObject` メソッドを持つ場合、そのメソッドを呼び出してオブジェクトに変換します。
-   * - `employee` が存在しない場合、もしくは `toObject` メソッドを持たない場合、そのままの値か、空のオブジェクトを返します。
-   *
-   * @returns {Object} - クラスインスタンスを表すオブジェクト
-   ****************************************************************************/
-  toObject() {
-    return {
-      ...super.toObject(),
-      employee:
-        this.employee && typeof this.employee.toObject === 'function'
-          ? this.employee.toObject()
-          : this.employee || null,
-    }
-  }
-
-  /****************************************************************************
    * Firestoreから取得したデータをクラスインスタンスに変換します。
    * - スーパークラスの `fromFirestore` メソッドを呼び出して基本のインスタンスを取得します。
    * - 取得した `employee` データを `Employee` クラスのインスタンスに変換します。
