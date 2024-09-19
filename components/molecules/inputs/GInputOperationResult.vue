@@ -77,6 +77,18 @@ export default {
       if (!this.editModel.date) return false
       return isValidDateFormat(this.editModel.date)
     },
+    noContract() {
+      // 必須のフィールドが設定されているかを確認
+      const { site, date, workShift } = this.editModel
+      if (!site?.docId || !date || !workShift) {
+        return false // いずれかが未設定なら契約情報がないと見なさない
+      }
+      // loading中はfalseを返す
+      if (this.loading) return false
+
+      // siteContractが存在しない場合はtrueを返す
+      return !this.editModel.siteContract.docId
+    },
     selectableEmployees() {
       return this.$store.state.employees.items.filter((item) => {
         return !this.editModel.workers.some(
@@ -101,16 +113,19 @@ export default {
     /**
      * 現場が変更された時の処理です。
      * - 締日を更新します。
+     * - 取極めを更新します。
      * @returns {void}
      */
-    onSiteChanged() {
+    async onSiteChanged() {
       this.loading = true // ローディング状態を開始
       try {
         // 締日をリフレッシュするメソッドを実行
         this.editModel.refreshClosingDate()
+        // siteContractを更新
+        await this.refreshSiteContract()
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error('Failed to set the closing date:', err)
+        console.error('An error has occured:', err)
       } finally {
         this.loading = false
       }
@@ -120,19 +135,41 @@ export default {
      * - 曜日区分を更新します。
      * - 締日を更新します。
      * - 稼働実績明細の勤務日を更新します。
+     * - 取極めを更新します。
      * @returns {void}
      */
-    onDateChanged() {
+    async onDateChanged() {
       this.loading = true // ローディング状態を開始
       try {
+        // 日付に合わせた曜日区分をセット
         this.editModel.dayDiv = getDayType(this.editModel.date)
         // 締日をリフレッシュするメソッドを実行
         this.editModel.refreshClosingDate()
         // workersの`date`を更新
         this.editModel.refreshWorkersDate()
+        // siteContractを更新
+        await this.refreshSiteContract()
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error('Failed to set the closing date:', err)
+        console.error('An error has occured:', err)
+      } finally {
+        // 処理が完了したらローディング状態を終了
+        this.loading = false
+      }
+    },
+    /**
+     * 勤務区分が変更された時の処理です。
+     * - 取極めを更新します。
+     * @returns {void}
+     */
+    async onWorkShiftChanged() {
+      this.loading = true // ローディング状態を開始
+      try {
+        // siteContractを更新
+        await this.refreshSiteContract()
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('An error has occured:', err)
       } finally {
         // 処理が完了したらローディング状態を終了
         this.loading = false
@@ -168,6 +205,18 @@ export default {
     removeWorker(item) {
       this.editModel.removeWorker(item)
     },
+    /**
+     * 当該OperationResultsドキュメントに適用すべきSiteContractを読み込みます。
+     */
+    async refreshSiteContract() {
+      this.editModel.siteContract.initialize()
+      const site = this.editModel.site
+      const date = this.editModel.date
+      const workShift = this.editModel.workShift
+      if (!site || !date || !workShift) return
+      const params = { siteId: site.docId, date, workShift }
+      await this.editModel.siteContract.loadContract(params)
+    },
   },
 }
 </script>
@@ -176,6 +225,7 @@ export default {
   <g-card-input-form
     v-bind="$attrs"
     label="稼働実績編集"
+    :disable-submit="noContract"
     :edit-mode="editMode"
     :loading="loading"
     @click:submit="submit"
@@ -203,7 +253,7 @@ export default {
           <g-select
             v-model="editModel.dayDiv"
             label="曜日区分"
-            :items="['weekday', 'saturday', 'sunday', 'holiday']"
+            :items="['weekdays', 'saturday', 'sunday', 'holiday']"
             required
           />
           <g-select
@@ -211,6 +261,7 @@ export default {
             label="勤務区分"
             :items="['day', 'night']"
             required
+            @change="onWorkShiftChanged"
           />
           <g-dialog-date-picker v-model="editModel.closingDate">
             <template #activator="{ attrs, on }">
@@ -269,6 +320,9 @@ export default {
       v-model="forceDelete"
       label="このデータを削除する"
     />
+    <v-snackbar :value="noContract" timeout="-1" tile color="red accent-2"
+      >適用可能な取極めが登録されていません。</v-snackbar
+    >
   </g-card-input-form>
 </template>
 
