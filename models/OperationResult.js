@@ -70,6 +70,36 @@ export default class OperationResult extends FireModel {
         },
         set(v) {},
       },
+      unitPrice: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          // dayDivが設定されていない場合
+          if (!this.dayDiv) return null
+
+          // siteContractが設定されていない場合
+          if (!this.siteContract?.docId) return null
+
+          // unitPricesの取得に失敗した場合
+          const unitPrices = this.siteContract?.unitPrices?.[this.dayDiv]
+          if (!unitPrices) return null
+
+          // 結果を構築して返す
+          return {
+            standard: {
+              price: unitPrices.standard?.price ?? null,
+              overtime: unitPrices.standard?.overtime ?? null,
+            },
+            qualified: {
+              price: unitPrices.qualified?.price ?? null,
+              overtime: unitPrices.qualified?.overtime ?? null,
+            },
+          }
+        },
+        set(v) {
+          // 空のsetメソッドを残す (Vueのリアクティブシステムのために必要)
+        },
+      },
     })
   }
 
