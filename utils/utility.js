@@ -16,7 +16,7 @@ export function getDayType(dateString) {
   } else if (dayOfWeek === 6) {
     return 'saturday' // 土曜
   } else {
-    return 'weekday' // 平日
+    return 'weekdays' // 平日
   }
 }
 
