@@ -178,20 +178,32 @@ export default {
     },
     /**
      * 従業員選択画面で選択された従業員の稼働実績明細を`editModel.workers`に追加します。
+     * note: 要修正
+     * - 契約情報がロードされた後であれば開始・終了の時刻までセットできる。
      */
     addWorker() {
+      // 選択された従業員が存在するかをチェック
+      if (!this.selectedEmployees || !this.selectedEmployees.length) {
+        // eslint-disable-next-line no-console
+        console.warn('No employees selected.')
+        return
+      }
+
       try {
+        // 選択された従業員のリストに対して処理を実行
         this.selectedEmployees.forEach((employee) => {
           const newWorker = new OperationResultWorker()
           newWorker.employeeId = employee.docId
           newWorker.date = this.editModel.date
           this.editModel.addWorker(newWorker)
         })
+
+        // 従業員選択ダイアログを閉じる
         this.employeeSelector = false
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error(err)
-        alert(err.message)
+        console.error('Error occurred while adding workers:', err)
+        alert('An error occurred while adding workers. Please try again.')
       }
     },
     /**
@@ -207,18 +219,49 @@ export default {
       this.editModel.removeWorker(item)
     },
     /**
-     * 当該OperationResultsドキュメントに適用すべきSiteContractを読み込みます。
+     * 当該OperationResultsドキュメントに適用すべきSiteContractを読み込み、
+     * `editModel.siteContract`にセットします。
+     * - 必要なパラメータが揃っていない場合は何も行いません。
+     * - 適用すべきSiteContractが存在しない場合はnullがセットされます。
      */
     async refreshSiteContract() {
+      // siteContractをリセット
       this.editModel.siteContract = null
+
       const contract = new SiteContract()
       const site = this.editModel.site
       const date = this.editModel.date
       const workShift = this.editModel.workShift
-      if (!site || !date || !workShift) return
+
+      // site、date、workShiftが揃っているかを確認
+      if (!site) {
+        // eslint-disable-next-line no-console
+        console.warn('[refreshSiteContract] site is missing.')
+        return
+      }
+      if (!date) {
+        // eslint-disable-next-line no-console
+        console.warn('[refreshSiteContract] date is missing.')
+        return
+      }
+      if (!workShift) {
+        // eslint-disable-next-line no-console
+        console.warn('[refreshSiteContract] workShift is missing.')
+        return
+      }
+
       const params = { siteId: site.docId, date, workShift }
-      await contract.loadContract(params)
-      this.editModel.siteContract = contract.docId ? contract : null
+
+      try {
+        // 契約情報のロード
+        await contract.loadContract(params)
+
+        // 契約情報が存在する場合のみ適用
+        this.editModel.siteContract = contract.docId ? contract : null
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('[refreshSiteContract] Failed to load SiteContract:', err)
+      }
     },
   },
 }
