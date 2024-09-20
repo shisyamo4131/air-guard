@@ -11,6 +11,11 @@ import { getClosingDate, isValidDateFormat } from '~/utils/utility'
  *
  * 稼働実績のデータモデルです。
  *
+ * - `OperationWorkerResults`ドキュメントが同期的に作成・更新・削除されます。
+ *   -> `OperationResults`ドキュメントがアプリ外から削除された場合に備えて
+ *      Cloud Functionsでも同期削除の処理が必要です。
+ *   -> 更新に対する同期はアプリ側のみで行います。
+ *
  * @version 2.2.0
  * @author shisyamo4131
  * @updates
