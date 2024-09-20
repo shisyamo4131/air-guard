@@ -25,6 +25,7 @@ import OperationResultWorker from '~/models/OperationResultWorker'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import { getDayType, isValidDateFormat } from '~/utils/utility'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
+import SiteContract from '~/models/SiteContract'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -87,7 +88,7 @@ export default {
       if (this.loading) return false
 
       // siteContractが存在しない場合はtrueを返す
-      return !this.editModel?.siteContract?.docId
+      return !this.editModel?.siteContract
     },
     selectableEmployees() {
       return this.$store.state.employees.items.filter((item) => {
@@ -209,13 +210,15 @@ export default {
      * 当該OperationResultsドキュメントに適用すべきSiteContractを読み込みます。
      */
     async refreshSiteContract() {
-      this.editModel.siteContract.initialize()
+      this.editModel.siteContract = null
+      const contract = new SiteContract()
       const site = this.editModel.site
       const date = this.editModel.date
       const workShift = this.editModel.workShift
       if (!site || !date || !workShift) return
       const params = { siteId: site.docId, date, workShift }
-      await this.editModel.siteContract.loadContract(params)
+      await contract.loadContract(params)
+      this.editModel.siteContract = contract.docId ? contract : null
     },
   },
 }
