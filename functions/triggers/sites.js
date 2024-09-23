@@ -22,12 +22,12 @@ const collectionsToSyncAndRemove = ['SiteContracts', 'OperationResults']
  *
  * @version 1.0.0
  * @updates
- * - version 1.1.0 - 2024-09-23 - ドキュメント変更の有無の確認で`recentContract`を除外
+ * - version 1.1.0 - 2024-09-23 - ドキュメント変更の有無の確認で`hasContract`を除外
  * - version 1.0.0 - 2024-08-07 - 初版作成
  */
 exports.onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
   // ドキュメントの変更有無を確認
-  const ignoreFields = ['recentContract']
+  const ignoreFields = ['hasContract']
   if (!isDocumentChanged(event, ignoreFields)) return
 
   info('Siteドキュメントが更新されました。')

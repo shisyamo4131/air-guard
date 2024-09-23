@@ -78,9 +78,9 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
-  recentContract: {
-    type: Object,
-    default: null,
+  hasContract: {
+    type: Boolean,
+    default: false,
     required: false,
     requireByClass: false,
   },

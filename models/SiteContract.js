@@ -1,4 +1,5 @@
-import { FireModel } from 'air-firebase'
+import { FireModel, firestore } from 'air-firebase'
+import { doc, runTransaction } from 'firebase/firestore'
 import Site from './Site'
 import { classProps } from './propsDefinition/SiteContract'
 import { isValidDateFormat } from '~/utils/utility'
@@ -104,8 +105,8 @@ export default class SiteContract extends FireModel {
    * createメソッドをオーバーライドします。
    * `docId`を`${siteId}-${startDate}-${workShift}`に固定します。
    * - 生成した`docId`を使用して親クラスのcreateメソッドを呼び出します。
-   *
-   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   * - トランザクションで`Sites`ドキュメントの`hasContract`プロパティをtrueに更新します。
+   * @returns {Promise<DocumentReference>} - 作成したドキュメントへの参照を解決するPromise
    * @throws {Error} ドキュメント作成中にエラーが発生した場合にエラーをスローします
    ****************************************************************************/
   async create() {
@@ -113,14 +114,71 @@ export default class SiteContract extends FireModel {
       // `docId`を`${siteId}-${startDate}-${workShift}`の形式で生成
       const docId = `${this.siteId}-${this.startDate}-${this.workShift}`
 
-      // 親クラスのcreateメソッドを`docId`を渡して呼び出し
-      return await super.create({ docId })
+      // `Sites`ドキュメントへの参照を取得
+      const siteDocRef = doc(firestore, `Sites/${this.siteId}`)
+
+      // トランザクションで作成処理
+      const result = await runTransaction(firestore, async (transaction) => {
+        // 親クラスのcreateメソッドでドキュメントを作成
+        const createdDocRef = await super.create({ docId, transaction })
+
+        // トランザクション内で`hasContract`プロパティを更新
+        transaction.update(siteDocRef, { hasContract: true })
+
+        // 作成したドキュメントの参照を返す
+        return createdDocRef
+      })
+
+      return result
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[create] Failed to create document for docId: ${this.siteId}-${this.startDate}-${this.workShift}. Error: ${err.message}`,
+        {
+          err,
+        }
+      )
+
+      // エラーを再スローして呼び出し元に通知
+      throw err
+    }
+  }
+
+  /****************************************************************************
+   * deleteメソッドをオーバーライドします。
+   * - トランザクションで`Sites`ドキュメントの`hasContract`プロパティを更新します。
+   * - `hasContract`は削除した結果、現場契約情報が無くなればfalseに、存在すればtrueに更新されます。
+   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   * @throws {Error} ドキュメント削除中にエラーが発生した場合にエラーをスローします
+   ****************************************************************************/
+  async delete() {
+    try {
+      // 既存ドキュメントを最大2件取得
+      const existContracts = await this.fetchDocs([
+        ['where', 'siteId', '==', this.siteId],
+        ['limit', 2],
+      ])
+
+      // `hasContract`プロパティを設定
+      const hasContract = existContracts.length - 1 !== 0
+
+      // `Sites`ドキュメントへの参照を取得
+      const docRef = doc(firestore, `Sites/${this.siteId}`)
+
+      // トランザクションで削除処理
+      await runTransaction(firestore, async (transaction) => {
+        await super.delete({ transaction })
+        transaction.update(docRef, { hasContract })
+      })
     } catch (err) {
       // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
       // eslint-disable-next-line no-console
-      console.error(`[create] Failed to create document: ${err.message}`, {
-        err,
-      })
+      console.error(
+        `[delete] Failed to delete document for siteId: ${this.siteId}. Error: ${err.message}`,
+        {
+          err,
+        }
+      )
 
       // エラーを再スローして呼び出し元に通知
       throw err
