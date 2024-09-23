@@ -594,7 +594,7 @@ class FireModel {
    * @param {string|null} docId - 指定されたドキュメントID（省略可能）
    * @param {boolean} useAutonumber - 自動採番を行うかどうかのフラグ（省略可能）
    * @param {object|null} transaction - Firestoreトランザクションオブジェクト（省略可能）
-   * @returns {Promise<DocumentReference>} - 作成されたドキュメントのリファレンス
+   * @returns {Promise<DocumentReference>} - 作成されたドキュメントの参照
    * @throws {Error} - ドキュメントの作成中にエラーが発生した場合にスローされます
    ****************************************************************************/
   async create({
@@ -1091,7 +1091,7 @@ class FireModel {
   /****************************************************************************
    * 削除されたドキュメントをアーカイブコレクションから元のコレクションに復元します。
    * @param {string} docId - 復元するドキュメントのID
-   * @returns {Promise<DocumentReference>} - 復元されたドキュメントのリファレンス
+   * @returns {Promise<DocumentReference>} - 復元されたドキュメントの参照
    * @throws {Error} - ドキュメントIDが指定されていない場合や、復元するドキュメントが存在しない場合にエラーをスローします
    ****************************************************************************/
   async restore(docId) {

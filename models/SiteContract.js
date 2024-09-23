@@ -109,7 +109,7 @@ export default class SiteContract extends FireModel {
    * createメソッドをオーバーライドします。
    * `docId`を`${siteId}-${startDate}-${workShift}`に固定します。
    * - 生成した`docId`を使用して親クラスのcreateメソッドを呼び出します。
-   * @returns {Promise<DocumentReference>} - 作成したドキュメントへの参照を解決するPromise
+   * @returns {Promise<DocumentReference>} 作成したドキュメントへの参照
    * @throws {Error} ドキュメント作成中にエラーが発生した場合にエラーをスローします
    ****************************************************************************/
   async create() {

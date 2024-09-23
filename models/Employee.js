@@ -71,7 +71,7 @@ export default class Employee extends FireModel {
    * - コレクションを自動採番対象として、createのuseAutonumberをtrueに固定します。
    * @param {string|null} docId - 作成するドキュメントのID（省略可能）
    * @param {boolean} [useAutonumber=true] - 自動採番を行うかどうか（デフォルト: true）
-   * @returns {Promise<DocumentReference>} - 作成されたドキュメントのリファレンス
+   * @returns {Promise<DocumentReference>} 作成されたドキュメントへの参照
    * @throws {Error} ドキュメントの作成に失敗した場合
    ****************************************************************************/
   async create({ docId = null, useAutonumber = true } = {}) {

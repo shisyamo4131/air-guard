@@ -38,7 +38,7 @@ export default class Customer extends FireModel {
    * FireModelのcreateをオーバーライドします。
    * - コレクションを自動採番対象として、createのuseAutonumberをtrueに固定します。
    * @param {string} docId - 作成するドキュメントのID
-   * @returns {Promise<DocumentReference>} - 作成されたドキュメントのリファレンス
+   * @returns {Promise<DocumentReference>} 作成されたドキュメントへの参照
    * @throws {Error} ドキュメントの作成に失敗した場合
    ****************************************************************************/
   async create({ docId = null, useAutonumber = true } = {}) {

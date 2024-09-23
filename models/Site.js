@@ -56,7 +56,7 @@ export default class Site extends FireModel {
    * - AirGuardとの同期処理を行う場合、自動採番を行わず登録するケースにも対応します。
    * @param {string|null} docId - 作成するドキュメントのID（省略可能）
    * @param {boolean} [useAutonumber=true] - 自動採番を行うかどうか（デフォルト: true）
-   * @returns {Promise<DocumentReference>} - 作成されたドキュメントのリファレンス
+   * @returns {Promise<DocumentReference>} 作成されたドキュメントへの参照
    * @throws {Error} ドキュメントの作成に失敗した場合にエラーをスローします
    ****************************************************************************/
   async create({ docId = null, useAutonumber = true } = {}) {

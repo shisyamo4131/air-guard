@@ -74,12 +74,12 @@ export default class Autonumber extends FireModel {
   /****************************************************************************
    * ドキュメントの作成処理をオーバーライドします。
    * - ドキュメントIDは`collectionId`に設定されたコレクション名に固定します。
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
+   * @returns {Promise<DocumentReference>} 作成されたドキュメントへの参照
    * @throws {Error} ドキュメントの作成に失敗した場合
    ****************************************************************************/
   async create() {
     try {
-      await super.create({ docId: this.collectionId })
+      return await super.create({ docId: this.collectionId })
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('ドキュメントの作成に失敗しました:', error)

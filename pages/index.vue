@@ -8,7 +8,10 @@
           <v-card-subtitle>
             取極めが登録されていない現場があります。
           </v-card-subtitle>
-          <g-data-table-sites :items="items.noContractSites" />
+          <g-data-table-sites
+            :items="items.noContractSites"
+            :items-per-page="5"
+          />
         </v-card>
       </v-col>
       <v-col cols="12">
