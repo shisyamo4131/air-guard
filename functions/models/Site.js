@@ -159,7 +159,7 @@ class Site extends FireModel {
   async fetchByCode(code) {
     if (!code) throw new Error('Code is required.')
     try {
-      const constraints = [['code', '==', code]]
+      const constraints = [['where', 'code', '==', code]]
       const snapshots = await this.fetchDocs(constraints)
       return snapshots
     } catch (err) {
@@ -186,7 +186,7 @@ class Site extends FireModel {
         i % 30 ? [] : [unique.slice(i, i + 30)]
       )
       const promises = chunked.map(async (arr) => {
-        const constraints = [['code', 'in', arr]]
+        const constraints = [['where', 'code', 'in', arr]]
         return await this.fetchDocs(constraints)
       })
       const snapshots = await Promise.all(promises)
