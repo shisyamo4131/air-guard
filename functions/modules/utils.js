@@ -10,31 +10,42 @@ const BATCH_LIMIT = 500
 /**
  * Firestoreドキュメントの内容に変更があったかどうかを返します。
  * - updateAt、updateDate、uidを無視し、eventオブジェクトのbeforeとafterを比較します。
+ * - さらに、呼び出し元が指定したフィールドも無視します。
  *
  * @param {object} event - onDocumentUpdatedトリガーのイベントオブジェクト
+ * @param {array} [ignoreFields=[]] - 無視するフィールド名の配列（任意）
  * @returns {boolean} - ドキュメントが変更されたかどうか
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  *
  * @updates
+ * - version 1.1.0 - 2024-09-23 - 無視するフィールドを指定可能に改修
  * - version 1.0.0 - 2024-07-10 - 初版作成
  */
-exports.isDocumentChanged = (event) => {
+exports.isDocumentChanged = (event, ignoreFields = []) => {
   // onDocumentUpdatedトリガーから発生したイベントかどうかをチェックします。
   const before = event?.data?.before?.data() || undefined
   const after = event?.data?.after?.data() || undefined
+
   if (!before || !after) {
     throw new Error('onDocumentUpdatedのeventオブジェクトが必要です。')
   }
-  // updateAt、updateDate、uidフィールドを無視して比較します。
+
+  // updateAt、updateDate、uidと、指定されたフィールドを無視して比較します。
   const omitFields = (data) => {
     const { updateAt, updateDate, uid, ...fields } = data
+    // 無視するフィールドを動的に削除
+    ignoreFields.forEach((field) => {
+      delete fields[field]
+    })
     return fields
   }
+
   const beforeFields = omitFields(before)
   const afterFields = omitFields(after)
 
+  // オブジェクトを文字列に変換して比較
   return JSON.stringify(beforeFields) !== JSON.stringify(afterFields)
 }
 

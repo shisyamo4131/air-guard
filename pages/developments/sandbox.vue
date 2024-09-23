@@ -1,23 +1,22 @@
 <template>
-  <v-container fluid>
-    <g-input-operation-result-worker v-model="model" @submit:complete="test" />
+  <v-container>
+    <v-card>
+      <v-card-title> 取極め未登録現場 </v-card-title>
+      <g-data-table :items="items" />
+    </v-card>
   </v-container>
 </template>
 
 <script>
-import GInputOperationResultWorker from '~/components/molecules/inputs/GInputOperationResultWorker.vue'
-import OperationResultWorker from '~/models/OperationResultWorker'
+import GDataTable from '~/components/atoms/tables/GDataTable.vue'
+import Site from '~/models/Site'
 export default {
-  components: { GInputOperationResultWorker },
+  components: { GDataTable },
   data() {
     return {
-      model: new OperationResultWorker(),
+      instance: new Site(),
+      items: [],
     }
-  },
-  methods: {
-    test() {
-      console.log('OK')
-    },
   },
 }
 </script>
