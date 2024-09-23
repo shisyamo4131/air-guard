@@ -25,7 +25,6 @@ import OperationResultWorker from '~/models/OperationResultWorker'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import { getDayType, isValidDateFormat } from '~/utils/utility'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
-import SiteContract from '~/models/SiteContract'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -231,39 +230,8 @@ export default {
      * - 適用すべきSiteContractが存在しない場合はnullがセットされます。
      */
     async refreshSiteContract() {
-      // siteContractをリセット
-      this.editModel.siteContract = null
-
-      const contract = new SiteContract()
-      const site = this.editModel.site
-      const date = this.editModel.date
-      const workShift = this.editModel.workShift
-
-      // site、date、workShiftが揃っているかを確認
-      if (!site) {
-        // eslint-disable-next-line no-console
-        console.warn('[refreshSiteContract] site is missing.')
-        return
-      }
-      if (!date) {
-        // eslint-disable-next-line no-console
-        console.warn('[refreshSiteContract] date is missing.')
-        return
-      }
-      if (!workShift) {
-        // eslint-disable-next-line no-console
-        console.warn('[refreshSiteContract] workShift is missing.')
-        return
-      }
-
-      const params = { siteId: site.docId, date, workShift }
-
       try {
-        // 契約情報のロード
-        await contract.loadContract(params)
-
-        // 契約情報が存在する場合のみ適用
-        this.editModel.siteContract = contract.docId ? contract : null
+        await this.editModel.refreshContract()
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('[refreshSiteContract] Failed to load SiteContract:', err)
