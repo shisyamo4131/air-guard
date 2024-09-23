@@ -47,7 +47,6 @@ export default {
           align: 'right',
           sortable: false,
         },
-        { text: '売上', value: 'sales', align: 'right', sortable: false },
       ]
     },
   },
@@ -77,9 +76,6 @@ export default {
     </template>
     <template #[`item.operationCount`]="{ item }">
       {{ `${(item.operationCount.total || 0).toLocaleString()} 稼働` }}
-    </template>
-    <template #[`item.sales`]="{ item }">
-      {{ `${(item.sales.total || 0).toLocaleString()} 円` }}
     </template>
   </g-data-table>
 </template>
