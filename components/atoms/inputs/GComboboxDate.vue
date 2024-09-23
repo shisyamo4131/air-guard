@@ -29,6 +29,7 @@
  * @version 1.2.1
  *
  * @updates
+ * - version 1.2.2 - 2024-09-23 - `multiple`による`width`の調整を削除。
  * - version 1.2.1 - 2024-09-16 - OK、Cancelボタンの配置を修正。
  * - version 1.2.0 - 2024-08-12 - `multiple`が`false`の場合、GComboboxの`width`を指定。
  *                              - GComboboxに`center-input`を適用。
@@ -130,7 +131,6 @@ export default {
       >
         <g-combobox
           v-bind="{ ...attrs, ...props.attrs }"
-          :style="{ maxWidth: `${multiple ? '100%' : '156px'}` }"
           class="center-input"
           :dense="!multiple"
           :required="dialog ? false : required"
