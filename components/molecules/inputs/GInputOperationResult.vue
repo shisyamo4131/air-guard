@@ -182,6 +182,9 @@ export default {
      * - 契約情報がロードされた後であれば開始・終了の時刻までセットできる。
      */
     addWorker() {
+      // 現場の契約情報が取得できていなければ何もせずに終了
+      if (this.noContract) return
+
       // 選択された従業員が存在するかをチェック
       if (!this.selectedEmployees || !this.selectedEmployees.length) {
         // eslint-disable-next-line no-console
@@ -195,6 +198,9 @@ export default {
           const newWorker = new OperationResultWorker()
           newWorker.employeeId = employee.docId
           newWorker.date = this.editModel.date
+          newWorker.startTime = this.editModel.siteContract.startTime
+          newWorker.endTime = this.editModel.siteContract.endTime
+          newWorker.breakMinutes = this.editModel.siteContract.breakMinutes
           this.editModel.addWorker(newWorker)
         })
 
@@ -324,7 +330,7 @@ export default {
                   <v-btn
                     v-bind="attrs"
                     class="mb-2"
-                    :disabled="!isValidDate"
+                    :disabled="!isValidDate || noContract"
                     small
                     color="primary"
                     v-on="on"
