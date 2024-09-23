@@ -16,9 +16,10 @@ import { getClosingDate, isValidDateFormat } from '~/utils/utility'
  *      Cloud Functionsでも同期削除の処理が必要です。
  *   -> 更新に対する同期はアプリ側のみで行います。
  *
- * @version 2.2.0
+ * @version 2.2.1
  * @author shisyamo4131
  * @updates
+ * - version 2.2.1 - 2024-09-23 - `operationCount`プロパティの中身を細分化
  * - version 2.2.0 - 2024-09-18 - `operationCount`プロパティを追加。
  *                              - アプリ側から`site`オブジェクトがセットされる仕様に変更し、
  *                                `siteId`をObjectDefinePropertyによる`site`プロパティから取得するように修正。
@@ -55,7 +56,36 @@ export default class OperationResult extends FireModel {
         configurable: true,
         enumerable: true,
         get() {
-          return this.workers.length
+          const result = this.workers.reduce(
+            (sum, i) => {
+              if (i.qualification) {
+                sum.qualified[i.workResult] += 1
+                sum.qualified.total += 1
+              } else {
+                sum.standard[i.workResult] += 1
+                sum.standard.total += 1
+              }
+              sum.total += 1
+              return sum
+            },
+            {
+              standard: {
+                normal: 0,
+                half: 0,
+                cancel: 0,
+                total: 0,
+              },
+              qualified: {
+                normal: 0,
+                half: 0,
+                cancel: 0,
+                total: 0,
+              },
+              total: 0,
+            }
+          )
+
+          return result
         },
         set(v) {},
       },
