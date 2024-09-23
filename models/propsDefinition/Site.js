@@ -78,6 +78,12 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+  recentContract: {
+    type: Object,
+    default: null,
+    required: false,
+    requireByClass: false,
+  },
 }
 
 const vueProps = generateVueProps(propsDefinition)
