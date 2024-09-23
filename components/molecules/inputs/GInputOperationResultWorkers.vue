@@ -189,12 +189,15 @@ export default {
     </g-data-table>
 
     <g-dialog-input v-model="dialog" max-width="480">
-      <g-input-operation-result-worker
-        :instance="editModel"
-        :edit-mode="UPDATE"
-        @submit:complete="changeWorker"
-        @click:cancel="dialog = false"
-      />
+      <template #default="{ attrs }">
+        <g-input-operation-result-worker
+          v-bind="attrs"
+          :instance="editModel"
+          :edit-mode="UPDATE"
+          @submit:complete="changeWorker"
+          @click:cancel="dialog = false"
+        />
+      </template>
     </g-dialog-input>
   </div>
 </template>
