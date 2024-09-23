@@ -18,6 +18,7 @@ import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import OperationResultWorker from '~/models/OperationResultWorker'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import GSelect from '~/components/atoms/inputs/GSelect.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -30,6 +31,7 @@ export default {
     GNumeric,
     GComboboxDate,
     GCardInputForm,
+    GSelect,
   },
   /***************************************************************************
    * MIXINS
@@ -75,7 +77,19 @@ export default {
         required
         disabled
       />
-      <g-combobox-date v-model="editModel.date" label="勤務日" required />
+      <v-row dense>
+        <v-col cols="6">
+          <g-combobox-date v-model="editModel.date" label="勤務日" required />
+        </v-col>
+        <v-col cols="6">
+          <g-select
+            v-model="editModel.workResult"
+            label="勤務結果"
+            required
+            :items="['normal', 'half', 'cancel']"
+          />
+        </v-col>
+      </v-row>
       <v-row dense>
         <v-col cols="6" sm="3">
           <g-text-field
@@ -137,12 +151,18 @@ export default {
           />
         </v-col>
       </v-row>
-      <g-checkbox
-        v-model="editModel.qualification"
-        class="mt-1"
-        label="資格者"
-      />
-      <g-checkbox v-model="editModel.ojt" class="mt-1" label="OJT" />
+      <v-row dense>
+        <v-col cols="12" sm="6">
+          <g-checkbox
+            v-model="editModel.qualification"
+            class="mt-1"
+            label="資格者"
+          />
+        </v-col>
+        <v-col cols="12" sm="6">
+          <g-checkbox v-model="editModel.ojt" class="mt-1" label="OJT" />
+        </v-col>
+      </v-row>
       <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
   </g-card-input-form>
