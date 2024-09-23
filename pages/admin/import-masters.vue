@@ -10,6 +10,7 @@
  * - version 1.0.0 - 2024-07-04 - 初版作成
  */
 import { ref, update } from 'firebase/database'
+import { database } from 'air-firebase/dist/firebase.init'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -149,7 +150,7 @@ export default {
             })
             return acc
           }, {})
-          await update(ref(this.$database), updates)
+          await update(ref(database), updates)
         }
         this.snackbar = true
         this.step = 1
