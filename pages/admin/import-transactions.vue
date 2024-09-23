@@ -336,6 +336,12 @@ export default {
                 OperationResultInstance.initialize(
                   existDoc ? { ...existDoc, ...item } : { ...item }
                 )
+                await OperationResultInstance.refreshContract()
+                if (!OperationResultInstance.siteContract) {
+                  throw new Error(
+                    `契約情報が存在しません。${OperationResultInstance.siteId}`
+                  )
+                }
                 OperationResultInstance.docId
                   ? await OperationResultInstance.update()
                   : await OperationResultInstance.create({
