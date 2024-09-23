@@ -8,9 +8,10 @@
  * - 実働時間が変更されると残業時間が更新されます。
  * - 休憩時間、実働時間、残業時間の合計が開始時刻、終了時刻の時間差と一致しない場合、isValidプロパティがfalseになります。
  *
- * @version 1.0.0
+ * @version 1.0.1
  * @author shisyamo4131
  * @updates
+ * - version 1.0.1 - 2024-09-23 - `workResult`を追加
  * - version 1.0.0 - 2024-08-28 - 初版作成
  */
 export default class OperationResultWorker {
@@ -35,6 +36,7 @@ export default class OperationResultWorker {
      */
     this.employeeId = item?.employeeId || ''
     this.date = item?.date || ''
+    this.workResult = item?.workResult || 'normal'
     this._startTime = item?.startTime || '08:00'
     this._endTime = item?.endTime || '17:00'
     this._endAtNextday = item?.endAtNextday || false
@@ -328,6 +330,7 @@ export default class OperationResultWorker {
     return {
       employeeId: this.employeeId,
       date: this.date,
+      workResult: this.workResult,
       startTime: this._startTime,
       endTime: this._endTime,
       endAtNextday: this.endAtNextday,
