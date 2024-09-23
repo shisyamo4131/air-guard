@@ -4,6 +4,15 @@
     <v-row>
       <v-col cols="12">
         <v-card outlined>
+          <v-card-title class="g-card__title">取極め未登録現場</v-card-title>
+          <v-card-subtitle>
+            取極めが登録されていない現場があります。
+          </v-card-subtitle>
+          <g-data-table-sites :items="items.noContractSites" />
+        </v-card>
+      </v-col>
+      <v-col cols="12">
+        <v-card outlined>
           <v-card-title class="g-card__title"> 雇用期間満了間近 </v-card-title>
           <v-card-subtitle>
             1ヶ月以内に契約期間満了を迎える従業員がいます。
@@ -60,7 +69,9 @@
 </template>
 
 <script>
+import GDataTableSites from '~/components/molecules/tables/GDataTableSites.vue'
 import GLauncherAttendanceRecords from '~/components/organisms/GLauncherAttendanceRecords.vue'
+import Site from '~/models/Site'
 // import BChartSales from '~/components/molecules/charts/BChartSales.vue'
 
 export default {
@@ -68,12 +79,27 @@ export default {
   components: {
     // BChartSales,
     GLauncherAttendanceRecords,
+    GDataTableSites,
   },
   data() {
     return {
       date: this.$dayjs().format('YYYY-MM-DD'),
+      listeners: {
+        noContractSites: new Site(),
+      },
+      items: {
+        noContractSites: [],
+      },
       tab: 0,
     }
+  },
+  mounted() {
+    this.items.noContractSites = this.listeners.noContractSites.subscribeDocs([
+      ['where', 'hasContract', '==', false],
+    ])
+  },
+  destroyed() {
+    this.listeners.noContractSites.unsubscribe()
   },
 }
 </script>

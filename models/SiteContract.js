@@ -1,5 +1,4 @@
-import { FireModel, firestore } from 'air-firebase'
-import { doc, runTransaction } from 'firebase/firestore'
+import { FireModel } from 'air-firebase'
 import Site from './Site'
 import { classProps } from './propsDefinition/SiteContract'
 import { isValidDateFormat } from '~/utils/utility'
@@ -48,31 +47,36 @@ export default class SiteContract extends FireModel {
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
    ****************************************************************************/
   async beforeCreate() {
-    if (!this.siteId) {
-      throw new Error('現場の指定が必要です。')
+    // 必須プロパティの確認
+    const missingFields = []
+    if (!this.siteId) missingFields.push('現場の指定')
+    if (!this.startDate) missingFields.push('開始日の指定')
+    if (!this.workShift) missingFields.push('勤務区分の指定')
+
+    // 必須プロパティが不足していた場合、エラーをスロー
+    if (missingFields.length > 0) {
+      throw new Error(`${missingFields.join('、')}が必要です。`)
     }
-    if (!this.startDate) {
-      throw new Error('開始日の指定が必要です。')
-    }
-    if (!this.workShift) {
-      throw new Error('勤務区分の指定が必要です。')
-    }
+
     const id = `${this.siteId}-${this.startDate}-${this.workShift}`
-    const existingContract = await this.fetchDoc(id)
-    if (existingContract) {
-      throw new Error('同一の取極めが既に登録されています。')
-    }
+
     try {
+      const existingContract = await this.fetchDoc(id)
+      if (existingContract) {
+        throw new Error('同一の取極めが既に登録されています。')
+      }
+
       const site = await new Site().fetchDoc(this.siteId)
       if (!site) {
         throw new Error('現場情報が取得できませんでした。')
       }
+
       this.site = site
       await super.beforeCreate()
     } catch (err) {
-      // eslint-disable-next-line
+      // eslint-disable-next-line no-console
       console.error(
-        `[SiteContract.js beforeCreate] Error fetching site: ${err.message}`
+        `[SiteContract.js beforeCreate] Error: ${err.message}. Stack: ${err.stack}`
       )
       throw err
     }
@@ -105,7 +109,6 @@ export default class SiteContract extends FireModel {
    * createメソッドをオーバーライドします。
    * `docId`を`${siteId}-${startDate}-${workShift}`に固定します。
    * - 生成した`docId`を使用して親クラスのcreateメソッドを呼び出します。
-   * - トランザクションで`Sites`ドキュメントの`hasContract`プロパティをtrueに更新します。
    * @returns {Promise<DocumentReference>} - 作成したドキュメントへの参照を解決するPromise
    * @throws {Error} ドキュメント作成中にエラーが発生した場合にエラーをスローします
    ****************************************************************************/
@@ -114,67 +117,12 @@ export default class SiteContract extends FireModel {
       // `docId`を`${siteId}-${startDate}-${workShift}`の形式で生成
       const docId = `${this.siteId}-${this.startDate}-${this.workShift}`
 
-      // `Sites`ドキュメントへの参照を取得
-      const siteDocRef = doc(firestore, `Sites/${this.siteId}`)
-
-      // トランザクションで作成処理
-      const result = await runTransaction(firestore, async (transaction) => {
-        // 親クラスのcreateメソッドでドキュメントを作成
-        const createdDocRef = await super.create({ docId, transaction })
-
-        // トランザクション内で`hasContract`プロパティを更新
-        transaction.update(siteDocRef, { hasContract: true })
-
-        // 作成したドキュメントの参照を返す
-        return createdDocRef
-      })
-
-      return result
+      // 親クラスのcreateメソッドでドキュメントを作成
+      return await super.create({ docId })
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(
         `[create] Failed to create document for docId: ${this.siteId}-${this.startDate}-${this.workShift}. Error: ${err.message}`,
-        {
-          err,
-        }
-      )
-
-      // エラーを再スローして呼び出し元に通知
-      throw err
-    }
-  }
-
-  /****************************************************************************
-   * deleteメソッドをオーバーライドします。
-   * - トランザクションで`Sites`ドキュメントの`hasContract`プロパティを更新します。
-   * - `hasContract`は削除した結果、現場契約情報が無くなればfalseに、存在すればtrueに更新されます。
-   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
-   * @throws {Error} ドキュメント削除中にエラーが発生した場合にエラーをスローします
-   ****************************************************************************/
-  async delete() {
-    try {
-      // 既存ドキュメントを最大2件取得
-      const existContracts = await this.fetchDocs([
-        ['where', 'siteId', '==', this.siteId],
-        ['limit', 2],
-      ])
-
-      // `hasContract`プロパティを設定
-      const hasContract = existContracts.length - 1 !== 0
-
-      // `Sites`ドキュメントへの参照を取得
-      const docRef = doc(firestore, `Sites/${this.siteId}`)
-
-      // トランザクションで削除処理
-      await runTransaction(firestore, async (transaction) => {
-        await super.delete({ transaction })
-        transaction.update(docRef, { hasContract })
-      })
-    } catch (err) {
-      // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
-      // eslint-disable-next-line no-console
-      console.error(
-        `[delete] Failed to delete document for siteId: ${this.siteId}. Error: ${err.message}`,
         {
           err,
         }

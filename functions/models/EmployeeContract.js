@@ -2,6 +2,7 @@ const { error } = require('firebase-functions/logger')
 const FireModel = require('./FireModel')
 const { classProps } = require('./propsDefinition/EmployeeContract')
 const Employee = require('./Employee')
+const WorkRegulation = require('./WorkRegulation')
 
 /**
  * EmployeeContractsドキュメントデータモデル【論理削除】
@@ -15,48 +16,18 @@ const Employee = require('./Employee')
  */
 class EmployeeContract extends FireModel {
   /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    employee: Employee,
+    workRegulation: WorkRegulation,
+  }
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
     super(item, 'EmployeeContracts', [], false, [], classProps)
-  }
-
-  /****************************************************************************
-   * クラスインスタンスをオブジェクト形式に変換します。
-   * - スーパークラスの `toObject` メソッドを呼び出し、その結果に `employee` プロパティを追加します。
-   * - `employee` プロパティが存在し、かつ `toObject` メソッドを持つ場合、そのメソッドを呼び出してオブジェクトに変換します。
-   * - `employee` が存在しない場合、もしくは `toObject` メソッドを持たない場合、そのままの値か、空のオブジェクトを返します。
-   *
-   * @returns {Object} - クラスインスタンスを表すオブジェクト
-   ****************************************************************************/
-  toObject() {
-    return {
-      ...super.toObject(),
-      employee:
-        this.employee && typeof this.employee.toObject === 'function'
-          ? this.employee.toObject()
-          : this.employee || null,
-    }
-  }
-
-  /****************************************************************************
-   * Firestoreから取得したデータをクラスインスタンスに変換します。
-   * - スーパークラスの `fromFirestore` メソッドを呼び出して基本のインスタンスを取得します。
-   * - 取得した `employee` データを新しい `Employee` クラスのインスタンスに変換します。
-   * - `employee` が存在しない場合、`null` を引数として渡して `Employee` のインスタンスを作成します。
-   *
-   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
-   * @returns {Object} - クラスインスタンス
-   ****************************************************************************/
-  fromFirestore(snapshot) {
-    // スーパークラスから基本のインスタンスを生成
-    const instance = super.fromFirestore(snapshot)
-
-    // employee データを新しい Employee クラスのインスタンスに変換
-    instance.employee = new Employee(instance?.employee || undefined)
-
-    // 変換したインスタンスを返す
-    return instance
   }
 
   /****************************************************************************
