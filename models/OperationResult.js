@@ -58,14 +58,17 @@ export default class OperationResult extends FireModel {
         get() {
           const result = this.workers.reduce(
             (sum, i) => {
-              if (i.qualification) {
-                sum.qualified[i.workResult] += 1
-                sum.qualified.total += 1
-              } else {
+              if (!i.qualification) {
                 sum.standard[i.workResult] += 1
                 sum.standard.total += 1
+                sum.standard.overtimeMinutes += i.overtimeMinutes
+              } else {
+                sum.qualified[i.workResult] += 1
+                sum.qualified.total += 1
+                sum.qualified.overtimeMinutes += i.overtimeMinutes
               }
               sum.total += 1
+              sum.overtimeMinutes += i.overtimeMinutes
               return sum
             },
             {
@@ -74,14 +77,17 @@ export default class OperationResult extends FireModel {
                 half: 0,
                 cancel: 0,
                 total: 0,
+                overtimeMinutes: 0,
               },
               qualified: {
                 normal: 0,
                 half: 0,
                 cancel: 0,
                 total: 0,
+                overtimeMinutes: 0,
               },
               total: 0,
+              overtimeMinutes: 0,
             }
           )
 
@@ -129,11 +135,92 @@ export default class OperationResult extends FireModel {
               price: unitPrices.qualified?.price ?? null,
               overtime: unitPrices.qualified?.overtime ?? null,
             },
+            halfRate: this.siteContract.halfRate,
+            cancelRate: this.siteContract.cancelRate,
           }
         },
         set(v) {
           // 空のsetメソッドを残す (Vueのリアクティブシステムのために必要)
         },
+      },
+      sales: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          const result = {
+            standard: {
+              normal: 0,
+              half: 0,
+              cancel: 0,
+              total: 0,
+              overtime: 0,
+            },
+            qualified: {
+              normal: 0,
+              half: 0,
+              cancel: 0,
+              total: 0,
+              overtime: 0,
+            },
+            total: 0,
+          }
+
+          // unitPriceとoperationCountの存在をチェック
+          if (!this.unitPrice || !this.operationCount) return result
+
+          // スタンダード料金の計算
+          result.standard.normal =
+            (this.operationCount.standard?.normal || 0) *
+            (this.unitPrice.standard?.price || 0)
+          result.standard.half =
+            ((this.operationCount.standard?.half || 0) *
+              (this.unitPrice.standard?.price || 0) *
+              (this.unitPrice.halfRate || 0)) /
+            100
+          result.standard.cancel =
+            ((this.operationCount.standard?.cancel || 0) *
+              (this.unitPrice.standard?.price || 0) *
+              (this.unitPrice.cancelRate || 0)) /
+            100
+          result.standard.overtime =
+            ((this.operationCount.standard?.overtimeMinutes || 0) / 60) *
+            (this.unitPrice.standard?.overtime || 0)
+
+          // 有資格者料金の計算
+          result.qualified.normal =
+            (this.operationCount.qualified?.normal || 0) *
+            (this.unitPrice.qualified?.price || 0)
+          result.qualified.half =
+            ((this.operationCount.qualified?.half || 0) *
+              (this.unitPrice.qualified?.price || 0) *
+              (this.unitPrice.halfRate || 0)) /
+            100
+          result.qualified.cancel =
+            ((this.operationCount.qualified?.cancel || 0) *
+              (this.unitPrice.qualified?.price || 0) *
+              (this.unitPrice.cancelRate || 0)) /
+            100
+          result.qualified.overtime =
+            ((this.operationCount.qualified?.overtimeMinutes || 0) / 60) *
+            (this.unitPrice.qualified?.overtime || 0)
+
+          // 合計を計算
+          result.standard.total =
+            result.standard.normal +
+            result.standard.half +
+            result.standard.cancel +
+            result.standard.overtime
+          result.qualified.total =
+            result.qualified.normal +
+            result.qualified.half +
+            result.qualified.cancel +
+            result.qualified.overtime
+
+          result.total = result.standard.total + result.qualified.total
+
+          return result
+        },
+        set(v) {},
       },
     })
   }

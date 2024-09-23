@@ -76,10 +76,10 @@ export default {
       </div>
     </template>
     <template #[`item.operationCount`]="{ item }">
-      {{ `${(item.operationCount || 0).toLocaleString()} 稼働` }}
+      {{ `${(item.operationCount.total || 0).toLocaleString()} 稼働` }}
     </template>
     <template #[`item.sales`]="{ item }">
-      {{ `${(item.sales || 0).toLocaleString()} 円` }}
+      {{ `${(item.sales.total || 0).toLocaleString()} 円` }}
     </template>
   </g-data-table>
 </template>
