@@ -540,4 +540,51 @@ export default class OperationResult extends FireModel {
       worker.date = effectiveDate
     })
   }
+
+  /****************************************************************************
+   * 適用される契約情報を現在設定されている現場、日付、勤務区分で更新します。
+   * - 現場（site）、日付（date）、勤務区分（workShift）がすべて設定されている場合にのみ契約情報を取得します。
+   * - siteContractプロパティが契約情報で更新されます。
+   * - 必要な情報が不足している場合、警告を出力し、処理を中断します。
+   * - 条件に該当する契約情報が存在しない、またはエラーが発生した場合、契約情報はnullになります。
+   * @returns {Promise<void>} - 処理が完了すると解決されるPromise。エラーが発生した場合はログに出力されます。
+   ****************************************************************************/
+  async refreshContract() {
+    // siteContractをリセット
+    this.siteContract = null
+
+    const { site, date, workShift } = this
+
+    // site、date、workShiftが揃っているかを確認
+    if (!site || !date || !workShift) {
+      // eslint-disable-next-line no-console
+      console.warn('[refreshContract] Missing required data:', {
+        site: !!site,
+        date: !!date,
+        workShift: !!workShift,
+      })
+      return
+    }
+
+    const params = { siteId: site.docId, date, workShift }
+
+    try {
+      const contract = new SiteContract()
+
+      // 契約情報のロード
+      await contract.loadContract(params)
+
+      // 契約情報が存在する場合のみ適用
+      this.siteContract = contract.docId ? contract : null
+
+      if (!this.siteContract) {
+        // eslint-disable-next-line no-console
+        console.warn('[refreshContract] No contract found for:', params)
+      }
+    } catch (err) {
+      // エラーハンドリング：契約情報の読み込み中にエラーが発生した場合
+      // eslint-disable-next-line no-console
+      console.error('[refreshContract] Failed to load SiteContract:', err)
+    }
+  }
 }
