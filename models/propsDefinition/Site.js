@@ -82,7 +82,7 @@ const propsDefinition = {
     type: Boolean,
     default: false,
     required: false,
-    requireByClass: false,
+    requiredByClass: false,
   },
 }
 

@@ -13,24 +13,24 @@ import { classProps } from './propsDefinition/WorkRegulation'
  */
 export default class WorkRegulation extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'WorkRegulations'
+  static classProps = classProps
+  static hasMany = [
+    {
+      collection: 'EmployeeContracts',
+      field: 'workRegulationId',
+      condition: '==',
+      type: 'collection',
+    },
+  ]
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(
-      item,
-      'WorkRegulations',
-      [
-        {
-          collection: 'EmployeeContracts',
-          field: 'workRegulationId',
-          condition: '==',
-          type: 'collection',
-        },
-      ],
-      false,
-      [],
-      classProps
-    )
+    super(item)
 
     Object.defineProperties(this, {
       /**

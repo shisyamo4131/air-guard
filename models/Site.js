@@ -17,56 +17,33 @@ export default class Site extends FireModel {
   #SiteContractInstance = new SiteContract()
   #SiteOperationScheduleInstance = new SiteOperationSchedule()
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'Sites'
+  static useAutonumber = true
+  static logicalDelete = true
+  static classProps = classProps
+  static tokenFields = ['abbr', 'abbrKana']
+  static hasMany = [
+    {
+      collection: 'SiteOperationSchedules',
+      field: 'siteId',
+      condition: '==',
+      type: 'subcollection',
+    },
+    {
+      collection: 'OperationResults',
+      field: 'siteId',
+      condition: '==',
+      type: 'collection',
+    },
+  ]
+
+  /****************************************************************************
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
     customer: Customer,
-  }
-
-  /****************************************************************************
-   * CONSTRUCTOR
-   ****************************************************************************/
-  constructor(item = {}) {
-    super(
-      item,
-      'Sites',
-      [
-        {
-          collection: 'SiteOperationSchedules',
-          field: 'siteId',
-          condition: '==',
-          type: 'subcollection',
-        },
-        {
-          collection: 'OperationResults',
-          field: 'siteId',
-          condition: '==',
-          type: 'collection',
-        },
-      ],
-      true,
-      ['abbr', 'abbrKana'],
-      classProps
-    )
-  }
-
-  /****************************************************************************
-   * FireModelのcreateメソッドをオーバーライドします。
-   * - コレクションを自動採番対象として、useAutonumberをデフォルトでtrueに設定します。
-   * - AirGuardとの同期処理を行う場合、自動採番を行わず登録するケースにも対応します。
-   * @param {string|null} docId - 作成するドキュメントのID（省略可能）
-   * @param {boolean} [useAutonumber=true] - 自動採番を行うかどうか（デフォルト: true）
-   * @returns {Promise<DocumentReference>} 作成されたドキュメントへの参照
-   * @throws {Error} ドキュメントの作成に失敗した場合にエラーをスローします
-   ****************************************************************************/
-  async create({ docId = null, useAutonumber = true } = {}) {
-    try {
-      return await super.create({ docId, useAutonumber })
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('ドキュメントの作成に失敗しました:', error)
-      throw new Error('ドキュメントの作成中にエラーが発生しました。')
-    }
   }
 
   /****************************************************************************

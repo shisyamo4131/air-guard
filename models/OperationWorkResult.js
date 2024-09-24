@@ -16,10 +16,16 @@ import { classProps } from './propsDefinition/OperationResultWorker'
  */
 export default class OperationWorkResult extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'OperationWorkResults'
+  static classProps = classProps
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(item, 'OperationWorkResults', [], false, [], classProps)
+    super(item)
 
     // FireModelが提供する不要なプロパティを削除
     delete this.tokenMap
@@ -55,15 +61,10 @@ export default class OperationWorkResult extends FireModel {
    * - operationResultId と employeeId が必須で、指定されていない場合はエラーをスローします。
    * @param {string|null} [docId=null] - 作成するドキュメントのID（省略可能だが固定されます）
    * @param {boolean} [useAutonumber=false] - 自動採番を行うかどうか（デフォルト: false）
-   * @param {Object|null} [transaction=null] - Firestoreトランザクションオブジェクト（省略可能）
    * @returns {Promise<void>} 処理が完了すると解決されるPromise
    * @throws {Error} operationResultIdまたはemployeeIdが指定されていない場合、または作成時にエラーが発生した場合にエラーをスローします
    ****************************************************************************/
-  async create({
-    docId = null,
-    useAutonumber = false,
-    transaction = null,
-  } = {}) {
+  async create() {
     // operationResultId と employeeId が必須であることを確認
     if (!this.operationResultId) {
       throw new Error(`[create] operationResultId is required.`)
@@ -73,11 +74,11 @@ export default class OperationWorkResult extends FireModel {
     }
 
     // docIdを`${operationResultId}-${employeeId}`に固定
-    docId = `${this.operationResultId}-${this.employeeId}`
+    const docId = `${this.operationResultId}-${this.employeeId}`
 
     try {
       // 親クラスのcreateメソッドを呼び出し
-      return await super.create({ docId, useAutonumber, transaction })
+      return await super.create({ docId })
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(`[create] An error has occurred: ${err.message}`, { err })

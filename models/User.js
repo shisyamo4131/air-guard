@@ -15,9 +15,9 @@ import { classProps } from './propsDefinition/User'
  */
 export default class User extends FireModel {
   /****************************************************************************
-   * CONSTRUCTOR
+   * STATIC
    ****************************************************************************/
-  constructor(item = {}) {
-    super(item, 'Users', [], true, [], classProps)
-  }
+  static collectionPath = 'Users'
+  static logicalDelete = true
+  static classProps = classProps
 }

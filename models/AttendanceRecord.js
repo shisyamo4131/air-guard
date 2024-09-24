@@ -22,6 +22,12 @@ import { classProps } from './propsDefinition/AttendanceRecord'
  */
 export default class AttendanceRecord extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'AttendanceRecords'
+  static classProps = classProps
+
+  /****************************************************************************
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
@@ -32,7 +38,7 @@ export default class AttendanceRecord extends FireModel {
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(item, 'AttendanceRecords', [], false, [], classProps)
+    super(item)
     Object.defineProperties(this, {
       overTimeTotal: {
         enumerable: true,

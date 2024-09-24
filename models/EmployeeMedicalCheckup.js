@@ -14,6 +14,12 @@ import { classProps } from './propsDefinition/EmployeeMedicalCheckup'
  */
 export default class EmployeeMedicalCheckup extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'EmployeeMedicalCheckups'
+  static classProps = classProps
+
+  /****************************************************************************
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
@@ -24,7 +30,7 @@ export default class EmployeeMedicalCheckup extends FireModel {
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(item, 'EmployeeMedicalCheckups', [], false, [], classProps)
+    super(item)
   }
 
   /****************************************************************************
@@ -82,6 +88,6 @@ export default class EmployeeMedicalCheckup extends FireModel {
    ****************************************************************************/
   async create() {
     const docId = `${this.employeeId}-${this.date}`
-    await super.create({ docId })
+    return await super.create({ docId })
   }
 }

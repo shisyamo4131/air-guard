@@ -18,10 +18,17 @@ import { classProps } from './propsDefinition/Autonumber'
  */
 export default class Autonumber extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'Autonumbers'
+  static classProps = classProps
+  static tokenFields = ['collectionId']
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(item, 'Autonumbers', [], false, ['collectionId'], classProps)
+    super(item)
   }
 
   /****************************************************************************

@@ -13,6 +13,12 @@ import { isValidDateFormat } from '~/utils/utility'
  */
 export default class SiteContract extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'SiteContracts'
+  static classProps = classProps
+
+  /****************************************************************************
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
@@ -23,7 +29,7 @@ export default class SiteContract extends FireModel {
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(item, 'SiteContracts', [], false, [], classProps)
+    super(item)
     Object.defineProperties(this, {
       workMinutes: {
         enumerable: true,

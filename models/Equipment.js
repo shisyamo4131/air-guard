@@ -11,24 +11,18 @@ import { classProps } from './propsDefinition/Equipment'
  */
 export default class Equipment extends FireModel {
   /****************************************************************************
-   * CONSTRUCTOR
+   * STATIC
    ****************************************************************************/
-  constructor(item = {}) {
-    super(
-      item,
-      'Equipments',
-      [
-        {
-          collection: 'EquipmentTransactions',
-          field: 'equipmentId',
-          condition: '==',
-          type: 'collection',
-        },
-      ],
-      true,
-      ['name'],
-      classProps
-    )
-    this.tokenFields = ['name']
-  }
+  static collectionPath = 'Equipments'
+  static logicalDelete = true
+  static classProps = classProps
+  static tokenFields = ['name']
+  static hasMany = [
+    {
+      collection: 'EquipmentTransactions',
+      field: 'equipmentId',
+      condition: '==',
+      type: 'collection',
+    },
+  ]
 }

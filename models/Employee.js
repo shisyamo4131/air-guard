@@ -16,36 +16,39 @@ import EmployeeContract from './EmployeeContract'
 export default class Employee extends FireModel {
   #EmployeeContractInstance = new EmployeeContract()
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'Employees'
+  static useAutonumber = true
+  static logicalDelete = true
+  static classProps = classProps
+  static tokenFields = ['lastNameKana', 'firstNameKana', 'abbr']
+  static hasMany = [
+    {
+      collection: 'EmployeeContracts',
+      field: 'employeeId',
+      condition: '==',
+      type: 'collection',
+    },
+    {
+      collection: 'EmployeeMedicalCheckups',
+      field: 'employeeId',
+      condition: '==',
+      type: 'collection',
+    },
+    {
+      collection: 'OperationResults',
+      field: 'employeeId',
+      condition: 'array-contains',
+      type: 'collection',
+    },
+  ]
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(
-      item,
-      'Employees',
-      [
-        {
-          collection: 'EmployeeContracts',
-          field: 'employeeId',
-          condition: '==',
-          type: 'collection',
-        },
-        {
-          collection: 'EmployeeMedicalCheckups',
-          field: 'employeeId',
-          condition: '==',
-          type: 'collection',
-        },
-        {
-          collection: 'OperationResults',
-          field: 'employeeId',
-          condition: 'array-contains',
-          type: 'collection',
-        },
-      ],
-      true,
-      ['lastNameKana', 'firstNameKana', 'abbr'],
-      classProps
-    )
+    super(item)
     Object.defineProperties(this, {
       fullName: {
         enumerable: true,
@@ -64,24 +67,6 @@ export default class Employee extends FireModel {
         set(v) {},
       },
     })
-  }
-
-  /****************************************************************************
-   * FireModelのcreateをオーバーライドします。
-   * - コレクションを自動採番対象として、createのuseAutonumberをtrueに固定します。
-   * @param {string|null} docId - 作成するドキュメントのID（省略可能）
-   * @param {boolean} [useAutonumber=true] - 自動採番を行うかどうか（デフォルト: true）
-   * @returns {Promise<DocumentReference>} 作成されたドキュメントへの参照
-   * @throws {Error} ドキュメントの作成に失敗した場合
-   ****************************************************************************/
-  async create({ docId = null, useAutonumber = true } = {}) {
-    try {
-      return await super.create({ docId, useAutonumber })
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('ドキュメントの作成に失敗しました:', error)
-      throw new Error('ドキュメントの作成中にエラーが発生しました。')
-    }
   }
 
   /****************************************************************************

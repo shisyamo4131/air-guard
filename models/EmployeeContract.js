@@ -15,6 +15,12 @@ import WorkRegulation from './WorkRegulation'
  */
 export default class EmployeeContract extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'EmployeeContracts'
+  static classProps = classProps
+
+  /****************************************************************************
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
@@ -26,7 +32,7 @@ export default class EmployeeContract extends FireModel {
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(item, 'EmployeeContracts', [], false, [], classProps)
+    super(item)
   }
 
   /****************************************************************************
@@ -94,7 +100,7 @@ export default class EmployeeContract extends FireModel {
    ****************************************************************************/
   async create() {
     const docId = `${this.employeeId}-${this.startDate}`
-    await super.create({ docId })
+    return await super.create({ docId })
   }
 
   /****************************************************************************

@@ -23,16 +23,22 @@
  * - version 1.0.0 - 2024-09-16 - 初版作成
  */
 
-import { runTransaction } from 'firebase/firestore'
+import { collection, doc } from 'firebase/firestore'
 import { FireModel, firestore } from 'air-firebase'
 import { classProps } from './propsDefinition/SiteOperationSchedule'
 
 export default class SiteOperationSchedule extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'SiteOperationSchedules'
+  static classProps = classProps
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(item, 'SiteOperationSchedules', [], false, [], classProps)
+    super(item)
   }
 
   /****************************************************************************
@@ -92,7 +98,7 @@ export default class SiteOperationSchedule extends FireModel {
    * - ドキュメントの作成時は、`dates`プロパティに格納されているすべての日付について一括で作成します。
    * - `docId`は`${siteId}-${date}-${workShift}`に固定されます。
    * - 生成した`docId`を使用して親クラスのcreateメソッドを呼び出します。
-   *
+   * - 親クラスのcreateメソッドのtransactionコールバックを利用して、`dates`に指定された日数分のドキュメントを作成します。
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
    * @throws {Error} ドキュメント作成中にエラーが発生した場合にエラーをスローします
    ****************************************************************************/
@@ -101,13 +107,22 @@ export default class SiteOperationSchedule extends FireModel {
       throw new Error('[create] 日付が選択されていません。')
     }
     try {
-      await runTransaction(firestore, async (transaction) => {
-        for (const date of this.dates) {
-          // `docId`を`${siteId}-${date}-${workShift}`の形式で生成
-          const docId = `${this.siteId}-${date}-${this.workShift}`
-          this.date = date
-          await super.create({ docId, transaction })
-        }
+      this.date = this.dates[0]
+      const docId = `${this.siteId}-${this.date}-${this.workShift}`
+      await super.create({
+        docId,
+        transaction: (transaction, origin) => {
+          const otherDates = [...this.dates].slice(1)
+          for (const date of otherDates) {
+            const newDocId = `${this.siteId}-${date}-${this.workShift}`
+            const colRef = collection(
+              firestore,
+              this.constructor.collectionPath
+            )
+            const docRef = doc(colRef, newDocId)
+            transaction.set(docRef, { ...origin, docId: newDocId, date })
+          }
+        },
       })
     } catch (err) {
       // eslint-disable-next-line no-console

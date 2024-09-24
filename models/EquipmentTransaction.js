@@ -11,6 +11,12 @@ import { classProps } from './propsDefinition/EquipmentTransaction'
  */
 export default class Equipment extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'EquipmentTransactions'
+  static classProps = classProps
+
+  /****************************************************************************
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
@@ -21,7 +27,7 @@ export default class Equipment extends FireModel {
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(item, 'EquipmentTransactions', [], false, ['name'], classProps)
+    super(item)
   }
 
   /****************************************************************************
@@ -79,6 +85,6 @@ export default class Equipment extends FireModel {
    ****************************************************************************/
   async create() {
     const docId = `${this.equipmentId}-${this.date}`
-    await super.create({ docId })
+    return await super.create({ docId })
   }
 }

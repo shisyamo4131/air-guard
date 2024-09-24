@@ -14,42 +14,21 @@ import { classProps } from './propsDefinition/Customer'
  */
 export default class Customer extends FireModel {
   /****************************************************************************
-   * CONSTRUCTOR
+   * STATIC
    ****************************************************************************/
-  constructor(item = {}) {
-    super(
-      item,
-      'Customers',
-      [
-        {
-          collection: 'Sites',
-          field: 'customer.docId',
-          condition: '==',
-          type: 'collection',
-        },
-      ],
-      true,
-      ['abbr', 'abbrKana'],
-      classProps
-    )
-  }
-
-  /****************************************************************************
-   * FireModelのcreateをオーバーライドします。
-   * - コレクションを自動採番対象として、createのuseAutonumberをtrueに固定します。
-   * @param {string} docId - 作成するドキュメントのID
-   * @returns {Promise<DocumentReference>} 作成されたドキュメントへの参照
-   * @throws {Error} ドキュメントの作成に失敗した場合
-   ****************************************************************************/
-  async create({ docId = null, useAutonumber = true } = {}) {
-    try {
-      return await super.create({ docId, useAutonumber })
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('ドキュメントの作成に失敗しました:', error)
-      throw new Error('ドキュメントの作成中にエラーが発生しました。')
-    }
-  }
+  static collectionPath = 'Customers'
+  static useAutonumber = true
+  static logicalDelete = true
+  static classProps = classProps
+  static tokenFields = ['abbr', 'abbrKana']
+  static hasMany = [
+    {
+      collection: 'Sites',
+      field: 'customer.docId',
+      condition: '==',
+      type: 'collection',
+    },
+  ]
 
   /****************************************************************************
    * 指定された取引先codeに該当する取引先ドキュメントデータを配列で返します。
