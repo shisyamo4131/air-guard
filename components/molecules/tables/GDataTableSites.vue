@@ -111,7 +111,7 @@ export default {
             {{ item.name }}
           </div>
           <div class="text-caption grey--text text--darken-1">
-            {{ item.customer.abbr }}
+            {{ item.customer?.abbr || '' }}
           </div>
         </div>
       </div>

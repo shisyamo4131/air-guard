@@ -27,7 +27,11 @@ export default {
    ***************************************************************************/
   computed: {
     sortedItems() {
-      return this.items.slice().reverse()
+      return this.items.slice().sort((a, b) => {
+        if (a.id < b.id) return 1
+        if (a.id > b.id) return -1
+        return 0
+      })
     },
   },
 }
