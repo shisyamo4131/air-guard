@@ -22,16 +22,6 @@ export default class OperationWorkResult extends FireModel {
   static classProps = classProps
 
   /****************************************************************************
-   * CONSTRUCTOR
-   ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
-
-    // FireModelが提供する不要なプロパティを削除
-    delete this.tokenMap
-  }
-
-  /****************************************************************************
    * initializeをオーバーライドします。
    * - `OperationResultWorker`データモデルで定義されたプロパティ以外に、
    *   `operationResultId`を保有するようにします。
@@ -64,7 +54,7 @@ export default class OperationWorkResult extends FireModel {
    * @returns {Promise<void>} 処理が完了すると解決されるPromise
    * @throws {Error} operationResultIdまたはemployeeIdが指定されていない場合、または作成時にエラーが発生した場合にエラーをスローします
    ****************************************************************************/
-  async create() {
+  async create({ transaction = null } = {}, callBack = null) {
     // operationResultId と employeeId が必須であることを確認
     if (!this.operationResultId) {
       throw new Error(`[create] operationResultId is required.`)
@@ -78,7 +68,7 @@ export default class OperationWorkResult extends FireModel {
 
     try {
       // 親クラスのcreateメソッドを呼び出し
-      return await super.create({ docId })
+      return await super.create({ docId, transaction }, callBack)
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(`[create] An error has occurred: ${err.message}`, { err })

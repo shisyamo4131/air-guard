@@ -23,7 +23,7 @@
  * - version 1.0.0 - 2024-09-16 - 初版作成
  */
 
-import { collection, doc } from 'firebase/firestore'
+import { runTransaction } from 'firebase/firestore'
 import { FireModel, firestore } from 'air-firebase'
 import { classProps } from './propsDefinition/SiteOperationSchedule'
 
@@ -98,7 +98,7 @@ export default class SiteOperationSchedule extends FireModel {
    * - ドキュメントの作成時は、`dates`プロパティに格納されているすべての日付について一括で作成します。
    * - `docId`は`${siteId}-${date}-${workShift}`に固定されます。
    * - 生成した`docId`を使用して親クラスのcreateメソッドを呼び出します。
-   * - 親クラスのcreateメソッドのtransactionコールバックを利用して、`dates`に指定された日数分のドキュメントを作成します。
+   * - 親クラスのcreateメソッドのtransactionオプションを利用して、`dates`に指定された日数分のドキュメントを作成します。
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
    * @throws {Error} ドキュメント作成中にエラーが発生した場合にエラーをスローします
    ****************************************************************************/
@@ -107,22 +107,12 @@ export default class SiteOperationSchedule extends FireModel {
       throw new Error('[create] 日付が選択されていません。')
     }
     try {
-      this.date = this.dates[0]
-      const docId = `${this.siteId}-${this.date}-${this.workShift}`
-      await super.create({
-        docId,
-        transaction: (transaction, origin) => {
-          const otherDates = [...this.dates].slice(1)
-          for (const date of otherDates) {
-            const newDocId = `${this.siteId}-${date}-${this.workShift}`
-            const colRef = collection(
-              firestore,
-              this.constructor.collectionPath
-            )
-            const docRef = doc(colRef, newDocId)
-            transaction.set(docRef, { ...origin, docId: newDocId, date })
-          }
-        },
+      await runTransaction(firestore, async (transaction) => {
+        for (const date of this.dates) {
+          const docId = `${this.siteId}-${date}-${this.workShift}`
+          this.date = date
+          await super.create({ docId, transaction })
+        }
       })
     } catch (err) {
       // eslint-disable-next-line no-console
