@@ -3,99 +3,20 @@ const { error, info, warn } = require('firebase-functions/logger')
 const { getMessage } = require('./firestore-messages.js')
 const firestore = getFirestore()
 /**
- * [Cloud Functions用にカスタマイズしたバージョン]
- * FireModelクラスは、Firestoreコレクションに対する基本的なCRUD操作を提供するための基盤クラスです。
- * このクラスを継承して、特定のコレクションに対応するデータモデルを実装できます。
- *
- * 主な機能:
- * - Firestoreコレクションに対するドキュメントの作成、読み込み、更新、削除（CRUD）操作をサポート
- * - Firestoreクエリを使用した複数ドキュメントの取得
- * - 自動採番機能を利用したドキュメント作成
- * - 論理削除のオプションを提供し、削除されたドキュメントをアーカイブコレクションに移動可能
- * - Firestoreのリアルタイムリスナーを使用したドキュメントの監視
- * - 依存するコレクション（hasMany）の管理
- * - Firestoreの脆弱なクエリを補うため、指定されたプロパティに対するtokenMapを生成します。
- *
- * 使用方法:
- * このクラスは直接使用せず、特定のコレクションに対応するサブクラスを作成して使用します。
- * サブクラスで独自のフィールドやメソッドを追加することで、特定のビジネスロジックに対応可能です。
- *
- * コンストラクタの使用例:
- * ```javascript
- * class OrderModel extends FireModel {
- *   constructor(data = {}) {
- *     super(
- *       data,
- *       'orders',
- *       [
- *         { collection: 'orderItems', field: 'orderId', condition: '==', type: 'subcollection' }
- *       ],
- *       true // `true` は論理削除を有効にするフラグ,
- *       tokenFields: ['name']
- *     );
- *   }
- *
- *   // サブクラスで使用するプロパティはinitializeメソッドで定義します。
- *   // Object.definePropertyを使用する場合はconstructor内に定義します。
- *   initialize(item = {}) {
- *     this.name = ''
- *     super.initialize(item)
- *   }
- *
- *   // OrderModelに固有のメソッドを追加
- *   calculateTotal() {
- *     return this.items.reduce((total, item) => total + item.price, 0);
- *   }
- * }
- * ```
- * - `collectionPath`: 'orders'は、このモデルが対象とするFirestoreコレクションのパスです。
- * - `hasMany`: 'orderItems'ドキュメントが`orders`ドキュメントに依存していることを表します。
- *   この設定により`orderItems`ドキュメントが存在する`orders`ドキュメントの削除を抑制することができます。
- * - `logicalDelete`: `true`に設定することで、ドキュメントの削除時に論理削除が適用され、ドキュメントはアーカイブされます。
- * - `tokenFields`: tokenMapとして生成する対象のプロパティを指定します。
- *
- * tokenMap:
- * - Firestoreの脆弱なクエリを補完するための、Ngram検索を行うためのフィールドです。
- * - Firestoreのデータのkeyに使用することができないため、サロゲートペア文字列は除外されます。
- *
- * classProps:
- * - このクラスはbeforeCreate、beforeUpdateで`classProps`に定義されたプロパティの入力チェックを行います。
- * - `classProps`はクラスで使用するプロパティを以下の形式で定義したものです。
- *    docId: { type: String, default: '', required: false, requiredByClass: false }
- * - 自動採番で値がセットされるプロパティには`requiredByClass`をtrueにしないでください。
- *   validatePropertiesは自動採番が行われる前に実行されるため、エラーになります。
- *
- * createメソッド:
- * ‐ `transaction`引数を与えると、トランザクション処理を行います。
- *
- * 注意:
- * - このクラスは、FirestoreのドキュメントIDや作成日時、更新日時、ユーザーIDなどのメタデータを自動管理します。
- * - コレクション間の依存関係（hasMany）は、このクラスを通じて管理され、削除時の整合性を保証します。
- * - 論理削除を有効にした場合、削除されたドキュメントは自動的にアーカイブコレクションに移動されます。
- * - Firestoreのリアルタイムリスナーを活用することで、ドキュメントの変更をリアルタイムで監視し、自動的にデータモデルに反映します。
- *
- * @author shisyamo4131
- * @version 1.4.0
- * @see https://firebase.google.com/docs/firestore
- * @updates
- * - version 1.6.0 - 2024-09-04 - cloneメソッドを追加
- * - version 1.5.0 - 2024-08-27 - create、update、deleteがtransactionを引数として受け取ることができるように改善。
- * - version 1.4.0 - 2024-08-26 - validatePropertiesを実装し、beforeCreate、beforeUpdateで入力チェックを行うように修正
- *                              - サブクラスでのプロパティ初期化処理をinitializeメソッドにて実装
- *                              - tokenMapに`configurable`を設定。
- * - version 1.3.0 - 2024-08-23 - deleteAll()を実装
- *                              - fetch()が結果に応じて`Boolean`を返すように修正
- * - version 1.2.0 - 2024-08-22 - converterをプライベートからパブリックに変更
- *                              - fromFirestoreをオーバーライド可能な関数として実装
- * - version 1.1.0 - 2024-08-21 - tokenMapフィールドを追加
- *                              - constructorのhasManyについて内容をチェックするコードを追加
- * - version 1.0.0 - 2024-08-19 - 初版完成
+ * [FireMode を Cloud Functions 用にカスタマイズしたバージョン]
  */
 class FireModel {
-  /**
-   * ドキュメントのコレクションパスです。
-   */
+  // Firestoreのコレクション名です。
   #collectionPath = ''
+
+  // ドキュメントの作成時に自動採番を採用するかどうかを表すフラグです。
+  #useAutonumber = false
+
+  // ドキュメントの削除処理を論理的に行うかどうかのフラグです。
+  #logicalDelete = false
+
+  // クラスに適用されるべきプロパティの定義です。
+  #classProps = {}
 
   /**
    * ドキュメントに依存するコレクション情報を格納するプロパティです。
@@ -108,17 +29,8 @@ class FireModel {
    */
   #hasMany = []
 
-  /**
-   * ドキュメントの削除時に論理削除を適用するかどうかを表すフラグです。
-   */
-  #logicalDelete = false
-
-  /**
-   * tokenMapに反映させるフィールドのリストです。
-   */
+  // tokenMapに反映させるフィールドのリストです。
   #tokenFields = []
-
-  #classProps = {}
 
   /**
    * FireModelクラスのインスタンスを初期化します。
@@ -126,26 +38,14 @@ class FireModel {
    * 依存関係のあるコレクションの管理や論理削除の処理も可能です。
    *
    * @param {Object} item - 初期化するデータモデルのプロパティを含むオブジェクト
-   * @param {string} collectionPath - Firestoreコレクションのパス
-   * @param {Array<Object>} hasMany - 依存するコレクションの情報を格納した配列
-   * @param {boolean} logicalDelete - 論理削除を行うかどうかを指定するフラグ
-   * @param {Array<Object>} tokenFields - tokenMap作成対象のプロパティ名の配列
-   * @param {Object} classProps - クラスに用意するプロパティの定義を表したオブジェクト
    */
-  constructor(
-    item = {},
-    collectionPath = '',
-    hasMany = [],
-    logicalDelete = false,
-    tokenFields = [],
-    classProps = {}
-  ) {
-    this.#collectionPath = collectionPath
-    this.#validateHasMany(hasMany)
-    this.#hasMany = hasMany
-    this.#logicalDelete = logicalDelete
-    this.#tokenFields = tokenFields
-    this.#classProps = classProps
+  constructor(item = {}) {
+    this.#loadCollectionPath()
+    this.#loadClassProps()
+    this.#loadUseAutonumber()
+    this.#loadLogicalDelete()
+    this.#loadHasMany()
+    this.#loadTokenFields()
     this.initialize(item)
     Object.defineProperties(this, {
       tokenMap: {
@@ -158,39 +58,160 @@ class FireModel {
   }
 
   /****************************************************************************
-   * 当該インスタンスを複製したインスタンスを返します。
-   * - vueコンポーネントにおいてインスタンスを親に返す場合など、参照渡しを回避するのに使用します。
-   * @returns {this.constructor} - 複製された新しいインスタンス
+   * 引数にはエラー時に出力されるコードサンプルを文字列で受け取ります。
+   * 各行のインデントを調整して返します。
+   * @returns {string} インデントが調整されたコードサンプル（文字列）
    ****************************************************************************/
-  clone() {
-    return new this.constructor(this)
+  removeIndentation(str) {
+    // 最初と最後の余分な改行やスペースを削除
+    const trimmedStr = str.trim()
+
+    // 文字列を行ごとに分割
+    const lines = ['--', ...trimmedStr.split('\n'), '--']
+
+    // インデントがある行のみを対象に最小のインデント長を計算
+    const indentLength = lines
+      .filter((line) => line.trim().length > 0 && line.match(/^\s+/)) // 空行とインデントがない行を除外
+      .reduce((min, line) => {
+        const match = line.match(/^(\s+)/) // 行頭のスペースを取得
+        return match ? Math.min(min, match[1].length) : min
+      }, Infinity)
+
+    // インデントを削除して再構成
+    return lines
+      .map((line) => {
+        // 空行ならそのまま返す。インデントがある行のみインデントを削除
+        return line.trim().length === 0 || !line.match(/^\s+/)
+          ? line
+          : line.slice(indentLength)
+      })
+      .join('\n')
   }
 
   /****************************************************************************
-   * コンストラクタに引き渡されたhasManyについて検証します。
-   * - hasManyプロパティは配列である必要があります。
-   * - 各要素はオブジェクトであり、必要なプロパティを持っていることを確認します。
-   * - 必須キーは "collection", "field", "condition", "type" です。
-   * - "type" プロパティには "collection" または "subcollection" のみを指定できます。
+   * サブクラスに定義された `classProps` の値を、自身の `#classProps` にセットします。
+   * - `classProps` が未定義の場合は、空のオブジェクトをセットします。
+   * - 各プロパティはオブジェクトであり、必須のキーとして `type`、`default`、`required` を持ちます。
+   * - `type` は `String`, `Number`, `Boolean`, `Object`, `Array`, `Function` のいずれかである必要があります。
+   * - `required` は `Boolean` 型でなければなりません。
    *
-   * @param {Array<Object>} hasMany コンストラクタで受け取ったhasMany
-   * @throws {Error} バリデーションに失敗した場合にエラーをスローします。
+   * @throws {Error} - `classProps` の形式が正しくない場合、エラーをスローします。
+   * @returns {void}
    ****************************************************************************/
-  #validateHasMany(hasMany) {
-    if (!Array.isArray(hasMany)) {
-      throw new TypeError('hasManyプロパティは配列である必要があります。')
+  #loadClassProps() {
+    const sender = `${this.#collectionPath} - loadClassProps`
+
+    // `classProps` が未定義の場合は空のオブジェクトをセット
+    if (typeof this.constructor.classProps === 'undefined') {
+      this.#classProps = {}
+      return // early return for clarity
     }
 
-    hasMany.forEach((relation, index) => {
+    // `classProps` がオブジェクトであることを確認
+    if (
+      typeof this.constructor.classProps !== 'object' ||
+      this.constructor.classProps === null
+    ) {
+      throw new Error(getMessage(sender, 'CLASS_PROPS_MUST_BE_OBJECT'))
+    }
+
+    // 各プロパティの検証
+    Object.entries(this.constructor.classProps).forEach(([key, value]) => {
+      // プロパティがオブジェクトであることを確認
+      if (typeof value !== 'object' || value === null) {
+        throw new Error(getMessage(sender, 'CLASS_PROP_MUST_BE_OBJECT', key))
+      }
+
+      // 必要なキーの確認
+      const requiredKeys = ['type', 'default', 'required']
+      requiredKeys.forEach((requiredKey) => {
+        if (!(requiredKey in value)) {
+          throw new Error(
+            getMessage(sender, 'CLASS_PROP_REQUIRES_KEY', key, requiredKey)
+          )
+        }
+      })
+
+      // `type` の確認（指定された型のいずれか）
+      const validTypes = [String, Number, Boolean, Object, Array, Function]
+      if (!validTypes.includes(value.type)) {
+        throw new Error(getMessage(sender, 'CLASS_PROP_TYPE_INVALID', key))
+      }
+
+      // `required` が Boolean であることを確認
+      if (typeof value.required !== 'boolean') {
+        throw new TypeError(
+          getMessage(sender, 'CLASS_PROP_REQUIRED_INVALID', key)
+        )
+      }
+    })
+
+    // `classProps` を自身のプロパティにセット
+    this.#classProps = { ...this.constructor.classProps } // シャローコピーを作成
+  }
+
+  /****************************************************************************
+   * サブクラスに定義された `collectionPath` の値を、自身の `#collectionPath` に
+   * 読み込みます。
+   * @throws {Error} サブクラスに `collectionPath` が定義されていない場合、エラーをスローします。
+   * @returns {void}
+   ****************************************************************************/
+  #loadCollectionPath() {
+    const sender = `[FireModel.js] - loadCollectionPath`
+
+    if (typeof this.constructor.collectionPath === 'undefined') {
+      const sample = `
+        class SubClass extends Firemodel {
+          static collectionPath = 'SubClasses';
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+          constructor(item) {
+            ...
+          }
+        }
+      `
+      throw new Error(
+        getMessage(sender, 'NO_COLLECTION_PATH', this.removeIndentation(sample))
+      )
+    }
+    this.#collectionPath = this.constructor.collectionPath
+  }
+
+  /****************************************************************************
+   * サブクラスに定義された `hasMany` プロパティを取得し、自身の `#hasMany` にセットします。
+   * - `hasMany` が未定義の場合は `#hasMany` に空の配列をセットします。
+   * - `hasMany` が配列であることを確認し、各要素の形式もチェックします。
+   * @throws {Error} サブクラスの `hasMany` が配列ではない、または形式が正しくない場合にエラーをスローします。
+   * @returns {void}
+   ****************************************************************************/
+  #loadHasMany() {
+    const sender = `${this.#collectionPath} - loadHasMany`
+
+    // `hasMany` が未定義の場合は空の配列をセット
+    if (typeof this.constructor.hasMany === 'undefined') {
+      this.#hasMany = []
+      return
+    }
+
+    // `hasMany` が配列であることを確認
+    if (!Array.isArray(this.constructor.hasMany)) {
+      throw new TypeError(getMessage(sender, 'HAS_MANY_NOT_ARRAY'))
+    }
+
+    // 各要素を検証
+    this.constructor.hasMany.forEach((relation, index) => {
       const requiredKeys = ['collection', 'field', 'condition', 'type']
-      const allowedKeys = new Set(requiredKeys)
+      const validTypes = ['collection', 'subcollection'] // 有効なタイプを定義
 
       // 各要素がオブジェクトであることを確認
       if (typeof relation !== 'object' || relation === null) {
         throw new Error(
-          `hasManyプロパティの要素はオブジェクトである必要があります。インデックス: ${index}, 値: ${JSON.stringify(
-            relation
-          )}`
+          getMessage(
+            sender,
+            'HAS_MANY_MUST_BE_OBJECT',
+            this.#collectionPath,
+            index,
+            JSON.stringify(relation)
+          )
         )
       }
 
@@ -198,34 +219,161 @@ class FireModel {
       requiredKeys.forEach((key) => {
         if (!(key in relation)) {
           throw new Error(
-            `hasManyプロパティの要素には${key}プロパティが必要です。インデックス: ${index}, 値: ${JSON.stringify(
-              relation
-            )}`
+            getMessage(
+              sender,
+              'HAS_MANY_REQUIRES_KEY',
+              this.#collectionPath,
+              index,
+              JSON.stringify(relation)
+            )
           )
         }
       })
 
-      // 余分なキーがないことを確認
+      // 余分なキーが含まれていないことを確認
       Object.keys(relation).forEach((key) => {
-        if (!allowedKeys.has(key)) {
+        if (!requiredKeys.includes(key)) {
           throw new Error(
-            `hasManyプロパティの要素に無効なプロパティ${key}が含まれています。インデックス: ${index}, 値: ${JSON.stringify(
-              relation
-            )}`
+            getMessage(
+              sender,
+              'HAS_MANY_INVALID_KEY',
+              this.#collectionPath,
+              index,
+              JSON.stringify(relation)
+            )
           )
         }
       })
 
-      // typeプロパティの値を確認
-      const validTypes = ['collection', 'subcollection']
+      // typeプロパティの値が正しいかを確認
       if (!validTypes.includes(relation.type)) {
         throw new Error(
-          `hasManyプロパティのtypeプロパティには'collection'または'subcollection'のみ使用できます。インデックス: ${index}, 値: ${JSON.stringify(
-            relation
-          )}`
+          getMessage(
+            sender,
+            'HAS_MANY_INVALID_TYPE',
+            this.#collectionPath,
+            index,
+            JSON.stringify(relation)
+          )
         )
       }
     })
+
+    // `hasMany` が定義されていて、配列である場合のみセット
+    this.#hasMany = this.constructor.hasMany
+  }
+
+  /****************************************************************************
+   * サブクラスに定義された `useAutonumber` の値を、自身の `#useAutonumber` に
+   * 読み込みます。
+   * - サブクラスで `useAutonumber` が定義されていない場合、`#useAutonumber` は false になります。
+   * - サブクラスの `useAutonumber` がブール値でない場合、エラーをスローします。
+   * @returns {void}
+   ****************************************************************************/
+  #loadUseAutonumber() {
+    const sender = `${this.#collectionPath} - loadUseAutonumber`
+
+    // サブクラスで useAutonumber が未定義の場合、false を設定
+    if (typeof this.constructor.useAutonumber === 'undefined') {
+      this.#useAutonumber = false
+      return // early return for clarity
+    }
+
+    // useAutonumber がブール値でない場合、エラーをスロー
+    if (typeof this.constructor.useAutonumber !== 'boolean') {
+      throw new TypeError(
+        getMessage(
+          sender,
+          'USE_AUTONUMBER_MUST_BE_BOOLEAN',
+          this.#collectionPath,
+          this.constructor.useAutonumber
+        )
+      )
+    }
+
+    // useAutonumber がブール値であれば、その値を設定
+    this.#useAutonumber = this.constructor.useAutonumber
+  }
+
+  /****************************************************************************
+   * サブクラスに定義された `logicalDelete` の値を、自身の `#logicalDelete` に
+   * 読み込みます。
+   * - サブクラスで `logicalDelete` が定義されていない場合、`#logicalDelete` は false になります。
+   * - サブクラスの `logicalDelete` がブール値でない場合、エラーをスローします。
+   * @returns {void}
+   ****************************************************************************/
+  #loadLogicalDelete() {
+    const sender = `${this.#collectionPath} - loadLogicalDelete`
+
+    // サブクラスで logicalDelete が未定義の場合、false を設定
+    if (typeof this.constructor.logicalDelete === 'undefined') {
+      this.#logicalDelete = false
+      return // early return for clarity
+    }
+
+    // logicalDelete がブール値でない場合、エラーをスロー
+    if (typeof this.constructor.logicalDelete !== 'boolean') {
+      throw new TypeError(
+        getMessage(
+          sender,
+          'LOGICAL_DELETE_MUST_BE_BOOLEAN',
+          this.#collectionPath,
+          this.constructor.logicalDelete
+        )
+      )
+    }
+
+    // logicalDelete がブール値であれば、その値を設定
+    this.#logicalDelete = this.constructor.logicalDelete
+  }
+
+  /****************************************************************************
+   * サブクラスに定義された `tokenFields` の値を、自身の `#tokenFields` に
+   * 読み込みます。
+   * - サブクラスで `tokenFields` が定義されていない場合、`#tokenFields` は空の配列になります。
+   * - サブクラスの `tokenFields` が配列でない場合、エラーをスローします。
+   * - 各要素が文字列でない場合、エラーをスローします。
+   * @returns {void}
+   ****************************************************************************/
+  #loadTokenFields() {
+    const sender = `${this.#collectionPath} - loadTokenFields`
+
+    // `tokenFields` が未定義の場合は空の配列をセット
+    if (typeof this.constructor.tokenFields === 'undefined') {
+      this.#tokenFields = []
+      return // early return for clarity
+    }
+
+    // `tokenFields` が配列であることを確認
+    if (!Array.isArray(this.constructor.tokenFields)) {
+      throw new TypeError(getMessage(sender, 'TOKEN_FIELDS_MUST_BE_ARRAY'))
+    }
+
+    // `tokenFields` の各要素が文字列であることを確認
+    this.constructor.tokenFields.forEach((field, index) => {
+      if (typeof field !== 'string') {
+        throw new TypeError(
+          getMessage(
+            sender,
+            'TOKEN_FIELD_MUST_BE_STRING',
+            index,
+            JSON.stringify(field)
+          )
+        )
+      }
+    })
+
+    // `tokenFields` を自身のプロパティにセット
+    this.#tokenFields = this.constructor.tokenFields
+  }
+
+  /****************************************************************************
+   * 当該インスタンスを複製したインスタンスを返します。
+   * - vueコンポーネントにおいてインスタンスを親に返す場合など、参照渡しを回避するのに使用します。
+   * @returns {this.constructor} - 複製された新しいインスタンス
+   ****************************************************************************/
+  clone() {
+    return new this.constructor(this)
   }
 
   /****************************************************************************
@@ -245,7 +393,9 @@ class FireModel {
    * @returns {void}
    * @throws {Error} 必須プロパティが未設定であるか、バリデーションに失敗した場合
    ****************************************************************************/
-  validateProperties() {
+  #validateProperties() {
+    const sender = `${this.#collectionPath} - validateProperties`
+
     Object.keys(this.#classProps).forEach((key) => {
       const propConfig = this.#classProps[key]
       // 必須チェック
@@ -253,12 +403,14 @@ class FireModel {
         propConfig.required &&
         (this[key] === undefined || this[key] === null || this[key] === '')
       ) {
-        throw new Error(`${key}は必須です。`)
+        throw new Error(getMessage(sender, 'PROP_VALUE_REQUIRED', key))
       }
 
       // バリデーションチェック
       if (propConfig.validator && !propConfig.validator(this[key])) {
-        throw new Error(`${key}の値が無効です: ${this[key]}`)
+        throw new Error(
+          getMessage(sender, 'PROP_VALUE_INVALID', key, this[key])
+        )
       }
     })
   }
@@ -518,7 +670,7 @@ class FireModel {
   beforeCreate() {
     return new Promise((resolve, reject) => {
       try {
-        this.validateProperties()
+        this.#validateProperties()
         resolve()
       } catch (error) {
         reject(error)
@@ -546,7 +698,7 @@ class FireModel {
   beforeUpdate() {
     return new Promise((resolve, reject) => {
       try {
-        this.validateProperties()
+        this.#validateProperties()
         resolve()
       } catch (error) {
         reject(error)
@@ -585,32 +737,30 @@ class FireModel {
   }
 
   /****************************************************************************
-   * ドキュメントを書き込みます。
-   * ‐ docIdを指定することで、ドキュメントIDを指定した書き込みを行うことが可能です。
-   * - useAutonumberをtrueにすると自動採番を行います。
-   * - useAutonumberの既定値はfalseです。
-   * - 自動採番を行うコレクションの場合、このメソッドをオーバーライドし、useAutonumberの既定値をtrueにすることをお勧めします。
-   * - transactionを引数に渡すことでトランザクション処理を行うことが可能です。
-   * @param {string|null} docId - 指定されたドキュメントID（省略可能）
-   * @param {boolean} useAutonumber - 自動採番を行うかどうかのフラグ（省略可能）
-   * @param {object|null} transaction - Firestoreトランザクションオブジェクト（省略可能）
+   * Firestore にドキュメントを書き込みます。
+   * - `docId` を指定することで、特定のドキュメントIDを使用して作成することが可能です。
+   * - `useAutonumber` が true の場合、自動採番を利用します。デフォルトは false です。
+   * - `transaction` に Firestore のトランザクションオブジェクトを渡すことで、サブクラス側のトランザクション処理を継続します。
+   * - `callBack` は、サブクラス側独自のトランザクション処理を実行するための引数です。
+   *
+   * @param {Object} [options={}] - オプション引数
+   * @param {string|null} [options.docId=null] - 作成するドキュメントID。指定しない場合は自動生成されます。
+   * @param {Object|null} [options.transaction=null] - Firestore のトランザクションオブジェクト。指定しない場合は自動トランザクションを使用します。
+   * @param {function|null} [callBack=null] - サブクラス側でトランザクション処理を追加したい場合に指定するコールバック関数。トランザクションオブジェクトが渡されます。
+   *
    * @returns {Promise<DocumentReference>} - 作成されたドキュメントの参照
-   * @throws {Error} - ドキュメントの作成中にエラーが発生した場合にスローされます
+   * @throws {Error} - ドキュメント作成中にエラーが発生した場合
    ****************************************************************************/
-  async create({
-    docId = null,
-    useAutonumber = false,
-    transaction = null,
-  } = {}) {
-    const sender = 'FireModel - create'
+  async create({ docId = null, transaction = null } = {}, callBack = null) {
+    const sender = `${this.#collectionPath} - create`
 
     // メッセージ出力
-    if (docId) {
-      // eslint-disable-next-line no-console
-      info(getMessage(sender, 'CREATE_CALLED', docId))
-    } else {
-      // eslint-disable-next-line no-console
-      info(getMessage(sender, 'CREATE_CALLED_NO_DOCID'))
+    const msg = docId ? 'CREATE_CALLED' : 'CREATE_CALLED_NO_DOCID'
+    console.info(getMessage(sender, msg, docId)) // eslint-disable-line no-console
+
+    // callBack が null 以外の場合は関数であることを確認
+    if (callBack !== null && typeof callBack !== 'function') {
+      throw new Error(`[${sender}] 'callBack' は関数である必要があります。`)
     }
 
     try {
@@ -623,84 +773,115 @@ class FireModel {
         ? colRef.doc(docId).withConverter(this.converter())
         : colRef.doc().withConverter(this.converter())
       this.docId = docRef.id
+
       await this.beforeCreate()
 
-      // ドキュメント作成処理
-      if (useAutonumber) {
-        if (transaction) {
-          await this.#createWithAutonumber(transaction, this)
-          transaction.set(docRef, this)
-        } else {
-          await firestore.runTransaction(async (newTransaction) => {
-            await this.#createWithAutonumber(newTransaction, this)
-            newTransaction.set(docRef, this)
-          })
+      /**
+       * トランザクション処理でドキュメントを作成する関数です。
+       * 1. `#useAutonumber` が true である場合、自動採番を行います。
+       * 2. `callBack` が設定されている場合、これを実行します。
+       * 3. ドキュメントを作成します。
+       * 4. 最後に自動採番を更新します（必要な場合）。
+       * @param {*} txn - Firestore のトランザクションオブジェクト
+       */
+      const performTransaction = async (txn) => {
+        try {
+          // 自動採番を行う場合、採番の更新を行う関数を取得
+          const autonumberUpdater = this.#useAutonumber
+            ? await this.#setAutonumber(txn, this)
+            : null
+
+          // サブクラスからのトランザクション処理がある場合に実行
+          if (callBack) await callBack(txn, this.toObject())
+
+          // ドキュメントを作成
+          txn.set(docRef, this)
+
+          // 自動採番の更新が必要な場合は実行
+          if (autonumberUpdater) await autonumberUpdater()
+        } catch (error) {
+          // トランザクション処理中にエラーが発生した場合の処理
+          error(
+            `[performTransaction] トランザクション中にエラーが発生しました: ${error.message}`
+          )
+          throw new Error(
+            `トランザクション中にエラーが発生しました: ${error.message}`
+          )
         }
+      }
+
+      // 'transaction' の有無に応じて処理を分岐
+      if (transaction) {
+        await performTransaction(transaction)
       } else {
-        ;(await transaction) ? transaction.set(docRef, this) : docRef.set(this)
+        await firestore.runTransaction(performTransaction)
       }
 
       // ドキュメント作成後の処理
       await this.afterCreate()
 
       // 成功メッセージ
-      info(
-        getMessage(
-          sender,
-          'CREATE_DOC_SUCCESS',
-          this.#collectionPath,
-          docRef.id
-        )
-      )
+      console.info(getMessage(sender, 'CREATE_DOC_SUCCESS', docRef.id)) // eslint-disable-line no-console
       return docRef
     } catch (err) {
       const errorMsg = `Error in ${sender}: ${err.message}`
-      // eslint-disable-next-line no-console
-      error(errorMsg)
+      console.error(errorMsg) // eslint-disable-line no-console
       throw new Error(errorMsg)
     }
   }
 
   /****************************************************************************
-   * 自動採番を利用してドキュメントを作成します。
-   * @param {Object} transaction Firestoreのトランザクションオブジェクト
-   * @param {Object} item ドキュメントとして登録するデータオブジェクト
-   * @returns {Promise<void>} - ドキュメントが存在しない場合は警告を出力し、存在する場合はプロパティにデータをセットします。
+   * Autonumbers コレクションから次の番号を取得し、指定されたフィールドにセットします。
+   *
+   * @param {Object} transaction - Firestore のトランザクションオブジェクト。採番とドキュメント作成がこのトランザクション内で行われます。
+   * @param {Object} item - ドキュメントとして登録するデータオブジェクト。このオブジェクトに自動採番された値がセットされます。
+   *
+   * @returns {Promise<function>} - 自動採番の処理後に実行される更新関数を返します。この関数を呼び出すことで Autonumbers コレクションが更新されます。
+   *
+   * @throws {Error} - 自動採番処理が失敗した場合にエラーをスローします。
    ****************************************************************************/
-  async #createWithAutonumber(transaction, item) {
-    /* eslint-disable */
-    const sender = 'FireModel - createWithAutonumber'
+  async #setAutonumber(transaction, item) {
+    const sender = `${this.#collectionPath} - setAutonumber`
+
     try {
       const autonumRef = firestore
-        .collection(`Autonumbers`)
+        .collection('Autonumbers')
         .doc(this.#collectionPath)
       const autonumDoc = await transaction.get(autonumRef)
-      if (!autonumDoc.exists) {
-        throw new Error(
-          getMessage(sender, 'MISSING_AUTONUMBER', this.#collectionPath)
-        )
+
+      // Autonumberドキュメントが存在しない場合はエラーをスロー
+      if (!autonumDoc.exists()) {
+        throw new Error(getMessage(sender, 'MISSING_AUTONUMBER'))
       }
-      if (!autonumDoc.data().status) {
-        throw new Error(
-          getMessage(sender, 'INVALID_AUTONUMBER_STATUS', this.#collectionPath)
-        )
+
+      const autonumData = autonumDoc.data()
+
+      // Autonumberドキュメントのステータスが無効な場合はエラーをスロー
+      if (!autonumData.status) {
+        throw new Error(getMessage(sender, 'INVALID_AUTONUMBER_STATUS'))
       }
-      const num = autonumDoc.data().current + 1
-      const length = autonumDoc.data().length
+
+      // 採番処理
+      const num = autonumData.current + 1
+      const length = autonumData.length
       const newCode = (Array(length).join('0') + num).slice(-length)
+
+      // 採番可能な最大値に達した場合はエラーをスロー
       const maxPossibleCode = Array(length + 1).join('0')
       if (newCode === maxPossibleCode) {
-        throw new Error(
-          getMessage(sender, 'NO_MORE_DOCUMENT', this.#collectionPath)
-        )
+        throw new Error(getMessage(sender, 'NO_MORE_DOCUMENT'))
       }
-      item[autonumDoc.data().field] = newCode
-      transaction.update(autonumRef, { current: num })
+
+      // itemに新しいコードをセット
+      item[autonumData.field] = newCode
+
+      // currentフィールドの更新処理を行う関数を返す
+      return () => transaction.update(autonumRef, { current: num })
     } catch (err) {
-      error(`[${sender}] ${err.message}`)
+      // eslint-disable-next-line no-console
+      console.error(`[${sender}] ${err.message}`)
       throw err
     }
-    /* eslint-enable */
   }
 
   /****************************************************************************
@@ -817,17 +998,24 @@ class FireModel {
   }
 
   /****************************************************************************
-   * 現在プロパティにセットされている値で、ドキュメントを更新します。
-   * - FirestoreのupdateメソッドはwithConverterを受け付けないため、toObject()を使用しています。
-   * @param {object|null} transaction - Firestoreトランザクションオブジェクト（省略可能）
-   * @returns {Promise<DocumentReference>} 更新したドキュメントへの参照
-   * @throws {Error} ドキュメントの更新中にエラーが発生した場合にスローされます
+   * Firestore ドキュメントを現在のプロパティ値で更新します。
+   * - Firestore の `updateDoc` メソッドは `withConverter` をサポートしていないため、 `toObject()` を使用してオブジェクト形式に変換します。
+   *
+   * @param {function|null} transaction - トランザクション処理を行うための関数（省略可能、デフォルトは `null`）
+   * @param {function|null} callBack - サブクラス側で独自の処理を実行するための関数（省略可能、デフォルトは `null`）
+   * @returns {Promise<DocumentReference>} - 更新された Firestore ドキュメントの参照を返します。
+   * @throws {Error} - ドキュメント更新中にエラーが発生した場合にスローされます。
    ****************************************************************************/
-  async update({ transaction = null } = {}) {
-    const sender = 'FireModel - update'
+  async update({ transaction = null } = {}, callBack = null) {
+    const sender = `${this.#collectionPath} - update`
 
     // 更新呼び出しのログ出力
-    info(getMessage(sender, 'UPDATE_CALLED', this.docId))
+    console.info(getMessage(sender, 'UPDATE_CALLED', this.docId)) // eslint-disable-line no-console
+
+    // callBackがnull以外の場合は関数であることを確認
+    if (callBack !== null && typeof callBack !== 'function') {
+      throw new Error(`[${sender}] 'callBack'は関数である必要があります。`)
+    }
 
     try {
       // ドキュメントIDが存在しない場合はエラーをスロー
@@ -845,87 +1033,101 @@ class FireModel {
       this.updateAt = new Date()
       this.uid = 'cloud functions'
 
+      /**
+       * トランザクション処理でドキュメントを更新する関数です。
+       * 1. 更新対象のドキュメントが存在するかを確認します。
+       * 2. `callBack` が設定されている場合、これを実行します。
+       * 3. 最後にドキュメントを更新します。
+       * @param {*} txn - Firestore のトランザクションオブジェクト
+       */
+      const performTransaction = async (txn) => {
+        try {
+          if (callBack) await callBack(txn, this.toObject())
+          txn.update(docRef, this.toObject())
+        } catch (error) {
+          // eslint-disable-next-line
+          console.error(
+            `[performTransaction] トランザクション中にエラーが発生しました: ${error.message}`
+          )
+          throw new Error(
+            `トランザクション中にエラーが発生しました: ${error.message}`
+          )
+        }
+      }
+
       // ドキュメントの更新処理
-      // await updateDoc(docRef, this.toObject());
-      await (transaction
-        ? transaction.update(docRef, this.toObject())
-        : docRef.update(this.toObject()))
-      // : updateDoc(docRef, this.toObject()));
+      if (transaction) {
+        await performTransaction(transaction)
+      } else {
+        await firestore.runTransaction(performTransaction)
+      }
 
       // 更新後処理
       await this.afterUpdate()
 
       // 成功ログ出力
-      info(
-        getMessage(
-          sender,
-          'UPDATE_DOC_SUCCESS',
-          this.#collectionPath,
-          this.docId
-        )
-      )
+      console.info(getMessage(sender, 'UPDATE_DOC_SUCCESS', this.docId)) // eslint-disable-line no-console
       return docRef
     } catch (err) {
       const errorMsg = `Error in ${sender}: ${err.message}`
-      // eslint-disable-next-line no-console
-      error(errorMsg)
+      console.error(errorMsg) // eslint-disable-line no-console
       throw new Error(errorMsg)
     }
   }
 
   /****************************************************************************
-   * `hasMany`プロパティにセットされた条件に基づいて、当該クラスに読み込まれているドキュメントデータに
-   * 依存している子ドキュメントが存在しているかどうかを返します。
-   * @returns {Promise<object|boolean>} - 子ドキュメントが存在する場合は`hasMany`の該当項目を返し、存在しない場合は`false`を返します。
+   * `hasMany` プロパティにセットされた条件に基づき、現在のドキュメントに依存している子ドキュメントが
+   * 存在しているかどうかを確認します。
+   *
+   * @returns {Promise<object|boolean>} - 子ドキュメントが存在する場合は `hasMany` の該当項目を返し、
+   *                                      存在しない場合は `false` を返します。
+   * @throws {Error} - Firestore の操作中にエラーが発生した場合にスローされます。
    ****************************************************************************/
   async hasChild() {
-    for (const item of this.#hasMany) {
-      const colRef =
-        item.type === 'collection'
-          ? firestore.collection(item.collection)
-          : firestore.collectionGroup(item.collection)
+    try {
+      for (const item of this.#hasMany) {
+        // コレクションまたはコレクショングループの参照を取得
+        const colRef =
+          item.type === 'collection'
+            ? firestore.collection(item.collection)
+            : firestore.collectionGroup(item.collection)
 
-      const q = colRef.where(item.field, item.condition, this.docId).limit(1)
-      const snapshot = await q.get()
+        // クエリを作成
+        const q = colRef.where(item.field, item.condition, this.docId)
+        // トランザクションの有無に応じてクエリを実行
+        const snapshot = await q.get(q)
 
-      if (!snapshot.empty) return item
+        // 子ドキュメントが存在する場合、該当の `hasMany` アイテムを返す
+        if (!snapshot.empty) return item
+      }
+
+      // 子ドキュメントが存在しない場合は `false` を返す
+      return false
+    } catch (error) {
+      console.error(`Error in hasChild: ${error.message}`) // eslint-disable-line no-console
+      throw new Error(`Error checking for child documents: ${error.message}`)
     }
-
-    return false
   }
 
   /****************************************************************************
    * 現在のドキュメントIDに該当するドキュメントを削除します。
-   * - `logicalDelete`が指定されている場合、削除されたドキュメントはarchiveコレクションに移動されます。
+   * - `logicalDelete`が指定されている場合、削除されたドキュメントは`archive`コレクションに移動されます。
    * - `transaction`が指定されている場合は`deleteAsTransaction`を呼び出します。
    * @param {object|null} transaction - Firestoreトランザクションオブジェクト（省略可能）
+   * @param {function|null} callBack - サブクラス側で独自の処理を実行するための関数（省略可能）
    * @returns {Promise<void>} - 削除が完了すると解決されるPromise
    * @throws {Error} - ドキュメントの削除中にエラーが発生した場合にスローされます
    ****************************************************************************/
-  async delete({ transaction = null } = {}) {
-    const sender = `${this.constructor.name} - delete`
-
-    // トランザクションで論理削除は不可能
-    if (transaction && this.#logicalDelete) {
-      const errorMsg = `Error in ${sender}: Could not transaction delete with logical delete.`
-      error(errorMsg)
-      throw new Error(errorMsg)
-    }
-
-    // トランザクション処理の場合
-    if (transaction) {
-      try {
-        await this.#deleteAsTransaction(transaction)
-        return
-      } catch (err) {
-        const errorMsg = `Error in ${sender}: ${err.message}`
-        error(errorMsg)
-        throw new Error(errorMsg)
-      }
-    }
+  async delete({ transaction = null } = {}, callBack = null) {
+    const sender = `${this.#collectionPath} - delete`
 
     // 削除処理のログを出力
-    info(getMessage(sender, 'DELETE_CALLED', this.docId))
+    console.info(getMessage(sender, 'DELETE_CALLED', this.docId)) // eslint-disable-line no-console
+
+    // callBackがnull以外の場合は関数であることを確認
+    if (callBack !== null && typeof callBack !== 'function') {
+      throw new Error(`[${sender}] 'callBack'は関数である必要があります。`)
+    }
 
     try {
       // ドキュメントIDが存在しない場合のエラー処理
@@ -933,108 +1135,68 @@ class FireModel {
         throw new Error(getMessage(sender, 'DELETE_REQUIRES_DOCID'))
       }
 
-      // 子ドキュメントが存在する場合のエラー処理
-      const hasChild = await this.hasChild()
-      if (hasChild) {
-        throw new Error(
-          getMessage(
-            sender,
-            'COULD_NOT_DELETE_CHILD_EXIST',
-            hasChild.collection
-          )
-        )
-      }
-
       const colRef = firestore.collection(this.#collectionPath)
       const docRef = colRef.doc(this.docId)
-
-      // ドキュメントの存在確認
-      const docSnapshot = await docRef.get()
-      if (!docSnapshot.exists()) {
-        throw new Error(
-          getMessage(
-            sender,
-            'NO_DOCUMENT_TO_DELETE',
-            this.#collectionPath,
-            this.docId
-          )
-        )
-      }
 
       // 削除前処理
       await this.beforeDelete()
 
-      // 論理削除が指定されている場合
-      if (this.#logicalDelete) {
-        const archiveColRef = firestore.collection(
-          `${this.#collectionPath}_archive`
-        )
-        const archiveDocRef = archiveColRef.doc(this.docId)
+      /**
+       * トランザクションでドキュメントを削除する関数です。
+       * @param {object} txn - Firestoreトランザクションオブジェクト
+       */
+      const performTransaction = async (txn) => {
+        // 子ドキュメントが存在する場合のエラー処理
+        const hasChild = await this.hasChild()
+        if (hasChild) {
+          throw new Error(
+            getMessage(
+              sender,
+              'COULD_NOT_DELETE_CHILD_EXIST',
+              hasChild.collection
+            )
+          )
+        }
 
-        await firestore.runTransaction((newTransaction) => {
-          newTransaction.set(archiveDocRef, docSnapshot.data())
-          newTransaction.delete(docRef)
-        })
+        const docSnapshot = await docRef.get()
+        if (!docSnapshot.exists()) {
+          throw new Error(
+            getMessage(sender, 'NO_DOCUMENT_TO_DELETE', this.docId)
+          )
+        }
+        const sourceData = docSnapshot.data()
+
+        // サブクラスでの追加処理を実行
+        if (callBack) await callBack(txn, this.toObject())
+
+        if (this.#logicalDelete) {
+          // 論理削除：archiveコレクションに移動し、元のドキュメントを削除
+          const archiveColRef = firestore.collection(
+            `${this.#collectionPath}_archive`
+          )
+          const archiveDocRef = archiveColRef.doc(this.docId)
+          txn.set(archiveDocRef, sourceData)
+        }
+
+        // 元のドキュメントを削除（物理削除または論理削除後）
+        txn.delete(docRef)
+      }
+
+      // ドキュメントの削除処理
+      if (transaction) {
+        await performTransaction(transaction)
       } else {
-        // 物理削除
-        await docRef.delete(docRef)
+        await firestore.runTransaction(performTransaction)
       }
 
       // 削除後処理
       await this.afterDelete()
 
       // 成功ログ出力
-      info(
-        getMessage(
-          sender,
-          'DELETE_DOC_SUCCESS',
-          this.#collectionPath,
-          this.docId
-        )
-      )
+      console.info(getMessage(sender, 'DELETE_DOC_SUCCESS', this.docId)) // eslint-disable-line no-console
     } catch (err) {
       const errorMsg = `Error in ${sender}: ${err.message}`
-      error(errorMsg)
-      throw new Error(errorMsg)
-    }
-  }
-
-  /****************************************************************************
-   * 現在のドキュメントIDに該当するドキュメントをトランザクション処理で削除します。
-   * - このメソッドはdelete()から呼び出されます。
-   * @param {object|null} transaction - Firestoreトランザクションオブジェクト（省略可能）
-   * @returns {Promise<void>} - 削除が完了すると解決されるPromise
-   * @throws {Error} - ドキュメントの削除中にエラーが発生した場合にスローされます
-   ****************************************************************************/
-  async #deleteAsTransaction(transaction) {
-    const sender = `${this.constructor.name} - deleteAsTransaction`
-
-    // 削除呼び出しのログ出力
-    info(getMessage(sender, 'DELETE_CALLED', this.docId))
-
-    try {
-      // ドキュメントIDが存在しない場合はエラーをスロー
-      if (!this.docId) {
-        throw new Error(getMessage(sender, 'DELETE_REQUIRES_DOCID'))
-      }
-
-      const colRef = firestore.collection(this.#collectionPath)
-      const docRef = colRef.doc(this.docId)
-
-      await transaction.delete(docRef)
-
-      // 成功ログ出力
-      info(
-        getMessage(
-          sender,
-          'DELETE_DOC_SUCCESS',
-          this.#collectionPath,
-          this.docId
-        )
-      )
-    } catch (err) {
-      const errorMsg = `Error in ${sender}: ${err.message}`
-      error(errorMsg)
+      console.error(errorMsg) // eslint-disable-line no-console
       throw new Error(errorMsg)
     }
   }

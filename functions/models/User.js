@@ -14,10 +14,20 @@ const { classProps } = require('./propsDefinition/User')
  */
 class User extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'Users'
+  static logicalDelete = true
+  static classProps = classProps
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(item, 'Users', [], true, [], classProps)
+    super(item)
+    delete this.create
+    delete this.update
+    delete this.delete
   }
 }
 

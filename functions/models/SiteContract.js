@@ -14,6 +14,12 @@ const Site = require('./Site')
  */
 class SiteContract extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'SiteContracts'
+  static classProps = classProps
+
+  /****************************************************************************
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
@@ -24,7 +30,10 @@ class SiteContract extends FireModel {
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(item, 'SiteContracts', [], false, [], classProps)
+    super(item)
+    delete this.create
+    delete this.update
+    delete this.delete
     Object.defineProperties(this, {
       workMinutes: {
         enumerable: true,

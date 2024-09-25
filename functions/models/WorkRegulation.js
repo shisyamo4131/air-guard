@@ -12,25 +12,27 @@ const { classProps } = require('./propsDefinition/WorkRegulation')
  */
 class WorkRegulation extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'WorkRegulations'
+  static classProps = classProps
+  static hasMany = [
+    {
+      collection: 'EmployeeContracts',
+      field: 'workRegulationId',
+      condition: '==',
+      type: 'collection',
+    },
+  ]
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(
-      item,
-      'WorkRegulations',
-      [
-        {
-          collection: 'EmployeeContracts',
-          field: 'workRegulationId',
-          condition: '==',
-          type: 'collection',
-        },
-      ],
-      false,
-      [],
-      classProps
-    )
-
+    super(item)
+    delete this.create
+    delete this.update
+    delete this.delete
     Object.defineProperties(this, {
       /**
        * 所定労働時間

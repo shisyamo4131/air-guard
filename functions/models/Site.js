@@ -14,140 +14,43 @@ const { classProps } = require('./propsDefinition/Site')
  */
 class Site extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'Sites'
+  static useAutonumber = true
+  static logicalDelete = true
+  static classProps = classProps
+  static tokenFields = ['abbr', 'abbrKana']
+  static hasMany = [
+    {
+      collection: 'SiteOperationSchedules',
+      field: 'siteId',
+      condition: '==',
+      type: 'subcollection',
+    },
+    {
+      collection: 'OperationResults',
+      field: 'siteId',
+      condition: '==',
+      type: 'collection',
+    },
+  ]
+
+  /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    customer: Customer,
+  }
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(
-      item,
-      'Sites',
-      [
-        {
-          collection: 'SiteOperationSchedules',
-          field: 'siteId',
-          condition: '==',
-          type: 'subcollection',
-        },
-        {
-          collection: 'OperationResults',
-          field: 'siteId',
-          condition: '==',
-          type: 'collection',
-        },
-      ],
-      true,
-      ['abbr', 'abbrKana'],
-      classProps
-    )
-  }
-
-  /****************************************************************************
-   * FireModelのcreateをオーバーライドします。
-   * - コレクションを自動採番対象として、createのuseAutonumberをtrueに固定します。
-   * @param {string} docId - 作成するドキュメントのID
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
-   * @throws {Error} ドキュメントの作成に失敗した場合
-   ****************************************************************************/
-  async create(docId = null) {
-    try {
-      await super.create({ docId, useAutonumber: true })
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('ドキュメントの作成に失敗しました:', error)
-      throw new Error('ドキュメントの作成中にエラーが発生しました。')
-    }
-  }
-
-  /****************************************************************************
-   * クラスインスタンスをオブジェクト形式に変換します。
-   * - スーパークラスの `toObject` メソッドを呼び出し、その結果に `customer` プロパティを追加します。
-   * - `customer` プロパティが存在し、かつ `toObject` メソッドを持つ場合、そのメソッドを呼び出してオブジェクトに変換します。
-   * - `customer` が存在しない場合、もしくは `toObject` メソッドを持たない場合、そのままの値か、空のオブジェクトを返します。
-   *
-   * @returns {Object} - クラスインスタンスを表すオブジェクト
-   ****************************************************************************/
-  toObject() {
-    return {
-      ...super.toObject(),
-      customer:
-        this.customer && typeof this.customer.toObject === 'function'
-          ? this.customer.toObject()
-          : this.customer || null,
-    }
-  }
-
-  /****************************************************************************
-   * Firestoreから取得したデータをクラスインスタンスに変換します。
-   * - スーパークラスの `fromFirestore` メソッドを呼び出して基本のインスタンスを取得します。
-   * - 取得した `customer` データを新しい `Customer` クラスのインスタンスに変換します。
-   * - `customer` が存在しない場合、`null` を引数として渡して `Customer` のインスタンスを作成します。
-   *
-   * @param {Object} snapshot - Firestoreから取得したドキュメントスナップショット
-   * @returns {Object} - クラスインスタンス
-   ****************************************************************************/
-  fromFirestore(snapshot) {
-    // スーパークラスから基本のインスタンスを生成
-    const instance = super.fromFirestore(snapshot)
-
-    // customer データを新しい Customer クラスのインスタンスに変換
-    instance.customer = new Customer(instance?.customer || undefined)
-
-    // 変換したインスタンスを返す
-    return instance
-  }
-
-  /****************************************************************************
-   * beforeCreateをオーバーライドします。
-   * - `customerId`の入力チェックを行います。
-   * - `customerId`に該当する`customer`オブジェクトを取得・セットします。
-   * - validatePropertiesを行う為、super.beforeCreateを呼び出します。
-   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
-   ****************************************************************************/
-  async beforeCreate() {
-    if (!this.customerId) {
-      throw new Error('取引先の指定が必要です。')
-    }
-    try {
-      const customer = await new Customer().fetchDoc(this.customerId)
-      if (!customer) {
-        throw new Error('取引先情報が取得できませんでした。')
-      }
-      this.customer = customer
-      await super.beforeCreate()
-    } catch (err) {
-      // eslint-disable-next-line
-      console.error(
-        `[Site.js beforeCreate] Error fetching customer: ${err.message}`
-      )
-      throw err
-    }
-  }
-
-  /****************************************************************************
-   * beforeUpdateをオーバーライドします。
-   * - `customerId`と`customer.docId`が異なっていたら、Customerドキュメントを取得して`customer`にセットします。
-   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
-   * @throws {Error} - 取引先が指定されていない、または取得できない場合にエラーをスローします。
-   ****************************************************************************/
-  async beforeUpdate() {
-    if (!this.customerId) {
-      throw new Error('取引先の指定が必要です。')
-    }
-    if (this.customer.docId !== this.customerId) {
-      try {
-        const customer = await new Customer().fetchDoc(this.customerId)
-        if (!customer) {
-          throw new Error('取引先情報が取得できませんでした。')
-        }
-        this.customer = customer
-        await super.beforeUpdate()
-      } catch (err) {
-        // eslint-disable-next-line
-        console.error(
-          `[Site.js beforeUpdate] Error fetching customer: ${err.message}`
-        )
-        throw err
-      }
-    }
+    super(item)
+    delete this.create
+    delete this.update
+    delete this.delete
   }
 
   /****************************************************************************

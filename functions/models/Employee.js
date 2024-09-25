@@ -16,36 +16,42 @@ const { classProps } = require('./propsDefinition/Employee')
  */
 class Employee extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'Employees'
+  static useAutonumber = true
+  static logicalDelete = true
+  static classProps = classProps
+  static tokenFields = ['lastNameKana', 'firstNameKana', 'abbr']
+  static hasMany = [
+    {
+      collection: 'EmployeeContracts',
+      field: 'employeeId',
+      condition: '==',
+      type: 'collection',
+    },
+    {
+      collection: 'EmployeeMedicalCheckups',
+      field: 'employeeId',
+      condition: '==',
+      type: 'collection',
+    },
+    {
+      collection: 'OperationResults',
+      field: 'employeeId',
+      condition: 'array-contains',
+      type: 'collection',
+    },
+  ]
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(
-      item,
-      'Employees',
-      [
-        {
-          collection: 'EmployeeContracts',
-          field: 'employeeId',
-          condition: '==',
-          type: 'collection',
-        },
-        {
-          collection: 'EmployeeMedicalCheckups',
-          field: 'employeeId',
-          condition: '==',
-          type: 'collection',
-        },
-        {
-          collection: 'OperationResults',
-          field: 'employeeId',
-          condition: 'array-contains',
-          type: 'collection',
-        },
-      ],
-      true,
-      ['lastNameKana', 'firstNameKana', 'abbr'],
-      classProps
-    )
+    super(item)
+    delete this.create
+    delete this.update
+    delete this.delete
     Object.defineProperties(this, {
       fullName: {
         enumerable: true,
@@ -64,23 +70,6 @@ class Employee extends FireModel {
         set(v) {},
       },
     })
-  }
-
-  /****************************************************************************
-   * FireModelのcreateをオーバーライドします。
-   * - コレクションを自動採番対象として、createのuseAutonumberをtrueに固定します。
-   * @param {string} docId - 作成するドキュメントのID
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
-   * @throws {Error} ドキュメントの作成に失敗した場合
-   ****************************************************************************/
-  async create(docId = null) {
-    try {
-      await super.create({ docId, useAutonumber: true })
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('ドキュメントの作成に失敗しました:', error)
-      throw new Error('ドキュメントの作成中にエラーが発生しました。')
-    }
   }
 
   /****************************************************************************
@@ -119,41 +108,6 @@ class Employee extends FireModel {
   async beforeUpdate() {
     this.#initializeDependentProperties()
     await super.beforeUpdate()
-  }
-
-  /****************************************************************************
-   * 従業員ドキュメントのイメージファイルパスを更新します。
-   * - インスタンス外から`imgRef`フィールドのみを更新するときに便利です。
-   * @param {string} docId - ドキュメントID
-   * @param {string} url - Storageへの参照URL
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
-   * @throws {Error} - ドキュメントの更新中にエラーが発生した場合にエラーをスローします。
-   ****************************************************************************/
-  static async updateImgRef(docId, url) {
-    if (!docId || typeof docId !== 'string') {
-      throw new Error('有効なドキュメントIDを指定してください。')
-    }
-    if (!url || typeof url !== 'string') {
-      throw new Error('有効なURLを指定してください。')
-    }
-
-    try {
-      const instance = new this()
-      if (!(await instance.fetch(docId))) {
-        throw new Error(
-          `Employeesコレクションに指定されたドキュメントが存在しません。ドキュメントID: ${docId}`
-        )
-      }
-
-      instance.imgRef = url
-
-      await instance.update()
-    } catch (error) {
-      const message = `ドキュメントID: ${docId} のimgRefの更新に失敗しました: ${error.message}`
-      // eslint-disable-next-line no-console
-      console.error(message)
-      throw new Error(message)
-    }
   }
 
   /****************************************************************************

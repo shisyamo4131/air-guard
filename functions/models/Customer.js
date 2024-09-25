@@ -13,24 +13,30 @@ const { classProps } = require('./propsDefinition/Customer')
  */
 class Customer extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'Customers'
+  static useAutonumber = true
+  static logicalDelete = true
+  static classProps = classProps
+  static tokenFields = ['abbr', 'abbrKana']
+  static hasMany = [
+    {
+      collection: 'Sites',
+      field: 'customer.docId',
+      condition: '==',
+      type: 'collection',
+    },
+  ]
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(
-      item,
-      'Customers',
-      [
-        {
-          collection: 'Sites',
-          field: 'customer.docId',
-          condition: '==',
-          type: 'collection',
-        },
-      ],
-      true,
-      ['abbr', 'abbrKana'],
-      classProps
-    )
+    super(item)
+    delete this.create
+    delete this.update
+    delete this.delete
   }
 
   /****************************************************************************
@@ -41,23 +47,6 @@ class Customer extends FireModel {
   initialize(item = {}) {
     item.depositMonth = parseInt(item.depositMonth)
     super.initialize(item)
-  }
-
-  /****************************************************************************
-   * FireModelのcreateをオーバーライドします。
-   * - コレクションを自動採番対象として、createのuseAutonumberをtrueに固定します。
-   * @param {string} docId - 作成するドキュメントのID
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
-   * @throws {Error} ドキュメントの作成に失敗した場合
-   ****************************************************************************/
-  async create(docId = null) {
-    try {
-      await super.create({ docId, useAutonumber: true })
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('ドキュメントの作成に失敗しました:', error)
-      throw new Error('ドキュメントの作成中にエラーが発生しました。')
-    }
   }
 
   /****************************************************************************

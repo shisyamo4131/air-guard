@@ -16,6 +16,12 @@ const WorkRegulation = require('./WorkRegulation')
  */
 class EmployeeContract extends FireModel {
   /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'EmployeeContracts'
+  static classProps = classProps
+
+  /****************************************************************************
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
@@ -27,7 +33,10 @@ class EmployeeContract extends FireModel {
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(item, 'EmployeeContracts', [], false, [], classProps)
+    super(item)
+    delete this.create
+    delete this.update
+    delete this.delete
   }
 
   /****************************************************************************
