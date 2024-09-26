@@ -104,9 +104,7 @@ const messages = {
   PROP_VALUE_INVALID: '%s の値が無効です: %s',
 }
 
-const getMessage = (sender, key, ...params) => {
+export const getMessage = (sender, key, ...params) => {
   const template = messages[key]
   return `[${sender}] ${template.replace(/%s/g, () => params.shift())}`
 }
-
-module.exports.getMessage = getMessage

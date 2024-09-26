@@ -12,8 +12,8 @@
  * @version 1.0.0
  ****************************************************************************/
 
-const functions = require('firebase-functions')
-const User = require('../models/User')
+import functions from 'firebase-functions'
+import User from '../models/User.js'
 
 /****************************************************************************
  * Firebase Authenticationでユーザーが作成されたときに呼び出される関数です。
@@ -22,7 +22,7 @@ const User = require('../models/User')
  * @param {Object} user - 作成されたユーザーの情報（UIDなどが含まれています）
  * @returns {Promise<void>} Firestoreにドキュメントを作成する非同期処理
  ****************************************************************************/
-exports.onCreate = functions
+export const onCreate = functions
   .region('asia-northeast1')
   .auth.user()
   .onCreate(async (user) => {
@@ -50,7 +50,7 @@ exports.onCreate = functions
  * @param {Object} user - 削除されたユーザーの情報（UIDなどが含まれています）
  * @returns {Promise<void>} Firestoreのドキュメントを削除する非同期処理
  ****************************************************************************/
-exports.onDelete = functions
+export const onDelete = functions
   .region('asia-northeast1')
   .auth.user()
   .onDelete(async (user) => {

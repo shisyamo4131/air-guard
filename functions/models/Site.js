@@ -1,6 +1,6 @@
-const Customer = require('./Customer')
-const FireModel = require('./FireModel')
-const { classProps } = require('./propsDefinition/Site')
+import Customer from './Customer.js'
+import FireModel from './FireModel.js'
+import { classProps } from './propsDefinition/Site.js'
 /**
  * Sitesドキュメントデータモデル【論理削除】
  *
@@ -12,7 +12,7 @@ const { classProps } = require('./propsDefinition/Site')
  * @updates
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
-class Site extends FireModel {
+export default class Site extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
@@ -103,5 +103,3 @@ class Site extends FireModel {
     }
   }
 }
-
-module.exports = Site

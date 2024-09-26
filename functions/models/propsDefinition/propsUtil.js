@@ -63,4 +63,4 @@ function generateClassProps(propsDefinition) {
   }, {})
 }
 
-module.exports = { generateVueProps, generateClassProps }
+export { generateVueProps, generateClassProps }

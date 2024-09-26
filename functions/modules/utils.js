@@ -2,8 +2,8 @@
  * utils.js
  */
 
-const { getFirestore } = require('firebase-admin/firestore')
-const { info, error } = require('firebase-functions/logger')
+import { getFirestore } from 'firebase-admin/firestore'
+import { info, error } from 'firebase-functions/logger'
 const firestore = getFirestore()
 const BATCH_LIMIT = 500
 
@@ -23,7 +23,7 @@ const BATCH_LIMIT = 500
  * - version 1.1.0 - 2024-09-23 - 無視するフィールドを指定可能に改修
  * - version 1.0.0 - 2024-07-10 - 初版作成
  */
-exports.isDocumentChanged = (event, ignoreFields = []) => {
+export const isDocumentChanged = (event, ignoreFields = []) => {
   // onDocumentUpdatedトリガーから発生したイベントかどうかをチェックします。
   const before = event?.data?.before?.data() || undefined
   const after = event?.data?.after?.data() || undefined
@@ -68,7 +68,7 @@ exports.isDocumentChanged = (event, ignoreFields = []) => {
  * - version 2.0.0 - 2024-07-22 - [破壊]比較対象のプロパティ、更新対象のプロパティを引数で指定できるように修正。
  * - version 1.0.0 - 2024-07-10 - 初版作成
  */
-exports.syncDependentDocuments = async (
+export const syncDependentDocuments = async (
   collectionId,
   compareProp,
   updateProp,
@@ -114,7 +114,7 @@ exports.syncDependentDocuments = async (
  * @param {string} docId - 削除条件となるドキュメントID
  * @throws {Error} 削除処理中にエラーが発生した場合、エラーをスローします。
  ****************************************************************************/
-exports.removeDependentDocuments = async (
+export const removeDependentDocuments = async (
   collectionIds,
   compareProp,
   docId

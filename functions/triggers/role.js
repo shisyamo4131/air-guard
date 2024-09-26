@@ -1,15 +1,15 @@
-const { getAuth } = require('firebase-admin/auth')
-const { logger } = require('firebase-functions/v2')
-const {
+import { getAuth } from 'firebase-admin/auth'
+import { logger } from 'firebase-functions/v2'
+import {
   onDocumentCreated,
   onDocumentDeleted,
-} = require('firebase-functions/v2/firestore')
+} from 'firebase-functions/v2/firestore'
 const auth = getAuth()
 
 /**
  * addAdminClaim
  */
-exports.addAdminClaim = onDocumentCreated(
+export const addAdminClaim = onDocumentCreated(
   'admin_users/{docID}',
   async (event) => {
     const newAdminUser = event.data.data()
@@ -21,7 +21,7 @@ exports.addAdminClaim = onDocumentCreated(
 /**
  * removeAdminClaim
  */
-exports.removeAdminClaim = onDocumentDeleted(
+export const removeAdminClaim = onDocumentDeleted(
   'admin_users/{docID}',
   async (event) => {
     const deletedAdminUser = event.data.data()
@@ -33,7 +33,7 @@ exports.removeAdminClaim = onDocumentDeleted(
 /**
  * addDeveloperClaim
  */
-exports.addDeveloperClaim = onDocumentCreated(
+export const addDeveloperClaim = onDocumentCreated(
   'developer_users/{docID}',
   async (event) => {
     const newDeveloperUser = event.data.data()
@@ -45,7 +45,7 @@ exports.addDeveloperClaim = onDocumentCreated(
 /**
  * removeDeveloperClaim
  */
-exports.removeDeveloperClaim = onDocumentDeleted(
+export const removeDeveloperClaim = onDocumentDeleted(
   'developer_users/{docID}',
   async (event) => {
     const deletedDeveloperUser = event.data.data()

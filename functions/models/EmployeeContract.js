@@ -1,8 +1,8 @@
-const { error } = require('firebase-functions/logger')
-const FireModel = require('./FireModel')
-const { classProps } = require('./propsDefinition/EmployeeContract')
-const Employee = require('./Employee')
-const WorkRegulation = require('./WorkRegulation')
+import { error } from 'firebase-functions/logger'
+import FireModel from './FireModel'
+import { classProps } from './propsDefinition/EmployeeContract'
+import Employee from './Employee'
+import WorkRegulation from './WorkRegulation'
 
 /**
  * EmployeeContractsドキュメントデータモデル【論理削除】
@@ -14,7 +14,7 @@ const WorkRegulation = require('./WorkRegulation')
  * @updates
  * - version 1.0.0 - 2024-09-12 - 初版作成
  */
-class EmployeeContract extends FireModel {
+export default class EmployeeContract extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
@@ -150,5 +150,3 @@ class EmployeeContract extends FireModel {
     }
   }
 }
-
-module.exports = EmployeeContract

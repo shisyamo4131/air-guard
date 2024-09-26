@@ -13,13 +13,13 @@
  * - version 1.0.0 - 2024-09-09 - 初版作成
  ****************************************************************************/
 
-const { info, error } = require('firebase-functions/logger')
-const { onValueUpdated } = require('firebase-functions/v2/database')
-const {
+import { info, error } from 'firebase-functions/logger'
+import { onValueUpdated } from 'firebase-functions/v2/database'
+import {
   syncAirGuardCustomerToFirestore,
   syncAirGuardSiteToFirestore,
   syncAirGuardEmployeeToFirestore,
-} = require('../modules/air-guard')
+} from '../modules/air-guard.js'
 
 /****************************************************************************
  * `AirGuard/Customers/{code}`が更新された時の処理です。
@@ -27,7 +27,7 @@ const {
  * @param {Object} event Firebase Realtime Databaseの更新イベント
  * @returns {Promise<void>} 同期処理の結果を返します
  ****************************************************************************/
-exports.customerUpdated = onValueUpdated(
+export const customerUpdated = onValueUpdated(
   { ref: `/AirGuard/Customers/{code}`, region: 'us-central1' },
   async (event) => {
     try {
@@ -65,7 +65,7 @@ exports.customerUpdated = onValueUpdated(
  * @param {Object} event Firebase Realtime Databaseの更新イベント
  * @returns {Promise<void>} 同期処理の結果を返します
  ****************************************************************************/
-exports.siteUpdated = onValueUpdated(
+export const siteUpdated = onValueUpdated(
   { ref: `/AirGuard/Sites/{code}`, region: 'us-central1' },
   async (event) => {
     try {
@@ -98,7 +98,7 @@ exports.siteUpdated = onValueUpdated(
  * @param {Object} event Firebase Realtime Databaseの更新イベント
  * @returns {Promise<void>} 同期処理の結果を返します
  ****************************************************************************/
-exports.employeeUpdated = onValueUpdated(
+export const employeeUpdated = onValueUpdated(
   { ref: `/AirGuard/Employees/{code}`, region: 'us-central1' },
   async (event) => {
     try {

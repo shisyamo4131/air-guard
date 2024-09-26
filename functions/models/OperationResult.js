@@ -1,18 +1,17 @@
-const { error } = require('firebase-functions/logger')
-
-const { getFirestore } = require('firebase-admin/firestore')
+import { error } from 'firebase-functions/logger'
+import { getFirestore } from 'firebase-admin/firestore'
+import FireModel from './FireModel'
+import { classProps } from './propsDefinition/OperationResult'
+import Site from './Site'
+import OperationResultWorker from './OperationResultWorker'
+import SiteContract from './SiteContract'
 const firestore = getFirestore()
-const FireModel = require('./FireModel')
-const { classProps } = require('./propsDefinition/OperationResult')
-const Site = require('./Site')
-const OperationResultWorker = require('./OperationResultWorker')
-const SiteContract = require('./SiteContract')
 /**
  * ## OperationResults ドキュメントデータモデル【物理削除】
  *
  * 稼働実績のデータモデルです。
  */
-class OperationResult extends FireModel {
+export default class OperationResult extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
@@ -340,5 +339,3 @@ class OperationResult extends FireModel {
     }
   }
 }
-
-module.exports = OperationResult

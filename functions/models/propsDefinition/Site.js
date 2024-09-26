@@ -1,4 +1,4 @@
-const { generateVueProps, generateClassProps } = require('./propsUtil')
+import { generateVueProps, generateClassProps } from './propsUtil.js'
 
 const propsDefinition = {
   docId: { type: String, default: '', required: false, requiredByClass: false },
@@ -83,5 +83,4 @@ const propsDefinition = {
 const vueProps = generateVueProps(propsDefinition)
 const classProps = generateClassProps(propsDefinition)
 
-module.exports.vueProps = vueProps
-module.exports.classProps = classProps
+export { vueProps, classProps }

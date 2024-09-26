@@ -1,7 +1,7 @@
-const { info, error } = require('firebase-functions/logger')
-const { getDatabase } = require('firebase-admin/database')
-const FireModel = require('./FireModel')
-const { classProps } = require('./propsDefinition/Employee')
+import { info, error } from 'firebase-functions/logger'
+import { getDatabase } from 'firebase-admin/database'
+import FireModel from './FireModel.js'
+import { classProps } from './propsDefinition/Employee.js'
 
 /**
  * Employeesドキュメントデータモデル【論理削除】
@@ -14,7 +14,7 @@ const { classProps } = require('./propsDefinition/Employee')
  * @updates
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
-class Employee extends FireModel {
+export default class Employee extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
@@ -124,8 +124,7 @@ class Employee extends FireModel {
       return snapshots
     } catch (err) {
       const message = `[Employee.js fetchByCode] 従業員コード ${code} に対するドキュメントの取得に失敗しました: ${err.message}`
-      // eslint-disable-next-line no-console
-      console.error(message)
+      error(message)
       throw new Error(message)
     }
   }
@@ -152,8 +151,7 @@ class Employee extends FireModel {
       return snapshots.flat()
     } catch (err) {
       const message = `[Employee.js fetchByCodes] ドキュメントの取得中にエラーが発生しました: ${err.message}`
-      // eslint-disable-next-line no-console
-      console.error(message)
+      error(message)
       throw new Error(message)
     }
   }
@@ -238,5 +236,3 @@ class Employee extends FireModel {
     }
   }
 }
-
-module.exports = Employee

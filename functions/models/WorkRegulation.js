@@ -1,6 +1,6 @@
-const dayjs = require('dayjs')
-const FireModel = require('./FireModel')
-const { classProps } = require('./propsDefinition/WorkRegulation')
+import dayjs from 'dayjs'
+import FireModel from './FireModel'
+import { classProps } from './propsDefinition/WorkRegulation'
 /**
  * WorkRegulationsドキュメントデータモデル【物理削除】
  *
@@ -10,7 +10,7 @@ const { classProps } = require('./propsDefinition/WorkRegulation')
  * @updates
  * - version 1.0.0 - 2024-09-13 - 初版作成
  */
-class WorkRegulation extends FireModel {
+export default class WorkRegulation extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
@@ -71,5 +71,3 @@ class WorkRegulation extends FireModel {
     })
   }
 }
-
-module.exports = WorkRegulation

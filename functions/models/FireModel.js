@@ -1,11 +1,11 @@
-const { getFirestore } = require('firebase-admin/firestore')
-const { error, info, warn } = require('firebase-functions/logger')
-const { getMessage } = require('./firestore-messages.js')
+import { getFirestore } from 'firebase-admin/firestore'
+import { error, info, warn } from 'firebase-functions/logger'
+import { getMessage } from './firestore-messages.js'
 const firestore = getFirestore()
 /**
  * [FireMode を Cloud Functions 用にカスタマイズしたバージョン]
  */
-class FireModel {
+export default class FireModel {
   // Firestoreのコレクション名です。
   #collectionPath = ''
 
@@ -1293,5 +1293,3 @@ class FireModel {
     /* eslint-enable */
   }
 }
-
-module.exports = FireModel

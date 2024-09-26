@@ -14,9 +14,9 @@
  * @updates
  * - version 1.0.0 - 2024-09-20 - 初版作成
  */
-const { onDocumentDeleted } = require('firebase-functions/v2/firestore')
-const { info, error } = require('firebase-functions/logger')
-const { getFirestore } = require('firebase-admin/firestore')
+import { onDocumentDeleted } from 'firebase-functions/v2/firestore'
+import { info, error } from 'firebase-functions/logger'
+import { getFirestore } from 'firebase-admin/firestore'
 const firestore = getFirestore()
 
 /****************************************************************************
@@ -29,7 +29,7 @@ const firestore = getFirestore()
  * - version 1.1.0 - 2024-09-25 - `OperationWorkResults` ドキュメントの削除処理を切り出し
  * - version 1.0.0 - 2024-09-20 - 初版作成
  ****************************************************************************/
-exports.onDelete = onDocumentDeleted(
+export const onDelete = onDocumentDeleted(
   'OperationResults/{docId}',
   async (event) => {
     const docId = event.params.docId

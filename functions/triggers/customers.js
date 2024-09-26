@@ -12,16 +12,13 @@
  *    -> アプリの仕様上、従属するSiteドキュメントが存在している場合、Customerドキュメントは削除できない。
  *    -> 万が一Customerドキュメントが消えてしまった場合、Siteドキュメントのcustomerプロパティが復元ができる「かもしれない」。
  */
-const {
+import {
   onDocumentUpdated,
   onDocumentDeleted,
-} = require('firebase-functions/v2/firestore')
-const { info, error } = require('firebase-functions/logger')
-const { getDatabase } = require('firebase-admin/database')
-const {
-  isDocumentChanged,
-  syncDependentDocuments,
-} = require('../modules/utils')
+} from 'firebase-functions/v2/firestore'
+import { info, error } from 'firebase-functions/logger'
+import { getDatabase } from 'firebase-admin/database'
+import { isDocumentChanged, syncDependentDocuments } from '../modules/utils.js'
 const database = getDatabase()
 
 /**
@@ -39,16 +36,19 @@ const database = getDatabase()
  * - version 1.1.0 - 2024-07-22 - syncDependentDocuments()およびSiteドキュメントの仕様変更に伴う修正。
  * - version 1.0.0 - 2024-07-10 - 初版作成
  */
-exports.onUpdate = onDocumentUpdated('Customers/{docId}', async (event) => {
-  if (!isDocumentChanged(event)) return
-  info('Customerドキュメントが更新されました。')
-  await syncDependentDocuments(
-    'Sites',
-    'customerId',
-    'customer',
-    event.data.after.data()
-  )
-})
+export const onUpdate = onDocumentUpdated(
+  'Customers/{docId}',
+  async (event) => {
+    if (!isDocumentChanged(event)) return
+    info('Customerドキュメントが更新されました。')
+    await syncDependentDocuments(
+      'Sites',
+      'customerId',
+      'customer',
+      event.data.after.data()
+    )
+  }
+)
 
 /**
  * Customerドキュメントの削除トリガーです。
@@ -60,17 +60,20 @@ exports.onUpdate = onDocumentUpdated('Customers/{docId}', async (event) => {
  * @author shisyamo4131
  * @version 1.0.0
  */
-exports.onDelete = onDocumentDeleted('Customers/{docId}', async (event) => {
-  info(`Customerドキュメントが削除されました。`)
-  try {
-    // 同期設定済みの取引先ドキュメントであれば同期を解除する
-    if (event.data.data().sync) {
-      info(`AirGuardとの同期設定を解除します。`)
-      const code = event.data.data().code
-      await database.ref(`AirGuard/Customers/${code}`).update({ docId: null })
-      info(`AirGuardとの同期設定を解除しました。。`)
+export const onDelete = onDocumentDeleted(
+  'Customers/{docId}',
+  async (event) => {
+    info(`Customerドキュメントが削除されました。`)
+    try {
+      // 同期設定済みの取引先ドキュメントであれば同期を解除する
+      if (event.data.data().sync) {
+        info(`AirGuardとの同期設定を解除します。`)
+        const code = event.data.data().code
+        await database.ref(`AirGuard/Customers/${code}`).update({ docId: null })
+        info(`AirGuardとの同期設定を解除しました。。`)
+      }
+    } catch (err) {
+      error(`Siteドキュメントの同期設定解除処理でエラーが発生しました。`, err)
     }
-  } catch (err) {
-    error(`Siteドキュメントの同期設定解除処理でエラーが発生しました。`, err)
   }
-})
+)

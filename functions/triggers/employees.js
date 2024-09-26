@@ -3,20 +3,20 @@
  *
  * FirestoreのEmployeesドキュメントが作成・更新・削除トリガーに関する処理です。
  */
-const {
+import {
   onDocumentUpdated,
   onDocumentCreated,
   onDocumentDeleted,
-} = require('firebase-functions/v2/firestore')
-const { getDatabase } = require('firebase-admin/database')
-const { getStorage } = require('firebase-admin/storage')
-const { error, info } = require('firebase-functions/logger')
-const {
+} from 'firebase-functions/v2/firestore'
+import { getDatabase } from 'firebase-admin/database'
+import { getStorage } from 'firebase-admin/storage'
+import { error, info } from 'firebase-functions/logger'
+import {
   removeDependentDocuments,
   syncDependentDocuments,
   isDocumentChanged,
-} = require('../modules/utils')
-const Employee = require('../models/Employee')
+} from '../modules/utils.js'
+import Employee from '../models/Employee.js'
 const database = getDatabase()
 const storage = getStorage()
 
@@ -26,24 +26,27 @@ const storage = getStorage()
  *
  * @param {object} event - Firestoreのトリガーイベント。作成されたドキュメントのデータを含む。
  ****************************************************************************/
-exports.onCreate = onDocumentCreated('Employees/{docId}', async (event) => {
-  const docId = event.params.docId
-  const data = event.data.data()
+export const onCreate = onDocumentCreated(
+  'Employees/{docId}',
+  async (event) => {
+    const docId = event.params.docId
+    const data = event.data.data()
 
-  // FirestoreのEmployeesドキュメントが作成されたことをログに出力
-  info(`Employee document created. docId: ${docId}`)
+    // FirestoreのEmployeesドキュメントが作成されたことをログに出力
+    info(`Employee document created. docId: ${docId}`)
 
-  try {
-    // Realtime Databaseにインデックスを作成
-    await Employee.syncIndex(docId, data)
-  } catch (err) {
-    // エラーログを出力し、エラーを処理
-    error(
-      `Error occurred in Employee document creation trigger. docId: ${docId}`,
-      err
-    )
+    try {
+      // Realtime Databaseにインデックスを作成
+      await Employee.syncIndex(docId, data)
+    } catch (err) {
+      // エラーログを出力し、エラーを処理
+      error(
+        `Error occurred in Employee document creation trigger. docId: ${docId}`,
+        err
+      )
+    }
   }
-})
+)
 
 /****************************************************************************
  * FirestoreのEmployeesドキュメントが更新されたときにトリガーされる関数。
@@ -52,41 +55,44 @@ exports.onCreate = onDocumentCreated('Employees/{docId}', async (event) => {
  *
  * @param {object} event - Firestoreのトリガーイベント。更新後のドキュメントデータを含む。
  ****************************************************************************/
-exports.onUpdate = onDocumentUpdated('Employees/{docId}', async (event) => {
-  const docId = event.params.docId
-  const after = event.data.after.data()
+export const onUpdate = onDocumentUpdated(
+  'Employees/{docId}',
+  async (event) => {
+    const docId = event.params.docId
+    const after = event.data.after.data()
 
-  // ドキュメントが実際に変更されたかを確認
-  if (!isDocumentChanged(event)) return
+    // ドキュメントが実際に変更されたかを確認
+    if (!isDocumentChanged(event)) return
 
-  // FirestoreのEmployeesドキュメントが更新されたことをログに出力
-  info(`Employee document updated. docId: ${docId}`)
+    // FirestoreのEmployeesドキュメントが更新されたことをログに出力
+    info(`Employee document updated. docId: ${docId}`)
 
-  try {
-    // Realtime Databaseにインデックスを同期
-    await Employee.syncIndex(docId, after)
+    try {
+      // Realtime Databaseにインデックスを同期
+      await Employee.syncIndex(docId, after)
 
-    // 他の関連ドキュメントを同期
-    await syncDependentDocuments(
-      'EmployeeContracts',
-      'employeeId',
-      'employee',
-      after
-    )
-    await syncDependentDocuments(
-      'EmployeeMedicalCheckups',
-      'employeeId',
-      'employee',
-      after
-    )
-  } catch (err) {
-    // エラーログを出力し、エラーを処理
-    error(
-      `Error occurred in Employee document update trigger. docId: ${docId}`,
-      err
-    )
+      // 他の関連ドキュメントを同期
+      await syncDependentDocuments(
+        'EmployeeContracts',
+        'employeeId',
+        'employee',
+        after
+      )
+      await syncDependentDocuments(
+        'EmployeeMedicalCheckups',
+        'employeeId',
+        'employee',
+        after
+      )
+    } catch (err) {
+      // エラーログを出力し、エラーを処理
+      error(
+        `Error occurred in Employee document update trigger. docId: ${docId}`,
+        err
+      )
+    }
   }
-})
+)
 
 /****************************************************************************
  * FirestoreのEmployeesドキュメントが削除されたときにトリガーされる関数。
@@ -95,41 +101,44 @@ exports.onUpdate = onDocumentUpdated('Employees/{docId}', async (event) => {
  *
  * @param {object} event - Firestoreのトリガーイベント。削除されたドキュメントデータを含む。
  ****************************************************************************/
-exports.onDelete = onDocumentDeleted('Employees/{docId}', async (event) => {
-  const docId = event.params.docId
+export const onDelete = onDocumentDeleted(
+  'Employees/{docId}',
+  async (event) => {
+    const docId = event.params.docId
 
-  // FirestoreのEmployeesドキュメントが削除されたことをログに出力
-  info(`Employee document deleted. docId: ${docId}`)
+    // FirestoreのEmployeesドキュメントが削除されたことをログに出力
+    info(`Employee document deleted. docId: ${docId}`)
 
-  try {
-    // AirGuardとの同期設定を解除
-    const data = event.data.data()
-    if (data.sync) {
-      const code = data.code
-      await database.ref(`AirGuard/Employees/${code}`).update({ docId: null })
-      info(`AirGuard sync settings removed for employee code: ${code}`)
+    try {
+      // AirGuardとの同期設定を解除
+      const data = event.data.data()
+      if (data.sync) {
+        const code = data.code
+        await database.ref(`AirGuard/Employees/${code}`).update({ docId: null })
+        info(`AirGuard sync settings removed for employee code: ${code}`)
+      }
+
+      // Realtime Databaseインデックスを削除
+      await Employee.deleteIndex(docId)
+
+      // 依存ドキュメントを削除
+      await removeDependentDocuments(
+        ['EmployeeContracts', 'EmployeeMedicalCheckups'],
+        'employeeId',
+        docId
+      )
+
+      // 画像ファイルの削除
+      const directory = `images/employees/${docId}`
+      const fileBucket = storage.bucket()
+      await fileBucket.deleteFiles({ prefix: directory })
+      info(`Related files deleted from directory: ${directory}`)
+    } catch (err) {
+      // エラーログを出力し、エラーを処理
+      error(
+        `Error occurred in Employee document delete trigger. docId: ${docId}`,
+        err
+      )
     }
-
-    // Realtime Databaseインデックスを削除
-    await Employee.deleteIndex(docId)
-
-    // 依存ドキュメントを削除
-    await removeDependentDocuments(
-      ['EmployeeContracts', 'EmployeeMedicalCheckups'],
-      'employeeId',
-      docId
-    )
-
-    // 画像ファイルの削除
-    const directory = `images/employees/${docId}`
-    const fileBucket = storage.bucket()
-    await fileBucket.deleteFiles({ prefix: directory })
-    info(`Related files deleted from directory: ${directory}`)
-  } catch (err) {
-    // エラーログを出力し、エラーを処理
-    error(
-      `Error occurred in Employee document delete trigger. docId: ${docId}`,
-      err
-    )
   }
-})
+)

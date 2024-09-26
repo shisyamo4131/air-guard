@@ -1,5 +1,5 @@
-const FireModel = require('./FireModel')
-const { classProps } = require('./propsDefinition/User')
+import FireModel from './FireModel.js'
+import { classProps } from './propsDefinition/User.js'
 /**
  * Usersドキュメントデータモデル【論理削除】
  *
@@ -12,7 +12,7 @@ const { classProps } = require('./propsDefinition/User')
  * @updates
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
-class User extends FireModel {
+export default class User extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
@@ -30,5 +30,3 @@ class User extends FireModel {
     delete this.delete
   }
 }
-
-module.exports = User

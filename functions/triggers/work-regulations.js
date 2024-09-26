@@ -6,12 +6,9 @@
  * ### 機能概要
  * - ドキュメント更新時、従属ドキュメントとの同期処理を行います。
  */
-const { onDocumentUpdated } = require('firebase-functions/v2/firestore')
-const { info, error } = require('firebase-functions/logger')
-const {
-  isDocumentChanged,
-  syncDependentDocuments,
-} = require('../modules/utils')
+import { onDocumentUpdated } from 'firebase-functions/v2/firestore'
+import { info, error } from 'firebase-functions/logger'
+import { isDocumentChanged, syncDependentDocuments } from '../modules/utils.js'
 
 /**
  * WorkRegulationsドキュメントの更新トリガーです。
@@ -24,7 +21,7 @@ const {
  * @updates
  * - version 1.0.0 - 2024-09-16 - 初版作成
  */
-exports.onUpdate = onDocumentUpdated(
+export const onUpdate = onDocumentUpdated(
   'WorkRegulations/{docId}',
   async (event) => {
     const docId = event.params.docId

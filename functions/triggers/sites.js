@@ -1,14 +1,14 @@
-const {
+import {
   onDocumentDeleted,
   onDocumentUpdated,
-} = require('firebase-functions/v2/firestore')
-const { info, error } = require('firebase-functions/logger')
-const { getDatabase } = require('firebase-admin/database')
-const {
+} from 'firebase-functions/v2/firestore'
+import { info, error } from 'firebase-functions/logger'
+import { getDatabase } from 'firebase-admin/database'
+import {
   removeDependentDocuments,
   isDocumentChanged,
   syncDependentDocuments,
-} = require('../modules/utils')
+} from '../modules/utils.js'
 
 const database = getDatabase()
 
@@ -25,7 +25,7 @@ const collectionsToSyncAndRemove = ['SiteContracts', 'OperationResults']
  * - version 1.1.0 - 2024-09-23 - ドキュメント変更の有無の確認で`hasContract`を除外
  * - version 1.0.0 - 2024-08-07 - 初版作成
  */
-exports.onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
+export const onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
   // ドキュメントの変更有無を確認
   const ignoreFields = ['hasContract']
   if (!isDocumentChanged(event, ignoreFields)) return
@@ -64,7 +64,7 @@ exports.onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
  *                              - SiteContractsの削除処理を追加。
  * - version 1.0.0 - 2024-07-11 - 初版作成
  */
-exports.onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
+export const onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
   const docId = event.params.docId
   info(`Siteドキュメントが削除されました。docId: ${docId}`)
 

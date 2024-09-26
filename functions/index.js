@@ -1,17 +1,27 @@
-const { initializeApp } = require('firebase-admin/app')
-const { setGlobalOptions } = require('firebase-functions/v2')
+// index.js (Cloud Functions エントリーポイント)
+import './modules/firebase-init.js' // Firebaseを初期化
 
-initializeApp()
-setGlobalOptions({ region: 'asia-northeast1' })
+import * as auth from './triggers/auth.js'
+import * as role from './triggers/role.js'
 
-exports.auth = require('./triggers/auth')
-exports.role = require('./triggers/role')
+import * as airGuard from './triggers/air-guard.js'
+import * as customers from './triggers/customers.js'
+import * as sites from './triggers/sites.js'
+import * as siteContracts from './triggers/site-contracts.js'
+import * as siteOperationSchedules from './triggers/site-operation-schedules.js'
+import * as employees from './triggers/employees.js'
+import * as workRegulations from './triggers/work-regulations.js'
+import * as operationResults from './triggers/operation-results.js'
 
-exports.airGuard = require('./triggers/air-guard')
-exports.customers = require('./triggers/customers')
-exports.sites = require('./triggers/sites')
-exports.siteContracts = require('./triggers/site-contracts')
-exports.siteOperationSchedules = require('./triggers/site-operation-schedules')
-exports.employees = require('./triggers/employees')
-exports.workRegulations = require('./triggers/work-regulations')
-exports.operationResults = require('./triggers/operation-results')
+export {
+  auth,
+  role,
+  airGuard,
+  customers,
+  sites,
+  siteContracts,
+  siteOperationSchedules,
+  employees,
+  workRegulations,
+  operationResults,
+}

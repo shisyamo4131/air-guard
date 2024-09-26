@@ -15,17 +15,17 @@
  * @created 2024-09-09
  ****************************************************************************/
 
-const { info, error } = require('firebase-functions/logger')
-const Customer = require('../models/Customer')
-const Site = require('../models/Site')
-const Employee = require('../models/Employee')
+import { info, error } from 'firebase-functions/logger'
+import Customer from '../models/Customer.js'
+import Site from '../models/Site.js'
+import Employee from '../models/Employee.js'
 
 /****************************************************************************
  * Realtime Databaseの`AirGuard/Customers`の内容で、FirestoreのCustomersドキュメントを更新します。
  * @param {Object} data Realtime Databaseの更新トリガーが保有するdataオブジェクト
  * @returns {Promise<void>} Firestoreの更新結果を返します
  ****************************************************************************/
-exports.syncAirGuardCustomerToFirestore = async (data) => {
+export const syncAirGuardCustomerToFirestore = async (data) => {
   const functionName = '[syncAirGuardCustomerToFirestore]'
   try {
     const docId = data.docId
@@ -52,7 +52,7 @@ exports.syncAirGuardCustomerToFirestore = async (data) => {
  * @param {Object} data Realtime Databaseの更新トリガーが保有するdataオブジェクト
  * @returns {Promise<void>} Firestoreの更新結果を返します
  ****************************************************************************/
-exports.syncAirGuardSiteToFirestore = async (data) => {
+export const syncAirGuardSiteToFirestore = async (data) => {
   const functionName = '[syncAirGuardSiteToFirestore]'
 
   /**
@@ -118,7 +118,7 @@ exports.syncAirGuardSiteToFirestore = async (data) => {
  * @param {Object} data Realtime Databaseの更新トリガーが保有するdataオブジェクト
  * @returns {Promise<void>} Firestoreの更新結果を返します
  ****************************************************************************/
-exports.syncAirGuardEmployeeToFirestore = async (data) => {
+export const syncAirGuardEmployeeToFirestore = async (data) => {
   const functionName = '[syncAirGuardEmployeeToFirestore]'
 
   try {

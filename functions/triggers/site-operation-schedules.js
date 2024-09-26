@@ -26,20 +26,20 @@
  * - version 1.0.0 - 2024-07-26 - 初版作成
  */
 
-const {
+import {
   onDocumentUpdated,
   onDocumentCreated,
   onDocumentDeleted,
-} = require('firebase-functions/v2/firestore')
-const { getFirestore } = require('firebase-admin/firestore')
-const { getDatabase } = require('firebase-admin/database')
-const { error, info } = require('firebase-functions/logger')
-const dayjs = require('dayjs')
-const utc = require('dayjs/plugin/utc')
-const timezone = require('dayjs/plugin/timezone')
+} from 'firebase-functions/v2/firestore'
+import { getFirestore } from 'firebase-admin/firestore'
+import { getDatabase } from 'firebase-admin/database'
+import { error, info } from 'firebase-functions/logger'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc.js'
+import timezone from 'dayjs/plugin/timezone.js'
+import { isDocumentChanged } from '../modules/utils.js'
 dayjs.extend(utc)
 dayjs.extend(timezone)
-const { isDocumentChanged } = require('../modules/utils')
 const firestore = getFirestore()
 const database = getDatabase()
 
@@ -47,7 +47,7 @@ const database = getDatabase()
  * ドキュメント作成トリガー
  * - Realtime Databaseに更新履歴を書き込みます。
  */
-exports.onCreate = onDocumentCreated(
+export const onCreate = onDocumentCreated(
   `SiteOperationSchedules/{docId}`,
   async (event) => {
     const data = event.data.data()
@@ -61,7 +61,7 @@ exports.onCreate = onDocumentCreated(
  * - 作成元となった当該ドキュメントは削除します。
  * - 更新履歴をRealtime Databaseに書き込みます。再作成の場合は書き込みません。
  */
-exports.onUpdate = onDocumentUpdated(
+export const onUpdate = onDocumentUpdated(
   'SiteOperationSchedules/{docId}',
   async (event) => {
     // ドキュメントが更新されているかを確認 -> 更新されていなければ終了
@@ -94,7 +94,7 @@ exports.onUpdate = onDocumentUpdated(
  * ドキュメントの削除トリガー
  * - Realtime Databaseに更新履歴を書き込みます。
  */
-exports.onDelete = onDocumentDeleted(
+export const onDelete = onDocumentDeleted(
   'SiteOperationSchedules/{docId}',
   async (event) => {
     const data = event.data.data()

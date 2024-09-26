@@ -1,6 +1,6 @@
-const { getFirestore } = require('firebase-admin/firestore')
-const FireModel = require('./FireModel')
-const { classProps } = require('./propsDefinition/EmployeeSiteActivity')
+import { getFirestore } from 'firebase-admin/firestore'
+import FireModel from './FireModel'
+import { classProps } from './propsDefinition/EmployeeSiteActivity'
 const firestore = getFirestore()
 /**
  * EmployeeSiteActivitiesドキュメントデータモデル【物理削除】
@@ -12,7 +12,7 @@ const firestore = getFirestore()
  * @updates
  * - version 1.0.0 - 2024-09-25 - 初版作成
  */
-class EmployeeSiteActivity extends FireModel {
+export default class EmployeeSiteActivity extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
@@ -108,5 +108,3 @@ class EmployeeSiteActivity extends FireModel {
     await instance.update()
   }
 }
-
-module.exports = EmployeeSiteActivity

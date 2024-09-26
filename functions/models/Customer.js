@@ -1,5 +1,6 @@
-const FireModel = require('./FireModel')
-const { classProps } = require('./propsDefinition/Customer')
+import { error } from 'firebase-functions/logger'
+import FireModel from './FireModel.js'
+import { classProps } from './propsDefinition/Customer.js'
 /**
  * Customersドキュメントデータモデル【論理削除】
  *
@@ -11,7 +12,7 @@ const { classProps } = require('./propsDefinition/Customer')
  * @updates
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
-class Customer extends FireModel {
+export default class Customer extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
@@ -63,8 +64,7 @@ class Customer extends FireModel {
       return snapshots
     } catch (err) {
       const message = `[Customer.js fetchByCode] 取引先コード ${code} に対するドキュメントの取得に失敗しました: ${err.message}`
-      // eslint-disable-next-line no-console
-      console.error(message)
+      error(message)
       throw new Error(message)
     }
   }
@@ -90,13 +90,10 @@ class Customer extends FireModel {
       const snapshots = await Promise.all(promises)
       return snapshots.flat()
     } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error(
+      error(
         `[Customer.js fetchByCodes] Error fetching documents: ${err.message}`
       )
       throw new Error(`Error fetching documents for codes: ${err.message}`)
     }
   }
 }
-
-module.exports = Customer
