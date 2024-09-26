@@ -3,12 +3,6 @@
  *
  * `OperationResults`ドキュメントのトリガーに関する処理です。
  *
- * - アプリ側で`OperationWorkResults`ドキュメントが同期的に作成・更新・削除されていますが、
- *   EmulatorのUIなど、アプリ外で削除された場合に備えて、削除トリガーで対応する`OperationWorkResults`ドキュメントを削除します。
- *   -> `OperationWorkResults`ドキュメントはClientアプリから従業員が更新するもので、同期削除しないと不具合が発生します。
- * - 作成・更新時の同期処理はすべてアプリ側で行います。
- *   -> そもそもアプリ外で`OperationResults`ドキュメントが作成・更新されてはなりません。
- *
  * @author shisyamo4131
  * @version 1.0.0
  * @updates
@@ -22,6 +16,12 @@ const firestore = getFirestore()
 /****************************************************************************
  * `OperationResults`ドキュメントの削除トリガーです。
  * - 従属する`OperationWorkResults`ドキュメントを削除します。
+ *
+ * - アプリ側で`OperationWorkResults`ドキュメントが同期的に作成・更新・削除されていますが、
+ *   EmulatorのUIなど、アプリ外で削除された場合に備えて、削除トリガーで対応する`OperationWorkResults`ドキュメントを削除します。
+ *   -> `OperationWorkResults`ドキュメントはClientアプリから従業員が更新するもので、同期削除しないと不具合が発生します。
+ * - 作成・更新時の同期処理はすべてアプリ側で行います。
+ *   -> そもそもアプリ外で`OperationResults`ドキュメントが作成・更新されてはなりません。
  *
  * @author shisyamo4131
  * @version 1.1.0
