@@ -1,16 +1,13 @@
-import FireModel from './FireModel'
-import { classProps } from './propsDefinition/SiteContract'
-import Site from './Site'
+import FireModel from './FireModel.js'
+import Site from './Site.js'
+import { classProps } from './propsDefinition/SiteContract.js'
+
 /**
  * SiteContractsドキュメントデータモデル【論理削除】
+ * - 現場の契約情報を管理するデータモデルです。
  *
- * - 現場情報を管理するデータモデルです。
- * - `code`は Autonumbers による自動採番が行われます。
- *
- * @version 2.0.0
  * @author shisyamo4131
- * @updates
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
+ * @version 1.0.0
  */
 export default class SiteContract extends FireModel {
   /****************************************************************************

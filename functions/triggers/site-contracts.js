@@ -1,60 +1,73 @@
-import { getFirestore } from 'firebase-admin/firestore'
-import { error } from 'firebase-functions/logger'
 import {
   onDocumentCreated,
   onDocumentDeleted,
 } from 'firebase-functions/v2/firestore'
+import { logger } from 'firebase-functions/v2'
+import Site from '../models/Site.js'
 
-const firestore = getFirestore()
-
-/**
+/****************************************************************************
  * Firestoreドキュメント作成時のトリガー
- * - SiteContractsコレクションにドキュメントが作成されると発火。
- * - 関連するSiteドキュメントの`hasContract`フィールドをtrueに更新します。
+ * - `SiteContracts` コレクションにドキュメントが作成されると発火。
+ * - 関連する `Site` ドキュメントの `hasContract` フィールドを `true` に更新します。
  * @param {Object} event - Firestoreイベントオブジェクト
- */
+ ****************************************************************************/
 export const onCreate = onDocumentCreated(
   'SiteContracts/{docId}',
   async (event) => {
-    const siteId = event.data.data().siteId // siteIdをtry外で取得
+    const docId = event.params.docId
+    const data = event.data.data()
+    const siteId = data?.siteId
+
+    if (!siteId) {
+      logger.error(
+        `Failed to retrieve siteId from the created document. docId: ${docId}`
+      )
+      return
+    }
+
     try {
-      const docRef = firestore.collection('Sites').doc(siteId)
-      // SiteドキュメントのhasContractフィールドをtrueに更新
-      await docRef.update({ hasContract: true })
+      // 関連するSiteドキュメントのhasContractフィールドを更新
+      await Site.refreshHasContract(siteId)
+      logger.info(
+        `Successfully updated hasContract for siteId: ${siteId} after creation of docId: ${docId}`
+      )
     } catch (err) {
-      error(
-        `Error updating hasContract to true for siteId: ${siteId}. Error: ${err.message}. Stack: ${err.stack}`
+      logger.error(
+        `An error occurred while updating hasContract after creation. docId: ${docId}, siteId: ${siteId}, Error: ${err.message}, Stack: ${err.stack}`
       )
     }
   }
 )
 
-/**
+/****************************************************************************
  * Firestoreドキュメント削除時のトリガー
- * - SiteContractsコレクションからドキュメントが削除されると発火。
- * - 同じsiteIdに関連する他の契約がない場合、対応するSiteドキュメントの`hasContract`フィールドをfalseに更新します。
+ * - `SiteContracts` コレクションからドキュメントが削除されると発火。
+ * - 同じ `siteId` に関連する他の契約がない場合、対応する `Site` ドキュメントの `hasContract` フィールドを `false` に更新します。
  * @param {Object} event - Firestoreイベントオブジェクト
- */
+ ****************************************************************************/
 export const onDelete = onDocumentDeleted(
   'SiteContracts/{docId}',
   async (event) => {
-    const siteId = event.data.data().siteId // siteIdをtry外で取得
-    try {
-      // 同じsiteIdを持つ他のSiteContractsドキュメントが存在するか確認
-      const contractsQuery = firestore
-        .collection('SiteContracts')
-        .where('siteId', '==', siteId)
-        .limit(1)
-      const contractsQuerySnapshot = await contractsQuery.get()
+    const docId = event.params.docId
+    const data = event.data.data()
+    const siteId = data?.siteId
 
-      // 他の契約が存在しない場合にのみhasContractをfalseに更新
-      if (contractsQuerySnapshot.empty) {
-        const docRef = firestore.collection('Sites').doc(siteId)
-        await docRef.update({ hasContract: false })
-      }
+    if (!siteId) {
+      logger.error(
+        `Failed to retrieve siteId from the deleted document. docId: ${docId}`
+      )
+      return
+    }
+
+    try {
+      // 関連するSiteドキュメントのhasContractフィールドを更新
+      await Site.refreshHasContract(siteId)
+      logger.info(
+        `Successfully updated hasContract for siteId: ${siteId} after deletion of docId: ${docId}`
+      )
     } catch (err) {
-      error(
-        `Error updating hasContract to false for siteId: ${siteId}. Error: ${err.message}. Stack: ${err.stack}`
+      logger.error(
+        `An error occurred while updating hasContract after deletion. docId: ${docId}, siteId: ${siteId}, Error: ${err.message}, Stack: ${err.stack}`
       )
     }
   }
