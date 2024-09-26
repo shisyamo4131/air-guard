@@ -24,33 +24,56 @@ const firestore = getFirestore()
  * - 従属する`OperationWorkResults`ドキュメントを削除します。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  * @updates
+ * - version 1.1.0 - 2024-09-25 - `OperationWorkResults` ドキュメントの削除処理を切り出し
  * - version 1.0.0 - 2024-09-20 - 初版作成
  ****************************************************************************/
 exports.onDelete = onDocumentDeleted(
   'OperationResults/{docId}',
   async (event) => {
     const docId = event.params.docId
-    info(`[onDelete] OperationResults document deleted. docId: ${docId}`)
+    info(
+      `[operationResults.onDelete] OperationResults document deleted. docId: ${docId}`
+    )
     try {
-      const colRef = firestore.collection('OperationWorkResults')
-      const query = colRef.where('operationResultId', '==', docId)
-      const querySnapshot = await query.get()
-
-      const promises = []
-      querySnapshot.forEach((snapshot) => {
-        promises.push(snapshot.ref.delete()) // 非同期削除を配列に格納
-      })
-      await Promise.all(promises) // すべての削除が完了するまで待機
-      info(
-        `[onDelete] Related OperationWorkResults documents deleted for docId: ${docId}`
-      )
+      await deleteOperationWorkResults(docId)
     } catch (err) {
       error(
-        `[onDelete] Error deleting related OperationWorkResults for docId: ${docId}`,
+        `[operationResults.onDelete] Error deleting related OperationWorkResults for docId: ${docId}`,
         err
       )
     }
   }
 )
+
+/****************************************************************************
+ * 引数 `operationResultId` に該当する `OperationWorkResults` ドキュメントをすべて削除します。
+ * - 従属する`OperationWorkResults`ドキュメントを削除します。
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ * @updates
+ * - version 1.0.0 - 2024-09-25 - 初版作成
+ ****************************************************************************/
+const deleteOperationWorkResults = async (operationResultId) => {
+  try {
+    const colRef = firestore.collection('OperationWorkResults')
+    const query = colRef.where('operationResultId', '==', operationResultId)
+    const querySnapshot = await query.get()
+
+    const promises = []
+    querySnapshot.forEach((snapshot) => {
+      promises.push(snapshot.ref.delete()) // 非同期削除を配列に格納
+    })
+    await Promise.all(promises) // すべての削除が完了するまで待機
+    info(
+      `Related OperationWorkResults documents deleted for docId: ${operationResultId}`
+    )
+  } catch (err) {
+    error(
+      `Error deleting related OperationWorkResults for docId: ${operationResultId}`,
+      err
+    )
+  }
+}

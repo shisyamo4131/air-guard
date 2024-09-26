@@ -1,3 +1,7 @@
+const { error } = require('firebase-functions/logger')
+
+const { getFirestore } = require('firebase-admin/firestore')
+const firestore = getFirestore()
 const FireModel = require('./FireModel')
 const { classProps } = require('./propsDefinition/OperationResult')
 const Site = require('./Site')
@@ -8,7 +12,7 @@ const SiteContract = require('./SiteContract')
  *
  * 稼働実績のデータモデルです。
  */
-export default class OperationResult extends FireModel {
+class OperationResult extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
@@ -34,6 +38,17 @@ export default class OperationResult extends FireModel {
     delete this.update
     delete this.delete
     Object.defineProperties(this, {
+      /**
+       * `workers` に保存されているオブジェクトから `employeeId` のみを抽出したものです。
+       */
+      employeeIds: {
+        enumerable: true,
+        configurable: true,
+        get() {
+          return this.workers.map(({ employeeId }) => employeeId)
+        },
+        set(v) {},
+      },
       month: {
         enumerable: true,
         configurable: true,
@@ -263,4 +278,67 @@ export default class OperationResult extends FireModel {
       throw new Error(message)
     }
   }
+
+  /**
+   * 指定された従業員IDと現場IDに基づき、従業員が該当現場で稼働した初回日および最終日のデータを取得します。
+   * - 対象のドキュメントが存在しない場合は `null` を返します。
+   * - 最終日のドキュメントが存在しない場合、初回日のデータを最終日として扱います。
+   *
+   * @param {string} employeeId - 従業員を一意に識別するID
+   * @param {string} siteId - 現場を一意に識別するID
+   * @param {Object} transaction - Firestore のトランザクションオブジェクト
+   * @returns {Object|null} - 従業員の初回日と最終日のデータ。データがない場合は `null` を返します。
+   * @property {string} firstDate - 初回稼働日の日時
+   * @property {string} firstOperationResultId - 初回稼働日に関連するOperationResultドキュメントID
+   * @property {string} lastDate - 最終稼働日の日時
+   * @property {string} lastOperationResultId - 最終稼働日に関連するOperationResultドキュメントID
+   * @throws {Error} - データの取得中にエラーが発生した場合にスローされます。
+   */
+  async getFirstAndLastEmployeeDate(employeeId, siteId, transaction) {
+    try {
+      const colRef = firestore.collection(this.constructor.collectionPath)
+      const baseQuery = colRef
+        .where('siteId', '==', siteId)
+        .where('employeeIds', 'array-contains', employeeId)
+
+      // 最初の日付を取得
+      const firstQuery = baseQuery.orderBy('date').limit(1)
+      const firstQuerySnapshot = await transaction.get(firstQuery)
+
+      if (firstQuerySnapshot.empty) {
+        return null // データがない場合はnullを返す
+      }
+
+      const firstDoc = firstQuerySnapshot.docs[0]
+      const { date: firstDate, docId: firstOperationResultId } = firstDoc.data()
+
+      // 最後の日付を取得
+      const lastQuery = baseQuery.orderBy('date', 'desc').limit(1)
+      const lastQuerySnapshot = await transaction.get(lastQuery)
+
+      let lastDate, lastOperationResultId
+      if (lastQuerySnapshot.empty) {
+        // 最後のドキュメントが存在しない場合、最初のデータを使う
+        lastDate = firstDate
+        lastOperationResultId = firstOperationResultId
+      } else {
+        const lastDoc = lastQuerySnapshot.docs[0]
+        ;({ date: lastDate, docId: lastOperationResultId } = lastDoc.data())
+      }
+
+      return {
+        firstDate,
+        firstOperationResultId,
+        lastDate,
+        lastOperationResultId,
+      }
+    } catch (err) {
+      error('Error fetching first and last employee date:', err)
+      throw new Error(
+        "Failed to fetch employee's first and last operation dates."
+      )
+    }
+  }
 }
+
+module.exports = OperationResult

@@ -1,4 +1,5 @@
 const { getFirestore } = require('firebase-admin/firestore')
+const { error } = require('firebase-functions/logger')
 const {
   onDocumentCreated,
   onDocumentDeleted,
@@ -19,8 +20,7 @@ exports.onCreate = onDocumentCreated('SiteContracts/{docId}', async (event) => {
     // SiteドキュメントのhasContractフィールドをtrueに更新
     await docRef.update({ hasContract: true })
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(
+    error(
       `Error updating hasContract to true for siteId: ${siteId}. Error: ${err.message}. Stack: ${err.stack}`
     )
   }
@@ -48,8 +48,7 @@ exports.onDelete = onDocumentDeleted('SiteContracts/{docId}', async (event) => {
       await docRef.update({ hasContract: false })
     }
   } catch (err) {
-    // eslint-disable-next-line no-console
-    console.error(
+    error(
       `Error updating hasContract to false for siteId: ${siteId}. Error: ${err.message}. Stack: ${err.stack}`
     )
   }

@@ -49,6 +49,17 @@ export default class OperationResult extends FireModel {
   constructor(item = {}) {
     super(item)
     Object.defineProperties(this, {
+      /**
+       * `workers` に保存されているオブジェクトから `employeeId` のみを抽出したものです。
+       */
+      employeeIds: {
+        enumerable: true,
+        configurable: true,
+        get() {
+          return this.workers.map(({ employeeId }) => employeeId)
+        },
+        set(v) {},
+      },
       month: {
         enumerable: true,
         configurable: true,
