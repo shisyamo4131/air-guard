@@ -8,6 +8,11 @@
         ".read": "auth !== null",
         ".write": "auth !== null"
       },
+      "Employees": {
+        ".indexOn": ["docId"],
+        ".read": "auth !== null",
+        ".write": "auth !== null"
+      },
       "Sites": {
         ".indexOn": ["docId"],
         ".read": "auth !== null",
