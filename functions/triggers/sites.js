@@ -26,9 +26,7 @@ const collectionsToSyncAndRemove = ['SiteContracts', 'OperationResults']
  * - version 1.0.0 - 2024-08-07 - 初版作成
  */
 export const onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
-  // ドキュメントの変更有無を確認
-  const ignoreFields = ['hasContract']
-  if (!isDocumentChanged(event, ignoreFields)) return
+  if (!isDocumentChanged(event)) return
 
   info('Siteドキュメントが更新されました。')
 
