@@ -1,93 +1,114 @@
+/**
+ * ## sites.js
+ *
+ * Sitesドキュメントの作成・更新・削除トリガーに関する処理です。
+ *
+ * ### 従属ドキュメントの同期削除について
+ * 従属ドキュメントの同期削除は以下の理由で行いません。
+ * - アプリの仕様上、従属するドキュメントが存在する場合、親ドキュメントは削除できません。
+ * - ドキュメントの整合性を保つために従属するドキュメントも削除することを検討しましたが、
+ *   アプリで実装している論理削除の設計を崩壊させてしまう為に取りやめました。
+ */
 import {
+  onDocumentCreated,
   onDocumentDeleted,
   onDocumentUpdated,
 } from 'firebase-functions/v2/firestore'
 import { logger } from 'firebase-functions/v2'
-import { getDatabase } from 'firebase-admin/database'
 import { isDocumentChanged } from '../modules/utils.js'
 import Site from '../models/Site.js'
 
-const database = getDatabase()
-
-/**
- * `Sites` ドキュメントと同期されるべきコレクションの定義
- * - 更新されたドキュメントの `docId` と更新対象ドキュメントの `siteId` が比較されます。
- * - ドキュメントの内の `site` プロパティが更新されます。
- * - `siteId` を持つものの `site` プロパティを持たないドキュメントは個別に同期削除する必要があります。
- */
-// const collectionsToSyncAndRemove = ['SiteContracts', 'OperationResults']
-
 /****************************************************************************
- * Siteドキュメントの更新トリガーです。
- * - ドキュメントの内容に変更があった場合に、従属するドキュメントのsiteプロパティを同期します。
+ * ドキュメントが作成されたときにトリガーされる関数。
+ * - 作成されたドキュメントのデータを元に、Realtime Databaseにインデックスを作成します。
  *
+ * @author shisyamo4131
  * @version 1.0.0
- * @updates
- * - version 1.1.0 - 2024-09-23 - ドキュメント変更の有無の確認で`hasContract`を除外
- * - version 1.0.0 - 2024-08-07 - 初版作成
  ****************************************************************************/
-export const onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
-  // 更新情報以外の変更があったかを確認 -> 変更がなければ終了
-  if (!isDocumentChanged(event)) return
-
-  // docIdを取得しておく
+export const onCreate = onDocumentCreated('Sites/{docId}', async (event) => {
   const docId = event.params.docId
 
-  // ドキュメントが変更されたことを通知
-  logger.info(`Sitesドキュメントが更新されました。`, { docId })
+  // ログに更新されたドキュメントIDを含める
+  logger.info(
+    `Sitesドキュメントが更新されました。ドキュメントID: ${event.params.docId}`
+  )
 
   try {
-    // `SiteContracts` ドキュメントを同期
-    await Site.syncToSiteContracts(docId)
-    logger.info('従属するすべてのドキュメントの同期が完了しました。')
+    // Realtime Databaseにインデックスを作成
+    await Site.syncIndex(docId)
   } catch (err) {
-    logger.error('Siteドキュメントの同期中にエラーが発生しました。', err)
+    // エラーハンドリング
+    logger.error(
+      `Sitesドキュメントの同期処理中にエラーが発生しました: ${err.message}`,
+      { docId: event.params.docId }
+    )
+    throw err
   }
 })
 
 /****************************************************************************
- * Siteドキュメントの削除トリガーです。
- * - AirGuardとの同期設定を解除します。
- * - 従属するドキュメントを削除します。
+ * ドキュメントの更新トリガーです。
+ * - インデックスを更新します。
+ * - 従属するドキュメントのsiteプロパティを同期します。
  *
- * @version 1.2.0
- * @updates
- * - version 1.2.0 - 2024-08-07 - OperationResultsの削除処理を追加。
- * - version 1.1.0 - 2024-07-12 - SiteOperationSchedulesの削除処理を追加。
- *                              - SiteContractsの削除処理を追加。
- * - version 1.0.0 - 2024-07-11 - 初版作成
+ * #### 注意事項
+ * - ドキュメントの内容に変更があったかどうかは`isDocumentChanged()`を利用します。
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
+ ****************************************************************************/
+export const onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
+  try {
+    // ドキュメントに変更がなければ処理を終了
+    if (!isDocumentChanged(event)) return
+
+    // ログに更新されたドキュメントIDを含める
+    logger.info(
+      `Sitesドキュメントが更新されました。ドキュメントID: ${event.params.docId}`
+    )
+
+    // Realtime Databaseにインデックスを作成
+    await Site.syncIndex(event.params.docId)
+
+    // SiteContractsドキュメントのsiteプロパティを同期
+    await Site.syncToSiteContracts(event.params.docId)
+
+    // OperationResultsドキュメントのsiteプロパティを同期
+    await Site.syncToOperationResults(event.params.docId)
+  } catch (err) {
+    // エラーハンドリング
+    logger.error(
+      `Sitesドキュメントの同期処理中にエラーが発生しました: ${err.message}`,
+      { docId: event.params.docId }
+    )
+    throw err
+  }
+})
+
+/****************************************************************************
+ * ドキュメントが削除されたときにトリガーされる関数。
+ * - インデックスを削除します。
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
  ****************************************************************************/
 export const onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
   const docId = event.params.docId
-  logger.info(`Siteドキュメントが削除されました。docId: ${docId}`)
 
-  /**
-   * AirGuardとの同期設定済みドキュメントであれば同期を解除する。
-   */
-  try {
-    const siteData = event.data.data()
-    if (siteData.sync) {
-      const code = siteData.code
-      await database.ref(`AirGuard/Sites/${code}`).update({ docId: null })
-      logger.info(`AirGuardとの同期設定を解除しました。code: ${code}`)
-    }
-  } catch (err) {
-    logger.error(`AirGuardとの同期設定解除処理でエラーが発生しました。`, err)
-  }
+  // ログに更新されたドキュメントIDを含める
+  logger.info(
+    `Sitesドキュメントが削除されました。ドキュメントID: ${event.params.docId}`
+  )
 
-  /**
-   * 従属するドキュメントをすべて削除する。
-   */
   try {
-    // // 削除対象に`SiteOperationSchedules`を追加
-    // const allCollectionsToRemove = [
-    //   ...collectionsToSyncAndRemove,
-    //   'SiteOperationSchedules',
-    // ]
-    // await removeDependentDocuments(allCollectionsToRemove, 'siteId', docId)
-    await Site.syncToSiteContracts(docId, { isDeleted: true })
-    logger.info('従属するドキュメントを削除しました。')
+    // Realtime Databaseインデックスを削除
+    await Site.syncIndex(docId, true)
   } catch (err) {
-    logger.error(`従属するドキュメントの削除処理でエラーが発生しました。`, err)
+    // エラーハンドリング
+    logger.error(
+      `Sitesドキュメントの同期処理中にエラーが発生しました: ${err.message}`,
+      { docId: event.params.docId }
+    )
+    throw err
   }
 })

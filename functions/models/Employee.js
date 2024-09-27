@@ -76,6 +76,17 @@ export default class Employee extends FireModel {
   }
 
   /****************************************************************************
+   * initializeメソッドをオーバーライドします。
+   * - AirGuardからのインポート処理を想定した初期化処理を追加しています。
+   * @param {Object} item
+   ****************************************************************************/
+  initialize(item = {}) {
+    item.isForeigner = item.isForeigner === '1' // '1' ならば true に変換
+    item.hasSendAddress = item.hasSendAddress === '2' // '2' ならば true に変換
+    super.initialize(item)
+  }
+
+  /****************************************************************************
    * クラスプロパティの状態に応じて、他のプロパティの値を初期化します。
    * - `isForeigner`がfalseの場合、`nationality`を初期化します。
    * - `leaveDate`が空の場合、`leaveReason`を初期化します。
@@ -233,81 +244,136 @@ export default class Employee extends FireModel {
 
   /****************************************************************************
    * Realtime DatabaseのEmployeesインデックスを更新します。
-   * - 指定されたdocIdに対応するEmployeesインデックスをRealtime Databaseに作成・更新します。
-   * - 入力データのバリデーションを行い、エラー時にはメッセージを出力します。
-   *
-   * @param {string} docId - 更新するEmployeesインデックスのドキュメントID
-   * @param {object} data - 更新するデータ
+   * - 指定された `employeeId ` に該当する `Employees` ドキュメントを取得します。
+   * - 取得したドキュメントから必要なデータを抽出してインデックスを更新します。
+   * - `isDeleted` が true の場合、無条件にインデックスを削除して終了します。
+   * @param {string} employeeId - 更新するEmployeesインデックスのドキュメントID
+   * @param {boolean} isDeleted - true の場合、インデックスを削除します。
    * @throws {Error} インデックスの更新に失敗した場合、エラーをスローします。
    ****************************************************************************/
-  static async syncIndex(docId, data) {
-    // Input validation for docId and data
-    if (!docId || typeof docId !== 'string') {
-      throw new Error(`[${this.name} - syncIndex]: Invalid document ID`)
-    }
-    if (!data || typeof data !== 'object') {
-      throw new Error(`[${this.name} - syncIndex]: Invalid data object`)
-    }
-
-    // Create a new data for the index
-    const indexData = {
-      code: data.code,
-      fullName: data.fullName,
-      fullNameKana: data.fullNameKana,
-      abbr: data.abbr,
-      status: data.status,
-    }
+  static async syncIndex(employeeId, isDeleted = false) {
+    // Create reference to index in Realtime Database.
+    const dbRef = database.ref(`Employees/${employeeId}`)
 
     try {
-      // Update the Realtime Database Employees index
-      const database = getDatabase()
-      await database.ref(`Employees/${docId}`).set(indexData)
+      // インデックスの削除処理
+      if (isDeleted) {
+        await dbRef.remove()
+        logger.info(`[syncIndex] インデックスが削除されました。`, {
+          employeeId,
+        })
+        return
+      }
 
-      logger.info(
-        `[${this.name} - syncIndex]: Successfully updated index for docId: ${docId}`
-      )
-    } catch (err) {
+      // Firestore から Employee ドキュメントを取得
+      const docRef = firestore.collection('Employees').doc(employeeId)
+      const docSnapshot = await docRef.get()
+
+      // ドキュメントが存在しない場合のエラーハンドリング
+      if (!docSnapshot.exists) {
+        const message = `該当する Employees ドキュメントが取得できませんでした。`
+        logger.error(`[syncIndex] ${message}`, { employeeId })
+        throw new Error(message)
+      }
+
+      // インデックスデータの作成
+      const indexData = {
+        code: docSnapshot.data().code,
+        fullName: docSnapshot.data().fullName,
+        fullNameKana: docSnapshot.data().fullNameKana,
+        abbr: docSnapshot.data().abbr,
+        address1: docSnapshot.data().address1,
+        status: docSnapshot.data().status,
+      }
+
+      // インデックスを更新
+      await dbRef.set(indexData)
+      logger.info(`[syncIndex] インデックスが更新されました。`, { employeeId })
+    } catch (error) {
+      // 修正: catchブロックで関数の引数のみをログ出力
       logger.error(
-        `[${this.name} - syncIndex]: Failed to update index for docId: ${docId}`,
-        err
+        `[syncIndex] インデックスの同期処理でエラーが発生しました。`,
+        { employeeId }
       )
-      throw new Error(
-        `[${this.name} - syncIndex]: Error updating index for docId: ${docId}`
-      )
+      throw error
     }
   }
 
   /****************************************************************************
-   * Realtime DatabaseのEmployeesインデックスを削除します。
-   * - 指定されたdocIdに対応するEmployeesインデックスをRealtime Databaseから削除します。
-   *
-   * @param {string} docId - 削除するEmployeesインデックスのドキュメントID
-   * @throws {Error} インデックスの削除に失敗した場合、エラーをスローします。
+   * 指定された `employeeId` に基づき、`EmployeeContracts` ドキュメントの `site` プロパティを同期します。
+   * - `EmployeeContracts` ドキュメントはバッチ処理で同期されます。
+   * - `batchLimit` の数でバッチのサイズを指定し、`batchDelay` ミリ秒でバッチごとの遅延を指定します。
+   * @param {string} employeeId - 同期対象の Employees ドキュメントの ID
+   * @param {Object} [param1] - オプション引数
+   * @param {number} [param1.batchLimit=500] - 一度に処理するドキュメントの数
+   * @param {number} [param1.batchDelay=100] - バッチごとの遅延時間 (ミリ秒)
+   * @returns {Promise<void>}
    ****************************************************************************/
-  static async deleteIndex(docId) {
-    // docIdのバリデーション
-    if (!docId || typeof docId !== 'string') {
-      throw new Error(`[${this.name} - deleteIndex]: Invalid document ID`)
-    }
-
+  static async syncToEmployeeContracts(
+    employeeId,
+    { batchLimit = 500, batchDelay = 100 } = {}
+  ) {
+    logger.info(
+      `[syncToEmployeeContracts] EmployeeContracts ドキュメントの同期処理を開始します。`,
+      { employeeId }
+    )
     try {
-      // Realtime DatabaseのEmployeesインデックスを削除
-      const database = getDatabase()
-      await database.ref(`Employees/${docId}`).remove()
+      // Load site document and throw error if the document does not exist.
+      const docRef = firestore.collection('Employees').doc(employeeId)
 
-      // ログ: 削除成功
+      const docSnapshot = await docRef.get()
+      if (!docSnapshot.exists) {
+        const message = `指定された Employees ドキュメントが存在しません。`
+        logger.error(`[syncToEmployeeContracts] ${message}`, { employeeId })
+        throw new Error(message)
+      }
+
+      const site = docSnapshot.data()
+
+      // Load EmployeeContracts documents.
+      const colRef = firestore.collection('EmployeeContracts')
+      const queryRef = colRef.where('employeeId', '==', employeeId)
+      const querySnapshot = await queryRef.get()
+
+      // No documents found case
+      if (querySnapshot.empty) {
+        const message = `同期対象の EmployeeContracts ドキュメントはありませんでした。`
+        logger.info(`[syncToEmployeeContracts] ${message}`, { employeeId })
+        return
+      }
+
+      const docCount = querySnapshot.docs.length
+      const message = `${docCount} 件の EmployeeContracts ドキュメントを更新します。`
+      logger.info(`[syncToEmployeeContracts] ${message}`, { employeeId })
+
+      // Synchronize EmployeeContracts documents as batch.
+      const batchArray = []
+      for (let i = 0; i < docCount; i++) {
+        if (i % batchLimit === 0) batchArray.push(firestore.batch())
+        const currentBatch = batchArray[batchArray.length - 1]
+        const doc = querySnapshot.docs[i]
+        currentBatch.update(doc.ref, { site })
+      }
+
+      // Commit each batch with delay
+      for (const batch of batchArray) {
+        await batch.commit()
+        if (batchDelay > 0) {
+          await new Promise((resolve) => setTimeout(resolve, batchDelay))
+        }
+      }
+
       logger.info(
-        `[${this.name} - deleteIndex]: Successfully deleted index for docId: ${docId}`
+        `[syncToEmployeeContracts] EmployeeContracts ドキュメントの同期処理が完了しました。`,
+        { employeeId }
       )
-    } catch (err) {
-      // ログ: 削除失敗
+    } catch (error) {
+      // エラーハンドリングを詳細化
       logger.error(
-        `[${this.name} - deleteIndex]: Failed to delete index for docId: ${docId}`,
-        err
+        `[syncToEmployeeContracts] エラーが発生しました: ${error.message}`,
+        { employeeId, error }
       )
-      throw new Error(
-        `[${this.name} - deleteIndex]: Error deleting index for docId: ${docId}`
-      )
+      throw error
     }
   }
 }

@@ -1,144 +1,120 @@
 /**
  * ## employees.js
  *
- * FirestoreのEmployeesドキュメントが作成・更新・削除トリガーに関する処理です。
+ * Employeesドキュメントの作成・更新・削除トリガーに関する処理です。
+ *
+ * ### 従属ドキュメントの同期削除について
+ * 従属ドキュメントの同期削除は以下の理由で行いません。
+ * - アプリの仕様上、従属するドキュメントが存在する場合、親ドキュメントは削除できません。
+ * - ドキュメントの整合性を保つために従属するドキュメントも削除することを検討しましたが、
+ *   アプリで実装している論理削除の設計を崩壊させてしまう為に取りやめました。
  */
 import {
   onDocumentUpdated,
   onDocumentCreated,
   onDocumentDeleted,
 } from 'firebase-functions/v2/firestore'
-import { getDatabase } from 'firebase-admin/database'
-import { getStorage } from 'firebase-admin/storage'
-import { error, info } from 'firebase-functions/logger'
-import {
-  removeDependentDocuments,
-  syncDependentDocuments,
-  isDocumentChanged,
-} from '../modules/utils.js'
+import { logger } from 'firebase-functions/v2'
+import { isDocumentChanged } from '../modules/utils.js'
 import Employee from '../models/Employee.js'
-const database = getDatabase()
-const storage = getStorage()
 
 /****************************************************************************
- * FirestoreのEmployeesドキュメントが作成されたときにトリガーされる関数。
+ * ドキュメントが作成されたときにトリガーされる関数。
  * - 作成されたドキュメントのデータを元に、Realtime Databaseにインデックスを作成します。
  *
- * @param {object} event - Firestoreのトリガーイベント。作成されたドキュメントのデータを含む。
+ * @author shisyamo4131
+ * @version 1.0.0
  ****************************************************************************/
 export const onCreate = onDocumentCreated(
   'Employees/{docId}',
   async (event) => {
     const docId = event.params.docId
-    const data = event.data.data()
 
-    // FirestoreのEmployeesドキュメントが作成されたことをログに出力
-    info(`Employee document created. docId: ${docId}`)
+    // ログに更新されたドキュメントIDを含める
+    logger.info(
+      `Employeesドキュメントが更新されました。ドキュメントID: ${event.params.docId}`
+    )
 
     try {
       // Realtime Databaseにインデックスを作成
-      await Employee.syncIndex(docId, data)
+      await Employee.syncIndex(docId)
     } catch (err) {
-      // エラーログを出力し、エラーを処理
-      error(
-        `Error occurred in Employee document creation trigger. docId: ${docId}`,
-        err
+      // エラーハンドリング
+      logger.error(
+        `Employeesドキュメントの同期処理中にエラーが発生しました: ${err.message}`,
+        { docId: event.params.docId }
       )
+      throw err
     }
   }
 )
 
 /****************************************************************************
- * FirestoreのEmployeesドキュメントが更新されたときにトリガーされる関数。
- * - 更新されたドキュメントのデータを元に、Realtime Databaseのインデックスや他の関連ドキュメントを更新します。
- * - ドキュメントが実際に変更された場合のみ、インデックスや関連ドキュメントの同期を行います。
+ * ドキュメントの更新トリガーです。
+ * - インデックスを更新します。
+ * - 従属するドキュメントの `employee` プロパティを同期します。
  *
- * @param {object} event - Firestoreのトリガーイベント。更新後のドキュメントデータを含む。
+ * #### 注意事項
+ * - ドキュメントの内容に変更があったかどうかは`isDocumentChanged()`を利用します。
+ *
+ * @author shisyamo4131
+ * @version 1.0.0
  ****************************************************************************/
 export const onUpdate = onDocumentUpdated(
   'Employees/{docId}',
   async (event) => {
-    const docId = event.params.docId
-    const after = event.data.after.data()
-
-    // ドキュメントが実際に変更されたかを確認
-    if (!isDocumentChanged(event)) return
-
-    // FirestoreのEmployeesドキュメントが更新されたことをログに出力
-    info(`Employee document updated. docId: ${docId}`)
-
     try {
-      // Realtime Databaseにインデックスを同期
-      await Employee.syncIndex(docId, after)
+      // ドキュメントに変更がなければ処理を終了
+      if (!isDocumentChanged(event)) return
 
-      // 他の関連ドキュメントを同期
-      await syncDependentDocuments(
-        'EmployeeContracts',
-        'employeeId',
-        'employee',
-        after
+      // ログに更新されたドキュメントIDを含める
+      logger.info(
+        `Employeesドキュメントが更新されました。ドキュメントID: ${event.params.docId}`
       )
-      await syncDependentDocuments(
-        'EmployeeMedicalCheckups',
-        'employeeId',
-        'employee',
-        after
-      )
+
+      // Realtime Databaseにインデックスを作成
+      await Employee.syncIndex(event.params.docId)
+
+      // EmployeeContractsドキュメントのemployeeプロパティを同期
+      await Employee.syncToEmployeeContracts(event.params.docId)
     } catch (err) {
-      // エラーログを出力し、エラーを処理
-      error(
-        `Error occurred in Employee document update trigger. docId: ${docId}`,
-        err
+      // エラーハンドリング
+      logger.error(
+        `Employeesドキュメントの同期処理中にエラーが発生しました: ${err.message}`,
+        { docId: event.params.docId }
       )
+      throw err
     }
   }
 )
 
 /****************************************************************************
- * FirestoreのEmployeesドキュメントが削除されたときにトリガーされる関数。
- * - 削除されたドキュメントのデータを元に、AirGuardとの同期解除、関連インデックスおよび依存ドキュメントの削除を行います。
- * - 関連するファイルも削除します。
+ * ドキュメントが削除されたときにトリガーされる関数。
+ * - インデックスを削除します。
  *
- * @param {object} event - Firestoreのトリガーイベント。削除されたドキュメントデータを含む。
+ * @author shisyamo4131
+ * @version 1.0.0
  ****************************************************************************/
 export const onDelete = onDocumentDeleted(
   'Employees/{docId}',
   async (event) => {
     const docId = event.params.docId
 
-    // FirestoreのEmployeesドキュメントが削除されたことをログに出力
-    info(`Employee document deleted. docId: ${docId}`)
+    // ログに更新されたドキュメントIDを含める
+    logger.info(
+      `Employeesドキュメントが削除されました。ドキュメントID: ${event.params.docId}`
+    )
 
     try {
-      // AirGuardとの同期設定を解除
-      const data = event.data.data()
-      if (data.sync) {
-        const code = data.code
-        await database.ref(`AirGuard/Employees/${code}`).update({ docId: null })
-        info(`AirGuard sync settings removed for employee code: ${code}`)
-      }
-
       // Realtime Databaseインデックスを削除
-      await Employee.deleteIndex(docId)
-
-      // 依存ドキュメントを削除
-      await removeDependentDocuments(
-        ['EmployeeContracts', 'EmployeeMedicalCheckups'],
-        'employeeId',
-        docId
-      )
-
-      // 画像ファイルの削除
-      const directory = `images/employees/${docId}`
-      const fileBucket = storage.bucket()
-      await fileBucket.deleteFiles({ prefix: directory })
-      info(`Related files deleted from directory: ${directory}`)
+      await Employee.syncIndex(docId, true)
     } catch (err) {
-      // エラーログを出力し、エラーを処理
-      error(
-        `Error occurred in Employee document delete trigger. docId: ${docId}`,
-        err
+      // エラーハンドリング
+      logger.error(
+        `Employeesドキュメントの同期処理中にエラーが発生しました: ${err.message}`,
+        { docId: event.params.docId }
       )
+      throw err
     }
   }
 )

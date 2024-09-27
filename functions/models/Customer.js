@@ -53,6 +53,64 @@ export default class Customer extends FireModel {
   }
 
   /****************************************************************************
+   * Realtime DatabaseのCustomersインデックスを更新します。
+   * - 指定された `customerId ` に該当する `Customers` ドキュメントを取得します。
+   * - 取得したドキュメントから必要なデータを抽出してインデックスを更新します。
+   * - `isDeleted` が true の場合、無条件にインデックスを削除して終了します。
+   * @param {string} customerId - 更新するCustomersインデックスのドキュメントID
+   * @param {boolean} isDeleted - true の場合、インデックスを削除します。
+   * @throws {Error} インデックスの更新に失敗した場合、エラーをスローします。
+   ****************************************************************************/
+  static async syncIndex(customerId, isDeleted = false) {
+    // Create reference to index in Realtime Database.
+    const dbRef = database.ref(`Customers/${customerId}`)
+
+    try {
+      // インデックスの削除処理
+      if (isDeleted) {
+        await dbRef.remove()
+        logger.info(`[syncIndex] インデックスが削除されました。`, {
+          customerId,
+        })
+        return
+      }
+
+      // Firestore から Customer ドキュメントを取得
+      const docRef = firestore.collection('Customers').doc(customerId)
+      const docSnapshot = await docRef.get()
+
+      // ドキュメントが存在しない場合のエラーハンドリング
+      if (!docSnapshot.exists) {
+        const message = `該当する Customers ドキュメントが取得できませんでした。`
+        logger.error(`[syncIndex] ${message}`, { customerId })
+        throw new Error(message)
+      }
+
+      // インデックスデータの作成
+      const indexData = {
+        code: docSnapshot.data().code,
+        name1: docSnapshot.data().name1,
+        name2: docSnapshot.data().name2,
+        abbr: docSnapshot.data().abbr,
+        abbrKana: docSnapshot.data().abbrKana,
+        address1: docSnapshot.data().address1,
+        status: docSnapshot.data().status,
+      }
+
+      // インデックスを更新
+      await dbRef.set(indexData)
+      logger.info(`[syncIndex] インデックスが更新されました。`, { customerId })
+    } catch (error) {
+      // 修正: catchブロックで関数の引数のみをログ出力
+      logger.error(
+        `[syncIndex] インデックスの同期処理でエラーが発生しました。`,
+        { customerId }
+      )
+      throw error
+    }
+  }
+
+  /****************************************************************************
    * Realtime Databaseの`AirGuard/Customers`の内容で、FirestoreのCustomersドキュメントを更新します。
    * - Realtime Databaseからデータを取得し、そのデータに基づいてFirestore内の
    *   Customersドキュメントを更新します。
