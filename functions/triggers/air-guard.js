@@ -13,48 +13,52 @@
  * - version 1.0.0 - 2024-09-09 - 初版作成
  ****************************************************************************/
 
-import { info, error } from 'firebase-functions/logger'
 import { onValueUpdated } from 'firebase-functions/v2/database'
-import {
-  syncAirGuardCustomerToFirestore,
-  syncAirGuardSiteToFirestore,
-  syncAirGuardEmployeeToFirestore,
-} from '../modules/air-guard.js'
+import { logger } from 'firebase-functions/v2'
+import Customer from '../models/Customer.js'
+import Site from '../models/Site.js'
+import Employee from '../models/Employee.js'
 
 /****************************************************************************
  * `AirGuard/Customers/{code}`が更新された時の処理です。
  * 対象データが有効なdocIdを保有していた場合、対象のFirestoreドキュメントと同期します。
- * @param {Object} event Firebase Realtime Databaseの更新イベント
- * @returns {Promise<void>} 同期処理の結果を返します
  ****************************************************************************/
 export const customerUpdated = onValueUpdated(
   { ref: `/AirGuard/Customers/{code}`, region: 'us-central1' },
   async (event) => {
     try {
-      const data = event.data.after.val()
-      // Customerデータの更新を検知した旨のログを記録
-      info(`[customerUpdated] Customerデータの更新を検知しました。`, {
-        code: data.code,
-        name1: data.name1,
-        name2: data.name2,
-      })
-      // docIdが設定されていない場合の処理を終了
-      if (!data.docId) {
-        info(`[customerUpdated] docIdが未設定であるため処理を終了します。`)
+      const { code, docId } = event.data.after.val()
+
+      // docId が存在しない場合は同期処理を行わない
+      if (!docId) {
+        logger.warn(
+          `[customerUpdated] docId が存在しないため、同期処理をスキップしました。`,
+          { code }
+        )
         return
       }
-      // Firestoreとデータの同期
-      info(`[customerUpdated] Customersドキュメントとの同期処理を開始します。`)
-      await syncAirGuardCustomerToFirestore(data)
-      info(
-        `[customerUpdated] Customersドキュメントとの同期処理が終了しました。`
+
+      // 処理の開始ログを記録
+      logger.info(
+        `[customerUpdated] Firestore ドキュメントとの同期処理を開始します。`,
+        { code, docId }
+      )
+
+      // Customers データをFirestoreと同期
+      await Customer.syncFromAirGuard(code)
+
+      // 処理完了のログを記録
+      logger.info(
+        `[customerUpdated] Firestore ドキュメントとの同期処理が正常に完了しました。`,
+        { code, docId }
       )
     } catch (err) {
-      // エラーハンドリング
-      error(
+      // エラーハンドリングと再スロー
+      logger.error(
         `[customerUpdated] 同期処理中にエラーが発生しました: ${err.message}`,
         { err }
       )
+      throw err // エラーを再スローしてCloud Functionsに通知
     }
   }
 )
@@ -62,36 +66,47 @@ export const customerUpdated = onValueUpdated(
 /****************************************************************************
  * `AirGuard/Sites/{code}`が更新された時の処理です。
  * 対象データが有効なdocIdを保有していた場合、対象のFirestoreドキュメントと同期します。
- * @param {Object} event Firebase Realtime Databaseの更新イベント
- * @returns {Promise<void>} 同期処理の結果を返します
  ****************************************************************************/
 export const siteUpdated = onValueUpdated(
   { ref: `/AirGuard/Sites/{code}`, region: 'us-central1' },
   async (event) => {
     try {
-      const data = event.data.after.val()
-      // Siteデータの更新を検知した旨のログを記録
-      info(`[siteUpdated] Siteデータの更新を検知しました。`, {
-        code: data.code,
-        name: data.name,
-      })
-      // docIdが設定されていない場合の処理を終了
-      if (!data.docId) {
-        info(`[siteUpdated] docIdが未設定であるため処理を終了します。`)
+      const { code, docId } = event.data.after.val()
+
+      // docId が存在しない場合は同期処理を行わない
+      if (!docId) {
+        logger.warn(
+          `[siteUpdated] docId が存在しないため、同期処理をスキップしました。`,
+          { code }
+        )
         return
       }
-      // Firestoreとデータの同期
-      info(`[siteUpdated] Sitesドキュメントとの同期処理を開始します。`)
-      await syncAirGuardSiteToFirestore(data)
-      info(`[siteUpdated] Sitesドキュメントとの同期処理が終了しました。`)
+
+      // 処理の開始ログを記録
+      logger.info(
+        `[siteUpdated] Firestore ドキュメントとの同期処理を開始します。`,
+        { code, docId }
+      )
+
+      // Sites データをFirestoreと同期
+      await Site.syncFromAirGuard(code)
+
+      // 処理完了のログを記録
+      logger.info(
+        `[siteUpdated] Firestore ドキュメントとの同期処理が正常に完了しました。`,
+        { code, docId }
+      )
     } catch (err) {
-      // エラーハンドリング
-      error(`[siteUpdated] 同期処理中にエラーが発生しました: ${err.message}`, {
-        err,
-      })
+      // エラーハンドリングと再スロー
+      logger.error(
+        `[siteUpdated] 同期処理中にエラーが発生しました: ${err.message}`,
+        { err }
+      )
+      throw err // エラーを再スローしてCloud Functionsに通知
     }
   }
 )
+
 /****************************************************************************
  * `AirGuard/Employees/{code}`が更新された時の処理です。
  * 対象データが有効なdocIdを保有していた場合、対象のFirestoreドキュメントと同期します。
@@ -102,31 +117,38 @@ export const employeeUpdated = onValueUpdated(
   { ref: `/AirGuard/Employees/{code}`, region: 'us-central1' },
   async (event) => {
     try {
-      const data = event.data.after.val()
-      // Employeeデータの更新を検知した旨のログを記録
-      info(`[employeeUpdated] Employeeデータの更新を検知しました。`, {
-        code: data.code,
-        name: `${data.lastName} ${data.firstName}`,
-      })
-      // docIdが設定されていない場合の処理を終了
-      if (!data.docId) {
-        info(`[employeeUpdated] docIdが未設定であるため処理を終了します。`)
+      const { code, docId } = event.data.after.val()
+
+      // docId が存在しない場合は同期処理を行わない
+      if (!docId) {
+        logger.warn(
+          `[employeeUpdated] docId が存在しないため、同期処理をスキップしました。`,
+          { code }
+        )
         return
       }
-      // Firestoreとデータの同期
-      info(`[employeeUpdated] Employeesドキュメントとの同期処理を開始します。`)
-      await syncAirGuardEmployeeToFirestore(data)
-      info(
-        `[employeeUpdated] Employeesドキュメントとの同期処理が終了しました。`
+
+      // 処理の開始ログを記録
+      logger.info(
+        `[employeeUpdated] Firestore ドキュメントとの同期処理を開始します。`,
+        { code, docId }
+      )
+
+      // Employees データをFirestoreと同期
+      await Employee.syncFromAirGuard(code)
+
+      // 処理完了のログを記録
+      logger.info(
+        `[employeeUpdated] Firestore ドキュメントとの同期処理が正常に完了しました。`,
+        { code, docId }
       )
     } catch (err) {
-      // エラーハンドリング
-      error(
+      // エラーハンドリングと再スロー
+      logger.error(
         `[employeeUpdated] 同期処理中にエラーが発生しました: ${err.message}`,
-        {
-          err,
-        }
+        { err }
       )
+      throw err // エラーを再スローしてCloud Functionsに通知
     }
   }
 )

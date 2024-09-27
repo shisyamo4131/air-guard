@@ -1,7 +1,10 @@
-import { info, error } from 'firebase-functions/logger'
 import { getDatabase } from 'firebase-admin/database'
+import { getFirestore } from 'firebase-admin/firestore'
+import { logger } from 'firebase-functions/v2'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/Employee.js'
+const database = getDatabase()
+const firestore = getFirestore()
 
 /**
  * Employeesドキュメントデータモデル【論理削除】
@@ -124,7 +127,7 @@ export default class Employee extends FireModel {
       return snapshots
     } catch (err) {
       const message = `[Employee.js fetchByCode] 従業員コード ${code} に対するドキュメントの取得に失敗しました: ${err.message}`
-      error(message)
+      logger.error(message)
       throw new Error(message)
     }
   }
@@ -151,8 +154,80 @@ export default class Employee extends FireModel {
       return snapshots.flat()
     } catch (err) {
       const message = `[Employee.js fetchByCodes] ドキュメントの取得中にエラーが発生しました: ${err.message}`
-      error(message)
+      logger.error(message)
       throw new Error(message)
+    }
+  }
+
+  /****************************************************************************
+   * Realtime Databaseの`AirGuard/Employees`の内容で、FirestoreのEmployeesドキュメントを更新します。
+   * - Realtime Databaseからデータを取得し、そのデータに基づいてFirestore内の
+   *   Employeesドキュメントを更新します。
+   * - Firestoreの更新はトランザクションを使用して安全に行います。
+   * - `docId`が存在しない場合や、データが存在しない場合はエラーが発生します。
+   *
+   * @param {string} code - Realtime Database内のEmployeesデータを識別するコード
+   * @returns {Promise<void>} - 同期が正常に完了した場合は、解決されたPromiseを返します
+   ****************************************************************************/
+  static async syncFromAirGuard(code) {
+    try {
+      // Realtime Databaseから Employees データをロード
+      const dbRef = database.ref(`AirGuard/Employees/${code}`)
+      const data = await dbRef.get()
+
+      // データが存在しない場合はエラーを投げる
+      if (!data.exists()) {
+        const message = `Realtime Database に同期元の Employees データが見つかりません。`
+        logger.error(`[syncFromAirGuard] ${message}`, { code })
+        throw new Error(message)
+      }
+
+      const newData = data.val()
+      const docId = newData.docId
+
+      // docIdが存在しない場合はエラーを投げる
+      if (!docId) {
+        const message = `Employees データに docId が設定されていません。`
+        logger.error(`[syncFromAirGuard] ${message}`, { code })
+        throw new Error(message)
+      }
+
+      // Firestoreドキュメントをトランザクションで同期
+      await firestore.runTransaction(async (transaction) => {
+        const docRef = firestore.collection('Employees').doc(docId)
+        const docSnapshot = await transaction.get(docRef)
+
+        // ドキュメントが存在しない場合はエラーを投げる
+        if (!docSnapshot.exists) {
+          const message = `Firestore に同期先の Employees ドキュメントが見つかりません。`
+          logger.error(`[syncFromAirGuard] ${message}`, { code, docId })
+          throw new Error(message)
+        }
+
+        // 既存データと新しいデータをマージし、インスタンスを作成
+        // AirGuardとの同期設定済みであることを表す `sync` プロパティを true にする
+        const instance = new this({
+          ...docSnapshot.data(),
+          ...newData,
+          sync: true,
+        })
+
+        // ドキュメントを更新
+        transaction.update(docRef, instance.toObject())
+      })
+
+      // 同期完了メッセージ
+      logger.info(
+        `[syncFromAirGuard] Realtime Database の Employees データが Firestore の Employees ドキュメントと正常に同期されました。`,
+        { code, docId }
+      )
+    } catch (err) {
+      // エラー処理を一元化し、詳細なログを出力
+      logger.error(
+        `[syncFromAirGuard] 同期処理でエラーが発生しました: ${err.message}`,
+        { code, err }
+      )
+      throw err
     }
   }
 
@@ -188,11 +263,11 @@ export default class Employee extends FireModel {
       const database = getDatabase()
       await database.ref(`Employees/${docId}`).set(indexData)
 
-      info(
+      logger.info(
         `[${this.name} - syncIndex]: Successfully updated index for docId: ${docId}`
       )
     } catch (err) {
-      error(
+      logger.error(
         `[${this.name} - syncIndex]: Failed to update index for docId: ${docId}`,
         err
       )
@@ -221,12 +296,12 @@ export default class Employee extends FireModel {
       await database.ref(`Employees/${docId}`).remove()
 
       // ログ: 削除成功
-      info(
+      logger.info(
         `[${this.name} - deleteIndex]: Successfully deleted index for docId: ${docId}`
       )
     } catch (err) {
       // ログ: 削除失敗
-      error(
+      logger.error(
         `[${this.name} - deleteIndex]: Failed to delete index for docId: ${docId}`,
         err
       )

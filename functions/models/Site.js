@@ -1,8 +1,10 @@
 import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import { getDatabase } from 'firebase-admin/database'
 import Customer from './Customer.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/Site.js'
+const database = getDatabase()
 const firestore = getFirestore()
 
 /**
@@ -106,6 +108,93 @@ export default class Site extends FireModel {
   }
 
   /****************************************************************************
+   * Realtime Databaseの`AirGuard/Sites`の内容で、FirestoreのSitesドキュメントを更新します。
+   * - Realtime Databaseからデータを取得し、そのデータに基づいてFirestore内の
+   *   Sitesドキュメントを更新します。
+   * - Firestoreの更新はトランザクションを使用して安全に行います。
+   * - `docId`が存在しない場合や、データが存在しない場合はエラーが発生します。
+   *
+   * @param {string} code - Realtime Database内のSitesデータを識別するコード
+   * @returns {Promise<void>} - 同期が正常に完了した場合は、解決されたPromiseを返します
+   ****************************************************************************/
+  static async syncFromAirGuard(code) {
+    try {
+      // Realtime DatabaseからSitesデータをロード
+      const dbRef = database.ref(`AirGuard/Sites/${code}`)
+      const data = await dbRef.get()
+
+      // データが存在しない場合はエラーを投げる
+      if (!data.exists()) {
+        const message = `Realtime Database に同期元の Sites データが見つかりません。`
+        logger.error(`[syncFromAirGuard] ${message}`, { code })
+        throw new Error(message)
+      }
+
+      const newData = data.val()
+      const docId = newData.docId
+      const customerCode = newData.customerCode
+
+      // docIdが存在しない場合はエラーを投げる
+      if (!docId) {
+        const message = `Sites データに docId が設定されていません。`
+        logger.error(`[syncFromAirGuard] ${message}`, { code })
+        throw new Error(message)
+      }
+
+      // customerCode に該当する Customers ドキュメントが存在しなければエラーを投げる
+      const customerQueryRef = firestore
+        .collection('Customers')
+        .where('code', '==', customerCode)
+      const customerQuerySnapshot = await customerQueryRef.get()
+      if (customerQuerySnapshot.empty) {
+        const message = `Customers ドキュメントが存在しません。`
+        logger.error(`[syncFromAirGuard] ${message}`, { customerCode })
+        throw new Error(message)
+      }
+      const customer = customerQuerySnapshot.docs[0].data()
+
+      // Firestoreドキュメントをトランザクションで同期
+      await firestore.runTransaction(async (transaction) => {
+        const docRef = firestore.collection('Sites').doc(docId)
+        const docSnapshot = await transaction.get(docRef)
+
+        // ドキュメントが存在しない場合はエラーを投げる
+        if (!docSnapshot.exists) {
+          const message = `Firestore に同期先の Sites ドキュメントが見つかりません。`
+          logger.error(`[syncFromAirGuard] ${message}`, { code, docId })
+          throw new Error(message)
+        }
+
+        // 既存データと新しいデータをマージし、インスタンスを作成
+        // AirGuardとの同期設定済みであることを表す `sync` プロパティを true にする
+        const instance = new this({
+          ...docSnapshot.data(),
+          ...newData,
+          customerId: customer.docId,
+          customer,
+          sync: true,
+        })
+
+        // ドキュメントを更新
+        transaction.update(docRef, instance.toObject())
+      })
+
+      // 同期完了メッセージ
+      logger.info(
+        `[syncFromAirGuard] Realtime Database の Sites データが Firestore の Sites ドキュメントと正常に同期されました。`,
+        { code, docId }
+      )
+    } catch (err) {
+      // エラー処理を一元化し、詳細なログを出力
+      logger.error(
+        `[syncFromAirGuard] 同期処理でエラーが発生しました: ${err.message}`,
+        { code, err }
+      )
+      throw err
+    }
+  }
+
+  /****************************************************************************
    * 指定された `siteId` の `Sites` ドキュメントの `hasContract` プロパティをトランザクション内で更新します。
    *
    * - このメソッドは Firestore トランザクションを使用して `Sites` ドキュメントを更新します。
@@ -152,6 +241,93 @@ export default class Site extends FireModel {
     } catch (err) {
       logger.error('Error refreshing hasContract for siteId:', err)
       throw new Error(`Failed to refresh hasContract for siteId: ${siteId}`)
+    }
+  }
+
+  /****************************************************************************
+   * 指定された `docId` に基づき、`SiteContracts` ドキュメントの `site` プロパティを同期します。
+   * - `SiteContracts` ドキュメントはバッチ処理で同期されます。
+   * - `batchLimit` の数でバッチのサイズを指定し、`batchDelay` ミリ秒でバッチごとの遅延を指定します。
+   * - `isDeleted` が true の場合、`SitesContracts` ドキュメントは削除されます。
+   * @param {string} docId - 同期対象の Sites ドキュメントの ID
+   * @param {Object} [param1] - オプション引数
+   * @param {number} [param1.batchLimit=500] - 一度に処理するドキュメントの数
+   * @param {number} [param1.batchDelay=100] - バッチごとの遅延時間 (ミリ秒)
+   * @param {boolean} [param1.isDeleted=false] - true の場合、SiteContracts ドキュメントは削除されます。
+   * @returns {Promise<void>}
+   ****************************************************************************/
+  static async syncToSiteContracts(
+    docId,
+    { batchLimit = 500, batchDelay = 100, isDeleted = false } = {}
+  ) {
+    logger.info(
+      `[syncToSiteContracts] SiteContracts ドキュメントの同期処理を開始します。`,
+      { siteId: docId }
+    )
+    try {
+      // Load document data to instance.
+      const docRef = firestore.collection('Sites').doc(docId)
+
+      // Return if the document does not exist.
+      const docSnapshot = await docRef.get()
+      if (!docSnapshot.exists) {
+        const message = `指定された Sites ドキュメントが存在しません。`
+        logger.error(`[syncToSiteContracts] ${message}`, { siteId: docId })
+        throw new Error(message)
+      }
+
+      const site = docSnapshot.data()
+
+      // Load SiteContracts documents.
+      const colRef = firestore.collection('SiteContracts')
+      const queryRef = colRef.where('siteId', '==', docId)
+      const querySnapshot = await queryRef.get()
+
+      // No documents found case
+      if (querySnapshot.empty) {
+        const message = `同期対象の SiteContracts ドキュメントはありませんでした。`
+        logger.info(`[syncToSiteContracts] ${message}`, { siteId: docId })
+        return
+      }
+
+      const docCount = querySnapshot.docs.length
+      const message = `${docCount} 件の SiteContracts ドキュメントを${
+        isDeleted ? '削除' : '更新'
+      }します。`
+      logger.info(`[syncToSiteContracts] ${message}`, { siteId: docId })
+
+      // Synchronize SiteContracts documents as batch.
+      const batchArray = []
+      for (let i = 0; i < docCount; i++) {
+        if (i % batchLimit === 0) batchArray.push(firestore.batch())
+        const currentBatch = batchArray[batchArray.length - 1]
+        const doc = querySnapshot.docs[i]
+        if (isDeleted) {
+          currentBatch.delete(doc.ref)
+        } else {
+          currentBatch.update(doc.ref, { site })
+        }
+      }
+
+      // Commit each batch with delay
+      for (const batch of batchArray) {
+        await batch.commit()
+        if (batchDelay > 0) {
+          await new Promise((resolve) => setTimeout(resolve, batchDelay))
+        }
+      }
+
+      logger.info(
+        `[syncToSiteContracts] SiteContracts ドキュメントの同期処理が完了しました。`,
+        { siteId: docId }
+      )
+    } catch (error) {
+      // エラーハンドリングを詳細化
+      logger.error(
+        `[syncToSiteContracts] エラーが発生しました: ${error.message}`,
+        { siteId: docId, error }
+      )
+      throw error
     }
   }
 }

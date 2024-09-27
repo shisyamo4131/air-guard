@@ -4,11 +4,8 @@ import {
 } from 'firebase-functions/v2/firestore'
 import { logger } from 'firebase-functions/v2'
 import { getDatabase } from 'firebase-admin/database'
-import {
-  removeDependentDocuments,
-  isDocumentChanged,
-  syncDependentDocuments,
-} from '../modules/utils.js'
+import { isDocumentChanged } from '../modules/utils.js'
+import Site from '../models/Site.js'
 
 const database = getDatabase()
 
@@ -18,7 +15,7 @@ const database = getDatabase()
  * - ドキュメントの内の `site` プロパティが更新されます。
  * - `siteId` を持つものの `site` プロパティを持たないドキュメントは個別に同期削除する必要があります。
  */
-const collectionsToSyncAndRemove = ['SiteContracts', 'OperationResults']
+// const collectionsToSyncAndRemove = ['SiteContracts', 'OperationResults']
 
 /****************************************************************************
  * Siteドキュメントの更新トリガーです。
@@ -39,20 +36,9 @@ export const onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
   // ドキュメントが変更されたことを通知
   logger.info(`Sitesドキュメントが更新されました。`, { docId })
 
-  const updatedSiteData = event.data.after.data()
-
   try {
-    // ループ処理でsyncDependentDocumentsを呼び出す
-    for (const collection of collectionsToSyncAndRemove) {
-      await syncDependentDocuments(
-        collection,
-        'siteId',
-        'site',
-        updatedSiteData
-      )
-    }
-
-    // 処理終了を通知
+    // `SiteContracts` ドキュメントを同期
+    await Site.syncToSiteContracts(docId)
     logger.info('従属するすべてのドキュメントの同期が完了しました。')
   } catch (err) {
     logger.error('Siteドキュメントの同期中にエラーが発生しました。', err)
@@ -93,12 +79,13 @@ export const onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
    * 従属するドキュメントをすべて削除する。
    */
   try {
-    // 削除対象に`SiteOperationSchedules`を追加
-    const allCollectionsToRemove = [
-      ...collectionsToSyncAndRemove,
-      'SiteOperationSchedules',
-    ]
-    await removeDependentDocuments(allCollectionsToRemove, 'siteId', docId)
+    // // 削除対象に`SiteOperationSchedules`を追加
+    // const allCollectionsToRemove = [
+    //   ...collectionsToSyncAndRemove,
+    //   'SiteOperationSchedules',
+    // ]
+    // await removeDependentDocuments(allCollectionsToRemove, 'siteId', docId)
+    await Site.syncToSiteContracts(docId, { isDeleted: true })
     logger.info('従属するドキュメントを削除しました。')
   } catch (err) {
     logger.error(`従属するドキュメントの削除処理でエラーが発生しました。`, err)
