@@ -3,11 +3,11 @@
  */
 
 import { getFirestore } from 'firebase-admin/firestore'
-import { info, error } from 'firebase-functions/logger'
+import { logger } from 'firebase-functions/v2'
 const firestore = getFirestore()
 const BATCH_LIMIT = 500
 
-/**
+/****************************************************************************
  * Firestoreドキュメントの内容に変更があったかどうかを返します。
  * - updateAt、updateDate、uidを無視し、eventオブジェクトのbeforeとafterを比較します。
  * - さらに、呼び出し元が指定したフィールドも無視します。
@@ -22,7 +22,7 @@ const BATCH_LIMIT = 500
  * @updates
  * - version 1.1.0 - 2024-09-23 - 無視するフィールドを指定可能に改修
  * - version 1.0.0 - 2024-07-10 - 初版作成
- */
+ ****************************************************************************/
 export const isDocumentChanged = (event, ignoreFields = []) => {
   // onDocumentUpdatedトリガーから発生したイベントかどうかをチェックします。
   const before = event?.data?.before?.data() || undefined
@@ -49,7 +49,7 @@ export const isDocumentChanged = (event, ignoreFields = []) => {
   return JSON.stringify(beforeFields) !== JSON.stringify(afterFields)
 }
 
-/**
+/****************************************************************************
  * 非正規化されたドキュメントデータを同期させます。
  *
  * この関数は、指定されたコレクション内のドキュメントを特定のフィールドで
@@ -67,7 +67,7 @@ export const isDocumentChanged = (event, ignoreFields = []) => {
  * #### 更新履歴
  * - version 2.0.0 - 2024-07-22 - [破壊]比較対象のプロパティ、更新対象のプロパティを引数で指定できるように修正。
  * - version 1.0.0 - 2024-07-10 - 初版作成
- */
+ ****************************************************************************/
 export const syncDependentDocuments = async (
   collectionId,
   compareProp,
@@ -75,16 +75,16 @@ export const syncDependentDocuments = async (
   data
 ) => {
   const BATCH_SIZE = 500
-  info(`${collectionId}コレクション内のドキュメントと同期します。`)
+  logger.info(`${collectionId}コレクション内のドキュメントと同期します。`)
   try {
     const colRef = firestore.collection(collectionId)
     const query = colRef.where(compareProp, '==', data.docId)
     const querySnapshot = await query.get()
     if (querySnapshot.empty) {
-      info('同期対象のドキュメントはありませんでした。')
+      logger.info('同期対象のドキュメントはありませんでした。')
     } else {
       const docCount = querySnapshot.docs.length
-      info(`${docCount}件のドキュメントと同期します。`)
+      logger.info(`${docCount}件のドキュメントと同期します。`)
       const batchArray = []
       querySnapshot.docs.forEach((doc, index) => {
         if (index % BATCH_SIZE === 0) batchArray.push(firestore.batch())
@@ -93,10 +93,10 @@ export const syncDependentDocuments = async (
         })
       })
       await Promise.all(batchArray.map((batch) => batch.commit()))
-      info('同期処理が正常に完了しました。')
+      logger.info('同期処理が正常に完了しました。')
     }
   } catch (err) {
-    error('syncDependentDocumentsでエラーが発生しました。詳細:', {
+    logger.error('syncDependentDocumentsでエラーが発生しました。詳細:', {
       message: err.message,
       stack: err.stack,
     })
@@ -136,12 +136,12 @@ export const removeDependentDocuments = async (
       await Promise.all(batchArray.map((batch) => batch.commit()))
 
       // 削除成功のログを出力
-      info(
+      logger.info(
         `Documents in ${collectionId} deleted successfully for docId: ${docId}.`
       )
     } catch (err) {
       // エラーログを出力
-      error(
+      logger.error(
         `Error deleting documents in ${collectionId} for docId: ${docId}.`,
         err
       )
