@@ -12,6 +12,7 @@ module.exports = {
   'admin-import-transactions': ['admin', 'developer'],
   'admin-work-regulations': ['admin', 'developer'],
   'admin-work-regulations-docId': ['admin', 'developer'],
+  'admin-maintenance': ['admin', 'developer'],
   'attendance-records': ['admin', 'developer'],
   'leave-applications-unapproved': ['admin'],
   customers: ['admin'],

@@ -3,6 +3,7 @@ import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/Employee.js'
+import EmployeeIndex from './EmployeeIndex.js'
 const database = getDatabase()
 const firestore = getFirestore()
 
@@ -250,6 +251,10 @@ export default class Employee extends FireModel {
    * @param {string} employeeId - 更新するEmployeesインデックスのドキュメントID
    * @param {boolean} isDeleted - true の場合、インデックスを削除します。
    * @throws {Error} インデックスの更新に失敗した場合、エラーをスローします。
+   *
+   * @author shisyamo4131
+   * @version 1.0.1
+   * @updates - version 1.0.1 - 作成するインデックスはデータモデルを使用するように変更
    ****************************************************************************/
   static async syncIndex(employeeId, isDeleted = false) {
     // Create reference to index in Realtime Database.
@@ -277,14 +282,7 @@ export default class Employee extends FireModel {
       }
 
       // インデックスデータの作成
-      const indexData = {
-        code: docSnapshot.data().code,
-        fullName: docSnapshot.data().fullName,
-        fullNameKana: docSnapshot.data().fullNameKana,
-        abbr: docSnapshot.data().abbr,
-        address1: docSnapshot.data().address1,
-        status: docSnapshot.data().status,
-      }
+      const indexData = new EmployeeIndex(docSnapshot.data())
 
       // インデックスを更新
       await dbRef.set(indexData)

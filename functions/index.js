@@ -12,6 +12,7 @@ import * as siteOperationSchedules from './triggers/site-operation-schedules.js'
 import * as employees from './triggers/employees.js'
 import * as workRegulations from './triggers/work-regulations.js'
 import * as operationResults from './triggers/operation-results.js'
+import * as maintenance from './modules/maintenance.js'
 
 export {
   auth,
@@ -24,4 +25,5 @@ export {
   employees,
   workRegulations,
   operationResults,
+  maintenance,
 }

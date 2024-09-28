@@ -4,6 +4,7 @@ import { getDatabase } from 'firebase-admin/database'
 import Customer from './Customer.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/Site.js'
+import SiteIndex from './SiteIndex.js'
 const database = getDatabase()
 const firestore = getFirestore()
 
@@ -142,15 +143,7 @@ export default class Site extends FireModel {
       }
 
       // インデックスデータの作成
-      const indexData = {
-        code: docSnapshot.data().code,
-        name: docSnapshot.data().name,
-        abbr: docSnapshot.data().abbr,
-        abbrKana: docSnapshot.data().abbrKana,
-        address: docSnapshot.data().address,
-        customerId: docSnapshot.data().customerId,
-        status: docSnapshot.data().status,
-      }
+      const indexData = new SiteIndex(docSnapshot.data())
 
       // インデックスを更新
       await dbRef.set(indexData)
