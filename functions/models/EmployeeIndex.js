@@ -17,6 +17,8 @@ export default class EmployeeIndex {
     this.fullNameKana = item?.fullNameKana || ''
     this.abbr = item?.abbr || ''
     this.address1 = item?.address1 || ''
+    this.address2 = item?.address2 || ''
+    this.mobile = item?.mobile || ''
     this.status = item?.status || ''
   }
 
