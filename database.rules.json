@@ -26,6 +26,11 @@
         }
       }
     },
+    "Sites": {
+      ".read": "auth !== null",
+      ".write": false,
+      ".indexOn": ["code"]
+    },
     "TransportationCostApplications": {
       ".indexOn": ["date"]
     }

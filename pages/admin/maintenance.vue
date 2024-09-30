@@ -37,6 +37,7 @@ export default {
   methods: {
     async refreshIndex() {
       this.loading = true
+      this.$store.dispatch('sites/unsubscribe')
       try {
         const firebaseApp = getApp()
         const functions = getFunctions(firebaseApp, 'asia-northeast1')
@@ -49,6 +50,7 @@ export default {
       } catch (err) {
         console.error('Error calling function:', err) // eslint-disable-line no-console
       } finally {
+        this.$store.dispatch('sites/subscribe')
         this.loading = false
       }
     },

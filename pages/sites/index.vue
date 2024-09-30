@@ -48,18 +48,23 @@ export default {
       customerId: '',
       dialog: false,
       instance: new Site(),
-      items: this.$store.state.sites.items,
+      // items: this.$store.getters['sites/items'],
     }
   },
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
-    filteredItems() {
-      return this.items.filter(({ customerId }) => {
+    items() {
+      return this.$store.getters['sites/items'].filter(({ customerId }) => {
         return this.customerId ? customerId === this.customerId : true
       })
     },
+    // filteredItems() {
+    //   return this.items.filter(({ customerId }) => {
+    //     return this.customerId ? customerId === this.customerId : true
+    //   })
+    // },
   },
   /***************************************************************************
    * WATCH
@@ -92,7 +97,7 @@ export default {
 </script>
 
 <template>
-  <g-template-index :items="filteredItems">
+  <g-template-index :items="items">
     <template #append-search>
       <g-dialog-input v-model="dialog">
         <template #activator="{ attrs, on }">
