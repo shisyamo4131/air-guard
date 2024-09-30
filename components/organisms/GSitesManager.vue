@@ -54,7 +54,7 @@ export default {
      * 現場（Sites）ドキュメントが格納されます。
      */
     items() {
-      return this.$store.state.getters['sites/items'].filter((item) => {
+      return this.$store.getters['sites/items'].filter((item) => {
         return item.customerId === this.customerId
       })
     },

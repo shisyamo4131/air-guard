@@ -74,9 +74,9 @@ export default {
         </div>
         <div>
           <div class="text-caption grey--text text--darken-1">
-            {{ `${item.lastNameKana} ${item.firstNameKana}` }}
+            {{ `${item.fullNameKana}` }}
           </div>
-          <div>{{ `${item.lastName} ${item.firstName}` }}</div>
+          <div>{{ `${item.fullName}` }}</div>
         </div>
       </div>
     </template>

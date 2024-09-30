@@ -71,7 +71,7 @@ export default {
     const updateItem = (data, type) => {
       const item = data.val()
       // storeを参照して取引先の存在有無を`isSelectable`にセット
-      item.isSelectable = store.state.customers.items.some(
+      item.isSelectable = store.getters['customers/items'].some(
         (customer) => customer.code === item.customerCode
       )
       const index = items.airGuard.findIndex((item) => item.code === data.key)

@@ -45,12 +45,17 @@ export default {
       dialog: false,
       instance: new Employee(),
       includeExpired: false,
-      items: {
-        active: this.$store.state.employees.items,
-        expired: [],
-      },
-      listener: new Employee(),
     }
+  },
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
+  computed: {
+    items() {
+      return this.$store.getters['employees/items'].filter(({ status }) => {
+        return this.includeExpired || status === 'active'
+      })
+    },
   },
   /***************************************************************************
    * WATCH
@@ -62,18 +67,6 @@ export default {
         this.editMode = this.CREATE
       }
     },
-    includeExpired: {
-      handler(newVal, oldVal) {
-        if (newVal === oldVal) return
-        this.subscribeExpiredDocs()
-      },
-    },
-  },
-  /***************************************************************************
-   * DESTROYED
-   ***************************************************************************/
-  destroyed() {
-    this.listener.unsubscribe()
   },
   /***************************************************************************
    * METHODS
@@ -83,17 +76,12 @@ export default {
       // 詳細ページが出来上がったらこちらを適用
       this.$router.push(`/employees/${item.docId}`)
     },
-    subscribeExpiredDocs() {
-      this.items.expired = this.listener.subscribeDocs([
-        ['where', 'status', '!=', 'active'],
-      ])
-    },
   },
 }
 </script>
 
 <template>
-  <g-template-index :items="items.active.concat(items.expired)">
+  <g-template-index :items="items">
     <template #append-search>
       <g-dialog-input v-model="dialog">
         <template #activator="{ attrs, on }">
@@ -110,12 +98,7 @@ export default {
       </g-dialog-input>
     </template>
     <template #nav>
-      <g-switch
-        v-model="includeExpired"
-        :disabled="includeExpired"
-        hide-details
-        label="退職者を含める"
-      />
+      <g-switch v-model="includeExpired" hide-details label="退職者を含める" />
     </template>
     <template #default="{ attrs, on, search }">
       <g-data-table-employees

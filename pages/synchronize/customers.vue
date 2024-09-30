@@ -97,7 +97,7 @@ export default {
    ***************************************************************************/
   computed: {
     unsyncedCustomers() {
-      return this.$store.state.customers.items.filter(
+      return this.$store.getters['customers/items'].filter(
         (item) => item.sync === false
       )
     },

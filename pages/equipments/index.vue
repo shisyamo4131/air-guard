@@ -45,12 +45,17 @@ export default {
       dialog: false,
       instance: new Equipment(),
       includeExpired: false,
-      items: {
-        active: this.$store.state.equipments.items,
-        expired: [],
-      },
-      listener: new Equipment(),
     }
+  },
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
+  computed: {
+    items() {
+      return this.$store.getters['employees/items'].filter(({ status }) => {
+        return this.includeExpired || status === 'active'
+      })
+    },
   },
   /***************************************************************************
    * WATCH
@@ -62,18 +67,6 @@ export default {
         this.editMode = this.CREATE
       }
     },
-    includeExpired: {
-      handler(newVal, oldVal) {
-        if (newVal === oldVal) return
-        this.subscribeInactiveDocs()
-      },
-    },
-  },
-  /***************************************************************************
-   * DESTROYED
-   ***************************************************************************/
-  destroyed() {
-    this.listener.unsubscribe()
   },
   /***************************************************************************
    * METHODS
@@ -86,17 +79,12 @@ export default {
       this.editMode = this.UPDATE
       this.dialog = true
     },
-    subscribeExpiredDocs() {
-      this.items.expired = this.listener.subscribeDocs([
-        ['where', 'status', '!=', 'active'],
-      ])
-    },
   },
 }
 </script>
 
 <template>
-  <g-template-index :items="items.active.concat(items.expired)">
+  <g-template-index :items="items">
     <template #append-search>
       <g-dialog-input v-model="dialog">
         <template #activator="{ attrs, on }">
@@ -115,7 +103,6 @@ export default {
     <template #nav>
       <g-switch
         v-model="includeExpired"
-        :disabled="includeExpired"
         label="使用終了を含める"
         hide-details
       />

@@ -90,7 +90,7 @@ export default {
       return !this.editModel?.siteContract
     },
     selectableEmployees() {
-      return this.$store.state.employees.items.filter((item) => {
+      return this.$store.getters['employees/items'].filter((item) => {
         return !this.editModel.workers.some(
           ({ employeeId }) => employeeId === item.docId
         )

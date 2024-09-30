@@ -48,7 +48,6 @@ export default {
       customerId: '',
       dialog: false,
       instance: new Site(),
-      // items: this.$store.getters['sites/items'],
     }
   },
   /***************************************************************************
@@ -60,11 +59,6 @@ export default {
         return this.customerId ? customerId === this.customerId : true
       })
     },
-    // filteredItems() {
-    //   return this.items.filter(({ customerId }) => {
-    //     return this.customerId ? customerId === this.customerId : true
-    //   })
-    // },
   },
   /***************************************************************************
    * WATCH
@@ -77,10 +71,6 @@ export default {
       }
     },
   },
-  /***************************************************************************
-   * DESTROYED
-   ***************************************************************************/
-  destroyed() {},
   /***************************************************************************
    * METHODS
    ***************************************************************************/
