@@ -1,7 +1,7 @@
 /**
  * ## Vuex.sites.js
  *
- * Realtime Database から取得したインデックスデータを管理するVuexです。
+ * Realtime Database から取得した `Sites` データを管理するVuexです。
  *
  * - Realtime Database の `Sites` に登録されているインデックスデータを管理します。
  * - インデックスデータの作成や同期の処理は Cloud Functions で行われます。
@@ -57,7 +57,9 @@ export const state = () => ({
  ******************************************************************/
 export const getters = {
   get: (state) => (docId) => {
-    return state.items.find((item) => item.docId === docId)
+    return state.items
+      .concat(state.current)
+      .find((item) => item.docId === docId)
   },
   items(state) {
     const all = state.items.concat(state.current)
@@ -70,7 +72,9 @@ export const getters = {
    * @returns {boolean} 契約中であればtrue、それ以外はfalseを返します。
    */
   isActive: (state) => (docId) => {
-    return state.items.some((item) => item.docId === docId)
+    return state.items
+      .concat(state.current)
+      .some((item) => item.docId === docId)
   },
 }
 /******************************************************************

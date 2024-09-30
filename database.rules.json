@@ -19,12 +19,32 @@
         ".write": "auth !== null"
       }
     },
+    "Customers": {
+      ".read": "auth !== null",
+      ".write": false,
+      ".indexOn": ["code"]
+    },
+    "Employees": {
+      ".read": "auth !== null",
+      ".write": false,
+      ".indexOn": ["code"]
+    },
+    "Equipments": {
+      ".read": "auth !== null",
+      ".write": false,
+      ".indexOn": ["code"]
+    },
     "History": {
       "SiteOperationSchedules": {
         "$siteId": {
           ".indexOn": ["date"]
         }
       }
+    },
+    "Outsourcers": {
+      ".read": "auth !== null",
+      ".write": false,
+      ".indexOn": ["code"]
     },
     "Sites": {
       ".read": "auth !== null",

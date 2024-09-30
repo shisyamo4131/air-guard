@@ -1,5 +1,5 @@
 /**
- * ## employee-contracts.js
+ * ## employee-contracts.js【削除したい】
  *
  * 従業員雇用契約情報のVuexです。
  *
