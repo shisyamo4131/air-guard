@@ -168,6 +168,6 @@ export const actions = {
     commit('setListeners', { added, changed, removed, current })
   },
   unsubscribe({ commit }) {
-    commit('removeListener')
+    commit('removeListeners')
   },
 }
