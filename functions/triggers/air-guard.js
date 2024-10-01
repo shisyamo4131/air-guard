@@ -6,10 +6,12 @@
  * - `AirGuard/Customers/{code}`
  * - `AirGuard/Sites/{code}`
  * - `AirGuard/Employees/{code}`
+ * - `AirGuard/Outsourcers/{code}`
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  * @updates
+ * - version 1.1.0 - 2024-10-01 - `Outsourcers` の同期処理を追加。
  * - version 1.0.0 - 2024-09-09 - 初版作成
  ****************************************************************************/
 
@@ -18,6 +20,7 @@ import { logger } from 'firebase-functions/v2'
 import Customer from '../models/Customer.js'
 import Site from '../models/Site.js'
 import Employee from '../models/Employee.js'
+import Outsourcer from '../models/Outsourcer.js'
 
 /****************************************************************************
  * `AirGuard/Customers/{code}`が更新された時の処理です。
@@ -146,6 +149,50 @@ export const employeeUpdated = onValueUpdated(
       // エラーハンドリングと再スロー
       logger.error(
         `[employeeUpdated] 同期処理中にエラーが発生しました: ${err.message}`,
+        { err }
+      )
+      throw err // エラーを再スローしてCloud Functionsに通知
+    }
+  }
+)
+
+/****************************************************************************
+ * `AirGuard/Outsourcers/{code}`が更新された時の処理です。
+ * 対象データが有効なdocIdを保有していた場合、対象のFirestoreドキュメントと同期します。
+ ****************************************************************************/
+export const outsourcerUpdated = onValueUpdated(
+  { ref: `/AirGuard/Outsourcers/{code}`, region: 'us-central1' },
+  async (event) => {
+    try {
+      const { code, docId } = event.data.after.val()
+
+      // docId が存在しない場合は同期処理を行わない
+      if (!docId) {
+        logger.warn(
+          `[outsourcerUpdated] docId が存在しないため、同期処理をスキップしました。`,
+          { code }
+        )
+        return
+      }
+
+      // 処理の開始ログを記録
+      logger.info(
+        `[outsourcerUpdated] Firestore ドキュメントとの同期処理を開始します。`,
+        { code, docId }
+      )
+
+      // Outsourcers データをFirestoreと同期
+      await Outsourcer.syncFromAirGuard(code)
+
+      // 処理完了のログを記録
+      logger.info(
+        `[outsourcerUpdated] Firestore ドキュメントとの同期処理が正常に完了しました。`,
+        { code, docId }
+      )
+    } catch (err) {
+      // エラーハンドリングと再スロー
+      logger.error(
+        `[outsourcerUpdated] 同期処理中にエラーが発生しました: ${err.message}`,
         { err }
       )
       throw err // エラーを再スローしてCloud Functionsに通知
