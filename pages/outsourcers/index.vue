@@ -52,7 +52,7 @@ export default {
    ***************************************************************************/
   computed: {
     items() {
-      return this.$store.getters['customers/items'].filter(({ status }) => {
+      return this.$store.getters['outsourcers/items'].filter(({ status }) => {
         return this.includeExpired || status === 'active'
       })
     },
