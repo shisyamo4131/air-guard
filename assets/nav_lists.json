@@ -42,7 +42,8 @@
     "lists": [
       { "name": "取引先同期設定", "to": "/synchronize/customers" },
       { "name": "現場同期設定", "to": "/synchronize/sites" },
-      { "name": "従業員同期設定", "to": "/synchronize/employees" }
+      { "name": "従業員同期設定", "to": "/synchronize/employees" },
+      { "name": "外注先同期設定", "to": "/synchronize/outsourcers" }
     ]
   },
   {

@@ -33,10 +33,10 @@ import {
   update,
 } from 'firebase/database'
 import { database } from 'air-firebase'
-import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
 import Outsourcer from '~/models/Outsourcer'
 import Autonumber from '~/models/Autonumber'
+import GDataTableOutsourcers from '~/components/molecules/tables/GDataTableOutsourcers.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -45,7 +45,7 @@ export default {
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
-  components: { GDataTable, GTemplateFixed },
+  components: { GTemplateFixed, GDataTableOutsourcers },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -191,7 +191,7 @@ export default {
      */
     async forceRegist() {
       /* 処理確認 */
-      const msg = 'すべての取引先を強制的に登録します。よろしいですか？'
+      const msg = 'すべての外注先を強制的に登録します。よろしいですか？'
       if (!window.confirm(msg)) return
 
       /* 事前処理 */
@@ -222,15 +222,15 @@ export default {
 <template>
   <g-template-fixed v-slot="{ height }">
     <v-card outlined :height="height" class="d-flex flex-column">
-      <v-card-title> 取引先情報同期設定 </v-card-title>
-      <v-card-text> 取引先情報の同期設定を行います。 </v-card-text>
+      <v-card-title> 外注先情報同期設定 </v-card-title>
+      <v-card-text> 外注先情報の同期設定を行います。 </v-card-text>
       <v-window v-model="step" style="height: 100%">
         <v-window-item style="height: inherit">
           <v-container class="d-flex flex-column" style="height: inherit">
             <v-card-text class="d-flex justify-end">
               <v-checkbox
                 v-model="multiple"
-                label="選択した取引先を強制登録する"
+                label="選択した外注先を強制登録する"
                 :disabled="
                   !!items.unsync.length || !items.airGuard.length || loading
                 "
@@ -238,16 +238,11 @@ export default {
               />
             </v-card-text>
             <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
-              <g-data-table
+              <g-data-table-outsourcers
                 v-model="selectedUnsync"
                 class="flex-table"
                 checkbox-color="primary"
                 disable-sort
-                :headers="[
-                  { text: 'CODE', value: 'code' },
-                  { text: '取引先名1', value: 'name1' },
-                  { text: '取引先名2', value: 'name2' },
-                ]"
                 :items="items.airGuard"
                 item-key="code"
                 show-select
@@ -286,15 +281,10 @@ export default {
         <v-window-item style="height: inherit">
           <v-container class="d-flex flex-column" style="height: inherit">
             <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
-              <g-data-table
+              <g-data-table-outsourcers
                 v-model="selectedToSync"
                 class="flex-table"
                 disable-sort
-                :headers="[
-                  { text: 'CODE', value: 'code' },
-                  { text: '取引先名1', value: 'name1' },
-                  { text: '取引先名2', value: 'name2' },
-                ]"
                 :items="unsyncedOutsourcers"
                 item-key="code"
                 :show-select="!asNewItem"
@@ -337,8 +327,8 @@ export default {
                 <thead>
                   <tr>
                     <th>CODE</th>
-                    <th>取引先名1</th>
-                    <th>取引先名2</th>
+                    <th>外注先名1</th>
+                    <th>外注先名2</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -359,8 +349,8 @@ export default {
                 <thead>
                   <tr>
                     <th>CODE</th>
-                    <th>取引先名1</th>
-                    <th>取引先名2</th>
+                    <th>外注先名1</th>
+                    <th>外注先名2</th>
                   </tr>
                 </thead>
                 <tbody>

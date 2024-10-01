@@ -33,6 +33,7 @@ module.exports = {
   'synchronize-customers': ['admin', 'developer'],
   'synchronize-employees': ['admin', 'developer'],
   'synchronize-sites': ['admin', 'developer'],
+  'synchronize-outsourcers': ['admin', 'developer'],
   'transportation-cost-applications': [],
   'work-regulations': ['admin', 'developer'],
   'work-regulations-docId': ['admin', 'developer'],

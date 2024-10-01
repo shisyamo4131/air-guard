@@ -21,7 +21,7 @@ const propsDefinition = {
     type: String,
     default: '',
     required: false,
-    requiredByClass: true,
+    requiredByClass: false,
   },
   address2: {
     type: String,
