@@ -20,6 +20,7 @@ import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustom
 import Site from '~/models/Site'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
+import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -35,6 +36,7 @@ export default {
     GDataTableSites,
     GAutocompleteCustomer,
     GDialogInput,
+    GSwitch,
   },
   /***************************************************************************
    * MIXINS
@@ -48,6 +50,7 @@ export default {
       customerId: '',
       dialog: false,
       instance: new Site(),
+      includeExpired: false,
     }
   },
   /***************************************************************************
@@ -55,9 +58,15 @@ export default {
    ***************************************************************************/
   computed: {
     items() {
-      return this.$store.getters['sites/items'].filter(({ customerId }) => {
-        return this.customerId ? customerId === this.customerId : true
-      })
+      return this.$store.getters['sites/items'].filter(
+        ({ customerId, status }) => {
+          const customerMatch = this.customerId
+            ? customerId === this.customerId
+            : true
+          const includeExpiredMatch = this.includeExpired || status === 'active'
+          return customerMatch && includeExpiredMatch
+        }
+      )
     },
   },
   /***************************************************************************
@@ -108,6 +117,11 @@ export default {
         v-model="customerId"
         label="取引先"
         clearable
+        hide-details
+      />
+      <g-switch
+        v-model="includeExpired"
+        label="稼働終了を含める"
         hide-details
       />
     </template>
