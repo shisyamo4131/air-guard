@@ -54,6 +54,7 @@ export default {
         { name: 'customers.txt', collectionId: 'Customers' },
         { name: 'sites.txt', collectionId: 'Sites' },
         { name: 'employees.txt', collectionId: 'Employees' },
+        { name: 'outsourcers.txt', collectionId: 'Outsourcers' },
       ],
       files: [],
       filesRule: (v) =>
