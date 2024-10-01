@@ -19,6 +19,7 @@ import { getClosingDate, isValidDateFormat } from '~/utils/utility'
  * @author shisyamo4131
  * @updates
  * - version 2.3.0 - 2024-10-01 - `outsourcersIds` プロパティを追加。
+ *                              - `operationCount` プロパティの計算に `outsourcers` を追加。
  * - version 2.2.1 - 2024-09-23 - `operationCount`プロパティの中身を細分化
  * - version 2.2.0 - 2024-09-18 - `operationCount`プロパティを追加。
  *                              - アプリ側から`site`オブジェクトがセットされる仕様に変更し、
@@ -82,7 +83,12 @@ export default class OperationResult extends FireModel {
         configurable: true,
         enumerable: true,
         get() {
-          const result = this.workers.reduce(
+          /**
+           * update 2024-10-01
+           * `workers` だけでなく `outsourcers` もカウントするように修正
+           */
+          // const result = this.workers.reduce(
+          const result = this.workers.concat(this.outsourcers).reduce(
             (sum, i) => {
               if (!i.qualification) {
                 sum.standard[i.workResult] += 1
