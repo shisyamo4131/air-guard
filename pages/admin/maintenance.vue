@@ -37,7 +37,10 @@ export default {
   methods: {
     async refreshIndex() {
       this.loading = true
+      // インデックスデータに対する購読を一旦解除
+      this.$store.dispatch('customers/unsubscribe')
       this.$store.dispatch('sites/unsubscribe')
+      this.$store.dispatch('employees/unsubscribe')
       try {
         const firebaseApp = getApp()
         const functions = getFunctions(firebaseApp, 'asia-northeast1')
@@ -50,7 +53,9 @@ export default {
       } catch (err) {
         console.error('Error calling function:', err) // eslint-disable-line no-console
       } finally {
-        this.$store.dispatch('sites/subscribe')
+        await this.$store.dispatch('customers/subscribe')
+        await this.$store.dispatch('sites/subscribe')
+        await this.$store.dispatch('employees/subscribe')
         this.loading = false
       }
     },
