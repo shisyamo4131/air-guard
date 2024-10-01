@@ -255,14 +255,14 @@ export default class OperationResult extends FireModel {
    * FireModelのcreateをオーバーライドします。
    * - コレクションを自動採番対象として、createのuseAutonumberをtrueに固定します。
    * - `workers`配列の内容に応じて`OperationWorkResults`ドキュメントを同期生成します。
-   * @param {string} docId - 作成するドキュメントのID。デフォルトはnull。
-   * @param {boolean} useAutonumber - 自動採番を使用するかどうか。デフォルトはtrue。
+   * @param {Object} [options={}] - オプション引数
+   * @param {boolean} [options.useAutonumber=true] - 自動採番を行うかどうかです。`#useAutonumber` が優先されます。
    * @returns {Promise<void>} 処理が完了すると解決されるPromise
    * @throws {Error} ドキュメントの作成に失敗した場合
    ****************************************************************************/
-  async create() {
+  async create({ useAutonumber = true } = {}) {
     try {
-      await super.create({}, async (transaction, doc) => {
+      await super.create({ useAutonumber }, async (transaction, doc) => {
         // `workers`配列の各workerに対して、`OperationWorkResults`ドキュメントを生成
         for (const worker of this.workers) {
           // workerのデータと親ドキュメントのIDを使用してOperationWorkResultのインスタンスを生成
