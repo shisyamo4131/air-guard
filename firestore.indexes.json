@@ -75,6 +75,24 @@
       ]
     },
     {
+      "collectionGroup": "SiteContracts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "siteId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "workShift",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "startDate",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "SiteOperationSchedules",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
