@@ -1,11 +1,9 @@
 /**
  * ## OperationResults ドキュメントプロパティ定義
  *
+ * @version 1.1.0
  * @updates
- * - 2024-09-18 - `siteId`をコメントアウト。
- *                アプリ側から`site`オブジェクトをセットする仕様に変更し、
- *                `siteId`はObjectDefinePropertyで定義。
- *              ‐ `unitPrices`を追加。
+ * - version 1.1.0 - 2024-10-01 - 外注先を受け入れるためのプロパティとして `outsourcers` を追加。
  */
 import { generateVueProps, generateClassProps } from './propsUtil'
 
@@ -56,6 +54,12 @@ const propsDefinition = {
     default: null,
     required: false,
     requiredByClass: true,
+  },
+  outsourcers: {
+    type: Array,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
   },
 }
 
