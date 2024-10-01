@@ -9,12 +9,19 @@ import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode
 import Outsourcer from '~/models/Outsourcer'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { ARenderlessZipcode, GTextField, GTextarea, GCardInputForm },
+  components: {
+    ARenderlessZipcode,
+    GTextField,
+    GTextarea,
+    GCardInputForm,
+    GCheckbox,
+  },
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
@@ -82,6 +89,11 @@ export default {
       <g-text-field v-model="editModel.fax" label="FAX番号" input-type="tel" />
       <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
+    <g-checkbox
+      v-if="editMode !== CREATE"
+      v-model="forceDelete"
+      label="このデータを削除する"
+    />
   </g-card-input-form>
 </template>
 
