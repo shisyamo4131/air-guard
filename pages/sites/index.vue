@@ -118,6 +118,7 @@ export default {
         label="取引先"
         clearable
         hide-details
+        attach
       />
       <g-switch
         v-model="includeExpired"
