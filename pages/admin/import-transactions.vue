@@ -338,9 +338,10 @@ export default {
                 )
                 await OperationResultInstance.refreshContract()
                 if (!OperationResultInstance.siteContract) {
-                  throw new Error(
-                    `契約情報が存在しません。${OperationResultInstance.siteId}`
-                  )
+                  const message = `契約情報が存在しません。`
+                  // eslint-disable-next-line no-console
+                  console.error(message, OperationResultInstance)
+                  throw new Error(`${message}`)
                 }
                 OperationResultInstance.docId
                   ? await OperationResultInstance.update()
