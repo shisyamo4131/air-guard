@@ -26,4 +26,32 @@ export default class Outsourcer extends FireModel {
       type: 'collection',
     },
   ]
+
+  /****************************************************************************
+   * 外注先codeの配列を受け取り、該当する外注先ドキュメントデータを配列で返します。
+   * 外注先codeの配列は、重複があれば一意に整理されます。
+   * @param {Array<string>} codes - 外注先コードの配列
+   * @returns {Promise<Array>} - 外注先ドキュメントデータの配列
+   * @throws {Error} - 処理中にエラーが発生した場合にスローされます
+   ****************************************************************************/
+  async fetchByCodes(codes) {
+    if (!Array.isArray(codes) || codes.length === 0) return []
+    try {
+      const unique = [...new Set(codes)]
+      const chunked = unique.flatMap((_, i) =>
+        i % 30 ? [] : [unique.slice(i, i + 30)]
+      )
+      const promises = chunked.map((arr) => {
+        const constraints = [['where', 'code', 'in', arr]]
+        return this.fetchDocs(constraints)
+      })
+      const snapshots = await Promise.all(promises)
+      return snapshots.flat()
+    } catch (err) {
+      const message = `[Outsourcer.js fetchByCodes] ドキュメントの取得中にエラーが発生しました: ${err.message}`
+      // eslint-disable-next-line no-console
+      console.error(message)
+      throw new Error(message)
+    }
+  }
 }

@@ -3,7 +3,9 @@ import Autonumber from '~/models/Autonumber'
 import Employee from '~/models/Employee'
 import EmployeeContract from '~/models/EmployeeContract'
 import OperationResult from '~/models/OperationResult'
+import OperationResultOutsourcer from '~/models/OperationResultOutsourcer'
 import OperationResultWorker from '~/models/OperationResultWorker'
+import Outsourcer from '~/models/Outsourcer'
 import Site from '~/models/Site'
 import SiteContract from '~/models/SiteContract'
 import WorkRegulation from '~/models/WorkRegulation'
@@ -246,8 +248,8 @@ export default {
               return fetched || undefined
             }
             /**
-             * `data.fetchedItems.sites`から、引数で指定されたcodeに一致する
-             * 現場ドキュメントを検索し該当するものを返します。
+             * `data.fetchedItems.employees`から、引数で指定されたcodeに一致する
+             * 従業員ドキュメントを検索し該当するものを返します。
              * 該当するものがない場合、undefinedを返します。
              */
             const getEmployee = (code) => {
@@ -256,26 +258,53 @@ export default {
               )
               return fetched || undefined
             }
+            /**
+             * `data.fetchedItems.outsourcers`から、引数で指定されたcodeに一致する
+             * 外注先ドキュメントを検索し該当するものを返します。
+             * 該当するものがない場合、undefinedを返します。
+             */
+            const getOutsourcer = (code) => {
+              const fetched = this.fetchedItems.outsourcers.find(
+                (item) => item.code === code
+              )
+              return fetched || undefined
+            }
             this.progress.max = data.length
             this.progress.current = 0
             try {
-              // 1. `data.files`に`operation-result-details`が含まれていればこれを読み込んでおく
+              // `data.files` に `operation-result-details` が含まれていればこれを読み込んでおく
               const workersFile = this.files.find(
                 ({ name }) => name === 'operation-result-details.txt'
               )
               const workersData = workersFile
                 ? await this.readCsv(workersFile)
                 : []
-              // 2. `workersData`に含まれる従業員データを取得しておく
+
+              // `workersData` に含まれる従業員データを取得しておく
               this.fetchedItems.employees = await new Employee().fetchByCodes(
                 workersData.map(({ employeeCode }) => employeeCode)
               )
-              // 3. `workersData`に`employeeId`をセット
+
+              // `data.files` に `operation-result-outsourcers` が含まれていればこれを読み込んでおく
+              const outsourcersFile = this.files.find(
+                ({ name }) => name === `operation-result-outsourcers.txt`
+              )
+              const outsourcersData = outsourcersFile
+                ? await this.readCsv(outsourcersFile)
+                : []
+
+              // `outsourcersData` に含まれる外注先データを取得しておく
+              this.fetchedItems.outsourcers =
+                await new Outsourcer().fetchByCodes(
+                  outsourcersData.map(({ outsourcerCode }) => outsourcerCode)
+                )
+
+              // `workersData` に `employeeId`をセット
               workersData.forEach((item) => {
                 const employee = getEmployee(item.employeeCode)
                 item.employeeId = employee?.docId || undefined
               })
-              // 4. `employeeId`が取得できなかったレコードがあればエラー
+              // `employeeId` が取得できなかったレコードがあればエラー
               const unknownEmployee = workersData.filter(
                 (item) => !item.employeeId
               )
@@ -286,7 +315,25 @@ export default {
                   `未登録の従業員が含まれています。処理を中断します。`
                 )
               }
-              // 5. 型置換など
+
+              // `outsourcersData` に `outsourcerId`をセット
+              outsourcersData.forEach((item) => {
+                const outsourcer = getOutsourcer(item.outsourcerCode)
+                item.outsourcerId = outsourcer?.docId || undefined
+              })
+              // `outsourcerId` が取得できなかったレコードがあればエラー
+              const unknownOutsourcer = outsourcersData.filter(
+                (item) => !item.outsourcerId
+              )
+              if (unknownOutsourcer.length) {
+                // eslint-disable-next-line
+                console.log(unknownOutsourcer)
+                throw new Error(
+                  `未登録の外注先が含まれています。処理を中断します。`
+                )
+              }
+
+              // 型置換
               workersData.forEach((item) => {
                 item.endAtNextday = item.endAtNextday === '1'
                 item.breakMinutes = parseInt(item.breakMinutes)
@@ -296,11 +343,21 @@ export default {
                 item.qualification = item.qualification === '1'
                 item.ojt = item.ojt === '1'
               })
+              outsourcersData.forEach((item) => {
+                item.endAtNextday = item.endAtNextday === '1'
+                item.breakMinutes = parseInt(item.breakMinutes)
+                item.workMinutes = parseInt(item.workMinutes)
+                item.overtimeMinutes = parseInt(item.overtimeMinutes)
+                item.nighttimeMinutes = parseInt(item.nighttimeMinutes)
+                item.qualification = item.qualification === '1'
+                item.ojt = item.ojt === '1'
+              })
+
               // 6. dataに含まれる現場ドキュメントを取得しておく
               this.fetchedItems.sites = await new Site().fetchByCodes(
                 data.map(({ siteCode }) => siteCode)
               )
-              // 7. dataにsite、siteIdを付与し、workersをセット
+              // 7. dataにsite、siteIdを付与し、`workers`、`outsourcers` をセット
               data.forEach((item) => {
                 item.site = getSite(item.siteCode)
                 item.siteId = item.site?.docId || undefined
@@ -311,6 +368,17 @@ export default {
                       new OperationResultWorker()
                     OperationResultWorkerInstance.initialize(item)
                     return { ...OperationResultWorkerInstance.toObject() }
+                  })
+                item.outsourcers = outsourcersData
+                  .filter(({ code }) => code === item.code)
+                  .map((item, index) => {
+                    const OperationResultOutsourcerInstance =
+                      new OperationResultOutsourcer()
+                    OperationResultOutsourcerInstance.initialize({
+                      ...item,
+                      branch: index,
+                    })
+                    return { ...OperationResultOutsourcerInstance.toObject() }
                   })
                 item.closingDate = item.deadline
               })
@@ -361,11 +429,15 @@ export default {
         {
           name: 'operation-result-details.txt',
         },
+        {
+          name: 'operation-result-outsourcers.txt',
+        },
       ],
       fetchedItems: {
         employees: [],
         employeeContracts: [],
         operationResults: [],
+        outsourcers: [],
         sites: [],
         siteContracts: [],
       },
@@ -467,7 +539,10 @@ export default {
       this.loading = true
       try {
         for (const file of this.files) {
-          if (file.name !== `operation-result-details.txt`) {
+          if (
+            file.name !== `operation-result-details.txt` &&
+            file.name !== `operation-result-outsourcers.txt`
+          ) {
             const csvData = await this.readCsv(file)
             const handler = this.getHandler(file)
             if (!handler) throw new Error('handlerが取得できませんでした。')
