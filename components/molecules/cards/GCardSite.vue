@@ -35,7 +35,7 @@ export default {
         x-small
         outlined
       >
-        {{ `${$SITE_STATUS[status]}` }}
+        {{ `${$SITE_STATUS[instance.status]}` }}
       </v-chip>
     </v-card-title>
     <v-card-subtitle>
