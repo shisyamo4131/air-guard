@@ -19,6 +19,7 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 
 export default {
   /***************************************************************************
@@ -31,6 +32,7 @@ export default {
     GAutocompleteCustomer,
     GTextarea,
     GCardInputForm,
+    GCheckbox,
   },
   /***************************************************************************
    * MIXINS
@@ -110,6 +112,11 @@ export default {
       />
       <g-textarea v-model="editModel.remarks" label="備考" />
     </v-form>
+    <g-checkbox
+      v-if="editMode !== CREATE"
+      v-model="forceDelete"
+      label="このデータを削除する"
+    />
   </g-card-input-form>
 </template>
 
