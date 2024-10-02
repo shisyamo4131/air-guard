@@ -1,9 +1,11 @@
 /**
  * ## OperationResults ドキュメントプロパティ定義
  *
- * @version 1.2.0
+ * @version 1.3.0
  * @updates
  * - version 1.2.0 - 2024-10-02 - `siteId` プロパティを追加。
+ *                              - `OperationResult` クラスで上書きされるプロパティを定義。
+ *                                `OperationBillingBasis` クラスでそのまま使用する。
  * - version 1.1.0 - 2024-10-01 - 外注先を受け入れるためのプロパティとして `outsourcers` を追加。
  */
 import { generateVueProps, generateClassProps } from './propsUtil'
@@ -62,6 +64,95 @@ const propsDefinition = {
     default: () => [],
     required: false,
     requiredByClass: false,
+  },
+
+  // 以下、Object.definePropertyで上書きされるプロパティ
+  employeeIds: {
+    type: Array,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
+  },
+  outsourcerIds: {
+    type: Array,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
+  },
+  month: { type: String, default: '', required: false, requiredByClass: true },
+  operationCount: {
+    type: Object,
+    default: () => {
+      return {
+        standard: {
+          normal: 0,
+          half: 0,
+          cancel: 0,
+          total: 0,
+          overtimeMinutes: 0,
+        },
+        qualified: {
+          normal: 0,
+          half: 0,
+          cancel: 0,
+          total: 0,
+          overtimeMinutes: 0,
+        },
+        total: 0,
+        overtimeMinutes: 0,
+      }
+    },
+    required: false,
+    requiredByClass: true,
+  },
+  siteContractId: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+  unitPrice: {
+    type: Object,
+    default: () => {
+      return {
+        standard: {
+          price: null,
+          overtime: null,
+        },
+        qualified: {
+          price: null,
+          overtime: null,
+        },
+        halfRate: null,
+        cancelRate: null,
+      }
+    },
+    required: false,
+    requiredByClass: true,
+  },
+  sales: {
+    type: Object,
+    default: () => {
+      return {
+        standard: {
+          normal: 0,
+          half: 0,
+          cancel: 0,
+          total: 0,
+          overtime: 0,
+        },
+        qualified: {
+          normal: 0,
+          half: 0,
+          cancel: 0,
+          total: 0,
+          overtime: 0,
+        },
+        total: 0,
+      }
+    },
+    required: false,
+    requiredByClass: true,
   },
 }
 

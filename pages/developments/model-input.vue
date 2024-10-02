@@ -136,6 +136,12 @@ export default {
           table: 'GDataTableOperationResults',
         },
         {
+          text: 'OperationBillingBasis',
+          model: 'OperationBillingBasis',
+          input: 'GInputOperationBillingBasis',
+          table: 'GDataTableOperationBillingBases',
+        },
+        {
           text: 'Outsourcer',
           model: 'Outsourcer',
           input: 'GInputOutsourcer',
@@ -168,7 +174,13 @@ export default {
       ],
       instance: null,
       restoreId: null,
-      selectedModel: null,
+      // selectedModel: null,
+      selectedModel: {
+        text: 'OperationBillingBasis',
+        model: 'OperationBillingBasis',
+        input: 'GInputOperationBillingBasis',
+        table: 'GDataTableOperationBillingBases',
+      },
       tab: null,
       tableComponent: null,
       valid: false,
@@ -178,6 +190,7 @@ export default {
   watch: {
     selectedModel: {
       async handler(item) {
+        if (!item) return
         this.tableComponent = null
         this.inputComponent = null
         this.instance = null
@@ -191,6 +204,7 @@ export default {
         ).default
         this.items = this.instance.subscribeDocs()
       },
+      immediate: true,
     },
   },
   destroyed() {
