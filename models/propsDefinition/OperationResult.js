@@ -1,8 +1,9 @@
 /**
  * ## OperationResults ドキュメントプロパティ定義
  *
- * @version 1.1.0
+ * @version 1.2.0
  * @updates
+ * - version 1.2.0 - 2024-10-02 - `siteId` プロパティを追加。
  * - version 1.1.0 - 2024-10-01 - 外注先を受け入れるためのプロパティとして `outsourcers` を追加。
  */
 import { generateVueProps, generateClassProps } from './propsUtil'
@@ -10,6 +11,7 @@ import { generateVueProps, generateClassProps } from './propsUtil'
 const propsDefinition = {
   docId: { type: String, default: '', required: false, requiredByClass: false },
   code: { type: String, default: '', required: false, requiredByClass: false },
+  siteId: { type: String, default: '', required: false, requiredByClass: true },
   site: {
     type: Object,
     default: null,

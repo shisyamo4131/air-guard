@@ -18,4 +18,12 @@ export default class Outsourcer extends FireModel {
   static logicalDelete = true
   static classProps = classProps
   static tokenFields = ['abbr', 'abbrKana']
+  static hasMany = [
+    {
+      collection: 'OperationResults',
+      field: 'outsourcerIds',
+      condition: 'array-contains',
+      type: 'collection',
+    },
+  ]
 }

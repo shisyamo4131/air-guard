@@ -2,20 +2,21 @@
   <v-container>
     <v-card>
       <v-card-title> 取極め未登録現場 </v-card-title>
-      <g-data-table :items="items" />
+      <v-card-text>
+        <g-autocomplete-site v-model="value" />
+        {{ `value: ${value}` }}
+      </v-card-text>
     </v-card>
   </v-container>
 </template>
 
 <script>
-import GDataTable from '~/components/atoms/tables/GDataTable.vue'
-import Site from '~/models/Site'
+import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
 export default {
-  components: { GDataTable },
+  components: { GAutocompleteSite },
   data() {
     return {
-      instance: new Site(),
-      items: [],
+      value: '',
     }
   },
 }

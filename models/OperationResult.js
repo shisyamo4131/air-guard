@@ -4,6 +4,7 @@ import Site from './Site'
 import OperationResultWorker from './OperationResultWorker'
 import SiteContract from './SiteContract'
 import OperationWorkResult from './OperationWorkResult'
+import OperationResultOutsourcer from './OperationResultOutsourcer'
 import { getClosingDate, isValidDateFormat } from '~/utils/utility'
 /**
  * ## OperationResults ドキュメントデータモデル【物理削除】
@@ -15,9 +16,12 @@ import { getClosingDate, isValidDateFormat } from '~/utils/utility'
  *      Cloud Functionsでも同期削除の処理が必要です。
  *   -> 更新に対する同期はアプリ側のみで行います。
  *
- * @version 2.3.0
+ * @version 2.4.0
  * @author shisyamo4131
  * @updates
+ * - version 2.4.0 - 2024-10-02 - Object.defineProperties による `siteId` の定義を削除。
+ *                              - `addOutsourcer`、`changeOutsourcer`、`removeOutsourcer` を追加。
+ *                              - `refreshWorkersDate` を `refreshDetailsDate` に改名。
  * - version 2.3.0 - 2024-10-01 - `outsourcersIds` プロパティを追加。
  *                              - `operationCount` プロパティの計算に `outsourcers` を追加。
  * - version 2.2.1 - 2024-09-23 - `operationCount`プロパティの中身を細分化
@@ -43,6 +47,7 @@ export default class OperationResult extends FireModel {
     site: Site,
     siteContract: SiteContract,
     workers: OperationResultWorker,
+    outsourcers: OperationResultOutsourcer,
   }
 
   /****************************************************************************
@@ -66,7 +71,11 @@ export default class OperationResult extends FireModel {
         enumerable: true,
         configurable: true,
         get() {
-          return this.outsourcers.map(({ outsourcerId }) => outsourcerId)
+          return [
+            ...new Set(
+              this.outsourcers.map(({ outsourcerId }) => outsourcerId)
+            ),
+          ]
         },
         set(v) {},
       },
@@ -124,14 +133,6 @@ export default class OperationResult extends FireModel {
           )
 
           return result
-        },
-        set(v) {},
-      },
-      siteId: {
-        configurable: true,
-        enumerable: true,
-        get() {
-          return this.site?.docId || ''
         },
         set(v) {},
       },
@@ -490,6 +491,49 @@ export default class OperationResult extends FireModel {
   }
 
   /****************************************************************************
+   * outsourcerに外注先の稼働実績を追加します。
+   * @param {Object} item 外注先の稼働実績オブジェクト
+   ****************************************************************************/
+  addOutsourcer(item) {
+    const outsourcer = new OperationResultOutsourcer(item)
+    if (!outsourcer.outsourcerId) {
+      throw new Error('外注先IDが指定されていません。')
+    }
+    if (!outsourcer.isValid) {
+      throw new Error('勤務実績としての妥当性が損なわれています。')
+    }
+    outsourcer.branch = this.outsourcers.length
+    this.outsourcers.push(outsourcer)
+  }
+
+  /****************************************************************************
+   * outsourcerの指定された稼働実績を更新します。
+   * @param {Object} item 外注先の稼働実績オブジェクト
+   ****************************************************************************/
+  changeOutsourcer(item) {
+    const outsourcer = new OperationResultOutsourcer(item)
+    const index = this.outsourcers.findIndex(({ id }) => id === item.id)
+    if (index !== -1) {
+      this.outsourcers.splice(index, 1, outsourcer)
+    }
+  }
+
+  /****************************************************************************
+   * outsourcerから指定された従業員の稼働実績を削除します。
+   * @param {Object} item 従業員の稼働実績オブジェクト
+   ****************************************************************************/
+  removeOutsourcer(item) {
+    const index = this.outsourcers.findIndex(({ id }) => id === item.id)
+    if (index !== -1) {
+      this.outsourcers.splice(index, 1)
+    }
+    // `branch` を振りなおす
+    this.outsourcers.forEach((outsourcer, index) => {
+      outsourcer.branch = index
+    })
+  }
+
+  /****************************************************************************
    * `date`と`site`に応じて締日を計算して更新します。
    * - siteが設定されていない、または`date`が無効な場合は処理を中断します。
    * @returns {void}
@@ -540,11 +584,11 @@ export default class OperationResult extends FireModel {
   }
 
   /****************************************************************************
-   * workers配列内のオブジェクトのdateプロパティを一括変更するメソッド
+   * `workers` および `outsourcers` 配列内のオブジェクトのdateプロパティを一括変更するメソッド
    * @param {string|null} [date=null] - 設定する日付。nullの場合はthis.dateを使用
    * @returns {void}
    ****************************************************************************/
-  refreshWorkersDate(date = null) {
+  refreshDetailsDate(date = null) {
     // dateが渡されなかった場合、this.dateを使用する
     const effectiveDate = date || this.date
 
@@ -560,6 +604,11 @@ export default class OperationResult extends FireModel {
     // workers配列内の各workerオブジェクトのdateプロパティを更新
     this.workers.forEach((worker) => {
       worker.date = effectiveDate
+    })
+
+    // outsourcers配列内の各workerオブジェクトのdateプロパティを更新
+    this.outsourcers.forEach((outsourcer) => {
+      outsourcer.date = effectiveDate
     })
   }
 

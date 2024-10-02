@@ -1,18 +1,18 @@
 <script>
 /**
- * OperationResultWorkers入力コンポーネント
+ * OperationResultOutsourcers入力コンポーネント
  *
- * `OperationResult` モデルの `workers` プロパティを編集するためのコンポーネントです。
+ * `OperationResult` モデルの `outsourcers` プロパティを編集するためのコンポーネントです。
  *
  * @author shisyamo4131
  * @version 1.0.0
  * @updates
- * - version 1.0.0 - 初版作成
+ * - version 1.0.0 - 2024-10-02 - 初版作成
  */
 import GDialogInput from '../dialogs/GDialogInput.vue'
-import GInputOperationResultWorker from './GInputOperationResultWorker.vue'
+import GInputOperationResultOutsourcer from './GInputOperationResultOutsourcer.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
-import OperationResultWorker from '~/models/OperationResultWorker'
+import OperationResultOutsourcer from '~/models/OperationResultOutsourcer'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
 export default {
   /***************************************************************************
@@ -20,7 +20,7 @@ export default {
    ***************************************************************************/
   components: {
     GDataTable,
-    GInputOperationResultWorker,
+    GInputOperationResultOutsourcer,
     GDialogInput,
   },
   /***************************************************************************
@@ -39,7 +39,7 @@ export default {
   data() {
     return {
       dialog: false,
-      editModel: new OperationResultWorker(),
+      editModel: new OperationResultOutsourcer(),
       loading: false,
     }
   },
@@ -54,14 +54,14 @@ export default {
       switch (this.$vuetify.breakpoint.name) {
         case 'sm':
           return [
-            { text: '従業員', value: 'employeeId' },
+            { text: '外注先', value: 'outsourcerId' },
             { text: '勤務日', value: 'date', align: 'center' },
             { text: '開始終了', value: 'startEnd', align: 'center' },
             { text: '休憩時間', value: 'breakMinutes', align: 'right' },
           ]
         case 'md':
           return [
-            { text: '従業員', value: 'employeeId' },
+            { text: '外注先', value: 'outsourcerId' },
             { text: '勤務日', value: 'date', align: 'center' },
             { text: '開始終了', value: 'startEnd', align: 'center' },
             { text: '休憩時間', value: 'breakMinutes', align: 'right' },
@@ -70,7 +70,7 @@ export default {
           ]
         default:
           return [
-            { text: '従業員', value: 'employeeId' },
+            { text: '外注先', value: 'outsourcerId' },
             { text: '勤務日', value: 'date', align: 'center' },
             { text: '開始終了', value: 'startEnd', align: 'center' },
             { text: '休憩時間', value: 'breakMinutes', align: 'right' },
@@ -107,10 +107,10 @@ export default {
       this.dialog = true
     },
     /**
-     * `data.editModel`を`changeWorker`イベントとともにemitします。
+     * `data.editModel`を`changeOutsourcer`イベントとともにemitします。
      */
-    changeWorker({ instance }) {
-      this.$emit('changeWorker', instance.clone())
+    changeOutsourcer({ instance }) {
+      this.$emit('changeOutsourcer', instance.clone())
       this.dialog = false
     },
   },
@@ -128,15 +128,16 @@ export default {
       v-else
       :headers="headers"
       :items="value"
-      item-key="employeeId"
+      item-key="id"
       :actions="['edit', 'delete']"
       disable-sort
       @click:edit="onClickRow"
-      @click:delete="$emit('removeWorker', $event)"
+      @click:delete="$emit('removeOutsourcer', $event)"
     >
-      <template #[`item.employeeId`]="{ item }">
+      <template #[`item.outsourcerId`]="{ item }">
         {{
-          $store.getters[`employees/get`](item.employeeId)?.abbr || 'undefined'
+          $store.getters[`outsourcers/get`](item.outsourcerId)?.abbr ||
+          'undefined'
         }}
       </template>
       <template #[`item.date`]="{ item }">
@@ -162,11 +163,11 @@ export default {
 
     <g-dialog-input v-model="dialog" max-width="480">
       <template #default="{ attrs }">
-        <g-input-operation-result-worker
+        <g-input-operation-result-outsourcer
           v-bind="attrs"
           :instance="editModel"
           :edit-mode="UPDATE"
-          @submit:complete="changeWorker"
+          @submit:complete="changeOutsourcer"
           @click:cancel="dialog = false"
         />
       </template>

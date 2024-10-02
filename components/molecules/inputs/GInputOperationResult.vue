@@ -12,6 +12,7 @@
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
 import GInputOperationResultWorkers from './GInputOperationResultWorkers.vue'
+import GInputOperationResultOutsourcers from './GInputOperationResultOutsourcers.vue'
 import OperationResult from '~/models/OperationResult'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
@@ -25,6 +26,8 @@ import OperationResultWorker from '~/models/OperationResultWorker'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import { getDayType, isValidDateFormat } from '~/utils/utility'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
+import Site from '~/models/Site'
+import OperationResultOutsourcer from '~/models/OperationResultOutsourcer'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -42,6 +45,7 @@ export default {
     GCardInputForm,
     GDialogDatePicker,
     GCheckbox,
+    GInputOperationResultOutsourcers,
   },
   /***************************************************************************
    * MIXINS
@@ -66,7 +70,9 @@ export default {
     return {
       editModel: new OperationResult(),
       employeeSelector: false,
+      outsourcerSelector: false,
       selectedEmployees: [],
+      selectedOutsourcers: [],
     }
   },
   /***************************************************************************
@@ -81,7 +87,7 @@ export default {
       // 必須のフィールドが設定されているかを確認
       const { site, date, workShift } = this.editModel
       if (!site?.docId || !date || !workShift) {
-        return false // いずれかが未設定なら契約情報がないと見なさない
+        return false // いずれかが未設定なら契約情報がないと見做さない
       }
       // loading中はfalseを返す
       if (this.loading) return false
@@ -96,6 +102,9 @@ export default {
         )
       })
     },
+    selectableOutsourcers() {
+      return this.$store.getters['outsourcers/items']
+    },
   },
   /***************************************************************************
    * WATCH
@@ -105,22 +114,50 @@ export default {
       if (v) return
       this.selectedEmployees.splice(0)
     },
+    outsourcerSelector(v) {
+      if (v) return
+      this.selectedOutsourcers.splice(0)
+    },
   },
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
     /**
-     * 現場が変更された時の処理です。
-     * - 締日を更新します。
-     * - 取極めを更新します。
+     * `editModel.siteId` が変更された時の処理です。
+     * - `editModel.siteId` に値がセットされていない場合、`editModel.site` を null にして終了します。
+     * - `editModel.siteId` に値がセットされていた場合、`Sites` ドキュメントを読み込んで `editModel.site` にセットします。
+     * - 該当する `Sites` ドキュメントが存在しない場合はエラーを出力します。
+     * - 該当する `Sites` ドキュメントが存在した場合は `editModel.closingDate`、`editModel.siteContract` を更新します。
      * @returns {void}
      */
     async onSiteChanged() {
+      // `editModel.siteId` に値がセットされていない場合は `editModel.site` を null にして終了
+      if (!this.editModel.siteId) {
+        this.editModel.site = null
+        return
+      }
       this.loading = true // ローディング状態を開始
       try {
+        // `Sites` ドキュメントを読み込む
+        const siteInstance = new Site()
+        const isSiteExist = await siteInstance.fetch(this.editModel.siteId)
+
+        // `Sites` ドキュメントが存在しない場合はエラー
+        if (!isSiteExist) {
+          const message = 'Sites ドキュメントが取得できませんでした。'
+          // eslint-disable-next-line no-console
+          console.error(message, { siteId: this.editModel.siteId })
+          alert(message)
+          return
+        }
+
+        // `editModel.site` に `Sites` ドキュメントをセット
+        this.editModel.site = siteInstance
+
         // 締日をリフレッシュするメソッドを実行
         this.editModel.refreshClosingDate()
+
         // siteContractを更新
         await this.refreshSiteContract()
       } catch (err) {
@@ -145,8 +182,8 @@ export default {
         this.editModel.dayDiv = getDayType(this.editModel.date)
         // 締日をリフレッシュするメソッドを実行
         this.editModel.refreshClosingDate()
-        // workersの`date`を更新
-        this.editModel.refreshWorkersDate()
+        // `workers`、`outsourcers` の`date`を更新
+        this.editModel.refreshDetailsDate()
         // siteContractを更新
         await this.refreshSiteContract()
       } catch (err) {
@@ -177,8 +214,6 @@ export default {
     },
     /**
      * 従業員選択画面で選択された従業員の稼働実績明細を`editModel.workers`に追加します。
-     * note: 要修正
-     * - 契約情報がロードされた後であれば開始・終了の時刻までセットできる。
      */
     addWorker() {
       // 現場の契約情報が取得できていなければ何もせずに終了
@@ -212,6 +247,40 @@ export default {
       }
     },
     /**
+     * 外注先選択画面で選択された外注先の稼働実績明細を`editModel.outsourcers`に追加します。
+     */
+    addOutsourcer() {
+      // 現場の契約情報が取得できていなければ何もせずに終了
+      if (this.noContract) return
+
+      // 選択された従業員が存在するかをチェック
+      if (!this.selectedOutsourcers || !this.selectedOutsourcers.length) {
+        // eslint-disable-next-line no-console
+        console.warn('No outsourcers selected.')
+        return
+      }
+
+      try {
+        // 選択された従業員のリストに対して処理を実行
+        this.selectedOutsourcers.forEach((outsourcer) => {
+          const newOutsourcer = new OperationResultOutsourcer()
+          newOutsourcer.outsourcerId = outsourcer.docId
+          newOutsourcer.date = this.editModel.date
+          newOutsourcer.startTime = this.editModel.siteContract.startTime
+          newOutsourcer.endTime = this.editModel.siteContract.endTime
+          newOutsourcer.breakMinutes = this.editModel.siteContract.breakMinutes
+          this.editModel.addOutsourcer(newOutsourcer)
+        })
+
+        // 従業員選択ダイアログを閉じる
+        this.outsourcerSelector = false
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('Error occurred while adding workers:', err)
+        alert('An error occurred while adding workers. Please try again.')
+      }
+    },
+    /**
      * 引数で受け取った稼働実績明細を`editModel.workers`に反映させます。
      */
     changeWorker(item) {
@@ -222,6 +291,18 @@ export default {
      */
     removeWorker(item) {
       this.editModel.removeWorker(item)
+    },
+    /**
+     * 引数で受け取った稼働実績明細を`editModel.outsourcers`に反映させます。
+     */
+    changeOutsourcer(item) {
+      this.editModel.changeOutsourcer(item)
+    },
+    /**
+     * 引数で受け取った稼働実績明細を`editModel.outsourcers`から削除します。
+     */
+    removeOutsourcer(item) {
+      this.editModel.removeOutsourcer(item)
     },
     /**
      * 当該OperationResultsドキュメントに適用すべきSiteContractを読み込み、
@@ -256,10 +337,9 @@ export default {
         <v-col cols="3">
           <g-text-field v-model="editModel.code" label="CODE" disabled />
           <g-autocomplete-site
-            v-model="editModel.site"
+            v-model="editModel.siteId"
             label="現場"
             required
-            return-object
             @change="onSiteChanged"
           />
           <g-dialog-date-picker
@@ -328,6 +408,47 @@ export default {
                   :value="editModel.workers"
                   @changeWorker="changeWorker($event)"
                   @removeWorker="removeWorker($event)"
+                />
+              </v-card>
+            </div>
+          </v-input>
+          <v-input>
+            <div class="d-flex flex-column flex-grow-1">
+              <v-dialog v-model="outsourcerSelector" max-width="240">
+                <template #activator="{ attrs, on }">
+                  <v-btn
+                    v-bind="attrs"
+                    class="mb-2"
+                    :disabled="!isValidDate || noContract"
+                    small
+                    color="primary"
+                    v-on="on"
+                    >外注先を追加</v-btn
+                  >
+                </template>
+                <v-card>
+                  <g-data-table
+                    v-model="selectedOutsourcers"
+                    :headers="[{ text: '外注先名', value: 'abbr' }]"
+                    :items="selectableOutsourcers"
+                    show-select
+                    checkbox-color="primary"
+                  />
+                  <v-card-actions class="justify-space-between">
+                    <g-btn-cancel-icon @click="outsourcerSelector = false" />
+                    <g-btn-submit-icon
+                      color="primary"
+                      :disabled="!selectableOutsourcers.length"
+                      @click="addOutsourcer"
+                    />
+                  </v-card-actions>
+                </v-card>
+              </v-dialog>
+              <v-card outlined>
+                <g-input-operation-result-outsourcers
+                  :value="editModel.outsourcers"
+                  @changeOutsourcer="changeOutsourcer($event)"
+                  @removeOutsourcer="removeOutsourcer($event)"
                 />
               </v-card>
             </div>
