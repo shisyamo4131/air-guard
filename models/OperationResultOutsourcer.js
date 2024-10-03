@@ -6,10 +6,12 @@ import OperationResultDetail from './OperationResultDetail'
  * - `OperationResultDetail` を継承し、`outsourcerId` プロパティを追加しています。
  * - `OperationResult.outsourcers` に同一外注先が複数登録される可能性があるため、枝番として `branch` を追加しています。
  * - `id` プロパティで `outsourcerId` と `branch` の組み合わせを表現しています。
+ * - 自身が外注先の稼働実績であることを表すため、`isEmployee` プロパティは false、`isOutsourcer` プロパティは true に固定されます。
  *
- * @version 2.0.0
+ * @version 2.1.0
  * @author shisyamo4131
  * @updates
+ * - version 2.1.0 - 2024-10-03 - `isEmployee`、`isOutsourcer` プロパティを追加。
  * - version 2.0.0 - 2024-10-02 - 初版作成
  */
 export default class OperationResultOutsourcer extends OperationResultDetail {
@@ -18,6 +20,8 @@ export default class OperationResultOutsourcer extends OperationResultDetail {
    ****************************************************************************/
   constructor(item = {}) {
     super(item)
+    this.isEmployee = false
+    this.isOutsourcer = true
     Object.defineProperties(this, {
       id: {
         configurable: true,

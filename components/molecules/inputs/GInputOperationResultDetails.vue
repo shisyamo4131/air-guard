@@ -1,27 +1,32 @@
 <script>
 /**
- * OperationResultOutsourcers入力コンポーネント
+ * OperationResultDetails入力コンポーネント
  *
- * `OperationResult` モデルの `outsourcers` プロパティを編集するためのコンポーネントです。
+ * `OperationResult` モデルの `workers` プロパティおよび `outsourcers` プロパティを編集するためのコンポーネントです。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  * @updates
- * - version 1.0.0 - 2024-10-02 - 初版作成
+ * - version 1.1.0 - 2024-10-03 - `outsourcers` プロパティも編集・管理できるように機能を追加。
+ *                              - コンポーネント名を `GInputOperationResultDetails` に変更。
+ * - version 1.0.0 - 初版作成
  */
 import GDialogInput from '../dialogs/GDialogInput.vue'
+import GInputOperationResultWorker from './GInputOperationResultWorker.vue'
 import GInputOperationResultOutsourcer from './GInputOperationResultOutsourcer.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
-import OperationResultOutsourcer from '~/models/OperationResultOutsourcer'
+import OperationResultWorker from '~/models/OperationResultWorker'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
+import OperationResultOutsourcer from '~/models/OperationResultOutsourcer'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
     GDataTable,
-    GInputOperationResultOutsourcer,
+    GInputOperationResultWorker,
     GDialogInput,
+    GInputOperationResultOutsourcer,
   },
   /***************************************************************************
    * MIXINS
@@ -39,7 +44,8 @@ export default {
   data() {
     return {
       dialog: false,
-      editModel: new OperationResultOutsourcer(),
+      editModel: new OperationResultWorker(),
+      inputComponent: 'GInputOperationResultWorker',
       loading: false,
     }
   },
@@ -54,14 +60,14 @@ export default {
       switch (this.$vuetify.breakpoint.name) {
         case 'sm':
           return [
-            { text: '外注先', value: 'outsourcerId' },
+            { text: '氏名', value: 'employeeId' },
             { text: '勤務日', value: 'date', align: 'center' },
             { text: '開始終了', value: 'startEnd', align: 'center' },
             { text: '休憩時間', value: 'breakMinutes', align: 'right' },
           ]
         case 'md':
           return [
-            { text: '外注先', value: 'outsourcerId' },
+            { text: '氏名', value: 'employeeId' },
             { text: '勤務日', value: 'date', align: 'center' },
             { text: '開始終了', value: 'startEnd', align: 'center' },
             { text: '休憩時間', value: 'breakMinutes', align: 'right' },
@@ -70,7 +76,7 @@ export default {
           ]
         default:
           return [
-            { text: '外注先', value: 'outsourcerId' },
+            { text: '氏名', value: 'employeeId' },
             { text: '勤務日', value: 'date', align: 'center' },
             { text: '開始終了', value: 'startEnd', align: 'center' },
             { text: '休憩時間', value: 'breakMinutes', align: 'right' },
@@ -99,19 +105,40 @@ export default {
    ***************************************************************************/
   methods: {
     /**
-     * 行がクリックされた時の処理です。
-     * `editModel`を選択された稼働実績明細で初期化してダイアログを開きます。
+     * 編集アイコンがクリックされた時の処理です。
+     * `editModel` を選択された稼働実績明細で初期化して編集画面を開きます。
+     * - 編集画面に表示されるコンポーネントを `item.isEmployee` プロパティに応じて変更します。
+     * - `item.isEmployee` プロパティに応じて `editModel` に対応するインスタンスをセットします。
      */
     onClickRow(item) {
-      this.editModel.initialize(item)
+      if (item.isEmployee) {
+        this.inputComponent = 'GInputOperationResultWorker'
+        this.editModel = new OperationResultWorker(item)
+      } else {
+        this.inputComponent = 'GInputOperationResultOutsourcer'
+        this.editModel = new OperationResultOutsourcer(item)
+      }
       this.dialog = true
     },
     /**
-     * `data.editModel`を`changeOutsourcer`イベントとともにemitします。
+     * 編集画面の `submit:complete` イベントでコールされます。
+     * - 対象データが従業員の場合、`changeWorder` イベントを emit します。
+     * - 対象データが外注先の場合、`changeOutsourcer` イベントを emit します。
+     * - `dialog` を false にします。
      */
-    changeOutsourcer({ instance }) {
-      this.$emit('changeOutsourcer', instance.clone())
+    onSubmitComplete({ instance }) {
+      const event = `change${instance.isEmployee ? 'Worker' : 'Outsourcer'}`
+      this.$emit(event, instance.clone())
       this.dialog = false
+    },
+    /**
+     * 削除アイコンがクリックされた時の処理です。
+     * - 対象データが従業員の場合、`removeWorder` イベントを emit します。
+     * - 対象データが外注先の場合、`removeOutsourcer` イベントを emit します。
+     */
+    onClickDelete(item) {
+      const event = `remove${item.isEmployee ? 'Worder' : 'Outsourcer'}`
+      this.$emit(event, item)
     },
   },
 }
@@ -132,13 +159,21 @@ export default {
       :actions="['edit', 'delete']"
       disable-sort
       @click:edit="onClickRow"
-      @click:delete="$emit('removeOutsourcer', $event)"
+      @click:delete="onClickDelete"
     >
-      <template #[`item.outsourcerId`]="{ item }">
-        {{
-          $store.getters[`outsourcers/get`](item.outsourcerId)?.abbr ||
-          'undefined'
-        }}
+      <template #[`item.employeeId`]="{ item }">
+        <div v-if="item.employeeId">
+          {{
+            $store.getters[`employees/get`](item.employeeId)?.abbr ||
+            'undefined'
+          }}
+        </div>
+        <div v-else>
+          {{
+            $store.getters[`outsourcers/get`](item.outsourcerId)?.abbr ||
+            'undefined'
+          }}
+        </div>
       </template>
       <template #[`item.date`]="{ item }">
         {{ item.date.slice(5) }}
@@ -163,11 +198,12 @@ export default {
 
     <g-dialog-input v-model="dialog" max-width="480">
       <template #default="{ attrs }">
-        <g-input-operation-result-outsourcer
+        <component
+          :is="inputComponent"
           v-bind="attrs"
           :instance="editModel"
           :edit-mode="UPDATE"
-          @submit:complete="changeOutsourcer"
+          @submit:complete="onSubmitComplete"
           @click:cancel="dialog = false"
         />
       </template>

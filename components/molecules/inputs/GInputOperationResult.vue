@@ -3,16 +3,16 @@
  * OperationResultsドキュメント入力コンポーネント
  *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.2.0
  * @updates
+ * - version 1.2.0 - 2024-10-03 - `GInputOperationResultDetails` の仕様変更に対応。
  * - version 1.1.0 - 2024-09-18 - 現場選択コンポーネントに`return-object`を設定。
  *                                `site`に現場オブジェクトをセットするように変更。
  * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
-import GInputOperationResultWorkers from './GInputOperationResultWorkers.vue'
-import GInputOperationResultOutsourcers from './GInputOperationResultOutsourcers.vue'
+import GInputOperationResultDetails from './GInputOperationResultDetails.vue'
 import OperationResult from '~/models/OperationResult'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
@@ -38,14 +38,13 @@ export default {
     GDate,
     GAutocompleteSite,
     GSelect,
-    GInputOperationResultWorkers,
+    GInputOperationResultDetails,
     GDataTable,
     GBtnCancelIcon,
     GBtnSubmitIcon,
     GCardInputForm,
     GDialogDatePicker,
     GCheckbox,
-    GInputOperationResultOutsourcers,
   },
   /***************************************************************************
    * MIXINS
@@ -334,7 +333,7 @@ export default {
   >
     <v-form @submit.prevent>
       <v-row>
-        <v-col cols="3">
+        <v-col cols="12" sm="3">
           <g-text-field v-model="editModel.code" label="CODE" disabled />
           <g-autocomplete-site
             v-model="editModel.siteId"
@@ -370,87 +369,78 @@ export default {
           </g-dialog-date-picker>
           <g-textarea v-model="editModel.remarks" label="備考" />
         </v-col>
-        <v-col cols="9">
+        <v-col cols="12" sm="9">
           <v-input>
             <div class="d-flex flex-column flex-grow-1">
-              <v-dialog v-model="employeeSelector" max-width="240">
-                <template #activator="{ attrs, on }">
-                  <v-btn
-                    v-bind="attrs"
-                    class="mb-2"
-                    :disabled="!isValidDate || noContract"
-                    small
-                    color="primary"
-                    v-on="on"
-                    >従業員を追加</v-btn
-                  >
-                </template>
-                <v-card>
-                  <g-data-table
-                    v-model="selectedEmployees"
-                    :headers="[{ text: '従業員名', value: 'abbr' }]"
-                    :items="selectableEmployees"
-                    show-select
-                    checkbox-color="primary"
-                  />
-                  <v-card-actions class="justify-space-between">
-                    <g-btn-cancel-icon @click="employeeSelector = false" />
-                    <g-btn-submit-icon
-                      color="primary"
-                      :disabled="!selectedEmployees.length"
-                      @click="addWorker"
-                    />
-                  </v-card-actions>
-                </v-card>
-              </v-dialog>
               <v-card outlined>
-                <g-input-operation-result-workers
-                  :value="editModel.workers"
+                <g-input-operation-result-details
+                  :value="editModel.workers.concat(editModel.outsourcers)"
                   @changeWorker="changeWorker($event)"
                   @removeWorker="removeWorker($event)"
-                />
-              </v-card>
-            </div>
-          </v-input>
-          <v-input>
-            <div class="d-flex flex-column flex-grow-1">
-              <v-dialog v-model="outsourcerSelector" max-width="240">
-                <template #activator="{ attrs, on }">
-                  <v-btn
-                    v-bind="attrs"
-                    class="mb-2"
-                    :disabled="!isValidDate || noContract"
-                    small
-                    color="primary"
-                    v-on="on"
-                    >外注先を追加</v-btn
-                  >
-                </template>
-                <v-card>
-                  <g-data-table
-                    v-model="selectedOutsourcers"
-                    :headers="[{ text: '外注先名', value: 'abbr' }]"
-                    :items="selectableOutsourcers"
-                    show-select
-                    checkbox-color="primary"
-                  />
-                  <v-card-actions class="justify-space-between">
-                    <g-btn-cancel-icon @click="outsourcerSelector = false" />
-                    <g-btn-submit-icon
-                      color="primary"
-                      :disabled="!selectableOutsourcers.length"
-                      @click="addOutsourcer"
-                    />
-                  </v-card-actions>
-                </v-card>
-              </v-dialog>
-              <v-card outlined>
-                <g-input-operation-result-outsourcers
-                  :value="editModel.outsourcers"
                   @changeOutsourcer="changeOutsourcer($event)"
                   @removeOutsourcer="removeOutsourcer($event)"
                 />
               </v-card>
+              <div class="text-right mt-2">
+                <v-dialog v-model="employeeSelector" max-width="240">
+                  <template #activator="{ attrs, on }">
+                    <v-btn
+                      v-bind="attrs"
+                      :disabled="!isValidDate || noContract"
+                      small
+                      color="primary"
+                      v-on="on"
+                      >従業員を追加</v-btn
+                    >
+                  </template>
+                  <v-card>
+                    <g-data-table
+                      v-model="selectedEmployees"
+                      :headers="[{ text: '従業員名', value: 'abbr' }]"
+                      :items="selectableEmployees"
+                      show-select
+                      checkbox-color="primary"
+                    />
+                    <v-card-actions class="justify-space-between">
+                      <g-btn-cancel-icon @click="employeeSelector = false" />
+                      <g-btn-submit-icon
+                        color="primary"
+                        :disabled="!selectedEmployees.length"
+                        @click="addWorker"
+                      />
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+                <v-dialog v-model="outsourcerSelector" max-width="240">
+                  <template #activator="{ attrs, on }">
+                    <v-btn
+                      v-bind="attrs"
+                      :disabled="!isValidDate || noContract"
+                      small
+                      color="secondary"
+                      v-on="on"
+                      >外注先を追加</v-btn
+                    >
+                  </template>
+                  <v-card>
+                    <g-data-table
+                      v-model="selectedOutsourcers"
+                      :headers="[{ text: '外注先名', value: 'abbr' }]"
+                      :items="selectableOutsourcers"
+                      show-select
+                      checkbox-color="primary"
+                    />
+                    <v-card-actions class="justify-space-between">
+                      <g-btn-cancel-icon @click="outsourcerSelector = false" />
+                      <g-btn-submit-icon
+                        color="primary"
+                        :disabled="!selectableOutsourcers.length"
+                        @click="addOutsourcer"
+                      />
+                    </v-card-actions>
+                  </v-card>
+                </v-dialog>
+              </div>
             </div>
           </v-input>
         </v-col>

@@ -4,13 +4,37 @@ import OperationResultDetail from './OperationResultDetail'
  * ## OperationResultWorker（稼働実績明細）データモデル
  *
  * - `OperationResultDetail` を継承し、`employeeId` プロパティを追加しています。
+ * - `OperationResultOutsourcer` データとともに DataTable で利用できるように
+ *   `employeeId` をそのまま複製した `id` プロパティを実装しています。
+ * - 自身が従業員の稼働実績であることを表すため、`isEmployee` プロパティは true、`isOutsourcer` プロパティは false に固定されます。
  *
- * @version 2.0.0
+ * @version 2.1.0
  * @author shisyamo4131
  * @updates
+ * - version 2.1.0 - 2024-10-03 - `id` プロパティを追加。
+ *                              - `isEmployee`、`isOutsourcer` プロパティを追加。
  * - version 2.0.0 - 2024-10-02 - `OperationResultDetail` を継承するように変更
  */
 export default class OperationResultWorker extends OperationResultDetail {
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item)
+    this.isEmployee = true
+    this.isOutsourcer = false
+    Object.defineProperties(this, {
+      id: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return `${this.employeeId}`
+        },
+        set(v) {},
+      },
+    })
+  }
+
   /****************************************************************************
    * INITIALIZE
    ****************************************************************************/

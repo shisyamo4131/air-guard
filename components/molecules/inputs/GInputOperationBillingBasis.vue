@@ -3,13 +3,13 @@
  * OperationBillingBasisドキュメント入力コンポーネント
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  * @updates
+ * - version 1.1.0 - 2024-10-03 - `GInputOperationResultDetails` の仕様変更に対応。
  * - version 1.0.0 - 2024-10-02 - 初版作成
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
-import GInputOperationResultWorkers from './GInputOperationResultWorkers.vue'
-import GInputOperationResultOutsourcers from './GInputOperationResultOutsourcers.vue'
+import GInputOperationResultDetails from './GInputOperationResultDetails.vue'
 import OperationBillingBasis from '~/models/OperationBillingBasis'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
@@ -18,9 +18,8 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GInputOperationResultWorkers,
+    GInputOperationResultDetails,
     GCardInputForm,
-    GInputOperationResultOutsourcers,
     GNumeric,
   },
   /***************************************************************************
@@ -150,13 +149,8 @@ export default {
         <v-col cols="12" lg="9">
           <div class="d-flex flex-column flex-grow-1">
             <v-card outlined>
-              <g-input-operation-result-workers :value="editModel.workers" />
-            </v-card>
-          </div>
-          <div class="d-flex flex-column flex-grow-1">
-            <v-card outlined>
-              <g-input-operation-result-outsourcers
-                :value="editModel.outsourcers"
+              <g-input-operation-result-details
+                :value="editModel.workers.concat(editModel.outsourcers)"
               />
             </v-card>
           </div>
