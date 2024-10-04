@@ -7,6 +7,7 @@
  * @updates
  * - version 1.3.0 - 2024-10-04 - Use `GCheckboxDeleteData` instead of `GCheckbox`.
  *                              - Use `GDialogEmployeeSelector` and `GDialogOutsourcerSelector`.
+ *                              - Fixed that submit is not possible if isLocked property is true.
  * - version 1.2.0 - 2024-10-03 - `GInputOperationResultDetails` の仕様変更に対応。
  * - version 1.1.0 - 2024-09-18 - 現場選択コンポーネントに`return-object`を設定。
  *                                `site`に現場オブジェクトをセットするように変更。
@@ -307,7 +308,7 @@ export default {
   <g-card-input-form
     v-bind="$attrs"
     label="稼働実績編集"
-    :disable-submit="noContract"
+    :disable-submit="noContract || editModel.isLocked"
     :edit-mode="editMode"
     :loading="loading"
     @click:submit="submit"
@@ -352,6 +353,9 @@ export default {
           <g-textarea v-model="editModel.remarks" label="備考" />
         </v-col>
         <v-col cols="12" sm="9">
+          <v-alert v-show="editModel.isLocked" type="info" dense text>
+            請求明細編集が行われているため、更新できません。
+          </v-alert>
           <v-input>
             <div class="d-flex flex-column flex-grow-1">
               <v-card outlined>
