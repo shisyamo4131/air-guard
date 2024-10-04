@@ -161,11 +161,27 @@ export default class OperationResult extends FireModel {
           // 結果を構築して返す
           return {
             standard: {
-              price: unitPrices.standard?.price ?? null,
+              normal: unitPrices.standard?.price ?? null,
+              half:
+                ((unitPrices.standard?.price ?? null) *
+                  this.siteContract.halfRate) /
+                100,
+              cancel:
+                ((unitPrices.standard?.price ?? null) *
+                  this.siteContract.cancelRate) /
+                100,
               overtime: unitPrices.standard?.overtime ?? null,
             },
             qualified: {
-              price: unitPrices.qualified?.price ?? null,
+              normal: unitPrices.qualified?.price ?? null,
+              half:
+                ((unitPrices.qualified?.price ?? null) *
+                  this.siteContract.halfRate) /
+                100,
+              cancel:
+                ((unitPrices.qualified?.price ?? null) *
+                  this.siteContract.cancelRate) /
+                100,
               overtime: unitPrices.qualified?.overtime ?? null,
             },
             halfRate: this.siteContract.halfRate,

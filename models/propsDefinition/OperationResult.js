@@ -117,11 +117,15 @@ const propsDefinition = {
     default: () => {
       return {
         standard: {
-          price: null,
+          normal: null,
+          half: null,
+          cancel: null,
           overtime: null,
         },
         qualified: {
-          price: null,
+          normal: null,
+          half: null,
+          cancel: null,
           overtime: null,
         },
         halfRate: null,
