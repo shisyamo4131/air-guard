@@ -2,7 +2,7 @@
 /**
  * ## GNumericOvertimeMinutes
  *
- * 残業時間（分単位）入力用コンポーネントです。
+ * 残業時間（時間単位）入力用コンポーネントです。
  *
  * @author shisyamo4131
  * @version 1.0.0

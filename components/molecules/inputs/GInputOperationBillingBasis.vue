@@ -8,11 +8,13 @@
  * - version 1.1.0 - 2024-10-03 - `GInputOperationResultDetails` の仕様変更に対応。
  * - version 1.0.0 - 2024-10-02 - 初版作成
  */
+import Vue from 'vue'
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GInputOperationResultDetails from './GInputOperationResultDetails.vue'
 import OperationBillingBasis from '~/models/OperationBillingBasis'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
+import GNumericOvertimeHours from '~/components/atoms/inputs/GNumericOvertimeHours.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -21,6 +23,7 @@ export default {
     GInputOperationResultDetails,
     GCardInputForm,
     GNumeric,
+    GNumericOvertimeHours,
   },
   /***************************************************************************
    * MIXINS
@@ -43,7 +46,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      editModel: new OperationBillingBasis(),
+      editModel: Vue.observable(new OperationBillingBasis()),
     }
   },
   /***************************************************************************
@@ -170,7 +173,7 @@ export default {
                         suffix="人工"
                       />
                       <g-numeric
-                        v-model="editModel.unitPrice.standard.price"
+                        v-model="editModel.unitPrice.standard.normal"
                         class="right-input"
                         label="基本単価"
                         required
@@ -193,11 +196,7 @@ export default {
                         suffix="人工"
                       />
                       <g-numeric
-                        :value="
-                          (editModel.unitPrice.standard.price *
-                            editModel.unitPrice.halfRate) /
-                          100
-                        "
+                        v-model="editModel.unitPrice.standard.half"
                         class="right-input"
                         label="半勤単価"
                         required
@@ -220,11 +219,7 @@ export default {
                         suffix="人工"
                       />
                       <g-numeric
-                        :value="
-                          (editModel.unitPrice.standard.price *
-                            editModel.unitPrice.cancelRate) /
-                          100
-                        "
+                        v-model="editModel.unitPrice.standard.cancel"
                         class="right-input"
                         label="中止単価"
                         required
@@ -239,17 +234,12 @@ export default {
                       />
                     </div>
                     <div class="d-flex" style="gap: 8px">
-                      <g-numeric
-                        v-model="
-                          editModel.operationCount.standard.overtimeMinutes
-                        "
-                        class="right-input"
-                        label="残業時間"
+                      <g-numeric-overtime-hours
+                        v-model="editModel.overtimeHoursStandard"
                         required
-                        suffix="時間"
                       />
                       <g-numeric
-                        :value="editModel.unitPrice.standard.overtime"
+                        v-model="editModel.unitPrice.standard.overtime"
                         class="right-input"
                         label="残業単価"
                         required
@@ -276,7 +266,7 @@ export default {
                         suffix="人工"
                       />
                       <g-numeric
-                        v-model="editModel.unitPrice.qualified.price"
+                        v-model="editModel.unitPrice.qualified.normal"
                         class="right-input"
                         label="基本単価"
                         required
@@ -299,11 +289,7 @@ export default {
                         suffix="人工"
                       />
                       <g-numeric
-                        :value="
-                          (editModel.unitPrice.qualified.price *
-                            editModel.unitPrice.halfRate) /
-                          100
-                        "
+                        v-model="editModel.unitPrice.qualified.half"
                         class="right-input"
                         label="半勤単価"
                         required
@@ -326,11 +312,7 @@ export default {
                         suffix="人工"
                       />
                       <g-numeric
-                        :value="
-                          (editModel.unitPrice.qualified.price *
-                            editModel.unitPrice.cancelRate) /
-                          100
-                        "
+                        v-model="editModel.unitPrice.qualified.cancel"
                         class="right-input"
                         label="中止単価"
                         required
@@ -345,17 +327,12 @@ export default {
                       />
                     </div>
                     <div class="d-flex" style="gap: 8px">
-                      <g-numeric
-                        v-model="
-                          editModel.operationCount.qualified.overtimeMinutes
-                        "
-                        class="right-input"
-                        label="残業時間"
+                      <g-numeric-overtime-hours
+                        v-model="editModel.overtimeHoursQualified"
                         required
-                        suffix="時間"
                       />
                       <g-numeric
-                        :value="editModel.unitPrice.qualified.overtime"
+                        v-model="editModel.unitPrice.qualified.overtime"
                         class="right-input"
                         label="残業単価"
                         required
@@ -376,6 +353,37 @@ export default {
           </div>
         </v-col>
       </v-row>
+      <div class="d-flex justify-end pt-4">
+        <h3>{{ `税抜売上: ${editModel.sales.total.toLocaleString()}円` }}</h3>
+      </div>
     </v-form>
   </g-card-input-form>
 </template>
+
+<style>
+.info-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* 全体の要素間の余白を一括で管理 */
+}
+
+.info-item {
+  display: flex;
+  gap: 8px; /* タイトルと値の間の余白 */
+  align-items: center;
+}
+
+.info-title {
+  min-width: 144px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.info-value {
+  min-width: 144px;
+  flex-grow: 1;
+  word-wrap: break-word;
+}
+</style>
