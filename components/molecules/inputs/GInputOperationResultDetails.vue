@@ -5,8 +5,9 @@
  * `OperationResult` モデルの `workers` プロパティおよび `outsourcers` プロパティを編集するためのコンポーネントです。
  *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.2.0
  * @updates
+ * - version 1.2.0 - 2024-10-04 - Added `disableEdit` property.
  * - version 1.1.0 - 2024-10-03 - `outsourcers` プロパティも編集・管理できるように機能を追加。
  *                              - コンポーネント名を `GInputOperationResultDetails` に変更。
  * - version 1.0.0 - 初版作成
@@ -36,6 +37,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    disableEdit: { type: Boolean, default: false, required: false },
     value: { type: Array, default: () => [], required: false },
   },
   /***************************************************************************
@@ -156,7 +158,7 @@ export default {
       :headers="headers"
       :items="value"
       item-key="id"
-      :actions="['edit', 'delete']"
+      :actions="disableEdit ? [] : ['edit', 'delete']"
       disable-sort
       @click:edit="onClickRow"
       @click:delete="onClickDelete"

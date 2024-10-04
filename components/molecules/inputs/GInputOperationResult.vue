@@ -147,6 +147,8 @@ export default {
           console.error(message) // eslint-disable-line no-console
           throw new Error(message)
         }
+        this.editModel.siteId = siteInstance.docId
+        this.editModel.site = siteInstance.clone()
       } catch (err) {
         const message = `setSite でエラーが発生しました。`
         console.error(message, err) // eslint-disable-line no-console
