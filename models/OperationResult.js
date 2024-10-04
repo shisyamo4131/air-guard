@@ -220,17 +220,13 @@ export default class OperationResult extends FireModel {
           // スタンダード料金の計算
           result.standard.normal =
             (this.operationCount.standard?.normal || 0) *
-            (this.unitPrice.standard?.price || 0)
+            (this.unitPrice.standard?.normal || 0)
           result.standard.half =
-            ((this.operationCount.standard?.half || 0) *
-              (this.unitPrice.standard?.price || 0) *
-              (this.unitPrice.halfRate || 0)) /
-            100
+            (this.operationCount.standard?.half || 0) *
+            (this.unitPrice.standard?.half || 0)
           result.standard.cancel =
-            ((this.operationCount.standard?.cancel || 0) *
-              (this.unitPrice.standard?.price || 0) *
-              (this.unitPrice.cancelRate || 0)) /
-            100
+            (this.operationCount.standard?.cancel || 0) *
+            (this.unitPrice.standard?.cancel || 0)
           result.standard.overtime =
             ((this.operationCount.standard?.overtimeMinutes || 0) / 60) *
             (this.unitPrice.standard?.overtime || 0)
@@ -238,17 +234,13 @@ export default class OperationResult extends FireModel {
           // 有資格者料金の計算
           result.qualified.normal =
             (this.operationCount.qualified?.normal || 0) *
-            (this.unitPrice.qualified?.price || 0)
+            (this.unitPrice.qualified?.normal || 0)
           result.qualified.half =
-            ((this.operationCount.qualified?.half || 0) *
-              (this.unitPrice.qualified?.price || 0) *
-              (this.unitPrice.halfRate || 0)) /
-            100
+            (this.operationCount.qualified?.half || 0) *
+            (this.unitPrice.qualified?.half || 0)
           result.qualified.cancel =
-            ((this.operationCount.qualified?.cancel || 0) *
-              (this.unitPrice.qualified?.price || 0) *
-              (this.unitPrice.cancelRate || 0)) /
-            100
+            (this.operationCount.qualified?.cancel || 0) *
+            (this.unitPrice.qualified?.cancel || 0)
           result.qualified.overtime =
             ((this.operationCount.qualified?.overtimeMinutes || 0) / 60) *
             (this.unitPrice.qualified?.overtime || 0)
