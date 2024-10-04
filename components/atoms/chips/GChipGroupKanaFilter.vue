@@ -11,12 +11,16 @@
  *
  * @author shisyamo4131
  * @version 1.0.0
+ * @updates
+ * - version 1.0.0 - 2024-10-04 - 初版作成
  */
+
 export default {
   /***************************************************************************
    * MODEL
    ***************************************************************************/
   model: { prop: 'value', event: 'change' },
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -24,18 +28,20 @@ export default {
     chipOptions: { type: Object, default: () => ({}), required: false },
     value: { type: String, default: 'ア', required: false },
   },
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
+      internalValue: this.value,
       regexMap: {
         ア: /^[アイウエオ]/,
-        カ: /^[カキクケコ]/,
-        サ: /^[サシスセソ]/,
-        タ: /^[タチツテト]/,
+        カ: /^[カキクケコガギグゲゴ]/,
+        サ: /^[サシスセソザジズゼゾ]/,
+        タ: /^[タチツテトダヂヅデド]/,
         ナ: /^[ナニヌネノ]/,
-        ハ: /^[ハヒフヘホ]/,
+        ハ: /^[ハヒフヘホバビブベボパピプペポ]/,
         マ: /^[マミムメモ]/,
         ヤ: /^[ヤユヨ]/,
         ラ: /^[ラリルレロ]/,
@@ -44,13 +50,21 @@ export default {
       chars: ['ア', 'カ', 'サ', 'タ', 'ナ', 'ハ', 'マ', 'ヤ', 'ラ', 'ワ'],
     }
   },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/
   watch: {
     value: {
-      handler(newValue) {
-        const selectedRegex = this.regexMap[newValue]
+      handler(v) {
+        this.internalValue = v
+      },
+      immediate: true,
+    },
+    internalValue: {
+      handler(v) {
+        this.$emit('change', v)
+        const selectedRegex = this.regexMap[v]
         this.$emit('update:regex', selectedRegex) // 正規表現を親に返す
       },
       immediate: true,
@@ -62,6 +76,7 @@ export default {
 <template>
   <v-chip-group
     v-bind="{ ...$attrs, ...$props }"
+    v-model="internalValue"
     active-class="primary--text"
     mandatory
     v-on="$listeners"
