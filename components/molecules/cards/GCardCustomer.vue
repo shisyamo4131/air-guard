@@ -1,6 +1,6 @@
 <script>
 /**
- * ### GCardCustomer
+ * ## GCardCustomer
  *
  * 取引先情報を表示・編集するためのCardコンポーネントです。
  *
@@ -9,8 +9,7 @@
  *
  * @author shisyamo4131
  * @version 1.0.0
- *
- * #### 更新履歴
+ * @updates
  * - version 1.0.0 - 2024-07-10 - 初版作成
  */
 import { vueProps } from '~/models/propsDefinition/Customer'
