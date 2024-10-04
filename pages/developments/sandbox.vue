@@ -1,25 +1,47 @@
 <template>
   <v-container>
-    <v-card>
-      <v-card-title> 取極め未登録現場 </v-card-title>
-      <v-card-text>
-        <g-autocomplete-site v-model="value" />
-        {{ `value: ${value}` }}
-      </v-card-text>
-    </v-card>
+    <g-dialog-employee-selector
+      :items="items"
+      @click:cancel="dialog = false"
+      @click:submit="onClickSubmit"
+    >
+      <template #activator="{ attrs, on }">
+        <v-btn v-bind="attrs" v-on="on">open</v-btn>
+      </template>
+    </g-dialog-employee-selector>
+    <v-btn @click="onClickClear">clear</v-btn>
+    <p>{{ selectedItems }}</p>
   </v-container>
 </template>
 
 <script>
-import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
+import GDialogEmployeeSelector from '~/components/molecules/dialogs/GDialogEmployeeSelector.vue'
+
 export default {
-  components: { GAutocompleteSite },
+  components: {
+    GDialogEmployeeSelector,
+  },
   data() {
     return {
-      value: '',
+      selectedItems: [],
     }
+  },
+  computed: {
+    items() {
+      return this.$store.getters['employees/items'].filter(({ employeeId }) => {
+        return !this.selectedItems.some(
+          (item) => item.employeeId === employeeId
+        )
+      })
+    },
+  },
+  methods: {
+    onClickSubmit(event) {
+      this.selectedItems.push(...event)
+    },
+    onClickClear() {
+      this.selectedItems.splice(0)
+    },
   },
 }
 </script>
-
-<style></style>

@@ -3,8 +3,10 @@
  * OperationResultsドキュメント入力コンポーネント
  *
  * @author shisyamo4131
- * @version 1.2.0
+ * @version 1.3.0
  * @updates
+ * - version 1.3.0 - 2024-10-04 - Use `GCheckboxDeleteData` instead of `GCheckbox`.
+ *                              - Use `GDialogEmployeeSelector` and `GDialogOutsourcerSelector`.
  * - version 1.2.0 - 2024-10-03 - `GInputOperationResultDetails` の仕様変更に対応。
  * - version 1.1.0 - 2024-09-18 - 現場選択コンポーネントに`return-object`を設定。
  *                                `site`に現場オブジェクトをセットするように変更。
@@ -12,6 +14,8 @@
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
+import GDialogEmployeeSelector from '../dialogs/GDialogEmployeeSelector.vue'
+import GDialogOutsourcerSelector from '../dialogs/GDialogOutsourcerSelector.vue'
 import GInputOperationResultDetails from './GInputOperationResultDetails.vue'
 import OperationResult from '~/models/OperationResult'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
@@ -19,15 +23,12 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GDate from '~/components/atoms/inputs/GDate.vue'
 import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
-import GDataTable from '~/components/atoms/tables/GDataTable.vue'
-import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
 import OperationResultWorker from '~/models/OperationResultWorker'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import { getDayType, isValidDateFormat } from '~/utils/utility'
-import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import Site from '~/models/Site'
 import OperationResultOutsourcer from '~/models/OperationResultOutsourcer'
+import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -39,12 +40,11 @@ export default {
     GAutocompleteSite,
     GSelect,
     GInputOperationResultDetails,
-    GDataTable,
-    GBtnCancelIcon,
-    GBtnSubmitIcon,
     GCardInputForm,
     GDialogDatePicker,
-    GCheckbox,
+    GDialogEmployeeSelector,
+    GDialogOutsourcerSelector,
+    GCheckboxDeleteData,
   },
   /***************************************************************************
    * MIXINS
@@ -68,10 +68,6 @@ export default {
   data() {
     return {
       editModel: new OperationResult(),
-      employeeSelector: false,
-      outsourcerSelector: false,
-      selectedEmployees: [],
-      selectedOutsourcers: [],
     }
   },
   /***************************************************************************
@@ -108,63 +104,69 @@ export default {
   /***************************************************************************
    * WATCH
    ***************************************************************************/
-  watch: {
-    employeeSelector(v) {
-      if (v) return
-      this.selectedEmployees.splice(0)
-    },
-    outsourcerSelector(v) {
-      if (v) return
-      this.selectedOutsourcers.splice(0)
-    },
-  },
+  watch: {},
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
     /**
-     * `editModel.siteId` が変更された時の処理です。
-     * - `editModel.siteId` に値がセットされていない場合、`editModel.site` を null にして終了します。
-     * - `editModel.siteId` に値がセットされていた場合、`Sites` ドキュメントを読み込んで `editModel.site` にセットします。
-     * - 該当する `Sites` ドキュメントが存在しない場合はエラーを出力します。
-     * - 該当する `Sites` ドキュメントが存在した場合は `editModel.closingDate`、`editModel.siteContract` を更新します。
-     * @returns {void}
+     * コンポーネントの状態をロード中に切り替えて、引数で受け取った処理を実行します。
+     * - エラーが発生するとコンソールにエラーを出力します。
+     * - エラーの有無にかかわらず、処理が終了するとコンポーネントの状態（ロード中）を初期化します。
      */
-    async onSiteChanged() {
-      // `editModel.siteId` に値がセットされていない場合は `editModel.site` を null にして終了
-      if (!this.editModel.siteId) {
+    async withLoading(fn) {
+      this.loading = true
+      try {
+        await fn()
+      } catch (err) {
+        console.error('An error has occured:', err) // eslint-disable-line no-console
+        alert(err.message)
+      } finally {
+        this.loading = false
+      }
+    },
+    /**
+     * `editModel.siteId` の値に該当する `Sites` データを `editModel.site` にセットします。
+     * - `editModel.siteId` に有効な値が存在しない場合は `editModel.site` に null をセットして終了します。
+     * - `editModel.siteId` と `editModel.site.docId` の値が一致する場合は何もしません。
+     * - 該当する `Sites` データが存在しない場合はエラーをスローします。
+     */
+    async setSite() {
+      const { siteId, site } = this.editModel
+      if (!siteId) {
         this.editModel.site = null
         return
       }
-      this.loading = true // ローディング状態を開始
+      if (site && site.docId === siteId) return
       try {
-        // `Sites` ドキュメントを読み込む
         const siteInstance = new Site()
-        const isSiteExist = await siteInstance.fetch(this.editModel.siteId)
-
-        // `Sites` ドキュメントが存在しない場合はエラー
+        const isSiteExist = await siteInstance.fetch(siteId)
         if (!isSiteExist) {
-          const message = 'Sites ドキュメントが取得できませんでした。'
-          // eslint-disable-next-line no-console
-          console.error(message, { siteId: this.editModel.siteId })
-          alert(message)
-          return
+          const message = `Sites ドキュメントが存在しません。siteId: ${siteId}`
+          console.error(message) // eslint-disable-line no-console
+          throw new Error(message)
         }
-
-        // `editModel.site` に `Sites` ドキュメントをセット
-        this.editModel.site = siteInstance
+      } catch (err) {
+        const message = `setSite でエラーが発生しました。`
+        console.error(message, err) // eslint-disable-line no-console
+        throw err
+      }
+    },
+    /**
+     * `editModel.siteId` が変更された時の処理です。
+     * @returns {void}
+     */
+    async onSiteChanged() {
+      await this.withLoading(async () => {
+        // `editModel.site` に `Sites` データをセット
+        await this.setSite()
 
         // 締日をリフレッシュするメソッドを実行
         this.editModel.refreshClosingDate()
 
         // siteContractを更新
         await this.refreshSiteContract()
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('An error has occured:', err)
-      } finally {
-        this.loading = false
-      }
+      })
     },
     /**
      * 日付が変更された時の処理です。
@@ -175,8 +177,7 @@ export default {
      * @returns {void}
      */
     async onDateChanged() {
-      this.loading = true // ローディング状態を開始
-      try {
+      await this.withLoading(async () => {
         // 日付に合わせた曜日区分をセット
         this.editModel.dayDiv = getDayType(this.editModel.date)
         // 締日をリフレッシュするメソッドを実行
@@ -185,13 +186,7 @@ export default {
         this.editModel.refreshDetailsDate()
         // siteContractを更新
         await this.refreshSiteContract()
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('An error has occured:', err)
-      } finally {
-        // 処理が完了したらローディング状態を終了
-        this.loading = false
-      }
+      })
     },
     /**
      * 勤務区分が変更された時の処理です。
@@ -199,27 +194,20 @@ export default {
      * @returns {void}
      */
     async onWorkShiftChanged() {
-      this.loading = true // ローディング状態を開始
-      try {
+      await this.withLoading(async () => {
         // siteContractを更新
         await this.refreshSiteContract()
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error('An error has occured:', err)
-      } finally {
-        // 処理が完了したらローディング状態を終了
-        this.loading = false
-      }
+      })
     },
     /**
      * 従業員選択画面で選択された従業員の稼働実績明細を`editModel.workers`に追加します。
      */
-    addWorker() {
+    addWorker(items) {
       // 現場の契約情報が取得できていなければ何もせずに終了
       if (this.noContract) return
 
       // 選択された従業員が存在するかをチェック
-      if (!this.selectedEmployees || !this.selectedEmployees.length) {
+      if (!items || !items.length) {
         // eslint-disable-next-line no-console
         console.warn('No employees selected.')
         return
@@ -227,7 +215,7 @@ export default {
 
       try {
         // 選択された従業員のリストに対して処理を実行
-        this.selectedEmployees.forEach((employee) => {
+        items.forEach((employee) => {
           const newWorker = new OperationResultWorker()
           newWorker.employeeId = employee.docId
           newWorker.date = this.editModel.date
@@ -236,9 +224,6 @@ export default {
           newWorker.breakMinutes = this.editModel.siteContract.breakMinutes
           this.editModel.addWorker(newWorker)
         })
-
-        // 従業員選択ダイアログを閉じる
-        this.employeeSelector = false
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('Error occurred while adding workers:', err)
@@ -248,20 +233,20 @@ export default {
     /**
      * 外注先選択画面で選択された外注先の稼働実績明細を`editModel.outsourcers`に追加します。
      */
-    addOutsourcer() {
+    addOutsourcer(items) {
       // 現場の契約情報が取得できていなければ何もせずに終了
       if (this.noContract) return
 
-      // 選択された従業員が存在するかをチェック
-      if (!this.selectedOutsourcers || !this.selectedOutsourcers.length) {
+      // 選択された外注先が存在するかをチェック
+      if (!items || !items.length) {
         // eslint-disable-next-line no-console
         console.warn('No outsourcers selected.')
         return
       }
 
       try {
-        // 選択された従業員のリストに対して処理を実行
-        this.selectedOutsourcers.forEach((outsourcer) => {
+        // 選択された外注先のリストに対して処理を実行
+        items.forEach((outsourcer) => {
           const newOutsourcer = new OperationResultOutsourcer()
           newOutsourcer.outsourcerId = outsourcer.docId
           newOutsourcer.date = this.editModel.date
@@ -270,13 +255,10 @@ export default {
           newOutsourcer.breakMinutes = this.editModel.siteContract.breakMinutes
           this.editModel.addOutsourcer(newOutsourcer)
         })
-
-        // 従業員選択ダイアログを閉じる
-        this.outsourcerSelector = false
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error('Error occurred while adding workers:', err)
-        alert('An error occurred while adding workers. Please try again.')
+        console.error('Error occurred while adding outsourcers:', err)
+        alert('An error occurred while adding outsourcers. Please try again.')
       }
     },
     /**
@@ -382,7 +364,10 @@ export default {
                 />
               </v-card>
               <div class="text-right mt-2">
-                <v-dialog v-model="employeeSelector" max-width="240">
+                <g-dialog-employee-selector
+                  :items="selectableEmployees"
+                  @click:submit="addWorker"
+                >
                   <template #activator="{ attrs, on }">
                     <v-btn
                       v-bind="attrs"
@@ -393,25 +378,11 @@ export default {
                       >従業員を追加</v-btn
                     >
                   </template>
-                  <v-card>
-                    <g-data-table
-                      v-model="selectedEmployees"
-                      :headers="[{ text: '従業員名', value: 'abbr' }]"
-                      :items="selectableEmployees"
-                      show-select
-                      checkbox-color="primary"
-                    />
-                    <v-card-actions class="justify-space-between">
-                      <g-btn-cancel-icon @click="employeeSelector = false" />
-                      <g-btn-submit-icon
-                        color="primary"
-                        :disabled="!selectedEmployees.length"
-                        @click="addWorker"
-                      />
-                    </v-card-actions>
-                  </v-card>
-                </v-dialog>
-                <v-dialog v-model="outsourcerSelector" max-width="240">
+                </g-dialog-employee-selector>
+                <g-dialog-outsourcer-selector
+                  :items="selectableOutsourcers"
+                  @click:submit="addOutsourcer"
+                >
                   <template #activator="{ attrs, on }">
                     <v-btn
                       v-bind="attrs"
@@ -422,35 +393,14 @@ export default {
                       >外注先を追加</v-btn
                     >
                   </template>
-                  <v-card>
-                    <g-data-table
-                      v-model="selectedOutsourcers"
-                      :headers="[{ text: '外注先名', value: 'abbr' }]"
-                      :items="selectableOutsourcers"
-                      show-select
-                      checkbox-color="primary"
-                    />
-                    <v-card-actions class="justify-space-between">
-                      <g-btn-cancel-icon @click="outsourcerSelector = false" />
-                      <g-btn-submit-icon
-                        color="primary"
-                        :disabled="!selectableOutsourcers.length"
-                        @click="addOutsourcer"
-                      />
-                    </v-card-actions>
-                  </v-card>
-                </v-dialog>
+                </g-dialog-outsourcer-selector>
               </div>
             </div>
           </v-input>
         </v-col>
       </v-row>
     </v-form>
-    <g-checkbox
-      v-if="editMode !== CREATE"
-      v-model="forceDelete"
-      label="このデータを削除する"
-    />
+    <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
     <v-snackbar :value="noContract" timeout="-1" tile color="red accent-2"
       >適用可能な取極めが登録されていません。</v-snackbar
     >
