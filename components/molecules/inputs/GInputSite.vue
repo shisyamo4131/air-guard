@@ -1,15 +1,15 @@
 <script>
 /**
- * ### GInputSite
+ * ## GInputSite
  *
  * 現場情報入力コンポーネント
  *
- * #### 更新履歴
+ * @author shisyamo4131
+ * @version 1.2.0
+ * @updates
+ * - version 1.2.0 - 2024-10-04 - Use `GCheckboxDeleteData` instead of `GCheckbox`.
  * - version 1.1.0 - 2024-07-22 - データモデルの修正に伴って`customer`の選択ではなく、`customerId`の選択に修正。
  * - version 1.0.0 - 2024-07-10 - 初版作成
- *
- * @author shisyamo4131
- * @version 1.0.0
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GDate from '~/components/atoms/inputs/GDate.vue'
@@ -19,7 +19,7 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
-import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
+import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 
 export default {
   /***************************************************************************
@@ -32,7 +32,7 @@ export default {
     GAutocompleteCustomer,
     GTextarea,
     GCardInputForm,
-    GCheckbox,
+    GCheckboxDeleteData,
   },
   /***************************************************************************
    * MIXINS
@@ -112,11 +112,7 @@ export default {
       />
       <g-textarea v-model="editModel.remarks" label="備考" />
     </v-form>
-    <g-checkbox
-      v-if="editMode !== CREATE"
-      v-model="forceDelete"
-      label="このデータを削除する"
-    />
+    <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
   </g-card-input-form>
 </template>
 

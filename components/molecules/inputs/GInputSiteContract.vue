@@ -1,10 +1,11 @@
 <script>
 /**
- * ### GInputSiteContract
+ * ## GInputSiteContract
  *
- * @version 2.0.0
+ * @version 2.1.0
  * @author shisyamo4131
  * @updates
+ * - version 2.1.0 - 2024-10-04 - Use `GCheckboxDeleteData` instead of `GCheckbox`.
  * - version 2.0.0 - 2024-08-23 - FireModelのパッケージ化に伴って再作成
  *                              - unitPricesの更新処理を変更
  */
@@ -17,7 +18,7 @@ import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
-import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
+import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -30,7 +31,7 @@ export default {
     GSwitch,
     GAutocompleteSite,
     GCardInputForm,
-    GCheckbox,
+    GCheckboxDeleteData,
   },
   /***************************************************************************
    * MIXINS
@@ -232,11 +233,7 @@ export default {
       </v-row>
       <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
-    <g-checkbox
-      v-if="editMode !== CREATE"
-      v-model="forceDelete"
-      label="このデータを削除する"
-    />
+    <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
   </g-card-input-form>
 </template>
 

@@ -1,9 +1,11 @@
 <script>
 /**
- * ### GInputWorkRegulation
+ * ## GInputWorkRegulation
+ *
  * @author shisayamo4131
- * @version 1.0.0
+ * @version 1.1.0
  * @updates
+ * - version 1.1.0 - 2024-10-04 - Use `GCheckboxDeleteData` instead of `GCheckbox`.
  * - version 1.0.0 - 2024-09-13 - 初版作成
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
@@ -14,6 +16,7 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
+import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -25,6 +28,7 @@ export default {
     GCheckbox,
     GCardInputForm,
     GSelect,
+    GCheckboxDeleteData,
   },
   /***************************************************************************
    * MIXINS
@@ -263,11 +267,7 @@ export default {
         </v-col>
       </v-row>
     </v-form>
-    <g-checkbox
-      v-if="editMode !== CREATE"
-      v-model="forceDelete"
-      label="このデータを削除する"
-    />
+    <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
   </g-card-input-form>
 </template>
 

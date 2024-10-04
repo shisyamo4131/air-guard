@@ -8,9 +8,9 @@
  * - 日付、勤務区分は変更できません。
  *
  * @author shisyamo4131
- * @version 1.0.0
- *
+ * @version 1.1.0
  * @updates
+ * - version 1.1.0 - 2024-10-04 - Use `GCheckboxDeleteData` instead of `GCheckbox`.
  * - version 1.0.0 - 2024-09-16 - 初版作成
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
@@ -22,7 +22,7 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
-import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
+import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -35,7 +35,7 @@ export default {
     GComboboxDate,
     GCardInputForm,
     GAutocompleteSite,
-    GCheckbox,
+    GCheckboxDeleteData,
   },
   /***************************************************************************
    * MIXINS
@@ -150,12 +150,7 @@ export default {
       </v-row>
       <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
-    <g-checkbox
-      v-if="editMode !== CREATE"
-      v-model="forceDelete"
-      label="このデータを削除する"
-      hide-details
-    />
+    <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
   </g-card-input-form>
 </template>
 

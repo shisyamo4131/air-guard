@@ -3,7 +3,10 @@
  * 取引先情報入力コンポーネントです。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
+ * @updates
+ * - version 1.1.0 - 2024-10-04 - Use `GCheckboxDeleteData` instead of `GCheckbox`.
+ * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
 import GTextField from '../../atoms/inputs/GTextField.vue'
 import GSelect from '../../atoms/inputs/GSelect.vue'
@@ -13,7 +16,7 @@ import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import Customer from '~/models/Customer'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
-import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
+import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 
 export default {
   /***************************************************************************
@@ -26,7 +29,7 @@ export default {
     GNumeric,
     GTextarea,
     GCardInputForm,
-    GCheckbox,
+    GCheckboxDeleteData,
   },
   /***************************************************************************
    * MIXINS
@@ -159,11 +162,7 @@ export default {
       </v-row>
       <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
-    <g-checkbox
-      v-if="editMode !== CREATE"
-      v-model="forceDelete"
-      label="このデータを削除する"
-    />
+    <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
   </g-card-input-form>
 </template>
 
