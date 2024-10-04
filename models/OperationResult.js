@@ -16,9 +16,10 @@ import { getClosingDate, isValidDateFormat } from '~/utils/utility'
  *      Cloud Functionsでも同期削除の処理が必要です。
  *   -> 更新に対する同期はアプリ側のみで行います。
  *
- * @version 2.4.0
+ * @version 2.5.0
  * @author shisyamo4131
  * @updates
+ * - version 2.5.0 - 2024-10-05 - Removed the price property for unit price and added the normal, half, and cancel properties.
  * - version 2.4.0 - 2024-10-02 - Object.defineProperties による `siteId` の定義を削除。
  *                              - `addOutsourcer`、`changeOutsourcer`、`removeOutsourcer` を追加。
  *                              - `refreshWorkersDate` を `refreshDetailsDate` に改名。
