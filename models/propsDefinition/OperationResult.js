@@ -3,6 +3,7 @@
  *
  * @version 1.3.0
  * @updates
+ * - version 1.3.0 - 2024-10-04 - Added `isLocked` property.
  * - version 1.2.0 - 2024-10-02 - `siteId` プロパティを追加。
  *                              - `OperationResult` クラスで上書きされるプロパティを定義。
  *                                `OperationBillingBasis` クラスでそのまま使用する。
@@ -153,6 +154,12 @@ const propsDefinition = {
     },
     required: false,
     requiredByClass: true,
+  },
+  isLocked: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
   },
 }
 
