@@ -8,9 +8,10 @@ import WorkRegulation from './WorkRegulation'
  *
  * - 従業員の雇用契約情報を管理するデータモデルです。
  *
- * @version 2.0.0
+ * @version 2.1.0
  * @author shisyamo4131
  * @updates
+ * - version 2.1.0 - 2024-10-07 - ドキュメント作成時に契約日と契約満了日の前後関係をチェックするように機能を追加しました。
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class EmployeeContract extends FireModel {
@@ -41,7 +42,10 @@ export default class EmployeeContract extends FireModel {
       throw new Error('従業員の指定が必要です。')
     }
     if (!this.startDate) {
-      throw new Error('開始日の指定が必要です。')
+      throw new Error('契約日の指定が必要です。')
+    }
+    if (this.expiredDate && this.expiredDate < this.startDate) {
+      throw new Error('契約日が契約満了日の前後関係が正しくありません。')
     }
     const id = `${this.employeeId}-${this.startDate}`
     const existingContract = await this.fetchDoc(id)
@@ -70,7 +74,7 @@ export default class EmployeeContract extends FireModel {
    * - `employeeId`、`startDate`が変更されていないかをチェックします。
    * - validatePropertiesを行う為、super.beforeUpdateを呼び出します。
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
-   * @throws {Error} - 従業員、開始日が変更されている場合にエラーをスローします。
+   * @throws {Error} - 従業員、契約日が変更されている場合にエラーをスローします。
    ****************************************************************************/
   async beforeUpdate() {
     const match = this.docId.match(/^(.+)-(\d{4}-\d{2}-\d{2})$/) // YYYY-MM-DD形式の日付部分をキャプチャ
@@ -80,7 +84,7 @@ export default class EmployeeContract extends FireModel {
 
     const [, employeeId, startDate] = match // 分割した結果を格納
     if (employeeId !== this.employeeId || startDate !== this.startDate) {
-      throw new Error('従業員、開始日は変更できません。')
+      throw new Error('従業員、契約日は変更できません。')
     }
     await super.beforeUpdate()
   }
