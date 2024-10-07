@@ -25,6 +25,7 @@ import GAutocomplete from '~/components/atoms/inputs/GAutocomplete.vue'
 import WorkRegulation from '~/models/WorkRegulation'
 import { isValidDateFormat } from '~/utils/utility'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
+import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -40,6 +41,7 @@ export default {
     GDate,
     GAutocomplete,
     GSwitch,
+    GCheckboxDeleteData,
   },
   /***************************************************************************
    * MIXINS
@@ -49,6 +51,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    disableEdit: { type: Boolean, default: false, required: false },
     instance: {
       type: Object,
       required: true,
@@ -94,7 +97,10 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form @submit.prevent>
+    <v-alert v-if="disableEdit" type="info" dense text>
+      新しい雇用契約が登録されているため、編集・削除できません。
+    </v-alert>
+    <v-form :disabled="disableEdit" @submit.prevent>
       <g-autocomplete-employee
         v-if="!hideEmployee"
         v-model="editModel.employeeId"
@@ -185,6 +191,11 @@ export default {
       </v-row>
       <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
+    <g-checkbox-delete-data
+      v-if="editMode !== CREATE"
+      v-model="forceDelete"
+      :disabled="disableEdit"
+    />
   </g-card-input-form>
 </template>
 
