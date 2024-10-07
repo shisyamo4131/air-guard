@@ -15,6 +15,7 @@ import OperationBillingBasis from '~/models/OperationBillingBasis'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GNumericOvertimeHours from '~/components/atoms/inputs/GNumericOvertimeHours.vue'
+import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -24,6 +25,7 @@ export default {
     GCardInputForm,
     GNumeric,
     GNumericOvertimeHours,
+    GSwitch,
   },
   /***************************************************************************
    * MIXINS
@@ -356,6 +358,10 @@ export default {
       <div class="d-flex justify-end pt-4">
         <h3>{{ `税抜売上: ${editModel.sales.total.toLocaleString()}円` }}</h3>
       </div>
+      <g-switch
+        v-model="editModel.isLocked"
+        label="このデータを編集不可にする"
+      />
     </v-form>
   </g-card-input-form>
 </template>

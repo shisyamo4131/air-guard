@@ -356,7 +356,7 @@ export default {
         </v-col>
         <v-col cols="12" sm="9">
           <v-alert v-show="editModel.isLocked" type="info" dense text>
-            請求明細編集が行われているため、更新できません。
+            ロックされているため、更新・削除できません。
           </v-alert>
           <v-input>
             <div class="d-flex flex-column flex-grow-1">
@@ -406,7 +406,11 @@ export default {
         </v-col>
       </v-row>
     </v-form>
-    <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
+    <g-checkbox-delete-data
+      v-if="editMode !== CREATE"
+      v-model="forceDelete"
+      :disabled="editModel.isLocked"
+    />
     <v-snackbar :value="noContract" timeout="-1" tile color="red accent-2"
       >適用可能な取極めが登録されていません。</v-snackbar
     >
