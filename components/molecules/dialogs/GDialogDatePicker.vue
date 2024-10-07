@@ -14,6 +14,7 @@
  * @author shisyamo4131
  * @version 1.0.0
  * @updates
+ * - version 1.1.0 - 2024-10-07 - `allowedDates` プロパティを実装。
  * - version 1.0.0 - 2024-09-07 - 初版作成
  */
 import GBtnCancelIcon from '../../atoms/btns/GBtnCancelIcon.vue'
@@ -30,6 +31,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    allowedDates: { type: Function, default: null, required: false },
     type: {
       type: String,
       default: 'date',
@@ -102,6 +104,7 @@ export default {
     </template>
     <g-date-picker
       v-model="pickerValue"
+      :allowed-dates="allowedDates"
       :picker-date.sync="pickerDate"
       :type="type"
       no-title
