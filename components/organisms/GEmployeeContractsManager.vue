@@ -8,9 +8,11 @@
  * @event contracts - `data.items`が更新されると、`data.items`とともにemitされます。
  *
  * @author shisyamo4131
- * @version 1.0.0
+ * @version 1.1.0
  *
  * @updates
+ * - version 1.1.0 - 2024-10-07 - `computed.hasNewContract` を実装し、GInputEmployeeContract の disable-edit にバインド
+ *                              - `computed.allowedDates` を実装し、GInputEmployeeContract の allowed-dates にバインド
  * - version 1.0.0 - 2024-09-12 - 初版作成
  */
 import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
@@ -67,6 +69,18 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    allowedDates() {
+      if (!this.items.length) {
+        return (v) => v >= this.instance.hireDate // 雇用開始日以上なら許可
+      } else {
+        const recent = this.items.reduce(
+          (last, item) => (item.startDate > last.startDate ? item : last),
+          this.items[0]
+        ) // 初期値を明示的に最初の要素に設定
+
+        return (v) => v > recent.startDate // 最近の開始日より後の日付を許可
+      }
+    },
     hasNewContract() {
       if (!this.editModel.docId) return false
       if (!this.items.length) return false
@@ -175,6 +189,7 @@ export default {
         <template #default="{ attrs, on }">
           <g-input-employee-contract
             v-bind="attrs"
+            :allowed-dates="allowedDates"
             :disable-edit="hasNewContract"
             :edit-mode="editMode"
             hide-employee

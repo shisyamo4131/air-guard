@@ -5,9 +5,11 @@
  * 従業員の雇用契約情報編集用コンポーネントです。
  *
  * @author shisayamo4131
- * @version 1.0.1
+ * @version 1.1.0
  *
  * @updates
+ * ‐ version 1.1.0 - 2024-10-07 - `disableEdit` プロパティを実装。true の場合は編集・削除不可能に。
+ *                              - `GDatePicker` に対する `allowedDates` プロパティを実装。
  * - version 1.0.1 - 2024-07-24 - 追加モード以外では契約日を編集不可に。
  * - version 1.0.0 - 2024-07-18 - 初版作成
  */
@@ -51,6 +53,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    allowedDates: { type: Function, default: null, required: false },
     disableEdit: { type: Boolean, default: false, required: false },
     instance: {
       type: Object,
@@ -110,7 +113,10 @@ export default {
       />
       <v-row dense>
         <v-col cols="12" md="3">
-          <g-dialog-date-picker v-model="editModel.startDate">
+          <g-dialog-date-picker
+            v-model="editModel.startDate"
+            :allowed-dates="allowedDates"
+          >
             <template #activator="{ attrs, on }">
               <g-date
                 class="center-input"
