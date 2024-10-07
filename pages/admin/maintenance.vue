@@ -16,6 +16,22 @@
             >
           </v-list-item-action>
         </v-list-item>
+        <v-list-item>
+          <v-list-item-content>
+            <v-list-item-title> 出勤簿の再作成 </v-list-item-title>
+            <v-list-item-subtitle>
+              全従業員の出勤簿を再作成します。
+            </v-list-item-subtitle>
+          </v-list-item-content>
+          <v-list-item-action>
+            <v-btn
+              :disabled="loading"
+              :loading="loading"
+              @click="refreshAttendanceRecords"
+              >Refresh Attendance Records</v-btn
+            >
+          </v-list-item-action>
+        </v-list-item>
       </v-list>
     </v-card>
   </v-container>
@@ -56,6 +72,26 @@ export default {
         await this.$store.dispatch('customers/subscribe')
         await this.$store.dispatch('sites/subscribe')
         await this.$store.dispatch('employees/subscribe')
+        this.loading = false
+      }
+    },
+    async refreshAttendanceRecords() {
+      this.loading = true
+      try {
+        const firebaseApp = getApp()
+        const functions = getFunctions(firebaseApp, 'asia-northeast1')
+        if (process.env.NODE_ENV === 'local') {
+          connectFunctionsEmulator(functions, 'localhost', 5001)
+        }
+        const func = httpsCallable(
+          functions,
+          'maintenance-refreshAttendanceRecords'
+        )
+        const result = await func({ from: '2024-10-01', to: '2024-10-02' })
+        console.info(result.data.message) // eslint-disable-line no-console
+      } catch (err) {
+        console.error('Error calling function:', err) // eslint-disable-line no-console
+      } finally {
         this.loading = false
       }
     },
