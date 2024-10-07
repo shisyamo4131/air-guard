@@ -75,6 +75,14 @@
       ]
     },
     {
+      "collectionGroup": "Employees",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "hireDate", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "SiteContracts",
       "queryScope": "COLLECTION",
       "fields": [
