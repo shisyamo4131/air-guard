@@ -13,6 +13,7 @@
  * - version 1.0.0 - 初版作成
  */
 import GDialogInput from '../dialogs/GDialogInput.vue'
+import GDataTableOperationResultDetails from '../tables/GDataTableOperationResultDetails.vue'
 import GInputOperationResultWorker from './GInputOperationResultWorker.vue'
 import GInputOperationResultOutsourcer from './GInputOperationResultOutsourcer.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
@@ -28,6 +29,7 @@ export default {
     GInputOperationResultWorker,
     GDialogInput,
     GInputOperationResultOutsourcer,
+    GDataTableOperationResultDetails,
   },
   /***************************************************************************
    * MIXINS
@@ -54,41 +56,7 @@ export default {
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
-  computed: {
-    /**
-     * 稼働実績明細テーブルのカラム定義です。
-     */
-    headers() {
-      switch (this.$vuetify.breakpoint.name) {
-        case 'sm':
-          return [
-            { text: '氏名', value: 'employeeId' },
-            { text: '勤務日', value: 'date', align: 'center' },
-            { text: '開始終了', value: 'startEnd', align: 'center' },
-            { text: '休憩時間', value: 'breakMinutes', align: 'right' },
-          ]
-        case 'md':
-          return [
-            { text: '氏名', value: 'employeeId' },
-            { text: '勤務日', value: 'date', align: 'center' },
-            { text: '開始終了', value: 'startEnd', align: 'center' },
-            { text: '休憩時間', value: 'breakMinutes', align: 'right' },
-            { text: '実働時間', value: 'workMinutes', align: 'right' },
-            { text: '残業時間', value: 'overtimeMinutes', align: 'right' },
-          ]
-        default:
-          return [
-            { text: '氏名', value: 'employeeId' },
-            { text: '勤務日', value: 'date', align: 'center' },
-            { text: '開始終了', value: 'startEnd', align: 'center' },
-            { text: '休憩時間', value: 'breakMinutes', align: 'right' },
-            { text: '実働時間', value: 'workMinutes', align: 'right' },
-            { text: '残業時間', value: 'overtimeMinutes', align: 'right' },
-            { text: '深夜時間', value: 'nighttimeMinutes', align: 'right' },
-          ]
-      }
-    },
-  },
+  computed: {},
   /***************************************************************************
    * WATCH
    ***************************************************************************/
@@ -153,50 +121,12 @@ export default {
       type="table-tbody"
       :types="{ 'table-tbody': `table-row-divider@${value.length || '1'}` }"
     />
-    <g-data-table
-      v-else
-      :headers="headers"
+    <g-data-table-operation-result-details
+      :disable-edit="disableEdit"
       :items="value"
-      item-key="id"
-      :actions="disableEdit ? [] : ['edit', 'delete']"
-      disable-sort
       @click:edit="onClickRow"
       @click:delete="onClickDelete"
-    >
-      <template #[`item.employeeId`]="{ item }">
-        <div v-if="item.employeeId">
-          {{
-            $store.getters[`employees/get`](item.employeeId)?.abbr ||
-            'undefined'
-          }}
-        </div>
-        <div v-else>
-          {{
-            $store.getters[`outsourcers/get`](item.outsourcerId)?.abbr ||
-            'undefined'
-          }}
-        </div>
-      </template>
-      <template #[`item.date`]="{ item }">
-        {{ item.date.slice(5) }}
-      </template>
-      <template #[`item.startEnd`]="{ item }">
-        <div>{{ item.startTime }}</div>
-        <div>{{ item.endTime }}</div>
-      </template>
-      <template #[`item.breakMinutes`]="{ item }">
-        {{ `${item.breakMinutes} 分` }}
-      </template>
-      <template #[`item.workMinutes`]="{ item }">
-        {{ `${item.workMinutes} 分` }}
-      </template>
-      <template #[`item.overtimeMinutes`]="{ item }">
-        {{ `${item.overtimeMinutes} 分` }}
-      </template>
-      <template #[`item.nighttimeMinutes`]="{ item }">
-        {{ `${item.nighttimeMinutes} 分` }}
-      </template>
-    </g-data-table>
+    />
 
     <g-dialog-input v-model="dialog" max-width="480">
       <template #default="{ attrs }">

@@ -206,9 +206,27 @@ export default class OperationResultDetail {
   }
 
   /****************************************************************************
+   * ADDED PROPERTIES
+   ****************************************************************************/
+  get workHours() {
+    return this._workMinutes / 60
+  }
+
+  get breakHours() {
+    return this._breakMinutes / 60
+  }
+
+  get overtimeHours() {
+    return this._overtimeMinutes / 60
+  }
+
+  get nighttimeHours() {
+    return this._nighttimeMinutes / 60
+  }
+
+  /****************************************************************************
    * METHODS
    ****************************************************************************/
-
   /**
    * 実働時間、残業時間、深夜勤務時間を計算します。
    * 内部のプロパティに結果を反映します。

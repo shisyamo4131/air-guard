@@ -316,9 +316,9 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form @submit.prevent>
+    <v-form :disabled="editModel.isLocked" @submit.prevent>
       <v-row>
-        <v-col cols="12" sm="3">
+        <v-col cols="12" sm="4">
           <g-text-field v-model="editModel.code" label="CODE" disabled />
           <g-autocomplete-site
             v-model="editModel.siteId"
@@ -334,19 +334,25 @@ export default {
               <g-date v-bind="attrs" label="日付" required v-on="on" />
             </template>
           </g-dialog-date-picker>
-          <g-select
-            v-model="editModel.dayDiv"
-            label="曜日区分"
-            :items="['weekdays', 'saturday', 'sunday', 'holiday']"
-            required
-          />
-          <g-select
-            v-model="editModel.workShift"
-            label="勤務区分"
-            :items="['day', 'night']"
-            required
-            @change="onWorkShiftChanged"
-          />
+          <v-row dense>
+            <v-col cols="6" sm="12">
+              <g-select
+                v-model="editModel.dayDiv"
+                label="曜日区分"
+                :items="['weekdays', 'saturday', 'sunday', 'holiday']"
+                required
+              />
+            </v-col>
+            <v-col cols="6" sm="12">
+              <g-select
+                v-model="editModel.workShift"
+                label="勤務区分"
+                :items="['day', 'night']"
+                required
+                @change="onWorkShiftChanged"
+              />
+            </v-col>
+          </v-row>
           <g-dialog-date-picker v-model="editModel.closingDate">
             <template #activator="{ attrs, on }">
               <g-date v-bind="attrs" label="締日" required v-on="on" />
@@ -354,7 +360,7 @@ export default {
           </g-dialog-date-picker>
           <g-textarea v-model="editModel.remarks" label="備考" />
         </v-col>
-        <v-col cols="12" sm="9">
+        <v-col cols="12" sm="8">
           <v-alert v-show="editModel.isLocked" type="info" dense text>
             ロックされているため、更新・削除できません。
           </v-alert>
@@ -362,6 +368,7 @@ export default {
             <div class="d-flex flex-column flex-grow-1">
               <v-card outlined>
                 <g-input-operation-result-details
+                  :disable-edit="editModel.isLocked"
                   :value="editModel.workers.concat(editModel.outsourcers)"
                   @changeWorker="changeWorker($event)"
                   @removeWorker="removeWorker($event)"
@@ -377,7 +384,9 @@ export default {
                   <template #activator="{ attrs, on }">
                     <v-btn
                       v-bind="attrs"
-                      :disabled="!isValidDate || noContract"
+                      :disabled="
+                        !isValidDate || noContract || editModel.isLocked
+                      "
                       small
                       color="primary"
                       v-on="on"
@@ -392,7 +401,9 @@ export default {
                   <template #activator="{ attrs, on }">
                     <v-btn
                       v-bind="attrs"
-                      :disabled="!isValidDate || noContract"
+                      :disabled="
+                        !isValidDate || noContract || editModel.isLocked
+                      "
                       small
                       color="secondary"
                       v-on="on"
