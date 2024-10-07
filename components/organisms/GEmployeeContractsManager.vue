@@ -66,7 +66,15 @@ export default {
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
-  computed: {},
+  computed: {
+    hasNewContract() {
+      if (!this.editModel.docId) return false
+      if (!this.items.length) return false
+      return this.items.some(
+        ({ startDate }) => startDate > this.editModel.startDate
+      )
+    },
+  },
   /***************************************************************************
    * WATCH
    ***************************************************************************/
@@ -167,6 +175,7 @@ export default {
         <template #default="{ attrs, on }">
           <g-input-employee-contract
             v-bind="attrs"
+            :disable-edit="hasNewContract"
             :edit-mode="editMode"
             hide-employee
             :instance="editModel"
