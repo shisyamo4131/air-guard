@@ -48,7 +48,6 @@ export default {
       instance: new OperationResult(),
       items: [],
       month: this.$dayjs().format('YYYY-MM'),
-      monthPicker: false,
     }
   },
   /***************************************************************************
