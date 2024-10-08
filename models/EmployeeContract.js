@@ -11,6 +11,7 @@ import WorkRegulation from './WorkRegulation'
  * @version 2.1.0
  * @author shisyamo4131
  * @updates
+ * - version 2.1.1 - 2024-10-08 - `hasPeriod` プロパティが false の場合、`expiredDate` を初期化するように修正。
  * - version 2.1.0 - 2024-10-07 - ドキュメント作成時に契約日と契約満了日の前後関係をチェックするように機能を追加しました。
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
@@ -52,6 +53,7 @@ export default class EmployeeContract extends FireModel {
     if (existingContract) {
       throw new Error('同一契約日の雇用契約が既に登録されています。')
     }
+    if (!this.hasPeriod) this.expiredDate = ''
     try {
       const employee = await new Employee().fetchDoc(this.employeeId)
       if (!employee) {
@@ -86,6 +88,7 @@ export default class EmployeeContract extends FireModel {
     if (employeeId !== this.employeeId || startDate !== this.startDate) {
       throw new Error('従業員、契約日は変更できません。')
     }
+    if (!this.hasPeriod) this.expiredDate = ''
     await super.beforeUpdate()
   }
 
