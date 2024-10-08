@@ -6,6 +6,12 @@
     "lists": []
   },
   {
+    "name": "勤怠実績管理",
+    "icon": "mdi-train-bus",
+    "to": "/attendance-records",
+    "lists": []
+  },
+  {
     "name": "稼働実績管理",
     "icon": "mdi-train-bus",
     "to": "/operation-results",

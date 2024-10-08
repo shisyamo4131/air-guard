@@ -8,9 +8,10 @@
  * @event contracts - `data.items`が更新されると、`data.items`とともにemitされます。
  *
  * @author shisyamo4131
- * @version 1.1.0
+ * @version 1.2.0
  *
  * @updates
+ * - version 1.2.0 - 2024-10-08 - 雇用契約が連続した状態になるように、各種制御を追加
  * - version 1.1.0 - 2024-10-07 - `computed.hasNewContract` を実装し、GInputEmployeeContract の disable-edit にバインド
  *                              - `computed.allowedDates` を実装し、GInputEmployeeContract の allowed-dates にバインド
  * - version 1.0.0 - 2024-09-12 - 初版作成
@@ -69,6 +70,17 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    /**
+     * `editMode` が `CREATE` の際に影響するプロパティです。
+     * 雇用契約の新規作成時に、`startDate` として選択可能な日を制限します。
+     *
+     * 従業員の雇用契約は連続した状態でなければならないため、`startDate` は直近の雇用契約を参照した上で
+     * 初期値が設定されるようになっていますが、直近の雇用契約に契約期間の定めがない場合、初期値が設定されません。
+     * このケースでは、`startDate` に直帰の雇用契約の契約日以前が設定されることを避ける必要があります。
+     * また、直近の雇用契約が存在しない場合は雇い入れ日（Employee.hireDate）以降で制限しています。
+     * -> 雇い入れ日で固定すべきなので、更に、`data.items` 配列が空である場合、GInputEmployeeContract の disable-start-date プロパティが
+     *    true になるようにしています。
+     */
     allowedDates() {
       if (!this.items.length) {
         return (v) => v >= this.instance.hireDate // 雇用開始日以上なら許可
@@ -81,12 +93,59 @@ export default {
         return (v) => v > recent.startDate // 最近の開始日より後の日付を許可
       }
     },
+    /**
+     * `editMode` が `UPDATE` の際に影響するプロパティです。
+     * `editModel` の `startDate` よりも後の雇用契約が存在するかどうかを返します。
+     *
+     * EmployeeContracts ドキュメントの docId が `${employeeId}-${startDate}` で固定されるため、
+     * `editMode` が `UPDATE` のときは `startDate` の編集を不可能にしていますが、契約満了日である `expiredDate` は編集可能です。
+     * より新しい雇用契約が存在する際に、`expiredDate` が更新されてしまうと、従業員の雇用契約が連続した状態にならなくなってしまう可能性があります。
+     *
+     * このプロパティを、GInputEmployeeContract コンポーネントの disabled プロパティとバインドすることにより、
+     * 雇用契約の不整合を回避します。
+     */
     hasNewContract() {
-      if (!this.editModel.docId) return false
-      if (!this.items.length) return false
+      if (!this.editModel.docId || !this.items.length) return false
+
+      // `startDate` が `editModel.startDate` よりも後の契約があるか確認
       return this.items.some(
         ({ startDate }) => startDate > this.editModel.startDate
       )
+    },
+    /**
+     * `editMode` が `CREATE` の際に影響するプロパティです。
+     * `editModel` の `startDate` よりも前に契約された直近の雇用契約に期間の定めがあるかどうか (`hasPeriod` が true か) を返します。
+     *
+     * 期間の定めがある直近の雇用契約が既に登録されている場合、`methods.initializeForRegist` で `editModel.startDate` が
+     * 契約満了日である `expiredDate` の翌日に設定されます。
+     * 従業員の雇用契約は必ず連続した状態でなければならず、新しい雇用契約を作成する際に `editModel.startDate` が
+     * ユーザーにより編集されてしまうことを避けなければなりません。
+     *
+     * 尚、EmployeeContracts ドキュメントの docId は `${employeeId}-${startDate}` で固定されるため、編集時に `startDate` は変更できません。
+     *
+     * - `editModel.startDate` または `items` が存在しない場合は `false` を返します。
+     * - `items` の中から、`editModel.startDate` よりも前に開始された契約を
+     *   `reduce` を使ってループし、最も開始日が近い契約を見つけます。
+     * - 見つかった契約 (`recent`) が存在し、かつ `hasPeriod` が true の場合に `true` を返します。
+     *
+     * @returns {boolean} `editModel.startDate` より前に期間の定めがある契約が存在する場合は `true`、そうでなければ `false`
+     */
+    hasPriorContractWithPeriod() {
+      // editModel の startDate または items がない場合は false を返す
+      if (!this.editModel.startDate || !this.items.length) return false
+
+      // 最も直近の契約を取得 (startDate が editModel.startDate よりも前)
+      const recent = this.items.reduce(
+        (last, item) =>
+          item.startDate < this.editModel.startDate &&
+          (!last || item.startDate > last.startDate)
+            ? item
+            : last,
+        null
+      )
+
+      // recent が存在し、かつ hasPeriod が true の場合に true を返す
+      return recent && recent.hasPeriod
     },
   },
   /***************************************************************************
@@ -191,6 +250,7 @@ export default {
             v-bind="attrs"
             :allowed-dates="allowedDates"
             :disable-edit="hasNewContract"
+            :disable-start-date="hasPriorContractWithPeriod || !items.length"
             :edit-mode="editMode"
             hide-employee
             :instance="editModel"
