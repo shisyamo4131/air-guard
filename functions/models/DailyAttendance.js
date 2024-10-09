@@ -494,9 +494,6 @@ export default class DailyAttendance extends FireModel {
             currentNightEnd,
           ].sort((a, b) => a - b)
 
-          if (this.docId === 'SBXU8bIpMX6shI1yssDU-2017-04-25') {
-            console.log(times)
-          }
           let beforeNightTime = 0
           let currentNightTime = 0
 
