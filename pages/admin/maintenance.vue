@@ -27,8 +27,8 @@
             <v-btn
               :disabled="loading"
               :loading="loading"
-              @click="refreshAttendanceRecords"
-              >Refresh Attendance Records</v-btn
+              @click="refreshDailyAttendances"
+              >Refresh Daily Attendances</v-btn
             >
           </v-list-item-action>
         </v-list-item>
@@ -75,7 +75,7 @@ export default {
         this.loading = false
       }
     },
-    async refreshAttendanceRecords() {
+    async refreshDailyAttendances() {
       this.loading = true
       try {
         const firebaseApp = getApp()
@@ -85,9 +85,9 @@ export default {
         }
         const func = httpsCallable(
           functions,
-          'maintenance-refreshAttendanceRecords'
+          'maintenance-refreshDailyAttendances'
         )
-        const result = await func({ from: '2024-10-01', to: '2024-10-02' })
+        const result = await func({ from: '2024-10-01', to: '2024-10-06' })
         console.info(result.data.message) // eslint-disable-line no-console
       } catch (err) {
         console.error('Error calling function:', err) // eslint-disable-line no-console

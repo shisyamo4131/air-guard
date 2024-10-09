@@ -1,4 +1,4 @@
-import { generateVueProps, generateClassProps } from './propsUtil'
+import { generateVueProps, generateClassProps } from './propsUtil.js'
 
 const propsDefinition = {
   docId: { type: String, default: '', required: false, requiredByClass: false },
@@ -9,15 +9,51 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
-  // 従業員
-  employee: {
-    type: Object,
-    default: null,
+  // 雇用契約（配列）
+  employeeContracts: {
+    type: Array,
+    default: () => [],
     required: false,
-    requiredByClass: true,
+    requiredByClass: false,
+  },
+  // 稼働実績（配列）
+  operationWorkResults: {
+    type: Array,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
   },
   // 日付
   date: { type: String, default: '', required: false, requiredByClass: true },
+  // 日区分
+  dayType: {
+    type: String,
+    default: 'scheduled',
+    validator: (v) =>
+      [
+        'scheduled',
+        'non-statutory-holiday',
+        'legal-holiday',
+        'undefined',
+      ].includes(v),
+    required: false,
+    requiredByClass: false,
+  },
+  // 所定労働時間（分）
+  scheduledWorkMinutes: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 翌日が法定休日かを表すフラグ
+  isNextDayLegalHoliday: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
   // 所定内労働時間（分）
   scheduledWorkingMinutes: {
     type: Number,
@@ -60,46 +96,6 @@ const propsDefinition = {
   },
   // 深夜労働時間（分）
   nighttimeWorkingTime: {
-    type: Number,
-    default: 0,
-    validator: (v) => v >= 0,
-    required: false,
-    requiredByClass: false,
-  },
-  // 所定労働日数
-  scheduledWorkingDays: {
-    type: Number,
-    default: 0,
-    validator: (v) => v >= 0,
-    required: false,
-    requiredByClass: false,
-  },
-  // 所定休日労働日数
-  statutoryWorkingDays: {
-    type: Number,
-    default: 0,
-    validator: (v) => v >= 0,
-    required: false,
-    requiredByClass: false,
-  },
-  // 休日労働日数
-  holidayWorkingDays: {
-    type: Number,
-    default: 0,
-    validator: (v) => v >= 0,
-    required: false,
-    requiredByClass: false,
-  },
-  // 欠勤日数
-  absenceDays: {
-    type: Number,
-    default: 0,
-    validator: (v) => v >= 0,
-    required: false,
-    requiredByClass: false,
-  },
-  // 有給休暇取得日数
-  annualVacationDays: {
     type: Number,
     default: 0,
     validator: (v) => v >= 0,

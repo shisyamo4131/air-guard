@@ -384,42 +384,43 @@ export default class Employee extends FireModel {
   }
 
   /**
-   * Retrieves all active employees from the Firestore 'Employees' collection.
-   * - Optionally filters employees based on a provided hire date.
+   * Firestore の 'Employees' コレクションからすべての在職中の従業員を取得します。
+   * - 任意で、指定された雇用日（hireDate）で従業員をフィルタリングできます。
    *
-   * This function queries the Firestore database to fetch all employees whose
-   * status is marked as 'active'. If a hireDate is provided, the function will
-   * further filter the employees to only include those whose hire date is on or
-   * before the provided date.
+   * この関数は、'status' が 'active' に設定されている従業員を Firestore から取得します。
+   * 任意で、hireDate が指定された場合、指定された日付以前に雇用された従業員に限定して
+   * フィルタリングを行います。
    *
-   * @param {Object} options - An object containing the optional filter criteria.
-   * @param {Date | null} options.hireDate - The hire date filter; only employees hired on or before this date will be retrieved.
-   * @returns {Promise<Array<Object>>} An array of employee instances, each populated with Firestore data.
-   * @throws {Error} If the Firestore query fails, an error will be thrown with details of the failure.
+   * @param {Object} options - オプションのフィルタ条件を含むオブジェクト。
+   * @param {string | null} options.hireDate - 任意の雇用日フィルタ。この日付以前に雇用された従業員のみを取得します。
+   * @param {Object|null} options.transaction - 任意のトランザクションオブジェクト。指定がある場合はトランザクション内でクエリを実行します。
+   * @returns {Promise<Array<Object>>} Firestore のデータを持つ従業員インスタンスの配列を返します。
+   * @throws {Error} Firestore のクエリが失敗した場合、詳細を含むエラーがスローされます。
    */
-  static async getExistingEmployees({ hireDate = null } = {}) {
+  async getExistingEmployees({ hireDate = null, transaction = null } = {}) {
     try {
       // Firestoreの 'Employees' コレクションの参照を取得
       const colRef = firestore.collection('Employees')
 
       // 'status' が 'active' の従業員をフィルタリングするクエリを作成
-      let query = colRef.where('status', '==', 'active')
+      let query = colRef
+        .where('status', '==', 'active')
+        .withConverter(this.converter())
 
       // hireDate が指定されている場合、'hireDate' が指定日付以下の従業員をさらにフィルタリング
-      if (hireDate) {
-        query = query.where('hireDate', '<=', hireDate)
-      }
+      if (hireDate) query = query.where('hireDate', '<=', hireDate)
 
       // Firestoreからクエリ結果を取得
-      const querySnapshot = await query.get()
+      const querySnapshot = transaction
+        ? await transaction.get(query)
+        : await query.get()
 
       // 取得した従業員データをクラスのインスタンスに変換して返す
-      // doc.data() で各ドキュメントのデータを取得し、new this() で新しいインスタンスを生成
-      return querySnapshot.docs.map((doc) => new this(doc.data()))
+      return querySnapshot.docs.map((doc) => doc.data())
     } catch (error) {
       // クエリの実行中にエラーが発生した場合のエラーログ出力
       logger.error('Failed to fetch existing employees:', {
-        errorMessage: error.message, // エラーメッセージを含む
+        errorMessage: error.message,
         hireDate, // クエリ時に使用した hireDate の値も含める
       })
 

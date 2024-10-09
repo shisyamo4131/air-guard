@@ -1,6 +1,9 @@
 import dayjs from 'dayjs'
-import { FireModel } from 'air-firebase'
-import { classProps } from './propsDefinition/WorkRegulation'
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore.js'
+import { logger } from 'firebase-functions/v2'
+import FireModel from './FireModel.js'
+import { classProps } from './propsDefinition/WorkRegulation.js'
+dayjs.extend(isSameOrBefore)
 
 /**
  * WorkRegulationsドキュメントデータモデル【物理削除】
@@ -90,7 +93,7 @@ export default class WorkRegulation extends FireModel {
     // 必須パラメータが指定されているか確認
     if (!docId || !from || !to) {
       const message = `[getDefaultAttendanceInRange] docId, from, and to are required.`
-      console.error(message, { docId, from, to }) // eslint-disable-line no-console
+      logger.error(message, { docId, from, to })
       throw new Error(message)
     }
 
@@ -99,7 +102,7 @@ export default class WorkRegulation extends FireModel {
     const isExist = await instance.fetch(docId)
     if (!isExist) {
       const message = `[getDefaultAttendanceInRange] Document not found for docId: ${docId}`
-      console.error(message, { docId }) // eslint-disable-line no-console
+      logger.error(message, { docId })
       throw new Error(message)
     }
 

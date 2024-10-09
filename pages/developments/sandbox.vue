@@ -1,47 +1,27 @@
 <template>
   <v-container>
-    <g-dialog-employee-selector
-      :items="items"
-      @click:cancel="dialog = false"
-      @click:submit="onClickSubmit"
-    >
-      <template #activator="{ attrs, on }">
-        <v-btn v-bind="attrs" v-on="on">open</v-btn>
-      </template>
-    </g-dialog-employee-selector>
-    <v-btn @click="onClickClear">clear</v-btn>
-    <p>{{ selectedItems }}</p>
+    <v-btn @click="test">aaa</v-btn>
+    {{ value }}
   </v-container>
 </template>
 
 <script>
-import GDialogEmployeeSelector from '~/components/molecules/dialogs/GDialogEmployeeSelector.vue'
-
+import WorkRegulation from '~/models/WorkRegulation'
 export default {
-  components: {
-    GDialogEmployeeSelector,
-  },
   data() {
     return {
-      selectedItems: [],
+      value: null,
     }
   },
-  computed: {
-    items() {
-      return this.$store.getters['employees/items'].filter(({ employeeId }) => {
-        return !this.selectedItems.some(
-          (item) => item.employeeId === employeeId
-        )
-      })
-    },
-  },
   methods: {
-    onClickSubmit(event) {
-      this.selectedItems.push(...event)
-    },
-    onClickClear() {
-      this.selectedItems.splice(0)
+    async test() {
+      this.value = await WorkRegulation.getDefaultAttendanceInRange(
+        'D0SHjxMgEJh14lPl53Jc',
+        { from: '2024-10-01', to: '2024-10-31' }
+      )
     },
   },
 }
 </script>
+
+<style></style>

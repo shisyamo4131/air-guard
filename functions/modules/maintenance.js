@@ -5,7 +5,7 @@ import { https, logger } from 'firebase-functions/v2'
 import EmployeeIndex from '../models/EmployeeIndex.js'
 import SiteIndex from '../models/SiteIndex.js'
 import CustomerIndex from '../models/CustomerIndex.js'
-import AttendanceRecord from '../models/AttendanceRecord.js'
+import DailyAttendance from '../models/DailyAttendance.js'
 
 const database = getDatabase()
 const firestore = getFirestore()
@@ -91,28 +91,25 @@ export const refreshIndex = onCall(async (request) => {
   }
 })
 
-export const refreshAttendanceRecords = onCall(async (request) => {
+export const refreshDailyAttendances = onCall(async (request) => {
   const { from, to } = request.data
-  try {
-    await AttendanceRecord.create({ from, to })
 
-    logger.info(
-      `[refreshAttendanceRecords] AttendanceRecordsの再作成処理が正常に完了しました。`
-    )
+  try {
+    await DailyAttendance.createInRange({ from, to })
 
     // 正常終了時にアプリに結果を返す
     return {
-      message: `AttendanceRecordsの再作成処理が正常に完了しました。`,
+      message: `[refreshDailyAttendances] DailyAttendances ドキュメントの作成が完了しました。`,
     }
   } catch (error) {
     // サーバー側のエラーログ
     logger.error(
-      `[refreshAttendanceRecords] AttendanceRecordsの再作成処理でエラーが発生しました。`,
+      `[refreshDailyAttendances] DailyAttendances ドキュメントの作成処理でエラーが発生しました。`,
       { request }
     )
     throw new https.HttpsError(
       'unknown',
-      'AttendanceRecordsの再作成処理でエラーが発生しました。'
+      'DailyAttendances ドキュメントの作成処理でエラーが発生しました。'
     )
   }
 })
