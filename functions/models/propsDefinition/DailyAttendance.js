@@ -39,6 +39,60 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+  // 始業時刻（Dateオブジェクト）
+  startTime: {
+    type: Object,
+    default: null,
+    required: false,
+    requiredByClass: false,
+  },
+  // 終業時刻（Dateオブジェクト）
+  endTime: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+  // 休憩時間（分）
+  breakMinutes: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 総労働時間（分）
+  totalWorkingMinutes: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 総労働時間のうち、当日分（分）
+  currentDayWorkingMinutes: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 総労働時間のうち、翌日分（分）
+  nextDayWorkingMinutes: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 休日労働時間（分）
+  holidayWorkingMinutes: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
   // 所定労働時間（分）
   scheduledWorkMinutes: {
     type: Number,
@@ -70,7 +124,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
-  // 法定内労働時間（分）
+  // 法定内労働時間（分）-> daily
   statutoryOvertimeMinutes: {
     type: Number,
     default: 0,
@@ -78,7 +132,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
-  // 法定外労働時間（分）
+  // 法定外労働時間（分）-> daily
   nonStatutoryOvertimeMinutes: {
     type: Number,
     default: 0,
@@ -86,16 +140,8 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
-  // 休日労働時間（分）
-  holidayWorkingMinutes: {
-    type: Number,
-    default: 0,
-    validator: (v) => v >= 0,
-    required: false,
-    requiredByClass: false,
-  },
   // 深夜労働時間（分）
-  nighttimeWorkingTime: {
+  nighttimeWorkingMinutes: {
     type: Number,
     default: 0,
     validator: (v) => v >= 0,
