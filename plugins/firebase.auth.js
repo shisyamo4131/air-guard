@@ -10,9 +10,11 @@
  * The actions must return the Promise.
  *
  * @author shisyamo4131
- * @version 2.0.0
+ * @version 2.1.0
  *
  * @updates
+ * - version 2.1.0 - 2024-10-09 - `employee-contracts/subscribe`を削除
+ *                              ‐ `employee-contracts/unsubscribe`を削除
  * - version 2.0.0 - 2024-09-06 - firebase.authを'air-firebase'に切り替え
  *                              - `outsourcers/subscribe`を追加
  *                              - `outsourcers/unsubscribe`を追加
@@ -42,7 +44,6 @@ export default (context) => {
         await context.store.dispatch('customers/subscribe')
         await context.store.dispatch('sites/subscribe')
         await context.store.dispatch('employees/subscribe')
-        await context.store.dispatch('employee-contracts/subscribe')
         await context.store.dispatch('outsourcers/subscribe')
         await context.store.dispatch('equipments/subscribe')
       } else if (!user && DISACTIVATE) {
@@ -51,7 +52,6 @@ export default (context) => {
         await context.store.dispatch('customers/unsubscribe')
         await context.store.dispatch('sites/unsubscribe')
         await context.store.dispatch('employees/unsubscribe')
-        await context.store.dispatch('employee-contracts/unsubscribe')
         await context.store.dispatch('outsourcers/unsubscribe')
         await context.store.dispatch('equipments/unsubscribe')
       }
