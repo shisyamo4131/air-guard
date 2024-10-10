@@ -2,11 +2,13 @@ import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import dayjs from 'dayjs'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore.js'
+import isoWeek from 'dayjs/plugin/isoWeek.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/DailyAttendance.js'
 import Employee from './Employee.js'
 import EmployeeContractForDailyAttendance from './EmployeeContractForDailyAttendance.js'
 dayjs.extend(isSameOrBefore)
+dayjs.extend(isoWeek)
 const firestore = getFirestore()
 const BATCH_LIMIT = 500
 
@@ -390,65 +392,155 @@ export default class DailyAttendance extends FireModel {
         },
         set(v) {},
       },
+      /**
+       * 所定外労働時間
+       * - 総労働時間のうち、所定労働時間を超えた労働時間です。
+       * - dayType によって計算方法が異なります。
+       * - 所定労働日（scheduled）の場合
+       *   総労働時間のうち、所定労働時間を超過した分です。ただし、日をまたがっており、かつ翌日が法定休日である場合は当日労働時間のうち所定労働時間を超過した分となります。
+       * - 法定外休日（non-statutory-holiday）の場合
+       *   総労働時間がそのまま反映されます。ただし、日をまたがっており、かつ翌日が法定休日である場合は当日労働時間が反映されます。
+       * - 法定休日（legal-holiday）の場合
+       *   0分になります。ただし、日をまたがっており、かつ翌日が法定休日でない場合は翌日労働時間が反映されます。
+       * - 未定（undefined）の場合
+       *   0分になります。
+       */
       nonScheduledWorkingMinutes: {
         configurable: true,
         enumerable: true,
         get() {
-          // totalWorkingMinutes と scheduledWorkingMinutes が存在しない場合は 0 を返す
-          const totalWorkingMinutes = this.totalWorkingMinutes || 0
-          const scheduledWorkingMinutes = this.scheduledWorkingMinutes || 0
+          switch (this.dayType) {
+            case 'scheduled':
+              if (
+                this.nextDayWorkingMinutes > 0 &&
+                this.isNextDayLegalHoliday
+              ) {
+                return Math.max(
+                  this.currentDayWorkingMinutes - this.scheduledWorkMinutes,
+                  0
+                )
+              } else {
+                return Math.max(
+                  this.totalWorkingMinutes - this.scheduledWorkMinutes,
+                  0
+                )
+              }
+            case 'non-statutory-holiday':
+              if (
+                this.nextDayWorkingMinutes > 0 &&
+                this.isNextDayLegalHoliday
+              ) {
+                return Math.max(this.currentDayWorkingMinutes, 0)
+              } else {
+                return Math.max(this.totalWorkingMinutes, 0)
+              }
+            case 'legal-holiday':
+              if (
+                this.nextDayWorkingMinutes > 0 &&
+                !this.isNextDayLegalHoliday
+              ) {
+                return Math.max(this.nextDayWorkingMinutes, 0)
+              } else {
+                return 0
+              }
+            default:
+              return 0
+          }
 
-          // 翌日が法定休日かどうか、かつ日をまたいでいるかを確認
-          const isNextDayHoliday = this.isNextDayLegalHoliday
+          // // 総労働時間（totalWorkingMinutes）と所定労働時間（scheduledWorkMinutes）を取得
+          // const totalWorkingMinutes = this.totalWorkingMinutes || 0
+          // const scheduledWorkMinutes = this.scheduledWorkMinutes || 0
 
-          // 日をまたいでいる場合は、当日分の労働時間のみを計算
-          const workingMinutes = isNextDayHoliday
-            ? this.currentDayWorkingMinutes || 0
-            : totalWorkingMinutes
+          // // 翌日が法定休日かどうか、かつ日をまたいでいるかを確認
+          // const isNextDayHoliday = this.isNextDayLegalHoliday
 
-          // 実働時間が所定労働時間を超えた分を計算
-          const nonScheduledMinutes = workingMinutes - scheduledWorkingMinutes
+          // // 日をまたいでいる場合は、当日分の労働時間が基準 -> そうでなければ総労働時間が基準
+          // const workingMinutes = isNextDayHoliday
+          //   ? this.currentDayWorkingMinutes || 0
+          //   : totalWorkingMinutes
 
-          // 結果が負の場合は 0 を返す（所定外労働時間が負になるのを防ぐ）
-          return Math.max(nonScheduledMinutes, 0)
+          // // 基準時間が所定労働時間を超えた分を計算
+          // const nonScheduledMinutes = workingMinutes - scheduledWorkMinutes
+
+          // // 結果が負の場合は 0 を返す（所定外労働時間が負になるのを防ぐ）
+          // return Math.max(nonScheduledMinutes, 0)
         },
         set(v) {},
       },
+      /**
+       * 法定内残業時間
+       * - 所定労働時間（scheduledWorkMinutes）を超過し、法定労働時間上限である8時間以内の労働時間（分）です。
+       * - 所定外労働時間を振り分けますが、dayType によって計算方法が変わります。
+       * - 所定労働日（scheduled）の場合
+       *   所定外労働時間のうち、所定内労働時間と法定労働時間上限の差を最大値として法定内労働時間に振り分けます。
+       * - 法定外休日（non-statutory-holiday）の場合
+       *   法定内残業時間、法定外残業時間への振り分けが週の働き方によって変わります。ここでは無条件で0を返します。
+       * - 法定休日（legal-holiday）の場合
+       *   日をまたがっていない場合、すべて休日労働時間となるため所定外労働時間は0になっているはずです。
+       *   日をまたがっており、翌日が法定休日であった場合も所定外労働時間は0になっているはずです。
+       *   日をまたがっており、翌日が法定休日でなかった場合にのみ所定外労働時間が計上されています。
+       *   週の働き方によって振り分けが変わるため、ここでは無条件で0を返します。
+       * - 未定（undefined）の場合
+       *   無条件で0を返します。
+       */
       statutoryOvertimeMinutes: {
         configurable: true,
         enumerable: true,
         get() {
-          // 日をまたぎ、かつ翌日が法定休日である場合は当日労働時間を取得
-          const workingMinutes = this.isNextDayLegalHoliday
-            ? this.currentDayWorkingMinutes || 0
-            : this.totalWorkingMinutes || 0
-
-          // 所定労働時間が定義されていない場合は 0 を返す
-          const scheduledMinutes = this.scheduledWorkingMinutes || 0
-
-          // 所定労働時間を超えた分で、480分以内の残業時間を計算
-          const overtimeMinutes = Math.min(
-            Math.max(workingMinutes - scheduledMinutes, 0),
-            480 - scheduledMinutes
-          )
-
-          return overtimeMinutes
+          switch (this.dayType) {
+            case 'scheduled':
+              return Math.min(
+                480 - this.scheduledWorkingMinutes,
+                this.nonScheduledWorkingMinutes
+              )
+            case 'non-statutory-holiday':
+              return 0
+            case 'legal-holiday':
+              return 0
+            default:
+              return 0
+          }
         },
         set(v) {},
       },
+      /**
+       * 法定外残業時間
+       * - 法定労働時間の上限である8時間を超えた労働時間（分）です。
+       * - 労働基準法上、割増賃金の支払いが義務付けられています。
+       * - dayType によって計算方法が変わります。
+       * - 所定労働日（scheduled）の場合
+       *   総労働時間のうち、8時間を超過した時間を返します。ただし、日をまたがっており、翌日が法定休日である場合は当日労働時間のうち8時間を超えた分を返します。
+       * - 法定外休日（non-statutory-holiday）の場合
+       *   法定内残業時間、法定外残業時間への振り分けが週の働き方によって変わります。ここでは無条件で0を返します。
+       * - 法定休日（legal-holiday）の場合
+       *   日をまたがっていない場合、すべて休日労働時間となるため所定外労働時間は0になっているはずです。
+       *   日をまたがっており、翌日が法定休日であった場合も所定外労働時間は0になっているはずです。
+       *   日をまたがっており、翌日が法定休日でなかった場合にのみ所定外労働時間が計上されています。
+       *   週の働き方によって振り分けが変わるため、ここでは無条件で0を返します。
+       * - 未定（undefined）の場合
+       *   無条件で0を返します。
+       */
       nonStatutoryOvertimeMinutes: {
         configurable: true,
         enumerable: true,
         get() {
-          // 日をまたぎ、かつ翌日が法定休日である場合は当日労働時間を取得
-          const workingMinutes = this.isNextDayLegalHoliday
-            ? this.currentDayWorkingMinutes || 0
-            : this.totalWorkingMinutes || 0
-
-          // 480分（8時間）を超えた分を計算
-          const nonStatutoryMinutes = Math.max(workingMinutes - 480, 0)
-
-          return nonStatutoryMinutes
+          switch (this.dayType) {
+            case 'scheduled':
+              if (
+                this.nextDayWorkingMinutes > 0 &&
+                this.isNextDayLegalHoliday
+              ) {
+                return Math.max(this.currentDayWorkingMinutes - 480, 0)
+              } else {
+                return Math.max(this.totalWorkingMinutes - 480, 0)
+              }
+            case 'non-statutory-holiday':
+              return 0
+            case 'legal-holiday':
+              return 0
+            default:
+              return 0
+          }
         },
         set(v) {},
       },
@@ -516,9 +608,10 @@ export default class DailyAttendance extends FireModel {
   }
 
   /****************************************************************************
-   * 指定された勤務規則と日付範囲に基づいて、従業員の出勤記録を作成します。
-   * 出勤データは指定された勤務規則のデフォルト出勤情報を使用して生成され、
-   * Firestore のトランザクション内に保存されます。
+   * 指定された日付範囲に基づいて、期間中に在職している全従業員の出勤記録をトランザクションで作成します。
+   * - DailyAttendance クラスは雇用契約（EmployeeContract）、稼働実績（OperationWorkResult）をプロパティで受け取ることが可能で、
+   *   これらを参照して労働日区分や各種労働時間、残業時間などを自動で計算してプロパティで提供します。
+   * - 但し、週残（週の労働時間が40時間を超えた分）は単一ドキュメントでは計算できません。
    *
    * @param {Object} params - 入力パラメータ。
    * @param {string} params.from - 出勤記録の開始日（YYYY-MM-DD）。
@@ -644,5 +737,193 @@ export default class DailyAttendance extends FireModel {
       logger.error(message, { from, to, err })
       throw new Error(message)
     }
+  }
+
+  /**
+   * 指定された期間の週残を計算するためのメソッドです。
+   * - createInRange で日単位の出勤簿ドキュメントが作成されますが、週残が反映されません。
+   * - 指定された期間から週単位の出勤簿ドキュメントを読み込み、週残を計算して反映させます。
+   * - 週の起算日は月曜日に固定されます。（ここは柔軟に対応できるように将来改修したい）
+   * - 処理としては、一週間分の出勤簿ドキュメントを読み込み、dayType が scheduled であるドキュメントの
+   *   所定内労働時間、法定内残業時間の合計（以下、週労働時間という）を取得します。
+   *   週労働時間の上限である40時間（2400分）から週労働時間を差し引きます。（以下、法定内余剰時間という）
+   *   法定外休日であるドキュメントの所定外労働時間を、法定内余剰時間を最大として法定内残業時間に振り分けます。
+   *   法定内余剰時間を超過する分は法定外残業時間に振り分けます。
+   *   法定休日であるドキュメントの所定外労働時間を、法定内余剰時間を最大として法定内残業時間に振り分けます。
+   *   法定内余剰時間を超過する分は法定外残業時間に振り分けます。
+   * @param {Object} params - 入力パラメータ。
+   * @param {string} params.from - 出勤記録の開始日（YYYY-MM-DD）。
+   * @param {string} params.to - 出勤記録の終了日（YYYY-MM-DD）。
+   * @throws {Error} トランザクションが失敗した場合、または必須パラメータが不足している場合はエラーが発生します。
+   */
+  static async updateWeeklyAttendance({ from, to }) {
+    try {
+      // 一週間の単位を取得
+      const weeklyRanges = this.#getWeeklyRanges({ from, to })
+
+      // 更新対象範囲を取得
+      const minDate = weeklyRanges[0].from
+      const maxDate = weeklyRanges[weeklyRanges.length - 1].to
+
+      await firestore.runTransaction(async (transaction) => {
+        // 更新対象の出勤簿ドキュメントをすべて取得
+        const docsRef = firestore
+          .collection('DailyAttendances')
+          .where('date', '>=', minDate)
+          .where('date', '<=', maxDate)
+        const docsSnapshot = await transaction.get(docsRef)
+        const docs = docsSnapshot.docs.map((doc) => {
+          return { docRef: doc.ref, ...doc.data() }
+        })
+
+        // 従業員IDのリストを取得（重複無し）
+        const employeeIds = [
+          ...new Set(docs.map(({ employeeId }) => employeeId)),
+        ]
+
+        // 従業員ごとに処理
+        for (const employeeId of employeeIds) {
+          // 週ごとに処理
+          for (const week of weeklyRanges) {
+            // 期間内出勤簿を抽出
+            const attendances = docs.filter(
+              (doc) =>
+                doc.employeeId === employeeId &&
+                doc.date >= week.from &&
+                doc.date <= week.to
+            )
+
+            // 所定労働日の出勤簿を取得
+            const scheduledAttendances = attendances.filter(
+              (doc) => doc.dayType === 'scheduled'
+            )
+
+            // 所定労働日の週労働時間を計算
+            const weeklyWorkingMinutes = scheduledAttendances.reduce(
+              (sum, i) => {
+                return (
+                  sum + i.scheduledWorkingMinutes + i.statutoryOvertimeMinutes
+                )
+              },
+              0
+            )
+
+            // 法定内余剰時間を取得
+            let excess = Math.max(2400 - weeklyWorkingMinutes, 0)
+
+            // 法定外休日の出勤簿を取得
+            const nonStatutoryAttendances = attendances.filter(
+              (doc) => doc.dayType === 'non-statutory-holiday'
+            )
+
+            // 法定外休日の出勤簿について所定外労働時間を法定内・法定外残業時間に振り分ける
+            for (const nonStatutoryAttendance of nonStatutoryAttendances) {
+              // 法定内残業時間（所定外労働時間と法定内余剰時間のうち小さい方を採用）
+              const statutoryOvertimeMinutes = Math.min(
+                nonStatutoryAttendance.nonScheduledWorkingMinutes,
+                excess
+              )
+
+              // 法定外残業時間（所定外残業時間から法定内残業時間を差し引く：最小0）
+              const nonStatutoryOvertimeMinutes = Math.max(
+                nonStatutoryAttendance.nonScheduledWorkingMinutes -
+                  statutoryOvertimeMinutes,
+                0
+              )
+
+              // 法定内残業時間と法定外残業時間を更新
+              transaction.update(nonStatutoryAttendance.docRef, {
+                statutoryOvertimeMinutes,
+                nonStatutoryOvertimeMinutes,
+              })
+
+              // 法定内余剰時間を更新
+              excess = Math.max(excess - statutoryOvertimeMinutes, 0)
+            }
+
+            // 法定休日の出勤簿を取得
+            const legalHolidayAttendances = attendances.filter(
+              (doc) => doc.dayType === 'legal-holiday'
+            )
+
+            // 法定休日の出勤簿について所定外労働時間を法定内・法定外残業時間に振り分ける
+            for (const legalHolidayAttendance of legalHolidayAttendances) {
+              // 法定内残業時間（所定外労働時間と法定内余剰時間のうち小さい方を採用）
+              const statutoryOvertimeMinutes = Math.min(
+                legalHolidayAttendance.nonScheduledWorkingMinutes,
+                excess
+              )
+
+              // 法定外残業時間（所定外残業時間から法定内残業時間を差し引く：最小0）
+              const nonStatutoryOvertimeMinutes = Math.max(
+                legalHolidayAttendance.nonScheduledWorkingMinutes -
+                  statutoryOvertimeMinutes,
+                0
+              )
+
+              // 法定内残業時間と法定外残業時間を更新
+              transaction.update(legalHolidayAttendance.docRef, {
+                statutoryOvertimeMinutes,
+                nonStatutoryOvertimeMinutes,
+              })
+
+              // 法定内余剰時間を更新
+              excess = Math.max(excess - statutoryOvertimeMinutes, 0)
+            }
+          }
+        }
+      })
+    } catch (error) {
+      const message = `[updateWeeklyAttendance] 週残の更新処理でエラーが発生しました。`
+      logger.error(message, { from, to, error }) // eslint-disable-line no-console
+      throw new Error(message)
+    }
+  }
+
+  /**
+   * from と to から一週間単位の範囲を作成する関数
+   * - 週の開始は月曜日とし、from が月曜日でない場合はさかのぼって月曜日に調整します。
+   * - 各一週間の終了は必ず日曜日になります。
+   * - 一週間は7日単位で作成され、複数の週の範囲が生成されます。
+   *
+   * @param {Object} param0 - from と to を含むオブジェクト
+   * @param {string} param0.from - 処理開始の日付（YYYY-MM-DD 形式）
+   * @param {string} param0.to - 処理終了の日付（YYYY-MM-DD 形式）
+   * @returns {Array<Object>} 各一週間の範囲を含むオブジェクトの配列
+   *  - 例: [{ from: '2024-09-02', to: '2024-09-08' }, { from: '2024-09-09', to: '2024-09-15' }]
+   */
+  static #getWeeklyRanges({ from, to }) {
+    // from、to を dayjs に変換し、UTC+9（日本時間）で扱う
+    const startDate = dayjs(from).utcOffset(9)
+    const endDate = dayjs(to).utcOffset(9)
+
+    // 週の開始日が月曜日でない場合、前の月曜日にさかのぼる
+    const adjustedFrom =
+      startDate.isoWeekday() === 1
+        ? startDate
+        : startDate.subtract(startDate.isoWeekday() - 1, 'day')
+
+    const weeklyRanges = []
+    let currentFrom = adjustedFrom
+
+    // 一週間ごとの範囲を作成
+    while (
+      currentFrom.isBefore(endDate) ||
+      currentFrom.isSame(endDate, 'day')
+    ) {
+      // 一週間後の日曜日を計算
+      const currentTo = currentFrom.add(6, 'day')
+
+      // 範囲を配列に追加
+      weeklyRanges.push({
+        from: currentFrom.format('YYYY-MM-DD'), // 月曜日
+        to: currentTo.format('YYYY-MM-DD'), // 必ず日曜日
+      })
+
+      // 次の週に移動
+      currentFrom = currentFrom.add(7, 'day')
+    }
+
+    return weeklyRanges
   }
 }

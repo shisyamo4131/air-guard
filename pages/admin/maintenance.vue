@@ -87,7 +87,7 @@ export default {
           functions,
           'maintenance-refreshDailyAttendances'
         )
-        const result = await func({ from: '2017-04-24', to: '2017-04-30' })
+        const result = await func({ from: '2017-04-23', to: '2017-04-29' })
         console.info(result.data.message) // eslint-disable-line no-console
       } catch (err) {
         console.error('Error calling function:', err) // eslint-disable-line no-console

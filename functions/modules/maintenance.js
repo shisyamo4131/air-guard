@@ -6,6 +6,7 @@ import EmployeeIndex from '../models/EmployeeIndex.js'
 import SiteIndex from '../models/SiteIndex.js'
 import CustomerIndex from '../models/CustomerIndex.js'
 import DailyAttendance from '../models/DailyAttendance.js'
+import MonthlyAttendance from '../models/MonthlyAttendance.js'
 
 const database = getDatabase()
 const firestore = getFirestore()
@@ -96,7 +97,8 @@ export const refreshDailyAttendances = onCall(async (request) => {
 
   try {
     await DailyAttendance.createInRange({ from, to })
-
+    await DailyAttendance.updateWeeklyAttendance({ from, to })
+    await MonthlyAttendance.createInRange({ month: '2017-04' })
     // 正常終了時にアプリに結果を返す
     return {
       message: `[refreshDailyAttendances] DailyAttendances ドキュメントの作成が完了しました。`,
