@@ -618,25 +618,40 @@ export default class DailyAttendance extends FireModel {
    * @param {Object} params - 入力パラメータ。
    * @param {string} params.from - 出勤記録の開始日（YYYY-MM-DD）。
    * @param {string} params.to - 出勤記録の終了日（YYYY-MM-DD）。
+   * @param {string} [param0.employeeId] - フィルタリング対象の従業員ID（オプション）。
    * @throws {Error} トランザクションが失敗した場合、または必須パラメータが不足している場合はエラーが発生します。
    ****************************************************************************/
-  static async createInRange({ from, to }) {
+  static async createInRange({
+    from = null,
+    to = null,
+    employeeId = null,
+  } = {}) {
+    // 引数のチェック
+    if (!from || !to) {
+      const message = `[createInRange] 必要な引数が指定されていません。`
+      logger.error(message, { from, to })
+      throw new Error(`${message}`)
+    }
+
     try {
       /**
        * 期間内の DailyAttendance ドキュメントをすべて削除
        * - 一度作成された後に退職手続きがされるなど、不要な DailyAttendance ドキュメントが残ることを回避します。
        */
-      await this.#deleteInRange({ from, to })
+      await this.#deleteInRange({ from, to, employeeId })
 
-      // 期間内に在職している従業員データを取得
-      const paramsA = { from, to }
-      const employeeInstance = new Employee()
-      const employees = await employeeInstance.getExistingEmployees(paramsA)
+      let employeeIds = []
+      if (employeeId) {
+        employeeIds.push(employeeId)
+      } else {
+        // 期間内に在職している従業員データを取得
+        const paramsA = { from, to }
+        const employees = await Employee.getExistingEmployees(paramsA)
+        employeeIds = employees.map(({ docId }) => docId)
+      }
 
       // すべての従業員をループ処理
-      for (const employee of employees) {
-        const employeeId = employee.docId
-
+      for (const employeeId of employeeIds) {
         // トランザクション
         await firestore.runTransaction(async (transaction) => {
           // 従業員の雇用契約を取得
@@ -676,6 +691,12 @@ export default class DailyAttendance extends FireModel {
           }
         })
       }
+
+      // 処理完了ログを出力
+      logger.info(
+        `[createInRange] DailyAttendance ドキュメントの作成処理が完了しました。`,
+        { from, to }
+      )
     } catch (error) {
       logger.error('Transaction failed: ', error) // eslint-disable-line no-console
       throw new Error('Failed to create attendance records: ' + error.message)
@@ -902,6 +923,12 @@ export default class DailyAttendance extends FireModel {
           }
         }
       }
+
+      // 処理完了ログを出力
+      logger.info(
+        `[updateWeeklyAttendance] DailyAttendance の週残更新処理が完了しました。`,
+        { from, to, employeeId }
+      )
     } catch (error) {
       const message = `[updateWeeklyAttendance] 週残の更新処理でエラーが発生しました。従業員ID: ${employeeId}, 期間: ${minDate} から ${maxDate} まで。`
       logger.error(message, { from, to, employeeId, error }) // eslint-disable-line no-console

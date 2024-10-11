@@ -6,7 +6,7 @@ import EmployeeIndex from '../models/EmployeeIndex.js'
 import SiteIndex from '../models/SiteIndex.js'
 import CustomerIndex from '../models/CustomerIndex.js'
 import DailyAttendance from '../models/DailyAttendance.js'
-// import MonthlyAttendance from '../models/MonthlyAttendance.js'
+import MonthlyAttendance from '../models/MonthlyAttendance.js'
 
 const database = getDatabase()
 const firestore = getFirestore()
@@ -92,26 +92,22 @@ export const refreshIndex = onCall(async (request) => {
   }
 })
 
-export const refreshDailyAttendances = onCall(async (request) => {
+export const refreshAttendances = onCall(async (request) => {
   const { from, to } = request.data
 
   try {
     await DailyAttendance.createInRange({ from, to })
     await DailyAttendance.updateWeeklyAttendance({ from, to })
-    // await MonthlyAttendance.createInRange({ month: '2017-04' })
+    await MonthlyAttendance.createInRange({ month: '2017-04' })
+
     // 正常終了時にアプリに結果を返す
     return {
-      message: `[refreshDailyAttendances] DailyAttendances ドキュメントの作成が完了しました。`,
+      message: `[refreshAttendances] 出勤簿の更新処理が正常に完了しました。期間: ${from} - ${to}`,
     }
   } catch (error) {
     // サーバー側のエラーログ
-    logger.error(
-      `[refreshDailyAttendances] DailyAttendances ドキュメントの作成処理でエラーが発生しました。`,
-      { request }
-    )
-    throw new https.HttpsError(
-      'unknown',
-      'DailyAttendances ドキュメントの作成処理でエラーが発生しました。'
-    )
+    const message = `[refreshAttendances] 出勤簿の更新処理でエラーが発生しました。`
+    logger.error(message, { request })
+    throw new https.HttpsError('unknown', message)
   }
 })

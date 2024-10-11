@@ -5,6 +5,7 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore.js'
 import isoWeek from 'dayjs/plugin/isoWeek.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/MonthlyAttendance.js'
+import Employee from './Employee.js'
 dayjs.extend(isSameOrBefore)
 dayjs.extend(isoWeek)
 const firestore = getFirestore()
@@ -44,9 +45,10 @@ export default class MonthlyAttendance extends FireModel {
    *
    * @param {Object} param0 - パラメータオブジェクト。
    * @param {string} param0.month - 集計対象の年月（YYYY-MM 形式）。
+   * @param {string} [param0.employeeId] - フィルタリング対象の従業員ID（オプション）。
    * @throws {Error} - 引数の形式が正しくない場合や、トランザクション処理でエラーが発生した場合。
    ****************************************************************************/
-  static async createInRange({ month }) {
+  static async createInRange({ month = null, employeeId = null } = {}) {
     // 引数のチェック
     if (!month) {
       const message = `[createInRange] month の指定（YYYY-MM形式）が必要です。`
@@ -68,34 +70,15 @@ export default class MonthlyAttendance extends FireModel {
       const startDate = dayjs(`${month}-01`).format('YYYY-MM-DD')
       const endDate = dayjs(`${month}-01`).endOf('month').format('YYYY-MM-DD')
 
-      /**
-       * 期間中に在籍していた従業員の docId のリストを取得
-       * - 条件1) 処理時点で status が active であり、かつ hireDate が endDate 以前 -> 現在在職中で、期間終了日以前に雇い入れられた従業員
-       * - 条件2) 処理時点で status が active ではないが、leaveDate が startDate 以降 -> 現在退職済みだが、退職日が期間開始日以降
-       * 上記それぞれの条件で取得した docId を結合すると期間中に在籍していた従業員の docId のリストになる。
-       */
-      // 条件1)
-      const activeEmployeesQueryRef = firestore
-        .collection('Employees')
-        .where('status', '==', 'active')
-        .where('hireDate', '<=', endDate)
-      const activeEmployeesQuerySnapshot = await activeEmployeesQueryRef.get()
-      const activeEmployeesDocIds = activeEmployeesQuerySnapshot.docs.map(
-        (doc) => doc.data().docId
-      )
-
-      // 条件2)
-      const leaveEmployeesQueryRef = firestore
-        .collection('Employees')
-        .where('status', '!=', 'active')
-        .where('leaveDate', '>=', startDate)
-      const leaveEmployeesQuerySnapshot = await leaveEmployeesQueryRef.get()
-      const leaveEmployeesDocIds = leaveEmployeesQuerySnapshot.docs.map(
-        (doc) => doc.data().docId
-      )
-
-      // それぞれの docIds を結合
-      const employeeIds = activeEmployeesDocIds.concat(leaveEmployeesDocIds)
+      let employeeIds = []
+      if (employeeId) {
+        employeeIds.push(employeeId)
+      } else {
+        // 期間内に在職している従業員データから
+        const paramsA = { from: startDate, to: endDate }
+        const employees = await Employee.getExistingEmployees(paramsA)
+        employeeIds = employees.map(({ docId }) => docId)
+      }
 
       // 処理対象の従業員が存在しなければログを出力して終了
       if (!employeeIds.length) {
@@ -135,6 +118,12 @@ export default class MonthlyAttendance extends FireModel {
           instance.create({ docId, transaction })
         })
       }
+
+      // 処理完了ログを出力
+      logger.info(
+        `[createInRange] MonthlyAttendance ドキュメントの作成処理が完了しました。`,
+        { month, employeeId }
+      )
     } catch (error) {
       const message =
         '[createInRange] MonthlyAttendance ドキュメントの作成処理でエラーが発生しました。'
@@ -151,7 +140,7 @@ export default class MonthlyAttendance extends FireModel {
    * @param {string} param0.month - 'YYYY-MM' 形式の年月。
    * @throws {Error} 引数の形式が正しくない場合、または削除処理でエラーが発生した場合はエラーをスローします。
    ****************************************************************************/
-  static async #deleteInRange({ month }) {
+  static async #deleteInRange({ month = null, employeeId = null } = {}) {
     // 引数のチェック
     const regex = /^\d{4}-(0[1-9]|1[0-2])$/ // 正しい月の形式に修正
     if (!month || typeof month !== 'string' || !regex.test(month)) {
@@ -161,8 +150,18 @@ export default class MonthlyAttendance extends FireModel {
     }
     try {
       const colRef = firestore.collection('MonthlyAttendances')
-      const queryRef = colRef.where('month', '==', month)
+      let queryRef = colRef.where('month', '==', month)
+      if (employeeId) queryRef = queryRef.where('employeeId', '==', employeeId)
       const querySnapshot = await queryRef.get()
+
+      // ドキュメントが存在しない場合は処理を終了
+      if (querySnapshot.empty) {
+        logger.info(
+          `[deleteInRange] 削除対象の MonthlyAttendances ドキュメントが見つかりませんでした。`,
+          { month, employeeId }
+        )
+        return
+      }
 
       // バッチ処理の準備
       const batchArray = []

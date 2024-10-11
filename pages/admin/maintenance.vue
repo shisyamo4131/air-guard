@@ -27,7 +27,7 @@
             <v-btn
               :disabled="loading"
               :loading="loading"
-              @click="refreshDailyAttendances"
+              @click="refreshAttendances"
               >Refresh Daily Attendances</v-btn
             >
           </v-list-item-action>
@@ -75,7 +75,7 @@ export default {
         this.loading = false
       }
     },
-    async refreshDailyAttendances() {
+    async refreshAttendances() {
       this.loading = true
       try {
         const firebaseApp = getApp()
@@ -83,10 +83,7 @@ export default {
         if (process.env.NODE_ENV === 'local') {
           connectFunctionsEmulator(functions, 'localhost', 5001)
         }
-        const func = httpsCallable(
-          functions,
-          'maintenance-refreshDailyAttendances'
-        )
+        const func = httpsCallable(functions, 'maintenance-refreshAttendances')
         const result = await func({ from: '2017-04-23', to: '2017-04-29' })
         console.info(result.data.message) // eslint-disable-line no-console
       } catch (err) {

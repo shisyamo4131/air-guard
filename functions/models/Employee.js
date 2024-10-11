@@ -393,13 +393,15 @@ export default class Employee extends FireModel {
    * @returns {Promise<Array<Object>>} Firestore のデータを持つ従業員インスタンスの配列を返します。
    * @throws {Error} Firestore のクエリが失敗した場合、詳細を含むエラーがスローされます。
    */
-  async getExistingEmployees({ from, to, transaction = null } = {}) {
+  static async getExistingEmployees({ from, to, transaction = null } = {}) {
     // 引数のチェック
     if (!from || !to) {
       const message = `[getExistingEmployees] 必要な引数が指定されていません。`
       logger.error(message, { from, to })
       throw new Error(`${message}`)
     }
+
+    const instance = new this()
 
     try {
       // Firestoreの 'Employees' コレクションの参照を取得
@@ -415,7 +417,7 @@ export default class Employee extends FireModel {
       const activeEmployeesQueryRef = colRef
         .where('hireDate', '<=', to)
         .where('leaveDate', '==', '')
-        .withConverter(this.converter())
+        .withConverter(instance.converter())
       const activeEmployeesQuerySnapshot = transaction
         ? await transaction.get(activeEmployeesQueryRef)
         : await activeEmployeesQueryRef.get()
@@ -427,7 +429,7 @@ export default class Employee extends FireModel {
       const leaveEmployeesQueryRef = colRef
         .where('hireDate', '<=', to)
         .where('leaveDate', '>=', from)
-        .withConverter(this.converter())
+        .withConverter(instance.converter())
       const leaveEmployeesQuerySnapshot = transaction
         ? await transaction.get(leaveEmployeesQueryRef)
         : await leaveEmployeesQueryRef.get()
