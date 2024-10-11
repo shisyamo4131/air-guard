@@ -775,127 +775,136 @@ export default class DailyAttendance extends FireModel {
       logger.error(message, { from, to })
       throw new Error(message)
     }
+
+    let minDate = ''
+    let maxDate = ''
+
     try {
       // 一週間の単位を取得
       const weeklyRanges = this.#getWeeklyRanges({ from, to })
 
-      // 更新対象範囲を取得
-      const minDate = weeklyRanges[0].from
-      const maxDate = weeklyRanges[weeklyRanges.length - 1].to
+      // 週単位で処理
+      for (const weeklyRange of weeklyRanges) {
+        ;[minDate, maxDate] = [weeklyRange.from, weeklyRange.to]
 
-      await firestore.runTransaction(async (transaction) => {
-        // 更新対象の出勤簿ドキュメントをすべて取得
-        let queryRef = firestore
-          .collection('DailyAttendances')
+        // 一旦、DailyAttendance ドキュメントを取得
+        const colRef = firestore.collection('DailyAttendances')
+        let queryRef = colRef
           .where('date', '>=', minDate)
           .where('date', '<=', maxDate)
         if (employeeId)
           queryRef = queryRef.where('employeeId', '==', employeeId)
-        const querySnapshot = await transaction.get(queryRef)
-        const docs = querySnapshot.docs.map((doc) => {
-          return { docRef: doc.ref, ...doc.data() }
-        })
+        const querySnapshot = await queryRef.get()
 
-        // 従業員IDのリストを取得（重複無し）
-        const employeeIds = [
-          ...new Set(docs.map(({ employeeId }) => employeeId)),
-        ]
+        // 対象の DailyAttendance ドキュメントが存在する場合にのみ処理
+        if (!querySnapshot.empty) {
+          // 取得した DailyAttendance ドキュメントから employeeId を重複なしで取得
+          const employeeIds = [
+            ...new Set(querySnapshot.docs.map((doc) => doc.data().employeeId)),
+          ]
 
-        // 従業員ごとに処理
-        for (const employeeId of employeeIds) {
-          // 週ごとに処理
-          for (const week of weeklyRanges) {
-            // 期間内出勤簿を抽出
-            const attendances = docs.filter(
-              (doc) =>
-                doc.employeeId === employeeId &&
-                doc.date >= week.from &&
-                doc.date <= week.to
-            )
+          // 従業員ごとにトランザクション処理
+          for (const employeeId of employeeIds) {
+            await firestore.runTransaction(async (transaction) => {
+              // トランザクション内で更新対象の DailyAttendance ドキュメントを取得
+              const dailyAttendancesRef = firestore
+                .collection('DailyAttendances')
+                .where('date', '>=', minDate)
+                .where('date', '<=', maxDate)
+                .where('employeeId', '==', employeeId)
+              const dailyAttendanceSnapshot = await transaction.get(
+                dailyAttendancesRef
+              )
+              const dailyAttendances = dailyAttendanceSnapshot.docs.map(
+                (doc) => {
+                  return { docRef: doc.ref, ...doc.data() } // 後でドキュメントを更新するため doc.ref を追加しておく
+                }
+              )
 
-            // 所定労働日の出勤簿を取得
-            const scheduledAttendances = attendances.filter(
-              (doc) => doc.dayType === 'scheduled'
-            )
+              // 所定労働日の出勤簿を取得
+              const scheduledAttendances = dailyAttendances.filter(
+                (doc) => doc.dayType === 'scheduled'
+              )
 
-            // 所定労働日の週労働時間を計算
-            const weeklyWorkingMinutes = scheduledAttendances.reduce(
-              (sum, i) => {
-                return (
-                  sum + i.scheduledWorkingMinutes + i.statutoryOvertimeMinutes
+              // 所定労働日の週労働時間を計算
+              const weeklyWorkingMinutes = scheduledAttendances.reduce(
+                (sum, i) => {
+                  return (
+                    sum + i.scheduledWorkingMinutes + i.statutoryOvertimeMinutes
+                  )
+                },
+                0
+              )
+
+              // 法定内余剰時間を取得
+              let excess = Math.max(2400 - weeklyWorkingMinutes, 0)
+
+              // 法定外休日の出勤簿を取得
+              const nonStatutoryAttendances = dailyAttendances.filter(
+                (doc) => doc.dayType === 'non-statutory-holiday'
+              )
+
+              // 法定外休日の出勤簿について所定外労働時間を法定内・法定外残業時間に振り分ける
+              for (const nonStatutoryAttendance of nonStatutoryAttendances) {
+                // 法定内残業時間（所定外労働時間と法定内余剰時間のうち小さい方を採用）
+                const statutoryOvertimeMinutes = Math.min(
+                  nonStatutoryAttendance.nonScheduledWorkingMinutes,
+                  excess
                 )
-              },
-              0
-            )
 
-            // 法定内余剰時間を取得
-            let excess = Math.max(2400 - weeklyWorkingMinutes, 0)
+                // 法定外残業時間（所定外残業時間から法定内残業時間を差し引く：最小0）
+                const nonStatutoryOvertimeMinutes = Math.max(
+                  nonStatutoryAttendance.nonScheduledWorkingMinutes -
+                    statutoryOvertimeMinutes,
+                  0
+                )
 
-            // 法定外休日の出勤簿を取得
-            const nonStatutoryAttendances = attendances.filter(
-              (doc) => doc.dayType === 'non-statutory-holiday'
-            )
-
-            // 法定外休日の出勤簿について所定外労働時間を法定内・法定外残業時間に振り分ける
-            for (const nonStatutoryAttendance of nonStatutoryAttendances) {
-              // 法定内残業時間（所定外労働時間と法定内余剰時間のうち小さい方を採用）
-              const statutoryOvertimeMinutes = Math.min(
-                nonStatutoryAttendance.nonScheduledWorkingMinutes,
-                excess
-              )
-
-              // 法定外残業時間（所定外残業時間から法定内残業時間を差し引く：最小0）
-              const nonStatutoryOvertimeMinutes = Math.max(
-                nonStatutoryAttendance.nonScheduledWorkingMinutes -
+                // 法定内残業時間と法定外残業時間を更新
+                transaction.update(nonStatutoryAttendance.docRef, {
                   statutoryOvertimeMinutes,
-                0
+                  nonStatutoryOvertimeMinutes,
+                })
+
+                // 法定内余剰時間を更新
+                excess = Math.max(excess - statutoryOvertimeMinutes, 0)
+              }
+
+              // 法定休日の出勤簿を取得
+              const legalHolidayAttendances = dailyAttendances.filter(
+                (doc) => doc.dayType === 'legal-holiday'
               )
 
-              // 法定内残業時間と法定外残業時間を更新
-              transaction.update(nonStatutoryAttendance.docRef, {
-                statutoryOvertimeMinutes,
-                nonStatutoryOvertimeMinutes,
-              })
+              // 法定休日の出勤簿について所定外労働時間を法定内・法定外残業時間に振り分ける
+              for (const legalHolidayAttendance of legalHolidayAttendances) {
+                // 法定内残業時間（所定外労働時間と法定内余剰時間のうち小さい方を採用）
+                const statutoryOvertimeMinutes = Math.min(
+                  legalHolidayAttendance.nonScheduledWorkingMinutes,
+                  excess
+                )
 
-              // 法定内余剰時間を更新
-              excess = Math.max(excess - statutoryOvertimeMinutes, 0)
-            }
+                // 法定外残業時間（所定外残業時間から法定内残業時間を差し引く：最小0）
+                const nonStatutoryOvertimeMinutes = Math.max(
+                  legalHolidayAttendance.nonScheduledWorkingMinutes -
+                    statutoryOvertimeMinutes,
+                  0
+                )
 
-            // 法定休日の出勤簿を取得
-            const legalHolidayAttendances = attendances.filter(
-              (doc) => doc.dayType === 'legal-holiday'
-            )
-
-            // 法定休日の出勤簿について所定外労働時間を法定内・法定外残業時間に振り分ける
-            for (const legalHolidayAttendance of legalHolidayAttendances) {
-              // 法定内残業時間（所定外労働時間と法定内余剰時間のうち小さい方を採用）
-              const statutoryOvertimeMinutes = Math.min(
-                legalHolidayAttendance.nonScheduledWorkingMinutes,
-                excess
-              )
-
-              // 法定外残業時間（所定外残業時間から法定内残業時間を差し引く：最小0）
-              const nonStatutoryOvertimeMinutes = Math.max(
-                legalHolidayAttendance.nonScheduledWorkingMinutes -
+                // 法定内残業時間と法定外残業時間を更新
+                transaction.update(legalHolidayAttendance.docRef, {
                   statutoryOvertimeMinutes,
-                0
-              )
+                  nonStatutoryOvertimeMinutes,
+                })
 
-              // 法定内残業時間と法定外残業時間を更新
-              transaction.update(legalHolidayAttendance.docRef, {
-                statutoryOvertimeMinutes,
-                nonStatutoryOvertimeMinutes,
-              })
-
-              // 法定内余剰時間を更新
-              excess = Math.max(excess - statutoryOvertimeMinutes, 0)
-            }
+                // 法定内余剰時間を更新
+                excess = Math.max(excess - statutoryOvertimeMinutes, 0)
+              }
+            })
           }
         }
-      })
+      }
     } catch (error) {
-      const message = `[updateWeeklyAttendance] 週残の更新処理でエラーが発生しました。`
-      logger.error(message, { from, to, error }) // eslint-disable-line no-console
+      const message = `[updateWeeklyAttendance] 週残の更新処理でエラーが発生しました。従業員ID: ${employeeId}, 期間: ${minDate} から ${maxDate} まで。`
+      logger.error(message, { from, to, employeeId, error }) // eslint-disable-line no-console
       throw new Error(message)
     }
   }
