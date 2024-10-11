@@ -7,6 +7,7 @@ import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/DailyAttendance.js'
 import Employee from './Employee.js'
 import EmployeeContractForDailyAttendance from './EmployeeContractForDailyAttendance.js'
+import OperationWorkResultForDailyAttendance from './OperationWorkResultForDailyAttendance.js'
 dayjs.extend(isSameOrBefore)
 dayjs.extend(isoWeek)
 const firestore = getFirestore()
@@ -34,6 +35,7 @@ export default class DailyAttendance extends FireModel {
    ****************************************************************************/
   static customClassMap = {
     employeeContracts: EmployeeContractForDailyAttendance,
+    operationWorkResults: OperationWorkResultForDailyAttendance,
   }
 
   /****************************************************************************
@@ -626,40 +628,32 @@ export default class DailyAttendance extends FireModel {
        */
       await this.#deleteInRange({ from, to })
 
-      await firestore.runTransaction(async (transaction) => {
-        // 期間内に在職している従業員データを取得
-        const paramsA = { hireDate: from, transaction }
-        const employeeInstance = new Employee()
-        const employees = await employeeInstance.getExistingEmployees(paramsA)
+      // 期間内に在職している従業員データを取得
+      const paramsA = { from, to }
+      const employeeInstance = new Employee()
+      const employees = await employeeInstance.getExistingEmployees(paramsA)
 
-        // すべての従業員の雇用契約データを並行して取得し、フラット化
-        const employeeContractInstance =
-          new EmployeeContractForDailyAttendance()
-        const employeeContracts = (
-          await Promise.all(
-            employees.map((employee) => {
-              const employeeId = employee.docId
-              const params = { employeeId, from, to, transaction }
-              return employeeContractInstance.getEmployeeContracts(params)
-            })
-          )
-        ).flat() // 2次元配列をフラット化
+      // すべての従業員をループ処理
+      for (const employee of employees) {
+        const employeeId = employee.docId
 
-        // OperationWorkResult ドキュメントを取得
-        const getOperationWorkResults = async ({ from, to }) => {
-          const colRef = firestore.collection('OperationWorkResults')
-          const queryRef = colRef
-            .where('date', '>=', from)
-            .where('date', '<=', to)
-          const querySnapshot = await queryRef.get()
-          return querySnapshot.docs.map((doc) => doc.data())
-        }
-        const operationWorkResults = await getOperationWorkResults({ from, to })
+        // トランザクション
+        await firestore.runTransaction(async (transaction) => {
+          // 従業員の雇用契約を取得
+          const params = { employeeId, from, to, transaction }
+          const employeeContracts =
+            await EmployeeContractForDailyAttendance.getEmployeeContracts(
+              params
+            )
 
-        for (const employee of employees) {
-          const employeeId = employee.docId
-          const fromDayjs = dayjs(from)
-          const toDayjs = dayjs(to)
+          // 稼働勤務実績を取得
+          const operationWorkResults =
+            await OperationWorkResultForDailyAttendance.getOperationWorkResults(
+              params
+            )
+
+          // 期間中の日付ごとに処理
+          const [fromDayjs, toDayjs] = [dayjs(from), dayjs(to)]
           for (
             let currentDate = fromDayjs;
             currentDate.isSameOrBefore(toDayjs);
@@ -670,9 +664,7 @@ export default class DailyAttendance extends FireModel {
             const instance = new this({
               date,
               employeeId,
-              employeeContracts: employeeContracts.filter(
-                (contract) => contract.employeeId === employeeId
-              ),
+              employeeContracts,
               operationWorkResults: operationWorkResults.filter(
                 (result) =>
                   result.employeeId === employeeId && result.date === date
@@ -682,15 +674,15 @@ export default class DailyAttendance extends FireModel {
             // ドキュメントを作成
             instance.create({ docId, transaction })
           }
-        }
-      })
+        })
+      }
     } catch (error) {
       logger.error('Transaction failed: ', error) // eslint-disable-line no-console
       throw new Error('Failed to create attendance records: ' + error.message)
     }
   }
 
-  /**
+  /****************************************************************************
    * 指定された期間内の DailyAttendance ドキュメントを削除します。
    *
    * このメソッドは、指定された `from` から `to` の日付範囲に基づいて、
@@ -700,9 +692,14 @@ export default class DailyAttendance extends FireModel {
    * @param {Object} param0 - 入力パラメータ。
    * @param {string} param0.from - 削除する範囲の開始日（YYYY-MM-DD）。
    * @param {string} param0.to - 削除する範囲の終了日（YYYY-MM-DD）。
+   * @param {string} [param0.employeeId] - フィルタリング対象の従業員ID（オプション）。
    * @throws {Error} from および to のパラメータが不足している場合、またはバッチ削除が失敗した場合にエラーがスローされます。
-   */
-  static async #deleteInRange({ from = null, to = null } = {}) {
+   ****************************************************************************/
+  static async #deleteInRange({
+    from = null,
+    to = null,
+    employeeId = null,
+  } = {}) {
     // from と to が指定されていない場合、エラーをスロー
     if (!from || !to) {
       const message = `[deleteInRange] from と to が指定されていません。`
@@ -713,8 +710,18 @@ export default class DailyAttendance extends FireModel {
     try {
       // クエリを作成
       const colRef = firestore.collection('DailyAttendances')
-      const queryRef = colRef.where('date', '>=', from).where('date', '<=', to)
+      let queryRef = colRef.where('date', '>=', from).where('date', '<=', to)
+      if (employeeId) queryRef = queryRef.where('employeeId', '==', employeeId)
       const querySnapshot = await queryRef.get()
+
+      if (querySnapshot.empty) {
+        // ドキュメントが存在しない場合、処理を終了
+        logger.info(
+          `[deleteInRange] 削除対象のドキュメントが見つかりませんでした。`,
+          { from, to }
+        )
+        return
+      }
 
       // バッチ削除処理
       const batchArray = []
@@ -729,17 +736,17 @@ export default class DailyAttendance extends FireModel {
       // 削除成功のログを出力
       logger.info(
         `[deleteInRange] DailyAttendance ドキュメントの削除処理が正常に完了しました。`,
-        { from, to }
+        { from, to, employeeId }
       )
-    } catch (err) {
+    } catch (error) {
       // エラーハンドリング
       const message = `[deleteInRange] DailyAttendance ドキュメントの削除中にエラーが発生しました。`
-      logger.error(message, { from, to, err })
-      throw new Error(message)
+      logger.error(message, { from, to, employeeId, error })
+      throw error
     }
   }
 
-  /**
+  /****************************************************************************
    * 指定された期間の週残を計算するためのメソッドです。
    * - createInRange で日単位の出勤簿ドキュメントが作成されますが、週残が反映されません。
    * - 指定された期間から週単位の出勤簿ドキュメントを読み込み、週残を計算して反映させます。
@@ -754,9 +761,20 @@ export default class DailyAttendance extends FireModel {
    * @param {Object} params - 入力パラメータ。
    * @param {string} params.from - 出勤記録の開始日（YYYY-MM-DD）。
    * @param {string} params.to - 出勤記録の終了日（YYYY-MM-DD）。
-   * @throws {Error} トランザクションが失敗した場合、または必須パラメータが不足している場合はエラーが発生します。
-   */
-  static async updateWeeklyAttendance({ from, to }) {
+   * @param {string} [params.employeeId] - 処理対象の従業員ID（オプション）。
+   * @throws {Error} トランザクションが失敗した場合、または必須パラメータが不足している場合にエラーが発生します。
+   ****************************************************************************/
+  static async updateWeeklyAttendance({
+    from = null,
+    to = null,
+    employeeId = null,
+  }) {
+    // from と to が指定されていない場合、エラーをスロー
+    if (!from || !to) {
+      const message = `[updateWeeklyAttendance] from と to が指定されていません。`
+      logger.error(message, { from, to })
+      throw new Error(message)
+    }
     try {
       // 一週間の単位を取得
       const weeklyRanges = this.#getWeeklyRanges({ from, to })
@@ -767,12 +785,14 @@ export default class DailyAttendance extends FireModel {
 
       await firestore.runTransaction(async (transaction) => {
         // 更新対象の出勤簿ドキュメントをすべて取得
-        const docsRef = firestore
+        let queryRef = firestore
           .collection('DailyAttendances')
           .where('date', '>=', minDate)
           .where('date', '<=', maxDate)
-        const docsSnapshot = await transaction.get(docsRef)
-        const docs = docsSnapshot.docs.map((doc) => {
+        if (employeeId)
+          queryRef = queryRef.where('employeeId', '==', employeeId)
+        const querySnapshot = await transaction.get(queryRef)
+        const docs = querySnapshot.docs.map((doc) => {
           return { docRef: doc.ref, ...doc.data() }
         })
 
@@ -880,7 +900,7 @@ export default class DailyAttendance extends FireModel {
     }
   }
 
-  /**
+  /****************************************************************************
    * from と to から一週間単位の範囲を作成する関数
    * - 週の開始は月曜日とし、from が月曜日でない場合はさかのぼって月曜日に調整します。
    * - 各一週間の終了は必ず日曜日になります。
@@ -891,7 +911,7 @@ export default class DailyAttendance extends FireModel {
    * @param {string} param0.to - 処理終了の日付（YYYY-MM-DD 形式）
    * @returns {Array<Object>} 各一週間の範囲を含むオブジェクトの配列
    *  - 例: [{ from: '2024-09-02', to: '2024-09-08' }, { from: '2024-09-09', to: '2024-09-15' }]
-   */
+   ****************************************************************************/
   static #getWeeklyRanges({ from, to }) {
     // from、to を dayjs に変換し、UTC+9（日本時間）で扱う
     const startDate = dayjs(from).utcOffset(9)

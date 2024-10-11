@@ -61,37 +61,63 @@ export default class MonthlyAttendance extends FireModel {
     }
 
     try {
-      // // 既存ドキュメントの削除
-      // await this.#deleteInRange({ month })
+      // 既存の MonthlyAttendance ドキュメントを削除
+      await this.#deleteInRange({ month })
 
       // 期間開始日と終了日を取得
       const startDate = dayjs(`${month}-01`).format('YYYY-MM-DD')
       const endDate = dayjs(`${month}-01`).endOf('month').format('YYYY-MM-DD')
 
-      // トランザクション処理
-      await firestore.runTransaction(async (transaction) => {
-        // 期間内の MonthlyAttendance ドキュメントを削除
-        const monthlyRef = firestore
-          .collection('MonthlyAttendances')
-          .where('month', '==', month)
-        const monthlySnapshot = await transaction.get(monthlyRef)
-        monthlySnapshot.docs.forEach((doc) => transaction.delete(doc.ref))
+      /**
+       * 期間中に在籍していた従業員の docId のリストを取得
+       * - 条件1) 処理時点で status が active であり、かつ hireDate が endDate 以前 -> 現在在職中で、期間終了日以前に雇い入れられた従業員
+       * - 条件2) 処理時点で status が active ではないが、leaveDate が startDate 以降 -> 現在退職済みだが、退職日が期間開始日以降
+       * 上記それぞれの条件で取得した docId を結合すると期間中に在籍していた従業員の docId のリストになる。
+       */
+      // 条件1)
+      const activeEmployeesQueryRef = firestore
+        .collection('Employees')
+        .where('status', '==', 'active')
+        .where('hireDate', '<=', endDate)
+      const activeEmployeesQuerySnapshot = await activeEmployeesQueryRef.get()
+      const activeEmployeesDocIds = activeEmployeesQuerySnapshot.docs.map(
+        (doc) => doc.data().docId
+      )
 
-        // 期間内の DailyAttendance ドキュメントを取得
-        const dailyRef = firestore
-          .collection('DailyAttendances')
-          .where('date', '>=', startDate)
-          .where('date', '<=', endDate)
-        const dailySnapshot = await transaction.get(dailyRef)
-        const dailyDocs = dailySnapshot.docs.map((doc) => doc.data())
+      // 条件2)
+      const leaveEmployeesQueryRef = firestore
+        .collection('Employees')
+        .where('status', '!=', 'active')
+        .where('leaveDate', '>=', startDate)
+      const leaveEmployeesQuerySnapshot = await leaveEmployeesQueryRef.get()
+      const leaveEmployeesDocIds = leaveEmployeesQuerySnapshot.docs.map(
+        (doc) => doc.data().docId
+      )
 
-        // 作成対象の employeeId を重複無しですべて取得
-        const employeeIds = [
-          ...new Set(dailyDocs.map(({ employeeId }) => employeeId)),
-        ]
+      // それぞれの docIds を結合
+      const employeeIds = activeEmployeesDocIds.concat(leaveEmployeesDocIds)
 
-        // employeeId 毎に処理
-        for (const employeeId of employeeIds) {
+      // 処理対象の従業員が存在しなければログを出力して終了
+      if (!employeeIds.length) {
+        logger.info(
+          `[createInRange] MonthlyAttendance 作成対象の従業員が存在しませんでした。`,
+          { month }
+        )
+        return
+      }
+
+      // 従業員ごとにトランザクションで MonthlyAttendance ドキュメントを作成
+      for (const employeeId of employeeIds) {
+        await firestore.runTransaction(async (transaction) => {
+          // 期間内の DailyAttendance ドキュメントを取得
+          const dailyRef = firestore
+            .collection('DailyAttendances')
+            .where('employeeId', '==', employeeId)
+            .where('date', '>=', startDate)
+            .where('date', '<=', endDate)
+          const dailySnapshot = await transaction.get(dailyRef)
+          const dailyDocs = dailySnapshot.docs.map((doc) => doc.data())
+
           // docId を固定
           const docId = `${employeeId}-${month}`
 
@@ -102,12 +128,13 @@ export default class MonthlyAttendance extends FireModel {
             month,
             startDate,
             endDate,
+            dailyDocs,
           })
 
           // ドキュメントを作成
           instance.create({ docId, transaction })
-        }
-      })
+        })
+      }
     } catch (error) {
       const message =
         '[createInRange] MonthlyAttendance ドキュメントの作成処理でエラーが発生しました。'

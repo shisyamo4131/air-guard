@@ -44,16 +44,19 @@ export default class EmployeeContract extends FireModel {
    *
    * この関数は、指定された従業員IDに基づいて、`from` より前に開始された最新の雇用契約と、
    * `from` から `to` の期間内に開始されたすべての雇用契約を取得します。
-   * トランザクションが提供されている場合、その中でクエリが実行されます。
+   * - `from` より前の雇用契約は、最新の1件のみ取得されます。
+   * - `from` 以降、`to` 以前の雇用契約は、すべて取得されます。
+   * - Firestoreのトランザクションが提供されている場合、その中でクエリが実行されます。
    *
    * @param {Object} options - クエリオプションを含むオブジェクト。
    * @param {Object} options.transaction - Firestoreのトランザクションオブジェクト。
    * @param {string} options.employeeId - 対象従業員のID。
-   * @param {string} options.from - 取得する期間の開始日。
-   * @param {string} options.to - 取得する期間の終了日。
-   * @returns {Array} 雇用契約データの配列を返します。
+   * @param {string} options.from - 取得する期間の開始日（YYYY-MM-DD形式）。
+   * @param {string} options.to - 取得する期間の終了日（YYYY-MM-DD形式）。
+   * @returns {Promise<Array<Object>>} - 雇用契約データの配列を返します。
+   * @throws {Error} - 必須パラメータが不足しているか、Firestoreクエリの実行中にエラーが発生した場合にスローされます。
    ****************************************************************************/
-  async getEmployeeContracts({
+  static async getEmployeeContracts({
     employeeId = null,
     from = null,
     to = null,
@@ -63,12 +66,13 @@ export default class EmployeeContract extends FireModel {
     if (!employeeId || !from || !to) {
       const message = `[getEmployeeContracts] 従業員IDと取得する期間の指定が必要です。`
       logger.error(message, { employeeId, from, to })
-      throw new Error(
-        `Error: Missing required parameters (employeeId, from, to)`
-      )
+      throw new Error(message)
     }
 
     try {
+      // converter を使用するため、インスタンスを用意
+      const instance = new this()
+
       const baseRef = firestore
         .collection('EmployeeContracts')
         .where('employeeId', '==', employeeId)
@@ -78,7 +82,7 @@ export default class EmployeeContract extends FireModel {
         .where('startDate', '<', from)
         .orderBy('startDate', 'desc')
         .limit(1)
-        .withConverter(this.converter())
+        .withConverter(instance.converter())
       const beforeQuerySnapshot = transaction
         ? await transaction.get(beforeQuery)
         : await beforeQuery.get()
@@ -87,7 +91,7 @@ export default class EmployeeContract extends FireModel {
       const afterQuery = baseRef
         .where('startDate', '>=', from)
         .where('startDate', '<=', to)
-        .withConverter(this.converter())
+        .withConverter(instance.converter())
       const afterQuerySnapshot = transaction
         ? await transaction.get(afterQuery)
         : await afterQuery.get()
@@ -96,12 +100,10 @@ export default class EmployeeContract extends FireModel {
       const after = afterQuerySnapshot.docs.map((doc) => doc.data())
 
       return before.concat(after) // 前後の契約データを結合して返す
-    } catch (err) {
-      logger.error(
-        `[getEmployeeContracts] 従業員の雇用契約情報の取得時にエラーが発生しました。`,
-        { employeeId, from, to, err }
-      )
-      throw new Error(`Error retrieving employee contracts: ${err.message}`)
+    } catch (error) {
+      const message = `[getEmployeeContracts] 従業員の雇用契約情報の取得時にエラーが発生しました。`
+      logger.error(message, { employeeId, from, to, error })
+      throw error
     }
   }
 }
