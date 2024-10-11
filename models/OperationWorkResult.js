@@ -1,5 +1,6 @@
 import { FireModel } from 'air-firebase'
 import { classProps } from './propsDefinition/OperationResultWorker'
+import { classProps as addProps } from './propsDefinition/OperationWorkResult'
 /**
  * ## OperationWorkResults ドキュメントデータモデル【物理削除】
  *
@@ -9,9 +10,10 @@ import { classProps } from './propsDefinition/OperationResultWorker'
  * - 交通費申請に関わるデータの更新処理を行う為、独自のメソッドの中でsuper.update()をコールしています。
  * - 保有するプロパティはOperationResultWorkerを継承しつつ、交通費申請に必要なプロパティが追加されています。
  *
- * @version 2.0.0
+ * @version 2.1.0
  * @author shisyamo4131
  * @updates
+ * - version 2.1.0 - 2024-10-11 - 追加プロパティを別ファイルで定義
  * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class OperationWorkResult extends FireModel {
@@ -19,31 +21,7 @@ export default class OperationWorkResult extends FireModel {
    * STATIC
    ****************************************************************************/
   static collectionPath = 'OperationWorkResults'
-  static classProps = classProps
-
-  /****************************************************************************
-   * initializeをオーバーライドします。
-   * - `OperationResultWorker`データモデルで定義されたプロパティ以外に、
-   *   `operationResultId`を保有するようにします。
-   * - `operationResultId`は、同期元となる`OperationResults`ドキュメントのIDです。
-   ****************************************************************************/
-  initialize(item = {}) {
-    this.operationResultId = item?.operationResultId || ''
-    this.transportationCost = item?.transportationCost || {
-      type: 'on-cash',
-      amount: 0,
-      status: '0:creating',
-      createAt: null,
-      draftAt: null,
-      pendingAt: null,
-      approvedAt: null,
-      settledAt: null,
-      rejectedAt: null,
-      rejectReason: '',
-      updateAt: null,
-    }
-    super.initialize(item)
-  }
+  static classProps = { ...classProps, ...addProps }
 
   /****************************************************************************
    * FireModelのcreateメソッドをオーバーライドします。
