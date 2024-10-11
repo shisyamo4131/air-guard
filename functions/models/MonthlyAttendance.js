@@ -6,6 +6,7 @@ import isoWeek from 'dayjs/plugin/isoWeek.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/MonthlyAttendance.js'
 import Employee from './Employee.js'
+import DailyAttendanceForMonthlyAttendance from './DailyAttendanceForMonthlyAttendance.js'
 dayjs.extend(isSameOrBefore)
 dayjs.extend(isoWeek)
 const firestore = getFirestore()
@@ -29,11 +30,117 @@ export default class MonthlyAttendance extends FireModel {
   static classProps = classProps
 
   /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    dailyAttendances: DailyAttendanceForMonthlyAttendance,
+  }
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
     super(item)
     delete this.tokenMap
+    Object.defineProperties(this, {
+      totalWorkingDays: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.dailyAttendances.filter(
+            ({ totalWorkingMinutes }) => totalWorkingMinutes > 0
+          ).length
+        },
+        set(v) {},
+      },
+      totalWorkingMinutes: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.dailyAttendances.reduce(
+            (sum, i) => sum + i.totalWorkingMinutes,
+            0
+          )
+        },
+        set(v) {},
+      },
+      totalScheduledWorkDays: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.dailyAttendances.filter(
+            ({ dayType }) => dayType === 'scheduled'
+          ).length
+        },
+        set(v) {},
+      },
+      totalScheduledWorkingDays: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.dailyAttendances.filter(
+            ({ dayType, totalWorkingMinutes }) =>
+              dayType === 'scheduled' && totalWorkingMinutes > 0
+          ).length
+        },
+        set(v) {},
+      },
+      totalNonScheduledWorkingDays: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.dailyAttendances.filter(
+            ({ dayType, totalWorkingMinutes }) =>
+              dayType !== 'scheduled' && totalWorkingMinutes > 0
+          ).length
+        },
+        set(v) {},
+      },
+      holidayWorkingMinutes: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.dailyAttendances.reduce(
+            (sum, i) => sum + i.holidayWorkingMinutes,
+            0
+          )
+        },
+        set(v) {},
+      },
+      statutoryOvertimeMinutes: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.dailyAttendances.reduce(
+            (sum, i) => sum + i.statutoryOvertimeMinutes,
+            0
+          )
+        },
+        set(v) {},
+      },
+      nonStatutoryOvertimeMinutes: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.dailyAttendances.reduce(
+            (sum, i) => sum + i.nonStatutoryOvertimeMinutes,
+            0
+          )
+        },
+        set(v) {},
+      },
+      nighttimeWorkingMinutes: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.dailyAttendances.reduce(
+            (sum, i) => sum + i.nonStatutoryOvertimeMinutes,
+            0
+          )
+        },
+        set(v) {},
+      },
+    })
   }
 
   /****************************************************************************
@@ -99,7 +206,7 @@ export default class MonthlyAttendance extends FireModel {
             .where('date', '>=', startDate)
             .where('date', '<=', endDate)
           const dailySnapshot = await transaction.get(dailyRef)
-          const dailyDocs = dailySnapshot.docs.map((doc) => doc.data())
+          const dailyAttendances = dailySnapshot.docs.map((doc) => doc.data())
 
           // docId を固定
           const docId = `${employeeId}-${month}`
@@ -111,7 +218,7 @@ export default class MonthlyAttendance extends FireModel {
             month,
             startDate,
             endDate,
-            dailyDocs,
+            dailyAttendances,
           })
 
           // ドキュメントを作成

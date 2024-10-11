@@ -30,8 +30,40 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+  // 総勤務日数
+  totalWorkingDays: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
   // 総労働時間（分）
   totalWorkingMinutes: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 所定労働日数
+  totalScheduledWorkDays: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 所定内労働日数
+  totalScheduledWorkingDays: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 所定外労働日数
+  totalNonScheduledWorkingDays: {
     type: Number,
     default: 0,
     validator: (v) => v >= 0,
@@ -75,6 +107,12 @@ const propsDefinition = {
     type: Number,
     default: 0,
     validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  dailyAttendances: {
+    type: Object,
+    default: () => [],
     required: false,
     requiredByClass: false,
   },

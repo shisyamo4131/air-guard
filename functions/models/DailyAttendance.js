@@ -14,9 +14,12 @@ const firestore = getFirestore()
 const BATCH_LIMIT = 500
 
 /**
- * DailyAttendancesドキュメントデータモデル【物理削除】
+ * ## DailyAttendance
  *
  * - 従業員の日ごと出勤簿に該当するドキュメントのデータモデルです。
+ * - propsDefinition.DailyAttendance でのプロパティ定義を Object.defineProperty で上書きし、
+ *   employeeContracts プロパティや operationWorkResults プロパティで受け取った値で勤務時間などの
+ *   計算結果を返すようにしています。
  *
  * @version 1.0.0
  * @author shisyamo4131
