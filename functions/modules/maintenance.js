@@ -2,6 +2,7 @@ import { getDatabase } from 'firebase-admin/database'
 import { getFirestore } from 'firebase-admin/firestore'
 import { onCall } from 'firebase-functions/v2/https'
 import { https, logger } from 'firebase-functions/v2'
+import dayjs from 'dayjs'
 import EmployeeIndex from '../models/EmployeeIndex.js'
 import SiteIndex from '../models/SiteIndex.js'
 import CustomerIndex from '../models/CustomerIndex.js'
@@ -92,13 +93,15 @@ export const refreshIndex = onCall(async (request) => {
   }
 })
 
-export const refreshAttendances = onCall(async (request) => {
-  const { from, to } = request.data
+export const refreshMonthlyAttendances = onCall(async (request) => {
+  const { month } = request.data
 
+  const from = dayjs(`${month}-01`).format('YYYY-MM-DD')
+  const to = dayjs(`${month}-01`).endOf('month').format('YYYY-MM-DD')
   try {
     await DailyAttendance.createInRange({ from, to })
     await DailyAttendance.updateWeeklyAttendance({ from, to })
-    await MonthlyAttendance.createInRange({ month: '2017-04' })
+    await MonthlyAttendance.createInRange({ month })
 
     // 正常終了時にアプリに結果を返す
     return {
