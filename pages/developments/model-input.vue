@@ -82,12 +82,6 @@ export default {
       items: [],
       models: [
         {
-          text: 'AttendanceRecord',
-          model: 'AttendanceRecord',
-          input: 'GInputAttendanceRecord',
-          table: 'GDataTableAttendanceRecords',
-        },
-        {
           text: 'Autonumber',
           model: 'Autonumber',
           input: 'GInputAutonumber',

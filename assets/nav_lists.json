@@ -8,7 +8,7 @@
   {
     "name": "勤怠実績管理",
     "icon": "mdi-train-bus",
-    "to": "/attendance-records",
+    "to": "/monthly-attendances",
     "lists": []
   },
   {

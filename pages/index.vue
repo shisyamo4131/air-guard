@@ -37,9 +37,6 @@
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col cols="12" lg="8" xl="5">
-        <g-launcher-attendance-records flat outlined />
-      </v-col>
       <!-- <v-col cols="12">
         <v-card>
           <v-card-title> 売上推移 </v-card-title>
@@ -73,7 +70,6 @@
 
 <script>
 import GDataTableSites from '~/components/molecules/tables/GDataTableSites.vue'
-import GLauncherAttendanceRecords from '~/components/organisms/GLauncherAttendanceRecords.vue'
 import Site from '~/models/Site'
 // import BChartSales from '~/components/molecules/charts/BChartSales.vue'
 
@@ -81,7 +77,6 @@ export default {
   name: 'IndexPage',
   components: {
     // BChartSales,
-    GLauncherAttendanceRecords,
     GDataTableSites,
   },
   data() {
