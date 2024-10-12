@@ -1,5 +1,4 @@
-import { FireModel, firestore } from 'air-firebase'
-import { collection, getDocs, query, where } from 'firebase/firestore'
+import { FireModel } from 'air-firebase'
 import { classProps } from './propsDefinition/Employee'
 import EmployeeContract from './EmployeeContract'
 
@@ -248,51 +247,6 @@ export default class Employee extends FireModel {
       console.warn(
         `[${this.constructor.name} - unsubscribeContracts]: No active listener found.`
       )
-    }
-  }
-
-  /**
-   * Retrieves all active employees from the Firestore 'Employees' collection.
-   * - Optionally filters employees based on a provided hire date.
-   *
-   * This function queries the Firestore database to fetch all employees whose
-   * status is marked as 'active'. If a hireDate is provided, the function will
-   * further filter the employees to only include those whose hire date is on or
-   * before the provided date.
-   *
-   * @param {Object} options - An object containing the optional filter criteria.
-   * @param {Date | null} options.hireDate - The hire date filter; only employees hired on or before this date will be retrieved.
-   * @returns {Promise<Array<Object>>} An array of employee instances, each populated with Firestore data.
-   * @throws {Error} If the Firestore query fails, an error will be thrown with details of the failure.
-   */
-  static async getExistingEmployees({ hireDate = null } = {}) {
-    try {
-      // Firestoreの 'Employees' コレクションの参照を取得
-      const colRef = collection(firestore, 'Employees')
-
-      // フィルタリングするクエリを作成
-      const wheres = [where('status', '==', 'active')]
-      if (hireDate) {
-        wheres.push(where('hireDate', '<=', hireDate))
-      }
-      const q = query(colRef, ...wheres)
-
-      // Firestoreからクエリ結果を取得
-      const querySnapshot = await getDocs(q)
-
-      // 取得した従業員データをクラスのインスタンスに変換して返す
-      // doc.data() で各ドキュメントのデータを取得し、new this() で新しいインスタンスを生成
-      return querySnapshot.docs.map((doc) => new this(doc.data()))
-    } catch (error) {
-      // クエリの実行中にエラーが発生した場合のエラーログ出力
-      // eslint-disable-next-line no-console
-      console.error('Failed to fetch existing employees:', {
-        errorMessage: error.message, // エラーメッセージを含む
-        hireDate, // クエリ時に使用した hireDate の値も含める
-      })
-
-      // エラーメッセージを含めて新しいエラーをスロー
-      throw new Error('Failed to fetch existing employees: ' + error.message)
     }
   }
 }
