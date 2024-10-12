@@ -147,6 +147,7 @@ export default {
     v-bind="$attrs"
     :headers="headers"
     :items="arrangedItems"
+    :items-per-page="-1"
     :mobile-breakpoint="0"
     disable-sort
     v-on="$listeners"

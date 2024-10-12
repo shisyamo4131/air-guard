@@ -21,7 +21,21 @@
       <v-spacer />
     </template>
     <template #default="{ attrs, on }">
-      <g-data-table-monthly-attendances v-bind="attrs" v-on="on" />
+      <g-data-table-monthly-attendances
+        v-bind="attrs"
+        @click:row="onClickRow"
+        v-on="on"
+      />
+      <v-dialog v-model="dialog" scrollable>
+        <v-card>
+          <v-card-text class="pa-0 d-flex flex-grow-1" style="height: 480px">
+            <g-data-table-daily-attendances
+              class="flex-table"
+              :items="dailyAttendances"
+            />
+          </v-card-text>
+        </v-card>
+      </v-dialog>
     </template>
   </g-template-index>
 </template>
@@ -37,6 +51,7 @@ import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicke
 import GDataTableMonthlyAttendances from '~/components/molecules/tables/GDataTableMonthlyAttendances.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import MonthlyAttendance from '~/models/MonthlyAttendance'
+import GDataTableDailyAttendances from '~/components/molecules/tables/GDataTableDailyAttendances.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -49,12 +64,15 @@ export default {
     GTemplateIndex,
     GDialogMonthPicker,
     GDataTableMonthlyAttendances,
+    GDataTableDailyAttendances,
   },
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
+      dialog: false,
+      dailyAttendances: [],
       items: [],
       listener: new MonthlyAttendance(),
       loading: false,
@@ -65,6 +83,10 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
+    dialog(v) {
+      if (v) return
+      this.dailyAttendances.splice(0)
+    },
     month: {
       handler(v) {
         this.items.splice(0)
@@ -84,6 +106,10 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    onClickRow(item) {
+      this.dailyAttendances = item.dailyAttendances
+      this.dialog = true
+    },
     subscribe() {
       this.items = this.listener.subscribeDocs([
         ['where', 'month', '==', this.month],
