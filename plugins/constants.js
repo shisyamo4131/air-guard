@@ -81,6 +81,20 @@ const DAY_OF_WEEK_JA = {
   },
 }
 
+const DAY_TYPE = {
+  scheduled: '所定労働日',
+  'non-statutory-holiday': '法定外休日',
+  'legal-holiday': '法定休日',
+  undefined: '不明',
+}
+
+const DAY_TYPE_ARRAY = [
+  { text: '所定労働日', value: 'scheduled' },
+  { text: '法定外休日', value: 'non-statutory-holiday' },
+  { text: '法定休日', value: 'legal-holiday' },
+  { text: '不明', value: 'undefined' },
+]
+
 const DEADLINE = {
   '05': '5日',
   10: '10日',
@@ -247,8 +261,8 @@ export default (context, inject) => {
   inject('CUSTOMER_STATUS', CUSTOMER_STATUS)
   inject('CUSTOMER_STATUS_ARRAY', CUSTOMER_STATUS_ARRAY)
   inject('DAY_OF_WEEK_JA', DAY_OF_WEEK_JA)
-  inject('OUTSOURCER_STATUS', OUTSOURCER_STATUS)
-  inject('OUTSOURCER_STATUS_ARRAY', OUTSOURCER_STATUS_ARRAY)
+  inject('DAY_TYPE', DAY_TYPE)
+  inject('DAY_TYPE_ARRAY', DAY_TYPE_ARRAY)
   inject('DEADLINE', DEADLINE)
   inject('DEADLINE_ARRAY', DEADLINE_ARRAY)
   inject('EDIT_MODE', EDIT_MODE)
@@ -261,6 +275,8 @@ export default (context, inject) => {
   inject('LEAVE_APPLICATION_STATUS_ARRAY', LEAVE_APPLICATION_STATUS_ARRAY)
   inject('LEAVE_APPLICATION_TYPE', LEAVE_APPLICATION_TYPE)
   inject('LEAVE_APPLICATION_TYPE_ARRAY', LEAVE_APPLICATION_TYPE_ARRAY)
+  inject('OUTSOURCER_STATUS', OUTSOURCER_STATUS)
+  inject('OUTSOURCER_STATUS_ARRAY', OUTSOURCER_STATUS_ARRAY)
   inject('SECURITY_TYPE', SECURITY_TYPE)
   inject('SECURITY_TYPE_ARRAY', SECURITY_TYPE_ARRAY)
   inject('SITE_STATUS', SITE_STATUS)
