@@ -41,20 +41,20 @@ export default class OperationResultDetail {
     this._endTime = item?.endTime || '17:00'
     this._endAtNextday = item?.endAtNextday || false
     this._breakMinutes =
-      this.#validateMinutes(item?.breakMinutes, 'breakMinutes') || 60
+      this.#validateMinutes(item?.breakMinutes, 'breakMinutes') ?? 60
     this._workMinutes =
-      this.#validateMinutes(item?.workMinutes, 'workMinutes') || 480
+      this.#validateMinutes(item?.workMinutes, 'workMinutes') ?? 480
     this._overtimeMinutes =
-      this.#validateMinutes(item?.overtimeMinutes, 'overtimeMinutes') || 0
+      this.#validateMinutes(item?.overtimeMinutes, 'overtimeMinutes') ?? 0
     this._nighttimeMinutes =
-      this.#validateMinutes(item?.nighttimeMinutes, 'nighttimeMinutes') || 0
+      this.#validateMinutes(item?.nighttimeMinutes, 'nighttimeMinutes') ?? 0
     this.qualification = item?.qualification || false
     this.ojt = item?.ojt || false
     this._scheduledWorkMinutes =
       this.#validateMinutes(
         item?.scheduledWorkMinutes,
         'scheduledWorkMinutes'
-      ) || 480
+      ) ?? 480
     this.remarks = item?.remarks || ''
 
     Object.defineProperties(this, {
