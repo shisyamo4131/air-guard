@@ -39,6 +39,22 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+  // 勤怠結果
+  attendanceStatus: {
+    type: String,
+    default: 'undefined',
+    validator: (v) =>
+      [
+        'present', // 出勤
+        'absent', // 欠勤
+        'paidLeave', // 有給
+        'substitute', // 振替休日
+        'compOff', // 代休
+        'leave', // 補償休暇
+      ].includes(v),
+    required: false,
+    requiredByClass: false,
+  },
   // 始業時刻（Dateオブジェクト）
   startTime: {
     type: Object,

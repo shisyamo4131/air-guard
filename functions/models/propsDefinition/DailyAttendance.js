@@ -25,7 +25,7 @@ const propsDefinition = {
   },
   // 日付
   date: { type: String, default: '', required: false, requiredByClass: true },
-  // 日区分
+  // 労働日区分
   dayType: {
     type: String,
     default: 'scheduled',
@@ -35,6 +35,22 @@ const propsDefinition = {
         'non-statutory-holiday',
         'legal-holiday',
         'undefined',
+      ].includes(v),
+    required: false,
+    requiredByClass: false,
+  },
+  // 勤怠結果
+  attendanceStatus: {
+    type: String,
+    default: 'undefined',
+    validator: (v) =>
+      [
+        'present', // 出勤
+        'absent', // 欠勤
+        'paidLeave', // 有給
+        'substitute', // 振替休日
+        'compOff', // 代休
+        'leave', // 補償休暇
       ].includes(v),
     required: false,
     requiredByClass: false,
