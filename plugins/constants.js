@@ -1,3 +1,5 @@
+import colors from 'vuetify/es5/util/colors'
+
 const ATTENDANCE_STATUS = {}
 Object.defineProperties(ATTENDANCE_STATUS, {
   undefined: {
@@ -170,6 +172,7 @@ Object.defineProperties(DAY_TYPE, {
       toString() {
         return '所定労働日'
       },
+      color: colors.blue.lighten2,
     },
     writable: false,
     configurable: false,
@@ -181,6 +184,7 @@ Object.defineProperties(DAY_TYPE, {
       toString() {
         return '法定外休日'
       },
+      color: colors.green.lighten2,
     },
     writable: false,
     configurable: false,
@@ -192,6 +196,7 @@ Object.defineProperties(DAY_TYPE, {
       toString() {
         return '法定休日'
       },
+      color: colors.red.lighten2,
     },
     writable: false,
     configurable: false,
@@ -203,6 +208,7 @@ Object.defineProperties(DAY_TYPE, {
       toString() {
         return '不明'
       },
+      color: colors.grey.darken1,
     },
     writable: false,
     configurable: false,
