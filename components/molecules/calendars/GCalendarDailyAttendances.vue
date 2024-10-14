@@ -45,9 +45,17 @@ export default {
 </script>
 
 <template>
-  <g-calendar>
+  <g-calendar
+    v-bind="$attrs"
+    id="g-calendar-daily-attendances"
+    v-on="$listeners"
+  >
     <template #day="{ date }">
-      <div v-if="events[date]" class="container pa-2" style="height: 72px">
+      <div
+        v-if="events[date]"
+        class="container px-2 py-0"
+        style="min-height: 72px"
+      >
         <!-- dayType and attendanceStatus -->
         <div class="text-caption d-flex flex-wrap justify-space-between">
           <div>

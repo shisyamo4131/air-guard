@@ -33,10 +33,13 @@
             <div>{{ monthLabel }}</div>
           </v-card-title>
           <v-card-text>
-            <g-calendar-daily-attendances :items="dailyAttendances" />
+            <g-calendar-daily-attendances
+              :value="currentDate"
+              :items="dailyAttendances"
+            />
           </v-card-text>
           <v-card-actions class="justify-end">
-            <g-btn-cancel-icon />
+            <g-btn-cancel-icon @click="dialog = false" />
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -89,6 +92,12 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    currentDate() {
+      if (!this.selectedAttendance) return this.$dayjs().format('YYYY-MM-DD')
+      return this.$dayjs(`${this.selectedAttendance.month}-01`).format(
+        'YYYY-MM-DD'
+      )
+    },
     dailyAttendances() {
       return this.selectedAttendance?.dailyAttendances || []
     },
