@@ -1,3 +1,84 @@
+const ATTENDANCE_STATUS = {}
+Object.defineProperties(ATTENDANCE_STATUS, {
+  undefined: {
+    value: {
+      short: '未定',
+      toString() {
+        return '未定'
+      },
+    },
+    writable: false,
+    configurable: false,
+    enumerable: true,
+  },
+  present: {
+    value: {
+      short: '出勤',
+      toString() {
+        return '出勤'
+      },
+    },
+    writable: false,
+    configurable: false,
+    enumerable: true,
+  },
+  absent: {
+    value: {
+      short: '欠勤',
+      toString() {
+        return '欠勤'
+      },
+    },
+    writable: false,
+    configurable: false,
+    enumerable: true,
+  },
+  paidLeave: {
+    value: {
+      short: '有給',
+      toString() {
+        return '有給休暇'
+      },
+    },
+    writable: false,
+    configurable: false,
+    enumerable: true,
+  },
+  substitute: {
+    value: {
+      short: '振休',
+      toString() {
+        return '振替休日'
+      },
+    },
+    writable: false,
+    configurable: false,
+    enumerable: true,
+  },
+  compOff: {
+    value: {
+      short: '代休',
+      toString() {
+        return '代休'
+      },
+    },
+    writable: false,
+    configurable: false,
+    enumerable: true,
+  },
+  leave: {
+    value: {
+      short: '補償休',
+      toString() {
+        return '補償休暇'
+      },
+    },
+    writable: false,
+    configurable: false,
+    enumerable: true,
+  },
+})
+
 const CHAR_REGEXP = {
   全: '[ァ-ンヴー]',
   ア: '[ア-オ]',
@@ -254,6 +335,7 @@ const WORK_SHIFT_ARRAY = [
 ]
 
 export default (context, inject) => {
+  inject('ATTENDANCE_STATUS', ATTENDANCE_STATUS)
   inject('CHAR_REGEXP', CHAR_REGEXP)
   inject('CHAR_REGEXP_ARRAY', CHAR_REGEXP_ARRAY)
   inject('CONTRACT_TYPE', CONTRACT_TYPE)
