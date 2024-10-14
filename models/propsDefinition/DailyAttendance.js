@@ -45,6 +45,7 @@ const propsDefinition = {
     default: 'undefined',
     validator: (v) =>
       [
+        'undefined', // 未定
         'present', // 出勤
         'absent', // 欠勤
         'paidLeave', // 有給
