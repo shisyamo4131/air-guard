@@ -26,14 +26,18 @@
         @click:row="onClickRow"
         v-on="on"
       />
-      <v-dialog v-model="dialog" scrollable>
+      <v-dialog v-model="dialog" scrollable max-width="960">
         <v-card>
-          <v-card-text class="pa-0 d-flex flex-grow-1" style="height: 480px">
-            <g-data-table-daily-attendances
-              class="flex-table"
-              :items="dailyAttendances"
-            />
+          <v-card-title class="justify-space-between">
+            <div>{{ employeeLabel }}</div>
+            <div>{{ monthLabel }}</div>
+          </v-card-title>
+          <v-card-text>
+            <g-calendar-daily-attendances :items="dailyAttendances" />
           </v-card-text>
+          <v-card-actions class="justify-end">
+            <g-btn-cancel-icon />
+          </v-card-actions>
         </v-card>
       </v-dialog>
     </template>
@@ -51,7 +55,8 @@ import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicke
 import GDataTableMonthlyAttendances from '~/components/molecules/tables/GDataTableMonthlyAttendances.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import MonthlyAttendance from '~/models/MonthlyAttendance'
-import GDataTableDailyAttendances from '~/components/molecules/tables/GDataTableDailyAttendances.vue'
+import GCalendarDailyAttendances from '~/components/molecules/calendars/GCalendarDailyAttendances.vue'
+import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -64,7 +69,8 @@ export default {
     GTemplateIndex,
     GDialogMonthPicker,
     GDataTableMonthlyAttendances,
-    GDataTableDailyAttendances,
+    GCalendarDailyAttendances,
+    GBtnCancelIcon,
   },
   /***************************************************************************
    * DATA
@@ -72,12 +78,31 @@ export default {
   data() {
     return {
       dialog: false,
-      dailyAttendances: [],
       items: [],
       listener: new MonthlyAttendance(),
       loading: false,
       month: this.$dayjs().format('YYYY-MM'),
+      selectedAttendance: null,
     }
+  },
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
+  computed: {
+    dailyAttendances() {
+      return this.selectedAttendance?.dailyAttendances || []
+    },
+    employeeLabel() {
+      if (!this.selectedAttendance) return null
+      const employeeId = this.selectedAttendance.employeeId
+      const result = this.$store.getters['employees/get'](employeeId).abbr
+      return result
+    },
+    monthLabel() {
+      if (!this.selectedAttendance) return null
+      const result = this.$dayjs(`${this.month}-01`).format('YYYY年MM月')
+      return result
+    },
   },
   /***************************************************************************
    * WATCH
@@ -107,7 +132,7 @@ export default {
    ***************************************************************************/
   methods: {
     onClickRow(item) {
-      this.dailyAttendances = item.dailyAttendances
+      this.selectedAttendance = item
       this.dialog = true
     },
     subscribe() {
