@@ -162,12 +162,53 @@ const DAY_OF_WEEK_JA = {
   },
 }
 
-const DAY_TYPE = {
-  scheduled: '所定労働日',
-  'non-statutory-holiday': '法定外休日',
-  'legal-holiday': '法定休日',
-  undefined: '不明',
-}
+const DAY_TYPE = {}
+Object.defineProperties(DAY_TYPE, {
+  scheduled: {
+    value: {
+      short: '所定',
+      toString() {
+        return '所定労働日'
+      },
+    },
+    writable: false,
+    configurable: false,
+    enumerable: true,
+  },
+  'non-statutory-holiday': {
+    value: {
+      short: '法定外',
+      toString() {
+        return '法定外休日'
+      },
+    },
+    writable: false,
+    configurable: false,
+    enumerable: true,
+  },
+  'legal-holiday': {
+    value: {
+      short: '法定休',
+      toString() {
+        return '法定休日'
+      },
+    },
+    writable: false,
+    configurable: false,
+    enumerable: true,
+  },
+  undefined: {
+    value: {
+      short: '不明',
+      toString() {
+        return '不明'
+      },
+    },
+    writable: false,
+    configurable: false,
+    enumerable: true,
+  },
+})
 
 const DAY_TYPE_ARRAY = [
   { text: '所定労働日', value: 'scheduled' },
