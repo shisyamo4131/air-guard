@@ -104,6 +104,20 @@ export default class DailyAttendance extends FireModel {
         },
         set(v) {},
       },
+      /**
+       * 2024-10-14 added
+       * とりあえず総労働時間が0より大きければ出勤に。
+       */
+      attendanceStatus: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          if (!this.date) return 'undefined'
+          if (this.totalWorkingMinutes > 0) return `present`
+          return 'undefined'
+        },
+        set(v) {},
+      },
       isNextDayLegalHoliday: {
         configurable: true,
         enumerable: true,
