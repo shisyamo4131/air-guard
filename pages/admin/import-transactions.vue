@@ -397,6 +397,9 @@ export default {
                 await OperationResultInstance.fetchByCodes(
                   data.map(({ code }) => code)
                 )
+
+              // 10. 現場の取極めを取得
+
               for (const item of data) {
                 const existDoc = this.fetchedItems.operationResults.find(
                   ({ code }) => code === item.code
@@ -411,6 +414,12 @@ export default {
                   console.error(message, OperationResultInstance)
                   throw new Error(`${message}`)
                 }
+                /**
+                 * ここまでで稼働実績としてはOK
+                 * 問題は、単価や稼働数を変えている場合
+                 * OperationBillingBasisへ変換して登録する？（createがない・・・）
+                 * OperationResultを継承した、インポート用のクラスを用意？
+                 */
                 OperationResultInstance.docId
                   ? await OperationResultInstance.update()
                   : await OperationResultInstance.create({
