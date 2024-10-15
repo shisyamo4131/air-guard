@@ -10,9 +10,10 @@
  * The actions must return the Promise.
  *
  * @author shisyamo4131
- * @version 2.1.0
+ * @version 2.2.0
  *
  * @updates
+ * - version 2.2.0 - 2024-10-15 - Vuex による System ドキュメントの監視処理を追加
  * - version 2.1.0 - 2024-10-09 - `employee-contracts/subscribe`を削除
  *                              ‐ `employee-contracts/unsubscribe`を削除
  * - version 2.0.0 - 2024-09-06 - firebase.authを'air-firebase'に切り替え
@@ -39,6 +40,7 @@ export default (context) => {
   return new Promise((resolve) => {
     onAuthStateChanged(auth, async (user) => {
       if (user && ACTIVATE) {
+        await context.store.dispatch('systems/subscribe')
         await context.store.dispatch(ACTIVATE, user)
         await context.store.dispatch('users/subscribe')
         await context.store.dispatch('customers/subscribe')
@@ -47,6 +49,7 @@ export default (context) => {
         await context.store.dispatch('outsourcers/subscribe')
         await context.store.dispatch('equipments/subscribe')
       } else if (!user && DISACTIVATE) {
+        await context.store.dispatch('systems/unsubscribe')
         await context.store.dispatch(DISACTIVATE)
         await context.store.dispatch('users/unsubscribe')
         await context.store.dispatch('customers/unsubscribe')
