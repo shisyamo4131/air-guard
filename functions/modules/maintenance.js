@@ -2,12 +2,10 @@ import { getDatabase } from 'firebase-admin/database'
 import { getFirestore } from 'firebase-admin/firestore'
 import { onCall } from 'firebase-functions/v2/https'
 import { https, logger } from 'firebase-functions/v2'
-import dayjs from 'dayjs'
 import EmployeeIndex from '../models/EmployeeIndex.js'
 import SiteIndex from '../models/SiteIndex.js'
 import CustomerIndex from '../models/CustomerIndex.js'
-import DailyAttendance from '../models/DailyAttendance.js'
-import MonthlyAttendance from '../models/MonthlyAttendance.js'
+import System from '../models/System.js'
 
 const database = getDatabase()
 const firestore = getFirestore()
@@ -93,24 +91,19 @@ export const refreshIndex = onCall(async (request) => {
   }
 })
 
-export const refreshMonthlyAttendances = onCall(async (request) => {
+export const refreshMonthlyAttendances = onCall((request) => {
   const { month } = request.data
 
-  const from = dayjs(`${month}-01`).format('YYYY-MM-DD')
-  const to = dayjs(`${month}-01`).endOf('month').format('YYYY-MM-DD')
-  try {
-    await DailyAttendance.createInRange({ from, to })
-    await DailyAttendance.updateWeeklyAttendance({ from, to })
-    await MonthlyAttendance.createInRange({ month })
+  // 非同期処理の開始をログで通知
+  logger.info(
+    `[refreshAttendances] 出勤簿の更新処理を開始しました。期間: ${month}`
+  )
 
-    // 正常終了時にアプリに結果を返す
-    return {
-      message: `[refreshAttendances] 出勤簿の更新処理が正常に完了しました。期間: ${from} - ${to}`,
-    }
-  } catch (error) {
-    // サーバー側のエラーログ
-    const message = `[refreshAttendances] 出勤簿の更新処理でエラーが発生しました。`
-    logger.error(message, { request })
-    throw new https.HttpsError('unknown', message)
+  // 非同期で calculateMonthlyAttendances を実行
+  System.calculateMonthlyAttendances({ month })
+
+  // 処理が完了するのを待たずに、正常終了のメッセージを返す
+  return {
+    message: `[refreshAttendances] 出勤簿の更新処理が開始されました。期間: ${month}`,
   }
 })
