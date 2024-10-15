@@ -53,29 +53,44 @@ export default {
     <template #day="{ date }">
       <div
         v-if="events[date]"
-        class="container px-2 py-0"
+        class="container px-1 px-md-2 py-0"
         style="min-height: 72px"
       >
         <!-- dayType and attendanceStatus -->
-        <div class="text-caption d-flex flex-wrap justify-space-between">
+        <div class="text-caption d-flex flex-column flex-md-row">
           <div>
-            <!-- {{ $DAY_TYPE[events[date].dayType] }} -->
-            <g-chip-day-type x-small label :value="events[date].dayType" />
+            <g-chip-day-type
+              x-small
+              label
+              :value="events[date].dayType"
+              :short="$vuetify.breakpoint.mobile"
+            />
           </div>
-          <div v-if="events[date].attendanceStatus">
+          <div
+            v-if="events[date].attendanceStatus"
+            class="ml-md-auto text-center text-md-left"
+          >
             {{ $ATTENDANCE_STATUS[events[date].attendanceStatus].short }}
           </div>
         </div>
         <div v-if="events[date].attendanceStatus === 'present'">
           <!-- time -->
           <div class="text-caption">
-            <v-icon left small>mdi-clock-outline</v-icon>
-            {{
-              `${events[date].startTimeFormatted} - ${events[date].endTimeFormatted}`
-            }}
+            <div class="d-flex flex-column flex-md-row">
+              <v-icon v-if="$vuetify.breakpoint.mdAndUp" left small
+                >mdi-clock-outline</v-icon
+              >
+              <div class="text-center text-md-left">
+                {{ events[date].startTimeFormatted }}
+              </div>
+              <div v-if="$vuetify.breakpoint.mdAndUp" class="mx-md-1">-</div>
+              <div class="text-center text-md-left">
+                {{ events[date].endTimeFormatted }}
+              </div>
+            </div>
           </div>
           <!-- minutes -->
-          <div class="text-caption d-flex">
+          <div class="text-caption d-flex flex-column flex-md-row">
             <div class="flex-grow-1 text-center">
               {{ `${events[date].scheduledWorkingHours.toFixed(2)}` }}
             </div>

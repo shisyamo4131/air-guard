@@ -195,8 +195,9 @@ export default {
             <div>{{ employeeLabel }}</div>
             <div>{{ monthLabel }}</div>
           </v-card-title>
-          <v-card-text>
+          <v-card-text class="px-0 px-md-6">
             <g-calendar-daily-attendances
+              style="height: auto"
               :value="currentDate"
               :items="dailyAttendances"
             />

@@ -180,7 +180,7 @@ Object.defineProperties(DAY_TYPE, {
   },
   'non-statutory-holiday': {
     value: {
-      short: '法定外',
+      short: '法外',
       toString() {
         return '法定外休日'
       },
@@ -192,7 +192,7 @@ Object.defineProperties(DAY_TYPE, {
   },
   'legal-holiday': {
     value: {
-      short: '法定休',
+      short: '法休',
       toString() {
         return '法定休日'
       },

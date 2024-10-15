@@ -1,4 +1,5 @@
 import FireModel from './FireModel.js'
+import OperationWorkResultForDailyAttendance from './OperationWorkResultForDailyAttendance.js'
 import { classProps } from './propsDefinition/DailyAttendance.js'
 
 /**
@@ -23,11 +24,18 @@ export default class DailyAttendanceForMonthlyAttendance extends FireModel {
   static classProps = classProps
 
   /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    operationWorkResults: OperationWorkResultForDailyAttendance,
+  }
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
     super(item)
     delete this.employeeContracts
-    delete this.operationWorkResults
+    // delete this.operationWorkResults
   }
 }

@@ -11,6 +11,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    short: { type: Boolean, default: false, required: false },
     value: {
       type: String,
       default: 'undefined',
@@ -33,7 +34,11 @@ export default {
       return this.$DAY_TYPE[this.value]?.color || undefined
     },
     label() {
-      return this.$DAY_TYPE[this.value] || 'error'
+      if (this.short) {
+        return this.$DAY_TYPE[this.value].short || 'error'
+      } else {
+        return this.$DAY_TYPE[this.value] || 'error'
+      }
     },
   },
 }
