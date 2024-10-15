@@ -698,8 +698,7 @@ export default class DailyAttendance extends FireModel {
               employeeId,
               employeeContracts,
               operationWorkResults: operationWorkResults.filter(
-                (result) =>
-                  result.employeeId === employeeId && result.date === date
+                (result) => result.date === date
               ),
             })
 
