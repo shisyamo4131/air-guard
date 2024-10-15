@@ -70,6 +70,7 @@ export default {
   props: {
     delay: { type: Number, default: 500, required: false },
     extend: { type: Boolean, default: false, required: false },
+    hidePagination: { type: Boolean, default: false, required: false },
     items: { type: Array, default: () => [], required: false },
     lazySearch: { type: String, default: undefined, required: false },
     search: { type: String, default: undefined, required: false },
@@ -186,7 +187,7 @@ export default {
         />
       </v-card>
     </v-container>
-    <v-container class="flex-grow-0">
+    <v-container v-if="!hidePagination" class="flex-grow-0">
       <v-pagination v-model="page" :length="pageCount" total-visible="20" />
     </v-container>
   </v-container>
