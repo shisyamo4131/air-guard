@@ -96,7 +96,7 @@ export default class System extends FireModel {
 
         // ステータスを 'calculating' に更新
         transaction.update(systemDocRef, {
-          'calculateAttendance.status': 'calculating',
+          'calcAttendance.status': 'calculating',
         })
         return true
       })
