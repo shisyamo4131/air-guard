@@ -117,10 +117,6 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
-    dialog(v) {
-      if (v) return
-      this.dailyAttendances.splice(0)
-    },
     month: {
       handler(v) {
         this.items.splice(0)
