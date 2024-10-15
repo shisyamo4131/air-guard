@@ -17,7 +17,6 @@ export default class System extends FireModel {
    * STATIC
    ****************************************************************************/
   static collectionPath = 'Systems'
-  static logicalDelete = true
   static classProps = classProps
 
   /****************************************************************************

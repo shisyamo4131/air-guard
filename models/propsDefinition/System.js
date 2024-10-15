@@ -8,6 +8,8 @@ const propsDefinition = {
       return {
         status: 'ready',
         lastExecutedAt: null,
+        executeStatus: null,
+        error: null,
       }
     },
     required: false,
