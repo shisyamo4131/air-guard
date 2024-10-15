@@ -29,6 +29,20 @@
       ]
     },
     {
+      "collectionGroup": "DailyAttendances",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "employeeId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "EmployeeContracts",
       "queryScope": "COLLECTION",
       "fields": [
@@ -65,7 +79,35 @@
           "order": "ASCENDING"
         },
         {
+          "fieldPath": "leaveDate",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Employees",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "hireDate",
+          "order": "ASCENDING"
+        },
+        {
           "fieldPath": "status",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "Employees",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "leaveDate",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "hireDate",
           "order": "ASCENDING"
         }
       ]
@@ -95,6 +137,20 @@
         {
           "fieldPath": "updateAt",
           "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "OperationWorkResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "employeeId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "ASCENDING"
         }
       ]
     },
