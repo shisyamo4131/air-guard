@@ -153,7 +153,7 @@ export default class MonthlyAttendance extends FireModel {
    * @param {Object} param0 - パラメータオブジェクト。
    * @param {string} param0.month - 集計対象の年月（YYYY-MM 形式）。
    * @param {string} [param0.employeeId] - フィルタリング対象の従業員ID（オプション）。
-   * @throws {Error} - 引数の形式が正しくない場合や、トランザクション処理でエラーが発生した場合。
+   * @throws {Error} - 引数の形式が正しくない場合や、バッチ処理でエラーが発生した場合。
    ****************************************************************************/
   static async createInRange({ month = null, employeeId = null } = {}) {
     // 引数のチェック
@@ -181,7 +181,7 @@ export default class MonthlyAttendance extends FireModel {
       if (employeeId) {
         employeeIds.push(employeeId)
       } else {
-        // 期間内に在職している従業員データから
+        // 期間内に在職している従業員データを取得
         const paramsA = { from: startDate, to: endDate }
         const employees = await Employee.getExistingEmployees(paramsA)
         employeeIds = employees.map(({ docId }) => docId)
@@ -196,36 +196,55 @@ export default class MonthlyAttendance extends FireModel {
         return
       }
 
+      // 期間内の DailyAttendance ドキュメントを取得
+      const getDailyAttendances = async (employeeId) => {
+        const queryRef = firestore
+          .collection('DailyAttendances')
+          .where('employeeId', '==', employeeId)
+          .where('date', '>=', startDate)
+          .where('date', '<=', endDate)
+        const querySnapshot = await queryRef.get()
+        return querySnapshot.docs.map((doc) => doc.data())
+      }
+      const dailyAttendancesAll = (
+        await Promise.all(
+          employeeIds.map((employeeId) => {
+            return getDailyAttendances(employeeId)
+          })
+        )
+      ).flat()
+
+      const batchArray = []
+      let batchIndex = 0
+
       // 従業員ごとにトランザクションで MonthlyAttendance ドキュメントを作成
       for (const employeeId of employeeIds) {
-        await firestore.runTransaction(async (transaction) => {
-          // 期間内の DailyAttendance ドキュメントを取得
-          const dailyRef = firestore
-            .collection('DailyAttendances')
-            .where('employeeId', '==', employeeId)
-            .where('date', '>=', startDate)
-            .where('date', '<=', endDate)
-          const dailySnapshot = await transaction.get(dailyRef)
-          const dailyAttendances = dailySnapshot.docs.map((doc) => doc.data())
+        if (batchIndex % BATCH_LIMIT === 0) batchArray.push(firestore.batch())
+        const dailyAttendances = dailyAttendancesAll.filter(
+          (attendance) => attendance.employeeId === employeeId
+        )
 
-          // docId を固定
-          const docId = `${employeeId}-${month}`
+        // docId を固定
+        const docId = `${employeeId}-${month}`
 
-          // MontylyAttendance インスタンスを用意
-          const instance = new this({
-            docId,
-            employeeId,
-            month,
-            startDate,
-            endDate,
-            dailyAttendances,
-          })
-
-          // ドキュメントを作成
-          instance.create({ docId, transaction })
+        // MontylyAttendance インスタンスを用意
+        const instance = new this({
+          docId,
+          employeeId,
+          month,
+          startDate,
+          endDate,
+          dailyAttendances,
         })
+
+        // ドキュメントを作成
+        const docRef = firestore.collection('MonthlyAttendances').doc(docId)
+        instance.createAt = new Date()
+        batchArray[batchArray.length - 1].set(docRef, instance.toObject())
+        batchIndex++
       }
 
+      await Promise.all(batchArray.map((batch) => batch.commit()))
       // 処理完了ログを出力
       logger.info(
         `[createInRange] MonthlyAttendance ドキュメントの作成処理が完了しました。`,
