@@ -40,8 +40,8 @@ export default (context) => {
   return new Promise((resolve) => {
     onAuthStateChanged(auth, async (user) => {
       if (user && ACTIVATE) {
-        await context.store.dispatch('systems/subscribe')
         await context.store.dispatch(ACTIVATE, user)
+        await context.store.dispatch('systems/subscribe')
         await context.store.dispatch('users/subscribe')
         await context.store.dispatch('customers/subscribe')
         await context.store.dispatch('sites/subscribe')
@@ -49,8 +49,8 @@ export default (context) => {
         await context.store.dispatch('outsourcers/subscribe')
         await context.store.dispatch('equipments/subscribe')
       } else if (!user && DISACTIVATE) {
-        await context.store.dispatch('systems/unsubscribe')
         await context.store.dispatch(DISACTIVATE)
+        await context.store.dispatch('systems/unsubscribe')
         await context.store.dispatch('users/unsubscribe')
         await context.store.dispatch('customers/unsubscribe')
         await context.store.dispatch('sites/unsubscribe')
