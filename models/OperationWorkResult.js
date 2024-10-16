@@ -24,6 +24,25 @@ export default class OperationWorkResult extends FireModel {
   static classProps = { ...classProps, ...addProps }
 
   /****************************************************************************
+   * ADDED PROPERTIES
+   ****************************************************************************/
+  get workHours() {
+    return this.workMinutes / 60
+  }
+
+  get breakHours() {
+    return this.breakMinutes / 60
+  }
+
+  get overtimeHours() {
+    return this.overtimeMinutes / 60
+  }
+
+  get nighttimeHours() {
+    return this.nighttimeMinutes / 60
+  }
+
+  /****************************************************************************
    * FireModelのcreateメソッドをオーバーライドします。
    * - `docId`を`${operationResultId}-${employeeId}`に固定します。
    * - operationResultId と employeeId が必須で、指定されていない場合はエラーをスローします。
