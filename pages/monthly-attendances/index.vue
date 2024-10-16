@@ -13,6 +13,7 @@ import {
   getFunctions,
   httpsCallable,
 } from 'firebase/functions'
+import 'dayjs/locale/ja'
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 import GDataTableMonthlyAttendances from '~/components/molecules/tables/GDataTableMonthlyAttendances.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
@@ -53,7 +54,7 @@ export default {
       listener: new MonthlyAttendance(),
       loading: false,
       month: this.$dayjs().format('YYYY-MM'),
-      selectedAttendance: null,
+      selectedMonthlyAttendance: null,
       selectedDailyAttendance: null,
     }
   },
@@ -63,26 +64,32 @@ export default {
    ***************************************************************************/
   computed: {
     currentDate() {
-      if (!this.selectedAttendance) return this.$dayjs().format('YYYY-MM-DD')
-      return this.$dayjs(`${this.selectedAttendance.month}-01`).format(
+      if (!this.selectedMonthlyAttendance)
+        return this.$dayjs().format('YYYY-MM-DD')
+      return this.$dayjs(`${this.selectedMonthlyAttendance.month}-01`).format(
         'YYYY-MM-DD'
       )
     },
     dailyAttendances() {
-      return this.selectedAttendance?.dailyAttendances || []
+      return this.selectedMonthlyAttendance?.dailyAttendances || []
     },
     dateLabel() {
-      if (!this.selectedDailyAttendance) return null
-      if (!this.selectedDailyAttendance.operationWorkResults) return null
-      const date = this.selectedDailyAttendance.operationWorkResults[0].date
-      const dateString = this.$dayjs(date).format('YYYY年MM月DD日')
-      const dayOfWeek =
-        this.$DAY_OF_WEEK_JA[this.$dayjs(date).format('ddd')].short
-      return `${dateString}(${dayOfWeek})`
+      if (
+        !this.selectedMonthlyAttendance ||
+        !this.selectedDailyAttendance ||
+        !this.selectedDailyAttendance.operationWorkResults?.length
+      ) {
+        return null
+      }
+      return this.$dayjs(
+        this.selectedDailyAttendance.operationWorkResults[0].date
+      )
+        .locale('ja')
+        .format('YYYY年MM月DD日(ddd)')
     },
     employeeLabel() {
-      if (!this.selectedAttendance) return null
-      const employeeId = this.selectedAttendance.employeeId
+      if (!this.selectedMonthlyAttendance) return null
+      const employeeId = this.selectedMonthlyAttendance.employeeId
       const result = this.$store.getters['employees/get'](employeeId).abbr
       return result
     },
@@ -90,7 +97,7 @@ export default {
       return this.$store.state.systems.calcAttendance?.status !== 'ready'
     },
     monthLabel() {
-      if (!this.selectedAttendance) return null
+      if (!this.selectedMonthlyAttendance) return null
       const result = this.$dayjs(`${this.month}-01`).format('YYYY年MM月')
       return result
     },
@@ -132,14 +139,22 @@ export default {
    ***************************************************************************/
   methods: {
     onClickRow(item) {
-      this.selectedAttendance = item
+      this.selectedMonthlyAttendance = item
       this.dialog.calendar = true
     },
     onClickDate({ date }) {
+      // 出勤記録を検索
       this.selectedDailyAttendance =
-        this.selectedAttendance.dailyAttendances.find(
+        this.selectedMonthlyAttendance.dailyAttendances.find(
           (attendance) => attendance.date === date
         )
+
+      // 稼働実績がない場合は何もしない
+      if (!this.selectedDailyAttendance?.operationWorkResults?.length) {
+        return
+      }
+
+      // ダイアログを開く
       this.dialog.operationWorkResults = true
     },
     subscribe() {
