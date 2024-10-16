@@ -1,4 +1,5 @@
-import { FireModel } from 'air-firebase'
+import { FireModel, firestore } from 'air-firebase'
+import { doc, updateDoc } from 'firebase/firestore'
 import { classProps } from './propsDefinition/System'
 
 /**
@@ -28,5 +29,35 @@ export default class System extends FireModel {
     delete this.create
     delete this.update
     delete this.delete
+  }
+
+  /****************************************************************************
+   * calcAttendance ステータスを 'ready' に初期化するメソッドです。
+   * - Firestore の `Systems` コレクションにある `System` ドキュメントの
+   *   `calcAttendance.status` フィールドを 'ready' に更新します。
+   * - このメソッドは、システムの状態を初期化したい場合に使用されます。
+   *
+   * @throws {Error} Firestore ドキュメントの更新中にエラーが発生した場合、エラーがスローされます。
+   ****************************************************************************/
+  static async initCalcAttendanceStatus() {
+    const docRef = doc(firestore, 'Systems', 'System') // 'Systems' コレクション内の 'System' ドキュメントを参照
+    try {
+      // calcAttendance.status を 'ready' に更新
+      await updateDoc(docRef, { 'calcAttendance.status': 'ready' })
+
+      // 正常終了のログを出力
+      // eslint-disable-next-line no-console
+      console.info(
+        `[initCalcAttendanceStatus] calcAttendance.status の初期化処理が正常に完了しました。`
+      )
+    } catch (err) {
+      // エラーログを出力し、エラーをスロー
+      // eslint-disable-next-line no-console
+      console.error(
+        `[initCalcAttendanceStatus] calcAttendance.status の初期化処理で不明なエラーが発生しました。`,
+        { err }
+      )
+      throw err
+    }
   }
 }
