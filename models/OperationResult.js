@@ -285,6 +285,7 @@ export default class OperationResult extends FireModel {
           const workResultInstance = new OperationWorkResult({
             ...worker,
             operationResultId: doc.docId, // 親ドキュメントのIDを関連付け
+            siteId: doc.siteId,
           })
 
           // トランザクションを使用して`OperationWorkResult`ドキュメントを作成
@@ -341,6 +342,7 @@ export default class OperationResult extends FireModel {
             ...existDocument,
             ...worker,
             operationResultId: this.docId, // 親ドキュメントのIDを関連付け
+            siteId: this.siteId,
           })
 
           // トランザクション内で`OperationWorkResult`ドキュメントを作成または更新

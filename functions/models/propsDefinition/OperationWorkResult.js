@@ -7,6 +7,12 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+  siteId: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
   transportationCost: {
     type: String,
     default: {
