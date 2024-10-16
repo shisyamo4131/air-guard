@@ -171,7 +171,7 @@ export default class MonthlyAttendance extends FireModel {
 
     try {
       // 既存の MonthlyAttendance ドキュメントを削除
-      await this.#deleteInRange({ month })
+      await this.#deleteInRange({ month, employeeId })
 
       // 期間開始日と終了日を取得
       const startDate = dayjs(`${month}-01`).format('YYYY-MM-DD')

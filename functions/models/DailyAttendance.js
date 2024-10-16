@@ -8,6 +8,7 @@ import { classProps } from './propsDefinition/DailyAttendance.js'
 import Employee from './Employee.js'
 import EmployeeContractForDailyAttendance from './EmployeeContractForDailyAttendance.js'
 import OperationWorkResultForDailyAttendance from './OperationWorkResultForDailyAttendance.js'
+import LeaveRecord from './LeaveRecord.js'
 dayjs.extend(isSameOrBefore)
 dayjs.extend(isoWeek)
 const firestore = getFirestore()
@@ -26,6 +27,7 @@ const BATCH_LIMIT = 500
  * @updates
  * - version 1.1.0 - 2024-10-16 - createInRange をバッチ処理に変更
  *                                updateWeeklyAttendance をバッチ処理に変更
+ *                                leaveRecord プロパティを追加し、customClassMap を更新
  * - version 1.0.0 - 2024-10-09 - 初版作成
  */
 export default class DailyAttendance extends FireModel {
@@ -41,6 +43,7 @@ export default class DailyAttendance extends FireModel {
   static customClassMap = {
     employeeContracts: EmployeeContractForDailyAttendance,
     operationWorkResults: OperationWorkResultForDailyAttendance,
+    leaveRecord: LeaveRecord,
   }
 
   /****************************************************************************
@@ -90,11 +93,24 @@ export default class DailyAttendance extends FireModel {
           // 該当する契約がない場合 'undefined' を返す
           if (!applicableContract) return 'undefined'
 
-          // dayType を決定する
+          // 振替出勤日であるかどうかの判断
+          const isSubstituteWork =
+            this.leaveRecord?.leaveType === 'substitute' &&
+            this.leaveRecord?.substituteWorkDate === this.date
+          if (isSubstituteWork) return 'scheduled'
+
+          // 振替休日であるかどうかの判断
+          const isSubstituted =
+            this.leaveRecord?.leaveType === 'substitute' &&
+            this.leaveRecord?.date === this.date
+          if (isSubstituted) return this.leaveRecord.substitutedDayType
+
+          // dayType の決定
           const isScheduled =
             applicableContract.workRegulation.scheduledWorkDays.includes(
               this.dayOfWeek
             )
+
           const isLegalHoliday =
             applicableContract.workRegulation.legalHoliday === this.dayOfWeek
 
@@ -114,11 +130,22 @@ export default class DailyAttendance extends FireModel {
         configurable: true,
         enumerable: true,
         get() {
-          if (!this.date) return 'undefined'
-          if (this.totalWorkingMinutes > 0) return `present`
-          return 'undefined'
+          // 日付未設定または勤務実績も休暇記録もなしの場合は undefined
+          if (
+            !this.date ||
+            (!this.totalWorkingMinutes && !this.leaveRecord?.docId)
+          ) {
+            return 'undefined'
+          }
+
+          // 出勤実績があれば present
+          if (this.totalWorkingMinutes > 0) {
+            return 'present'
+          }
+
+          // 休暇記録があれば leaveType に従う
+          return this.leaveRecord.leaveType || 'undefined'
         },
-        set(v) {},
       },
       isNextDayLegalHoliday: {
         configurable: true,
@@ -691,6 +718,24 @@ export default class DailyAttendance extends FireModel {
         )
       ).flat()
 
+      // 休暇記録を取得
+      const leaveRecordInstance = new LeaveRecord()
+      const getLeaveRecords = async (employeeId) => {
+        const queryRef = firestore
+          .collection('LeaveRecords')
+          .where('employeeId', '==', employeeId)
+          .where('date', '>=', from)
+          .where('date', '<=', to)
+          .withConverter(leaveRecordInstance.converter())
+        const querySnapshot = await queryRef.get()
+        return querySnapshot.docs.map((doc) => doc.data())
+      }
+      const leaveRecords = (
+        await Promise.all(
+          employeeIds.map((employeeId) => getLeaveRecords(employeeId))
+        )
+      ).flat()
+
       // バッチ処理を開始する
       const batchArray = []
       let batchIndex = 0
@@ -716,6 +761,12 @@ export default class DailyAttendance extends FireModel {
               (result) =>
                 result.employeeId === employeeId && result.date === date
             ),
+            leaveRecord:
+              leaveRecords.find(
+                (record) =>
+                  record.employeeId === employeeId &&
+                  (record.date === date || record.substituteWorkDate === date)
+              ) || null,
           })
 
           // バッチの初期化

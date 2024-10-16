@@ -23,6 +23,13 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+  // 休暇記録（配列）
+  leaveRecord: {
+    type: Object,
+    default: () => ({}),
+    required: false,
+    requiredByClass: false,
+  },
   // 日付
   date: { type: String, default: '', required: false, requiredByClass: true },
   // 労働日区分
@@ -48,10 +55,9 @@ const propsDefinition = {
         'undefined', // 未定
         'present', // 出勤
         'absent', // 欠勤
-        'paidLeave', // 有給
         'substitute', // 振替休日
         'compOff', // 代休
-        'leave', // 補償休暇
+        'leave', // 休暇
       ].includes(v),
     required: false,
     requiredByClass: false,

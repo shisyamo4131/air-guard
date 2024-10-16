@@ -23,5 +23,6 @@ export default class LeaveRecord extends FireModel {
     delete this.create
     delete this.update
     delete this.delete
+    delete this.tokenMap
   }
 }

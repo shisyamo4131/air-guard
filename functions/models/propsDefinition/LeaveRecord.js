@@ -19,6 +19,7 @@ const propsDefinition = {
     default: '',
     validator: (v) =>
       [
+        'absent', // 欠勤
         'substitute', // 振替休日
         'compOff', // 代休
         'leave', // 休暇
@@ -30,25 +31,38 @@ const propsDefinition = {
     type: String,
     default: '',
     required: false,
-    requiredByClass: true,
+    requiredByClass: false,
+  },
+  substitutedDayType: {
+    type: String,
+    default: '',
+    validator: (v) => ['non-statutory-holiday', 'legal-holiday'].includes(v),
+    required: false,
+    requiredByClass: false,
   },
   isAnnualPaidLeave: {
     type: Boolean,
     default: false,
     required: false,
-    requiredByClass: true,
+    requiredByClass: false,
   },
   isPaidLeave: {
     type: Boolean,
     default: false,
     required: false,
-    requiredByClass: true,
+    requiredByClass: false,
   },
   leavePaymentRate: {
     type: Number,
     default: 0,
     required: false,
     requiredByClass: true,
+  },
+  remarks: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
   },
 }
 

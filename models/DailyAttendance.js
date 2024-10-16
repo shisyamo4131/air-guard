@@ -1,6 +1,7 @@
 import { FireModel } from 'air-firebase'
 import { classProps } from './propsDefinition/DailyAttendance'
 import OperationWorkResult from './OperationWorkResult'
+import LeaveRecord from './LeaveRecord'
 
 /**
  * ## DailyAttendance
@@ -22,6 +23,7 @@ export default class DailyAttendance extends FireModel {
    ****************************************************************************/
   static customClassMap = {
     operationWorkResults: OperationWorkResult,
+    leaveRecord: LeaveRecord,
   }
 
   /****************************************************************************

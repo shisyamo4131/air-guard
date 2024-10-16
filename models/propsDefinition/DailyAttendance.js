@@ -23,6 +23,13 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+  // 休暇記録
+  leaveRecord: {
+    type: Object,
+    default: () => ({}),
+    required: false,
+    requiredByClass: false,
+  },
   // 日付
   date: { type: String, default: '', required: false, requiredByClass: true },
   // 日区分
