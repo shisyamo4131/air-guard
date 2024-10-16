@@ -723,6 +723,7 @@ export default class DailyAttendance extends FireModel {
 
           // ドキュメントをバッチで作成
           const docRef = firestore.collection('DailyAttendances').doc(docId)
+          instance.createAt = new Date()
           batchArray[batchArray.length - 1].set(docRef, instance.toObject())
 
           batchIndex++
