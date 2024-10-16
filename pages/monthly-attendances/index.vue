@@ -19,6 +19,7 @@ import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import MonthlyAttendance from '~/models/MonthlyAttendance'
 import GCalendarDailyAttendances from '~/components/molecules/calendars/GCalendarDailyAttendances.vue'
 import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
+import GDataTableOperationWorkResults from '~/components/molecules/tables/GDataTableOperationWorkResults.vue'
 
 export default {
   /***************************************************************************
@@ -35,6 +36,7 @@ export default {
     GDataTableMonthlyAttendances,
     GCalendarDailyAttendances,
     GBtnCancelIcon,
+    GDataTableOperationWorkResults,
   },
 
   /***************************************************************************
@@ -42,12 +44,17 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      dialog: false,
+      // dialog: false,
+      dialog: {
+        calendar: false,
+        operationWorkResults: false,
+      },
       items: [],
       listener: new MonthlyAttendance(),
       loading: false,
       month: this.$dayjs().format('YYYY-MM'),
       selectedAttendance: null,
+      selectedDailyAttendance: null,
     }
   },
 
@@ -64,6 +71,15 @@ export default {
     dailyAttendances() {
       return this.selectedAttendance?.dailyAttendances || []
     },
+    dateLabel() {
+      if (!this.selectedDailyAttendance) return null
+      if (!this.selectedDailyAttendance.operationWorkResults) return null
+      const date = this.selectedDailyAttendance.operationWorkResults[0].date
+      const dateString = this.$dayjs(date).format('YYYY年MM月DD日')
+      const dayOfWeek =
+        this.$DAY_OF_WEEK_JA[this.$dayjs(date).format('ddd')].short
+      return `${dateString}(${dayOfWeek})`
+    },
     employeeLabel() {
       if (!this.selectedAttendance) return null
       const employeeId = this.selectedAttendance.employeeId
@@ -71,7 +87,7 @@ export default {
       return result
     },
     isCalculating() {
-      return this.$store.state.systems.calcAttendance.status !== 'ready'
+      return this.$store.state.systems.calcAttendance?.status !== 'ready'
     },
     monthLabel() {
       if (!this.selectedAttendance) return null
@@ -117,7 +133,14 @@ export default {
   methods: {
     onClickRow(item) {
       this.selectedAttendance = item
-      this.dialog = true
+      this.dialog.calendar = true
+    },
+    onClickDate({ date }) {
+      this.selectedDailyAttendance =
+        this.selectedAttendance.dailyAttendances.find(
+          (attendance) => attendance.date === date
+        )
+      this.dialog.operationWorkResults = true
     },
     subscribe() {
       this.items = this.listener.subscribeDocs([
@@ -185,7 +208,7 @@ export default {
         v-on="on"
       />
       <v-dialog
-        v-model="dialog"
+        v-model="dialog.calendar"
         scrollable
         max-width="960"
         :fullscreen="$vuetify.breakpoint.mobile"
@@ -200,10 +223,28 @@ export default {
               style="height: auto"
               :value="currentDate"
               :items="dailyAttendances"
+              @click:date="onClickDate"
             />
+            <v-dialog v-model="dialog.operationWorkResults" max-width="960">
+              <v-card>
+                <v-card-title>
+                  <div>{{ dateLabel }}</div>
+                </v-card-title>
+                <v-card-text class="px-0 px-md-6">
+                  <g-data-table-operation-work-results
+                    :items="selectedDailyAttendance?.operationWorkResults || []"
+                  />
+                </v-card-text>
+                <v-card-actions class="justify-end">
+                  <g-btn-cancel-icon
+                    @click="dialog.operationWorkResults = false"
+                  />
+                </v-card-actions>
+              </v-card>
+            </v-dialog>
           </v-card-text>
           <v-card-actions class="justify-end">
-            <g-btn-cancel-icon @click="dialog = false" />
+            <g-btn-cancel-icon @click="dialog.calendar = false" />
           </v-card-actions>
         </v-card>
       </v-dialog>
