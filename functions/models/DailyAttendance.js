@@ -25,6 +25,7 @@ const BATCH_LIMIT = 500
  * @author shisyamo4131
  * @updates
  * - version 1.1.0 - 2024-10-16 - createInRange をバッチ処理に変更
+ *                                updateWeeklyAttendance をバッチ処理に変更
  * - version 1.0.0 - 2024-10-09 - 初版作成
  */
 export default class DailyAttendance extends FireModel {
