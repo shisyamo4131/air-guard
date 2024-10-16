@@ -197,12 +197,14 @@ export default class MonthlyAttendance extends FireModel {
       }
 
       // 期間内の DailyAttendance ドキュメントを取得
+      const dailyAttendanceInstance = new DailyAttendanceForMonthlyAttendance()
       const getDailyAttendances = async (employeeId) => {
         const queryRef = firestore
           .collection('DailyAttendances')
           .where('employeeId', '==', employeeId)
           .where('date', '>=', startDate)
           .where('date', '<=', endDate)
+          .withConverter(dailyAttendanceInstance.converter())
         const querySnapshot = await queryRef.get()
         return querySnapshot.docs.map((doc) => doc.data())
       }
