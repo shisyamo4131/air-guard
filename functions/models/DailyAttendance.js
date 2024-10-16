@@ -21,9 +21,10 @@ const BATCH_LIMIT = 500
  *   employeeContracts プロパティや operationWorkResults プロパティで受け取った値で勤務時間などの
  *   計算結果を返すようにしています。
  *
- * @version 1.0.0
+ * @version 1.1.0
  * @author shisyamo4131
  * @updates
+ * - version 1.1.0 - 2024-10-16 - createInRange をバッチ処理に変更
  * - version 1.0.0 - 2024-10-09 - 初版作成
  */
 export default class DailyAttendance extends FireModel {
@@ -627,7 +628,7 @@ export default class DailyAttendance extends FireModel {
   }
 
   /****************************************************************************
-   * 指定された日付範囲に基づいて、期間中に在職している全従業員の出勤記録をトランザクションで作成します。
+   * 指定された日付範囲に基づいて、期間中に在職している全従業員の出勤記録をバッチ処理で作成します。
    * - DailyAttendance クラスは雇用契約（EmployeeContract）、稼働実績（OperationWorkResult）をプロパティで受け取ることが可能で、
    *   これらを参照して労働日区分や各種労働時間、残業時間などを自動で計算してプロパティで提供します。
    * - 但し、週残（週の労働時間が40時間を超えた分）は単一ドキュメントでは計算できません。
@@ -635,8 +636,7 @@ export default class DailyAttendance extends FireModel {
    * @param {Object} params - 入力パラメータ。
    * @param {string} params.from - 出勤記録の開始日（YYYY-MM-DD）。
    * @param {string} params.to - 出勤記録の終了日（YYYY-MM-DD）。
-   * @param {string} [param0.employeeId] - フィルタリング対象の従業員ID（オプション）。
-   * @throws {Error} トランザクションが失敗した場合、または必須パラメータが不足している場合はエラーが発生します。
+   * @param {string} [params.employeeId] - フィルタリング対象の従業員ID（オプション）。
    ****************************************************************************/
   static async createInRange({
     from = null,
@@ -651,10 +651,7 @@ export default class DailyAttendance extends FireModel {
     }
 
     try {
-      /**
-       * 期間内の DailyAttendance ドキュメントをすべて削除
-       * - 一度作成された後に退職手続きがされるなど、不要な DailyAttendance ドキュメントが残ることを回避します。
-       */
+      // 期間内の DailyAttendance ドキュメントをすべて削除
       await this.#deleteInRange({ from, to, employeeId })
 
       let employeeIds = []
@@ -667,54 +664,81 @@ export default class DailyAttendance extends FireModel {
         employeeIds = employees.map(({ docId }) => docId)
       }
 
-      // すべての従業員をループ処理
-      for (const employeeId of employeeIds) {
-        // トランザクション
-        await firestore.runTransaction(async (transaction) => {
-          // 従業員の雇用契約を取得
-          const params = { employeeId, from, to, transaction }
-          const employeeContracts =
-            await EmployeeContractForDailyAttendance.getEmployeeContracts(
-              params
-            )
-
-          // 稼働勤務実績を取得
-          const operationWorkResults =
-            await OperationWorkResultForDailyAttendance.getOperationWorkResults(
-              params
-            )
-
-          // 期間中の日付ごとに処理
-          const [fromDayjs, toDayjs] = [dayjs(from), dayjs(to)]
-          for (
-            let currentDate = fromDayjs;
-            currentDate.isSameOrBefore(toDayjs);
-            currentDate = currentDate.add(1, 'day')
-          ) {
-            const date = currentDate.format('YYYY-MM-DD')
-            const docId = `${employeeId}-${date}`
-            const instance = new this({
-              date,
+      // 従業員の雇用契約を取得
+      const employeeContracts = (
+        await Promise.all(
+          employeeIds.map((employeeId) =>
+            EmployeeContractForDailyAttendance.getEmployeeContracts({
               employeeId,
-              employeeContracts,
-              operationWorkResults: operationWorkResults.filter(
-                (result) => result.date === date
-              ),
+              from,
+              to,
             })
+          )
+        )
+      ).flat()
 
-            // ドキュメントを作成
-            instance.create({ docId, transaction })
-          }
-        })
+      // 従業員の稼働実績を取得
+      const operationWorkResults = (
+        await Promise.all(
+          employeeIds.map((employeeId) =>
+            OperationWorkResultForDailyAttendance.getOperationWorkResults({
+              employeeId,
+              from,
+              to,
+            })
+          )
+        )
+      ).flat()
+
+      // バッチ処理を開始する
+      const batchArray = []
+      let batchIndex = 0
+
+      // 全従業員についてループ処理
+      for (const employeeId of employeeIds) {
+        // 日付ごとのループ
+        const [fromDayjs, toDayjs] = [dayjs(from), dayjs(to)]
+        for (
+          let currentDate = fromDayjs;
+          currentDate.isSameOrBefore(toDayjs);
+          currentDate = currentDate.add(1, 'day')
+        ) {
+          const date = currentDate.format('YYYY-MM-DD')
+          const docId = `${employeeId}-${date}`
+          const instance = new this({
+            date,
+            employeeId,
+            employeeContracts: employeeContracts.filter(
+              (contract) => contract.employeeId === employeeId
+            ),
+            operationWorkResults: operationWorkResults.filter(
+              (result) =>
+                result.employeeId === employeeId && result.date === date
+            ),
+          })
+
+          // バッチの初期化
+          if (batchIndex % BATCH_LIMIT === 0) batchArray.push(firestore.batch())
+
+          // ドキュメントをバッチで作成
+          const docRef = firestore.collection('DailyAttendances').doc(docId)
+          batchArray[batchArray.length - 1].set(docRef, instance.toObject())
+
+          batchIndex++
+        }
       }
 
-      // 処理完了ログを出力
+      // すべてのバッチをコミット
+      await Promise.all(batchArray.map((batch) => batch.commit()))
+
+      // 処理完了のログを出力
       logger.info(
         `[createInRange] DailyAttendance ドキュメントの作成処理が完了しました。`,
         { from, to }
       )
     } catch (error) {
-      logger.error('Transaction failed: ', error) // eslint-disable-line no-console
+      // エラー発生時のログとエラーメッセージ
+      logger.error('[createInRange] 処理中にエラーが発生しました。', error) // eslint-disable-line no-console
       throw new Error('Failed to create attendance records: ' + error.message)
     }
   }
@@ -799,7 +823,7 @@ export default class DailyAttendance extends FireModel {
    * @param {string} params.from - 出勤記録の開始日（YYYY-MM-DD）。
    * @param {string} params.to - 出勤記録の終了日（YYYY-MM-DD）。
    * @param {string} [params.employeeId] - 処理対象の従業員ID（オプション）。
-   * @throws {Error} トランザクションが失敗した場合、または必須パラメータが不足している場合にエラーが発生します。
+   * @throws {Error} 処理が失敗した場合、または必須パラメータが不足している場合にエラーが発生します。
    ****************************************************************************/
   static async updateWeeklyAttendance({
     from = null,
@@ -817,128 +841,148 @@ export default class DailyAttendance extends FireModel {
     let maxDate = ''
 
     try {
-      // 一週間の単位を取得
+      // 一週間の単位を取得 -> 月曜日を開始とする一週間の単位が取得されるため from, to の範囲とは異なる
       const weeklyRanges = this.#getWeeklyRanges({ from, to })
+
+      // 全対象期間の DailyAttendance ドキュメントを取得
+      const colRef = firestore.collection('DailyAttendances')
+      let queryRef = colRef
+        .where('date', '>=', weeklyRanges[0].from)
+        .where('date', '<=', weeklyRanges[weeklyRanges.length - 1].to)
+      if (employeeId) queryRef = queryRef.where('employeeId', '==', employeeId)
+      const querySnapshot = await queryRef.get()
+      const dailyAttendancesAll = querySnapshot.docs.map((doc) => {
+        return { ...doc.data(), docRef: doc.ref }
+      })
+
+      // バッチを準備
+      const batchArray = []
+      let batchIndex = 0
 
       // 週単位で処理
       for (const weeklyRange of weeklyRanges) {
         ;[minDate, maxDate] = [weeklyRange.from, weeklyRange.to]
 
-        // 一旦、DailyAttendance ドキュメントを取得
-        const colRef = firestore.collection('DailyAttendances')
-        let queryRef = colRef
-          .where('date', '>=', minDate)
-          .where('date', '<=', maxDate)
-        if (employeeId)
-          queryRef = queryRef.where('employeeId', '==', employeeId)
-        const querySnapshot = await queryRef.get()
+        // 対象週の DailyAttendance ドキュメントを取得
+        const dailyAttendancesWeek = dailyAttendancesAll.filter(
+          ({ date }) => date >= minDate && date <= maxDate
+        )
 
         // 対象の DailyAttendance ドキュメントが存在する場合にのみ処理
-        if (!querySnapshot.empty) {
+        if (dailyAttendancesWeek.length > 0) {
           // 取得した DailyAttendance ドキュメントから employeeId を重複なしで取得
           const employeeIds = [
-            ...new Set(querySnapshot.docs.map((doc) => doc.data().employeeId)),
+            ...new Set(
+              dailyAttendancesWeek.map(({ employeeId }) => employeeId)
+            ),
           ]
 
-          // 従業員ごとにトランザクション処理
+          // 従業員ごとにループ処理
           for (const employeeId of employeeIds) {
-            await firestore.runTransaction(async (transaction) => {
-              // トランザクション内で更新対象の DailyAttendance ドキュメントを取得
-              const dailyAttendancesRef = firestore
-                .collection('DailyAttendances')
-                .where('date', '>=', minDate)
-                .where('date', '<=', maxDate)
-                .where('employeeId', '==', employeeId)
-              const dailyAttendanceSnapshot = await transaction.get(
-                dailyAttendancesRef
-              )
-              const dailyAttendances = dailyAttendanceSnapshot.docs.map(
-                (doc) => {
-                  return { docRef: doc.ref, ...doc.data() } // 後でドキュメントを更新するため doc.ref を追加しておく
-                }
+            // 対象従業員の DailyAttendance ドキュメントを取得
+            const dailyAttendances = dailyAttendancesWeek.filter(
+              (attendance) => attendance.employeeId === employeeId
+            )
+
+            // 所定労働日の出勤簿を取得
+            const scheduledAttendances = dailyAttendances.filter(
+              (doc) => doc.dayType === 'scheduled'
+            )
+
+            // 所定労働日の週労働時間を計算
+            const weeklyWorkingMinutes = scheduledAttendances.reduce(
+              (sum, i) => {
+                return (
+                  sum + i.scheduledWorkingMinutes + i.statutoryOvertimeMinutes
+                )
+              },
+              0
+            )
+
+            // 法定内余剰時間を取得
+            let excess = Math.max(2400 - weeklyWorkingMinutes, 0)
+
+            // 法定外休日の出勤簿を取得
+            const nonStatutoryAttendances = dailyAttendances.filter(
+              (doc) => doc.dayType === 'non-statutory-holiday'
+            )
+
+            // 法定外休日の出勤簿について所定外労働時間を法定内・法定外残業時間に振り分ける
+            for (const nonStatutoryAttendance of nonStatutoryAttendances) {
+              // バッチを初期化
+              if (batchIndex % BATCH_LIMIT === 0)
+                batchArray.push(firestore.batch())
+
+              // 法定内残業時間（所定外労働時間と法定内余剰時間のうち小さい方を採用）
+              const statutoryOvertimeMinutes = Math.min(
+                nonStatutoryAttendance.nonScheduledWorkingMinutes,
+                excess
               )
 
-              // 所定労働日の出勤簿を取得
-              const scheduledAttendances = dailyAttendances.filter(
-                (doc) => doc.dayType === 'scheduled'
-              )
-
-              // 所定労働日の週労働時間を計算
-              const weeklyWorkingMinutes = scheduledAttendances.reduce(
-                (sum, i) => {
-                  return (
-                    sum + i.scheduledWorkingMinutes + i.statutoryOvertimeMinutes
-                  )
-                },
+              // 法定外残業時間（所定外残業時間から法定内残業時間を差し引く：最小0）
+              const nonStatutoryOvertimeMinutes = Math.max(
+                nonStatutoryAttendance.nonScheduledWorkingMinutes -
+                  statutoryOvertimeMinutes,
                 0
               )
 
-              // 法定内余剰時間を取得
-              let excess = Math.max(2400 - weeklyWorkingMinutes, 0)
-
-              // 法定外休日の出勤簿を取得
-              const nonStatutoryAttendances = dailyAttendances.filter(
-                (doc) => doc.dayType === 'non-statutory-holiday'
-              )
-
-              // 法定外休日の出勤簿について所定外労働時間を法定内・法定外残業時間に振り分ける
-              for (const nonStatutoryAttendance of nonStatutoryAttendances) {
-                // 法定内残業時間（所定外労働時間と法定内余剰時間のうち小さい方を採用）
-                const statutoryOvertimeMinutes = Math.min(
-                  nonStatutoryAttendance.nonScheduledWorkingMinutes,
-                  excess
-                )
-
-                // 法定外残業時間（所定外残業時間から法定内残業時間を差し引く：最小0）
-                const nonStatutoryOvertimeMinutes = Math.max(
-                  nonStatutoryAttendance.nonScheduledWorkingMinutes -
-                    statutoryOvertimeMinutes,
-                  0
-                )
-
-                // 法定内残業時間と法定外残業時間を更新
-                transaction.update(nonStatutoryAttendance.docRef, {
+              // 法定内残業時間と法定外残業時間を更新
+              batchArray[batchArray.length - 1].update(
+                nonStatutoryAttendance.docRef,
+                {
                   statutoryOvertimeMinutes,
                   nonStatutoryOvertimeMinutes,
-                })
-
-                // 法定内余剰時間を更新
-                excess = Math.max(excess - statutoryOvertimeMinutes, 0)
-              }
-
-              // 法定休日の出勤簿を取得
-              const legalHolidayAttendances = dailyAttendances.filter(
-                (doc) => doc.dayType === 'legal-holiday'
+                }
               )
 
-              // 法定休日の出勤簿について所定外労働時間を法定内・法定外残業時間に振り分ける
-              for (const legalHolidayAttendance of legalHolidayAttendances) {
-                // 法定内残業時間（所定外労働時間と法定内余剰時間のうち小さい方を採用）
-                const statutoryOvertimeMinutes = Math.min(
-                  legalHolidayAttendance.nonScheduledWorkingMinutes,
-                  excess
-                )
+              batchIndex++
 
-                // 法定外残業時間（所定外残業時間から法定内残業時間を差し引く：最小0）
-                const nonStatutoryOvertimeMinutes = Math.max(
-                  legalHolidayAttendance.nonScheduledWorkingMinutes -
-                    statutoryOvertimeMinutes,
-                  0
-                )
+              // 法定内余剰時間を更新
+              excess = Math.max(excess - statutoryOvertimeMinutes, 0)
+            }
 
-                // 法定内残業時間と法定外残業時間を更新
-                transaction.update(legalHolidayAttendance.docRef, {
+            // 法定休日の出勤簿を取得
+            const legalHolidayAttendances = dailyAttendances.filter(
+              (doc) => doc.dayType === 'legal-holiday'
+            )
+
+            // 法定休日の出勤簿について所定外労働時間を法定内・法定外残業時間に振り分ける
+            for (const legalHolidayAttendance of legalHolidayAttendances) {
+              // バッチを初期化
+              if (batchIndex % BATCH_LIMIT === 0)
+                batchArray.push(firestore.batch())
+
+              // 法定内残業時間（所定外労働時間と法定内余剰時間のうち小さい方を採用）
+              const statutoryOvertimeMinutes = Math.min(
+                legalHolidayAttendance.nonScheduledWorkingMinutes,
+                excess
+              )
+
+              // 法定外残業時間（所定外残業時間から法定内残業時間を差し引く：最小0）
+              const nonStatutoryOvertimeMinutes = Math.max(
+                legalHolidayAttendance.nonScheduledWorkingMinutes -
+                  statutoryOvertimeMinutes,
+                0
+              )
+
+              // 法定内残業時間と法定外残業時間を更新
+              batchArray[batchArray.length - 1].update(
+                legalHolidayAttendance.docRef,
+                {
                   statutoryOvertimeMinutes,
                   nonStatutoryOvertimeMinutes,
-                })
+                }
+              )
 
-                // 法定内余剰時間を更新
-                excess = Math.max(excess - statutoryOvertimeMinutes, 0)
-              }
-            })
+              batchIndex++
+
+              // 法定内余剰時間を更新
+              excess = Math.max(excess - statutoryOvertimeMinutes, 0)
+            }
           }
         }
       }
+      await Promise.all(batchArray.map((batch) => batch.commit()))
 
       // 処理完了ログを出力
       logger.info(
