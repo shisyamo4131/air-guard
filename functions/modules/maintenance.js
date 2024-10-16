@@ -91,7 +91,7 @@ export const refreshIndex = onCall(async (request) => {
   }
 })
 
-export const refreshMonthlyAttendances = onCall((request) => {
+export const refreshMonthlyAttendances = onCall(async (request) => {
   const { month } = request.data
 
   // 非同期処理の開始をログで通知
@@ -100,7 +100,7 @@ export const refreshMonthlyAttendances = onCall((request) => {
   )
 
   // 非同期で calculateMonthlyAttendances を実行
-  System.calculateMonthlyAttendances({ month })
+  await System.calculateMonthlyAttendances({ month })
 
   // 処理が完了するのを待たずに、正常終了のメッセージを返す
   return {
