@@ -6,6 +6,7 @@ import {
   httpsCallable,
 } from 'firebase/functions'
 import { doc, runTransaction } from 'firebase/firestore'
+import dayjs from 'dayjs'
 import { classProps } from './propsDefinition/LeaveRecord'
 
 /**
@@ -75,7 +76,8 @@ export default class LeaveRecord extends FireModel {
       }
       const month = this.date.slice(0, 7)
       const employeeId = this.employeeId
-      await LeaveRecord.#refreshMonthlyAttendance({ month, employeeId })
+      const date = this.date
+      await LeaveRecord.#refreshMonthlyAttendance({ month, employeeId, date })
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(
@@ -95,7 +97,8 @@ export default class LeaveRecord extends FireModel {
       await super.update()
       const month = this.date.slice(0, 7)
       const employeeId = this.employeeId
-      await LeaveRecord.#refreshMonthlyAttendance({ month, employeeId })
+      const date = this.date
+      await LeaveRecord.#refreshMonthlyAttendance({ month, employeeId, date })
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(
@@ -115,7 +118,8 @@ export default class LeaveRecord extends FireModel {
       await super.delete()
       const month = this.date.slice(0, 7)
       const employeeId = this.employeeId
-      await LeaveRecord.#refreshMonthlyAttendance({ month, employeeId })
+      const date = this.date
+      await LeaveRecord.#refreshMonthlyAttendance({ month, employeeId, date })
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(
@@ -129,29 +133,42 @@ export default class LeaveRecord extends FireModel {
   /****************************************************************************
    * 指定された月の出勤簿を更新するメソッドです。
    * - Firebase Functions の `maintenance-refreshMonthlyAttendances` 関数を呼び出して、出勤簿の更新処理を行います。
+   * - 集計対象の出勤簿ドキュメント数を抑制するため、ここでは更新対象日 date が必須となります。
+   *   -> 各集計関数は date をオプションで受け取ることができます。
    * - ローカル環境の場合は、Functions エミュレーターに接続します。
    *
    * @param {Object} param0 - 入力パラメータ。
    * @param {string} param0.month - 更新対象の月（YYYY-MM形式、必須）。
    * @param {string} param0.employeeId - 更新対象の従業員ID（必須）。
+   * @param {string} param0.date - 更新対象の日付（必須）。
    * @throws {Error} 更新処理中にエラーが発生した場合にスローされます。
    ****************************************************************************/
-  static async #refreshMonthlyAttendance({ month, employeeId } = {}) {
-    // month と employeeId が指定されているかチェック
-    if (!month || !employeeId) {
+  static async #refreshMonthlyAttendance({ month, employeeId, date } = {}) {
+    // month, employeeId, date が指定されているかチェック
+    if (!month || !employeeId || !date) {
       const message =
-        '[refreshMonthlyAttendance] month および employeeId は必須です。'
-      // eslint-disable-next-line no-console
-      console.error(message)
+        '[refreshMonthlyAttendance] month, employeeId, date は必須です。'
+      console.error(message) // eslint-disable-line no-console
       throw new Error(message)
     }
 
     // month が 'YYYY-MM' 形式であるかチェック
-    const regex = /^\d{4}-(0[1-9]|1[0-2])$/
-    if (typeof month !== 'string' || !regex.test(month)) {
+    const regexMonth = /^\d{4}-(0[1-9]|1[0-2])$/
+    if (typeof month !== 'string' || !regexMonth.test(month)) {
       const message = `[refreshMonthlyAttendance] month は 'YYYY-MM' 形式の文字列である必要があります。`
-      // eslint-disable-next-line no-console
-      console.error(message, { month })
+      console.error(message, { month }) // eslint-disable-line no-console
+      throw new Error(message)
+    }
+
+    // date が 'YYYY-MM-DD' 形式であり、妥当な日付であるかチェック
+    const regexDate = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/
+    if (
+      typeof date !== 'string' ||
+      !regexDate.test(date) ||
+      !dayjs(date, 'YYYY-MM-DD', true).isValid()
+    ) {
+      const message = `[refreshMonthlyAttendance] date は 'YYYY-MM-DD' 形式で、妥当な日付である必要があります。`
+      console.error(message, { date }) // eslint-disable-line no-console
       throw new Error(message)
     }
 
@@ -169,18 +186,14 @@ export default class LeaveRecord extends FireModel {
         functions,
         'maintenance-refreshMonthlyAttendances'
       )
-      const result = await func({ month, employeeId })
+      const result = await func({ month, employeeId, date })
 
       // 成功メッセージをコンソールに表示
-      // eslint-disable-next-line no-console
-      console.info(result.data.message)
+      console.info(result.data.message) // eslint-disable-line no-console
     } catch (err) {
-      // エラーメッセージをコンソールに出力
-      // eslint-disable-next-line no-console
-      console.error(
-        '[refreshMonthlyAttendance] 出勤簿の更新処理で不明なエラーが発生しました。',
-        err
-      )
+      const message =
+        '[refreshMonthlyAttendance] 出勤簿の更新処理で不明なエラーが発生しました。'
+      console.error(message, err) // eslint-disable-line no-console
       throw err // エラーを再スローして呼び出し元に通知
     }
   }

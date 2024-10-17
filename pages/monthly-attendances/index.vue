@@ -158,16 +158,6 @@ export default {
         this.editMode = this.CREATE
       }
     },
-    isCalculating: {
-      handler(v) {
-        if (!v) {
-          this.subscribe()
-        } else {
-          this.listener.unsubscribe()
-        }
-      },
-      immediate: true,
-    },
     month: {
       handler(v) {
         this.items.splice(0)
@@ -220,6 +210,7 @@ export default {
       ])
     },
     async recalc() {
+      this.loading = true
       try {
         const firebaseApp = getApp()
         const functions = getFunctions(firebaseApp, 'asia-northeast1')
@@ -234,6 +225,8 @@ export default {
         console.info(result.data.message) // eslint-disable-line no-console
       } catch (err) {
         console.error('Error calling function:', err) // eslint-disable-line no-console
+      } finally {
+        this.loading = false
       }
     },
   },
@@ -260,8 +253,8 @@ export default {
       </g-dialog-month-picker>
       <v-btn
         color="primary"
-        :disabled="loading"
-        :loading="isCalculating"
+        :disabled="isCalculating || loading"
+        :loading="isCalculating || loading"
         @click="recalc"
         >実績更新</v-btn
       >
@@ -292,7 +285,6 @@ export default {
           </v-card-title>
           <v-card-text class="px-0 px-md-6">
             <g-calendar-daily-attendances
-              v-show="!loading"
               style="height: auto"
               :value="currentDate"
               :items="dailyAttendances"

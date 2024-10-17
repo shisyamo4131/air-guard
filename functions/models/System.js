@@ -1,11 +1,14 @@
 import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import dayjs from 'dayjs'
+import updateLocale from 'dayjs/plugin/updateLocale.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/System.js'
 import DailyAttendance from './DailyAttendance.js'
 import MonthlyAttendance from './MonthlyAttendance.js'
 const firestore = getFirestore()
+dayjs.extend(updateLocale)
+dayjs.updateLocale('en', { weekStart: 1 })
 
 /**
  * ## Systems ドキュメントデータモデル
@@ -42,14 +45,17 @@ export default class System extends FireModel {
    * - エラーが発生した場合、エラーログは出力されますが、エラーはスローされません。
    * - 処理に成功すると System ドキュメントの calculateAttendance プロパティが成功の状態で更新されます。
    * - 処理に失敗すると System ドキュメントの calculateAttendance プロパティが失敗の状態で更新されます。
+   * - 引数 date が指定された場合、指定日を含む一週間（月～日）までの出勤簿データを作成・更新します。
    *
    * @param {Object} param0 - 入力パラメータ。
    * @param {string} param0.month - 処理対象の月（YYYY-MM 形式）。
    * @param {string} param0.employeeId - 処理対象の従業員ID（任意）。
+   * @param {string} param0.date - 処理対象の日（任意: YYYY-MM-DD 形式）。
    ****************************************************************************/
   static async calculateMonthlyAttendances({
     month = null,
     employeeId = null,
+    date = null,
   } = {}) {
     // 引数のチェック
     if (!month) {
@@ -108,8 +114,12 @@ export default class System extends FireModel {
       if (!fileCheck) return
 
       // 日付範囲を決定
-      const from = dayjs(`${month}-01`).format('YYYY-MM-DD')
-      const to = dayjs(`${month}-01`).endOf('month').format('YYYY-MM-DD')
+      const from = date
+        ? dayjs(date).startOf('week').format('YYYY-MM-DD')
+        : dayjs(`${month}-01`).format('YYYY-MM-DD')
+      const to = date
+        ? dayjs(date).endOf('week').format('YYYY-MM-DD')
+        : dayjs(`${month}-01`).endOf('month').format('YYYY-MM-DD')
 
       // DailyAttendance.createInRange を実行
       logger.info(
