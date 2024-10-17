@@ -3,12 +3,15 @@ import { logger } from 'firebase-functions/v2'
 import dayjs from 'dayjs'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore.js'
 import isoWeek from 'dayjs/plugin/isoWeek.js'
+import updateLocale from 'dayjs/plugin/updateLocale.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/MonthlyAttendance.js'
 import Employee from './Employee.js'
 import DailyAttendanceForMonthlyAttendance from './DailyAttendanceForMonthlyAttendance.js'
 dayjs.extend(isSameOrBefore)
 dayjs.extend(isoWeek)
+dayjs.extend(updateLocale)
+dayjs.updateLocale('en', { weekStart: 1 })
 const firestore = getFirestore()
 const BATCH_LIMIT = 500
 
@@ -34,6 +37,8 @@ export default class MonthlyAttendance extends FireModel {
    ****************************************************************************/
   static customClassMap = {
     dailyAttendances: DailyAttendanceForMonthlyAttendance,
+    dailyAttendancesPrev: DailyAttendanceForMonthlyAttendance,
+    dailyAttendancesNext: DailyAttendanceForMonthlyAttendance,
   }
 
   /****************************************************************************
@@ -174,16 +179,15 @@ export default class MonthlyAttendance extends FireModel {
       await this.#deleteInRange({ month, employeeId })
 
       // 期間開始日と終了日を取得
-      const startDate = dayjs(`${month}-01`).format('YYYY-MM-DD')
-      const endDate = dayjs(`${month}-01`).endOf('month').format('YYYY-MM-DD')
+      const from = dayjs(`${month}-01`).format('YYYY-MM-DD')
+      const to = dayjs(`${month}-01`).endOf('month').format('YYYY-MM-DD')
 
       let employeeIds = []
       if (employeeId) {
         employeeIds.push(employeeId)
       } else {
         // 期間内に在職している従業員データを取得
-        const paramsA = { from: startDate, to: endDate }
-        const employees = await Employee.getExistingEmployees(paramsA)
+        const employees = await Employee.getExistingEmployees({ from, to })
         employeeIds = employees.map(({ docId }) => docId)
       }
 
@@ -196,14 +200,16 @@ export default class MonthlyAttendance extends FireModel {
         return
       }
 
-      // 期間内の DailyAttendance ドキュメントを取得
+      // 期間内の DailyAttendance ドキュメントを取得 -> 週単位で前月分・翌月分も必要
       const dailyAttendanceInstance = new DailyAttendanceForMonthlyAttendance()
+      const start = dayjs(from).startOf('week').format('YYYY-MM-DD')
+      const end = dayjs(to).endOf('week').format('YYYY-MM-DD')
       const getDailyAttendances = async (employeeId) => {
         const queryRef = firestore
           .collection('DailyAttendances')
           .where('employeeId', '==', employeeId)
-          .where('date', '>=', startDate)
-          .where('date', '<=', endDate)
+          .where('date', '>=', start)
+          .where('date', '<=', end)
           .withConverter(dailyAttendanceInstance.converter())
         const querySnapshot = await queryRef.get()
         return querySnapshot.docs.map((doc) => doc.data())
@@ -234,9 +240,17 @@ export default class MonthlyAttendance extends FireModel {
           docId,
           employeeId,
           month,
-          startDate,
-          endDate,
-          dailyAttendances,
+          startDate: from,
+          endDate: to,
+          dailyAttendances: dailyAttendances.filter(
+            ({ date }) => date >= from && date <= to
+          ),
+          dailyAttendancesPrev: dailyAttendances.filter(
+            ({ date }) => date < from
+          ),
+          dailyAttendancesNext: dailyAttendances.filter(
+            ({ date }) => date > to
+          ),
         })
 
         // ドキュメントを作成

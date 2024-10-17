@@ -110,7 +110,22 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+  // 出勤簿ドキュメント（当月）
   dailyAttendances: {
+    type: Object,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
+  },
+  // 出勤簿ドキュメント（前月）
+  dailyAttendancesPrev: {
+    type: Object,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
+  },
+  // 出勤簿ドキュメント（翌月）
+  dailyAttendancesNext: {
     type: Object,
     default: () => [],
     required: false,

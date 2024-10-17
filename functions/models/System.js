@@ -113,13 +113,19 @@ export default class System extends FireModel {
 
       if (!fileCheck) return
 
-      // 日付範囲を決定 -> date が指定されている場合は、date を含む一週間（月～日）
+      /**
+       * 日付範囲を決定
+       * - date が指定されている場合は date を含む一週間（月～日）
+       * - date が指定されていない場合は from, to を month から拡張
+       *   -> from は月初から月曜日まで遡る
+       *   -> to は月末から日曜日まで遡る
+       */
       const from = date
         ? dayjs(date).startOf('week').format('YYYY-MM-DD')
-        : dayjs(`${month}-01`).format('YYYY-MM-DD')
+        : dayjs(`${month}-01`).startOf('week').format('YYYY-MM-DD')
       const to = date
         ? dayjs(date).endOf('week').format('YYYY-MM-DD')
-        : dayjs(`${month}-01`).endOf('month').format('YYYY-MM-DD')
+        : dayjs(`${month}-01`).endOf('month').endOf('week').format('YYYY-MM-DD')
 
       // DailyAttendance.createInRange を実行
       logger.info(

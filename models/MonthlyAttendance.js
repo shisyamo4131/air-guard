@@ -1,6 +1,6 @@
 import { FireModel } from 'air-firebase'
 import { classProps } from './propsDefinition/MontlyAttendance'
-import DailyAttendance from './DailyAttendance'
+import DailyAttendanceForMonthlyAttendance from './DailyAttendanceForMonthlyAttendance'
 
 /**
  * ## MonthlyAttendancesドキュメントデータモデル【論理削除】
@@ -22,6 +22,8 @@ export default class MonthlyAttendance extends FireModel {
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
-    dailyAttendances: DailyAttendance,
+    dailyAttendances: DailyAttendanceForMonthlyAttendance,
+    dailyAttendancesPrev: DailyAttendanceForMonthlyAttendance,
+    dailyAttendancesNext: DailyAttendanceForMonthlyAttendance,
   }
 }

@@ -114,7 +114,11 @@ export default {
       )
     },
     dailyAttendances() {
-      return this.monthlyAttendance?.dailyAttendances || []
+      const current = this.monthlyAttendance?.dailyAttendances || []
+      const prev = this.monthlyAttendance?.dailyAttendancesPrev || []
+      const next = this.monthlyAttendance?.dailyAttendancesNext || []
+      return current.concat(prev, next)
+      // return this.monthlyAttendance?.dailyAttendances || []
     },
     dateLabel() {
       if (
