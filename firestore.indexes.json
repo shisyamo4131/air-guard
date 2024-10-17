@@ -141,6 +141,20 @@
       ]
     },
     {
+      "collectionGroup": "LeaveRecords",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "employeeId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "OperationWorkResults",
       "queryScope": "COLLECTION",
       "fields": [
