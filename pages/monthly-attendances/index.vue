@@ -78,14 +78,15 @@ export default {
     // 休暇情報で振替休日が選択された際に選択可能な日を判定する関数を返します
     allowedDatesForSubstitute() {
       const func = (date) => {
-        // 指定された日を含む週の開始日と終了日を取得
-        const from = this.$dayjs(date).startOf('week').format('YYYY-MM-DD')
-        const to = this.$dayjs(date).endOf('week').format('YYYY-MM-DD')
+        // 選択された日（selectedDate）日を含む週の開始日と終了日を取得
+        const selectedDate = this.$dayjs(this.selectedDate)
+        const from = selectedDate.startOf('week').format('YYYY-MM-DD')
+        const to = selectedDate.endOf('week').format('YYYY-MM-DD')
 
         // 期間外であれば対象外
         if (date < from || date > to) return false
 
-        // 指定された日で法定外休日または法定休日である出勤簿を取得
+        // 期間内で法定外休日または法定休日である出勤簿を取得
         const substitutable = this.dailyAttendances.find((attendance) => {
           return (
             attendance.date === date &&
