@@ -70,7 +70,7 @@ Object.defineProperties(ATTENDANCE_STATUS, {
   },
   leave: {
     value: {
-      short: '補償休',
+      short: '補休',
       toString() {
         return '補償休暇'
       },

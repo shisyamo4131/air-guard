@@ -63,14 +63,28 @@ export default {
               x-small
               label
               :value="events[date].dayType"
-              :short="$vuetify.breakpoint.mobile"
+              short
             />
           </div>
-          <div
-            v-if="events[date].attendanceStatus"
-            class="ml-md-auto text-center text-md-left"
-          >
+          <div class="ml-md-auto text-center text-md-left">
             {{ $ATTENDANCE_STATUS[events[date].attendanceStatus].short }}
+            <v-tooltip top>
+              <template #activator="{ attrs, on }">
+                <v-icon
+                  v-if="
+                    events[date].attendanceStatus === 'present' &&
+                    events[date].leaveRecord.docId &&
+                    events[date].leaveRecord.leaveType !== 'substitute'
+                  "
+                  v-bind="attrs"
+                  color="error"
+                  small
+                  v-on="on"
+                  >mdi-alert-circle</v-icon
+                >
+              </template>
+              休暇情報があります。
+            </v-tooltip>
           </div>
         </div>
         <div v-if="events[date].attendanceStatus === 'present'">
