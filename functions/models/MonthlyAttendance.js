@@ -255,7 +255,7 @@ export default class MonthlyAttendance extends FireModel {
     } catch (error) {
       const message =
         '[createInRange] MonthlyAttendance ドキュメントの作成処理でエラーが発生しました。'
-      logger.error(message, { month, error })
+      logger.error(message, { month, employeeId, error })
       throw error
     }
   }

@@ -787,7 +787,7 @@ export default class DailyAttendance extends FireModel {
       // 処理完了のログを出力
       logger.info(
         `[createInRange] DailyAttendance ドキュメントの作成処理が完了しました。`,
-        { from, to }
+        { from, to, employeeId }
       )
     } catch (error) {
       // エラー発生時のログとエラーメッセージ

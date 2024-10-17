@@ -91,13 +91,23 @@ export const refreshIndex = onCall(async (request) => {
   }
 })
 
+/****************************************************************************
+ * 出勤簿を月次更新するための onCall 関数です。
+ * - employeeId が指定されると、対象の従業員のみ処理します。
+ *
+ * @param {Object} request - Cloud Functions の `onCall` から渡されるリクエストオブジェクト。
+ * @param {string} request.month - 更新対象の年月（YYYY-MM形式）
+ * @param {string} request.employeeId - 更新対象の従業員ID（任意）
+ * @returns {Promise<void>} - 更新処理が完了した場合に解決される Promise。
+ * @throws {https.HttpsError} アプリ側とサーバーログの両方にエラーメッセージを出力。
+ ****************************************************************************/
 export const refreshMonthlyAttendances = onCall(async (request) => {
   const { month, employeeId } = request.data
 
   try {
     // 非同期処理の開始をログで通知
     logger.info(
-      `[refreshAttendances] 出勤簿の更新処理を開始しました。期間: ${month}${
+      `[refreshMonthlyAttendances] 出勤簿の更新処理を開始しました。期間: ${month}${
         employeeId ? `、従業員ID: ${employeeId}` : ''
       }`
     )
@@ -107,14 +117,14 @@ export const refreshMonthlyAttendances = onCall(async (request) => {
 
     // 処理完了のメッセージを返す
     return {
-      message: `[refreshAttendances] 出勤簿の更新処理が正常に完了しました。期間: ${month}${
+      message: `[refreshMonthlyAttendances] 出勤簿の更新処理が正常に完了しました。期間: ${month}${
         employeeId ? `、従業員ID: ${employeeId}` : ''
       }`,
     }
   } catch (error) {
     // サーバー側のエラーログ
     logger.error(
-      `[refreshAttendances] 出勤簿の更新処理で不明なエラーが発生しました。期間: ${month}${
+      `[refreshMonthlyAttendances] 出勤簿の更新処理で不明なエラーが発生しました。期間: ${month}${
         employeeId ? `、従業員ID: ${employeeId}` : ''
       }`,
       { request }

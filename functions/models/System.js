@@ -45,8 +45,12 @@ export default class System extends FireModel {
    *
    * @param {Object} param0 - 入力パラメータ。
    * @param {string} param0.month - 処理対象の月（YYYY-MM 形式）。
+   * @param {string} param0.employeeId - 処理対象の従業員ID（任意）。
    ****************************************************************************/
-  static async calculateMonthlyAttendances({ month }) {
+  static async calculateMonthlyAttendances({
+    month = null,
+    employeeId = null,
+  } = {}) {
     // 引数のチェック
     if (!month) {
       const message =
@@ -109,21 +113,27 @@ export default class System extends FireModel {
 
       // DailyAttendance.createInRange を実行
       logger.info(
-        `[calculateMonthlyAttendances] DailyAttendance.createInRange を実行します。期間: ${from} - ${to}`
+        `[calculateMonthlyAttendances] DailyAttendance.createInRange を実行します。期間: ${from} - ${to}${
+          employeeId ? `、従業員ID: ${employeeId}` : ''
+        }`
       )
-      await DailyAttendance.createInRange({ from, to })
+      await DailyAttendance.createInRange({ from, to, employeeId })
 
       // DailyAttendance.updateWeeklyAttendance を実行
       logger.info(
-        `[calculateMonthlyAttendances] DailyAttendance.updateWeeklyAttendance を実行します。期間: ${from} - ${to}`
+        `[calculateMonthlyAttendances] DailyAttendance.updateWeeklyAttendance を実行します。期間: ${from} - ${to}${
+          employeeId ? `、従業員ID: ${employeeId}` : ''
+        }`
       )
-      await DailyAttendance.updateWeeklyAttendance({ from, to })
+      await DailyAttendance.updateWeeklyAttendance({ from, to, employeeId })
 
       // MonthlyAttendance.createInRange を実行
       logger.info(
-        `[calculateMonthlyAttendances] MonthlyAttendance.createInRange を実行します。month: ${month}`
+        `[calculateMonthlyAttendances] MonthlyAttendance.createInRange を実行します。month: ${month}${
+          employeeId ? `、従業員ID: ${employeeId}` : ''
+        }`
       )
-      await MonthlyAttendance.createInRange({ month })
+      await MonthlyAttendance.createInRange({ month, employeeId })
 
       // 処理が完了したら System ドキュメントを 'ready' に更新
       await systemDocRef.update({
