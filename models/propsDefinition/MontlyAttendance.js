@@ -9,6 +9,13 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+  // 従業員CODE -> freee への CSV 出力に必要
+  employeeCode: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
   // 年月
   month: {
     type: String,
@@ -62,7 +69,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
-  // 所定外労働日数
+  // 所定休日労働日数
   totalNonScheduledWorkingDays: {
     type: Number,
     default: 0,
@@ -72,6 +79,14 @@ const propsDefinition = {
   },
   // 休日労働時間（分）
   holidayWorkingMinutes: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 休日労働日数
+  holidayWorkingDays: {
     type: Number,
     default: 0,
     validator: (v) => v >= 0,
@@ -104,6 +119,54 @@ const propsDefinition = {
   },
   // 深夜労働時間（分）
   nighttimeWorkingMinutes: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 遅刻時間（分）
+  lateMinutes: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 早退時間（分）
+  leaveEarlyMinutes: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 欠勤日数
+  absentDays: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 遅刻日数
+  lateDays: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 早退日数
+  leaveEarlyDays: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+  // 年休取得日数
+  annualPaidLeaveDays: {
     type: Number,
     default: 0,
     validator: (v) => v >= 0,

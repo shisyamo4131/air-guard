@@ -184,6 +184,28 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    downloadCsv() {
+      const data = this.items.map((item) => item.toFreee())
+
+      // PapaParseを使ってデータをCSV形式に変換
+      const csv = this.$papa.unparse(data)
+
+      // Blobを作成
+      const blob = new Blob([csv], { type: 'text/csv:charset=utf-8;' })
+
+      // ダウンロード用のリンクを作成
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', 'freee.csv')
+      document.body.appendChild(link)
+
+      // リンクをクリックしてダウンロードを開始
+      link.click()
+
+      // リンクを削除
+      document.body.removeChild(link)
+    },
     onClickRow(item) {
       this.selectedEmployeeId = item.employeeId
       this.dialog.calendar = true
@@ -262,6 +284,13 @@ export default {
         :loading="isCalculating || loading"
         @click="recalc"
         >実績更新</v-btn
+      >
+      <v-btn
+        color="primary"
+        :disabled="isCalculating || loading"
+        :loading="isCalculating || loading"
+        @click="downloadCsv"
+        >CSV</v-btn
       >
       <v-spacer />
     </template>

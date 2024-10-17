@@ -96,7 +96,7 @@ export default class MonthlyAttendance extends FireModel {
         get() {
           return this.dailyAttendances.filter(
             ({ dayType, totalWorkingMinutes }) =>
-              dayType !== 'scheduled' && totalWorkingMinutes > 0
+              dayType === 'non-statutory-holiday' && totalWorkingMinutes > 0
           ).length
         },
         set(v) {},
@@ -109,6 +109,17 @@ export default class MonthlyAttendance extends FireModel {
             (sum, i) => sum + i.holidayWorkingMinutes,
             0
           )
+        },
+        set(v) {},
+      },
+      holidayWorkingDays: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.dailyAttendances.filter(
+            ({ dayType, totalWorkingMinutes }) =>
+              dayType === 'legal-holiday' && totalWorkingMinutes > 0
+          ).length
         },
         set(v) {},
       },
@@ -142,6 +153,26 @@ export default class MonthlyAttendance extends FireModel {
             (sum, i) => sum + i.nonStatutoryOvertimeMinutes,
             0
           )
+        },
+        set(v) {},
+      },
+      absentDays: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.dailyAttendances.filter(
+            ({ attendanceStatus }) => attendanceStatus === 'absent'
+          ).length
+        },
+        set(v) {},
+      },
+      annualPaidLeaveDays: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.dailyAttendances.filter(
+            ({ leaveRecord }) => leaveRecord?.isAnnualPaidLeave
+          ).length
         },
         set(v) {},
       },
@@ -182,17 +213,18 @@ export default class MonthlyAttendance extends FireModel {
       const from = dayjs(`${month}-01`).format('YYYY-MM-DD')
       const to = dayjs(`${month}-01`).endOf('month').format('YYYY-MM-DD')
 
-      let employeeIds = []
+      let employees = []
       if (employeeId) {
-        employeeIds.push(employeeId)
+        const employeeInstance = new Employee()
+        const employee = await employeeInstance.fetchDoc(employeeId)
+        employees.push(employee)
       } else {
         // 期間内に在職している従業員データを取得
-        const employees = await Employee.getExistingEmployees({ from, to })
-        employeeIds = employees.map(({ docId }) => docId)
+        employees = await Employee.getExistingEmployees({ from, to })
       }
 
       // 処理対象の従業員が存在しなければログを出力して終了
-      if (!employeeIds.length) {
+      if (!employees.length) {
         logger.info(
           `[createInRange] MonthlyAttendance 作成対象の従業員が存在しませんでした。`,
           { month }
@@ -204,10 +236,10 @@ export default class MonthlyAttendance extends FireModel {
       const dailyAttendanceInstance = new DailyAttendanceForMonthlyAttendance()
       const start = dayjs(from).startOf('week').format('YYYY-MM-DD')
       const end = dayjs(to).endOf('week').format('YYYY-MM-DD')
-      const getDailyAttendances = async (employeeId) => {
+      const getDailyAttendances = async (docId) => {
         const queryRef = firestore
           .collection('DailyAttendances')
-          .where('employeeId', '==', employeeId)
+          .where('employeeId', '==', docId)
           .where('date', '>=', start)
           .where('date', '<=', end)
           .withConverter(dailyAttendanceInstance.converter())
@@ -216,9 +248,7 @@ export default class MonthlyAttendance extends FireModel {
       }
       const dailyAttendancesAll = (
         await Promise.all(
-          employeeIds.map((employeeId) => {
-            return getDailyAttendances(employeeId)
-          })
+          employees.map(({ docId }) => getDailyAttendances(docId))
         )
       ).flat()
 
@@ -226,19 +256,21 @@ export default class MonthlyAttendance extends FireModel {
       let batchIndex = 0
 
       // 従業員ごとにトランザクションで MonthlyAttendance ドキュメントを作成
-      for (const employeeId of employeeIds) {
+      for (const employee of employees) {
         if (batchIndex % BATCH_LIMIT === 0) batchArray.push(firestore.batch())
         const dailyAttendances = dailyAttendancesAll.filter(
-          (attendance) => attendance.employeeId === employeeId
+          // (attendance) => attendance.employeeId === employeeId
+          (attendance) => attendance.employeeId === employee.docId
         )
 
         // docId を固定
-        const docId = `${employeeId}-${month}`
+        const docId = `${employee.docId}-${month}`
 
         // MontylyAttendance インスタンスを用意
         const instance = new this({
           docId,
-          employeeId,
+          employeeId: employee.docId,
+          employeeCode: employee.code,
           month,
           startDate: from,
           endDate: to,

@@ -23,7 +23,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
-  // 休暇記録（配列）
+  // 休暇記録
   leaveRecord: {
     type: Object,
     default: () => ({}),
