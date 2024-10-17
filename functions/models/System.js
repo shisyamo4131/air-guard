@@ -113,7 +113,7 @@ export default class System extends FireModel {
 
       if (!fileCheck) return
 
-      // 日付範囲を決定
+      // 日付範囲を決定 -> date が指定されている場合は、date を含む一週間（月～日）
       const from = date
         ? dayjs(date).startOf('week').format('YYYY-MM-DD')
         : dayjs(`${month}-01`).format('YYYY-MM-DD')

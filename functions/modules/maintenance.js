@@ -94,6 +94,7 @@ export const refreshIndex = onCall(async (request) => {
 /****************************************************************************
  * 出勤簿を月次更新するための onCall 関数です。
  * - employeeId が指定されると、対象の従業員のみ処理します。
+ * - date が指定されると、DailyAttendance については対象日を含む一週間（月～日）のみ処理します。
  *
  * @param {Object} request - Cloud Functions の `onCall` から渡されるリクエストオブジェクト。
  * @param {string} request.month - 更新対象の年月（YYYY-MM形式）
