@@ -315,47 +315,38 @@ export default class OperationResult extends FireModel {
         const currentDocuments =
           await WorkResultInstance.fetchByOperationResultId(this.docId)
 
-        // 取得したドキュメントから従業員IDを取得
-        const currentEmployeeIds = currentDocuments.map(
-          ({ employeeId }) => employeeId
-        )
-
-        // `workers`に存在しない従業員IDを取得（削除対象の従業員）
-        const deleteEmployeeIds = currentEmployeeIds.filter((employeeId) => {
+        // 削除対象の OperationWorkResult ドキュメントを取得
+        const deleteDocs = currentDocuments.filter((doc) => {
           return !this.workers.some(
-            (worker) => worker.employeeId === employeeId
+            (worker) => worker.employeeId === doc.employeeId
           )
         })
 
-        // `workers`配列に基づいて、`OperationWorkResults`ドキュメントを更新または作成
-        for (const worker of this.workers) {
-          const existDocument = currentDocuments.find(
-            ({ employeeId }) => employeeId === worker.employeeId
-          )
-
-          // `currentDocuments`から既存のドキュメントを検索し、それにworkerのデータをマージ
+        const promises = this.workers.map((worker) => {
+          const existDocument = currentDocuments.find(({ employeeId }) => {
+            return employeeId === worker.employeeId
+          })
           const workResultInstance = new OperationWorkResult({
             ...existDocument,
             ...worker,
             operationResultId: this.docId, // 親ドキュメントのIDを関連付け
             siteId: this.siteId,
           })
-
-          // トランザクション内で`OperationWorkResult`ドキュメントを作成または更新
           if (existDocument) {
-            await workResultInstance.update({ transaction })
+            return workResultInstance.update({ transaction })
           } else {
-            await workResultInstance.create({ transaction })
+            return workResultInstance.create({ transaction })
           }
+        })
+
+        for (const deleteDoc of deleteDocs) {
+          const workResultInstance = new OperationWorkResult({
+            docId: `${this.docId}-${deleteDoc.employeeId}`, // 削除対象のドキュメントIDを生成
+          })
+          promises.push(workResultInstance.delete({ transaction })) // 削除処理を実行
         }
 
-        // `workers`に存在しない従業員に対応する`OperationWorkResults`ドキュメントを削除
-        for (const employeeId of deleteEmployeeIds) {
-          const workResultInstance = new OperationWorkResult({
-            docId: `${this.docId}-${employeeId}`, // 削除対象のドキュメントIDを生成
-          })
-          await workResultInstance.delete({ transaction }) // 削除処理を実行
-        }
+        await Promise.all(promises)
       })
     } catch (err) {
       // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
@@ -368,38 +359,34 @@ export default class OperationResult extends FireModel {
   }
 
   /****************************************************************************
-   * FireModelのdeleteメソッドをオーバーライドします。
-   * - 自身に依存するOperationWorkResultsドキュメントも同期削除します。
-   * - トランザクションを使用して、全ての削除処理を一貫して行います。
-   *
-   * @returns {Promise<void>} 削除処理が完了すると解決されるPromise
-   * @throws {Error} ドキュメント削除中にエラーが発生した場合にエラーをスローします
+   * FireModelのdeleteメソッドはカスタマイズしません。
+   * - OperationWorkResult ドキュメントは Cloud Functions で同期削除されます。
    ****************************************************************************/
-  async delete() {
-    try {
-      await super.delete({}, async (transaction) => {
-        // 自身に依存する`workers`配列のOperationWorkResultsドキュメントも削除
-        for (const worker of this.workers) {
-          /**
-           * 2024-09-10 トリッキーな処理
-           * 本来であればfetchでインスタンスにデータを読み込んでからdeleteを削除するものを
-           * 強引にdocIdをセットして削除している。
-           */
-          // OperationWorkResultsドキュメントを特定するためのIDを用意
-          const docId = `${this.docId}-${worker.employeeId}`
-          // 各workerに対応するOperationWorkResultインスタンスを作成し、削除を実行
-          const workResultInstance = new OperationWorkResult({ docId })
-          await workResultInstance.delete({ transaction }) // 非同期操作のためawaitを使用
-        }
-      })
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error(`[delete] An error has occurred: ${err.message}`, { err })
+  // async delete() {
+  //   try {
+  //     await super.delete({}, async (transaction) => {
+  //       // 自身に依存する`workers`配列のOperationWorkResultsドキュメントも削除
+  //       for (const worker of this.workers) {
+  //         /**
+  //          * 2024-09-10 トリッキーな処理
+  //          * 本来であればfetchでインスタンスにデータを読み込んでからdeleteを削除するものを
+  //          * 強引にdocIdをセットして削除している。
+  //          */
+  //         // OperationWorkResultsドキュメントを特定するためのIDを用意
+  //         const docId = `${this.docId}-${worker.employeeId}`
+  //         // 各workerに対応するOperationWorkResultインスタンスを作成し、削除を実行
+  //         const workResultInstance = new OperationWorkResult({ docId })
+  //         await workResultInstance.delete({ transaction }) // 非同期操作のためawaitを使用
+  //       }
+  //     })
+  //   } catch (err) {
+  //     // eslint-disable-next-line no-console
+  //     console.error(`[delete] An error has occurred: ${err.message}`, { err })
 
-      // 発生したエラーを再スローして、呼び出し元に通知
-      throw err
-    }
-  }
+  //     // 発生したエラーを再スローして、呼び出し元に通知
+  //     throw err
+  //   }
+  // }
 
   /****************************************************************************
    * 指定されたcodeに該当するドキュメントデータを配列で返します。
