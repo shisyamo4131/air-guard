@@ -8,9 +8,14 @@ import OperationResultDetail from './OperationResultDetail'
  *   `employeeId` をそのまま複製した `id` プロパティを実装しています。
  * - 自身が従業員の稼働実績であることを表すため、`isEmployee` プロパティは true、`isOutsourcer` プロパティは false に固定されます。
  *
- * @version 2.1.0
+ * NOTE:
+ * - OperationResultDetail は FireModel を継承したクラスではないため、
+ *   toObject は自前で調整する必要があります。
+ *
+ * @version 2.1.1
  * @author shisyamo4131
  * @updates
+ * - version 2.1.1 - 2024-10-18 - toObject プロパティの不具合を修正
  * - version 2.1.0 - 2024-10-03 - `id` プロパティを追加。
  *                              - `isEmployee`、`isOutsourcer` プロパティを追加。
  * - version 2.0.0 - 2024-10-02 - `OperationResultDetail` を継承するように変更
@@ -48,6 +53,12 @@ export default class OperationResultWorker extends OperationResultDetail {
    * @returns {Object} - クラスのプロパティを含むオブジェクト
    ****************************************************************************/
   toObject() {
-    return { ...super.toObject(), employeeId: this.employeeId }
+    return {
+      ...super.toObject(),
+      employeeId: this.employeeId,
+      isEmployee: this.isEmployee,
+      isOutsourcer: this.isOutsourcer,
+      id: this.id,
+    }
   }
 }
