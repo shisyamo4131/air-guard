@@ -277,18 +277,16 @@ export default class OperationResult extends FireModel {
   async create({ useAutonumber = true } = {}) {
     try {
       await super.create({ useAutonumber }, async (transaction, doc) => {
-        // `workers`配列の各workerに対して、`OperationWorkResults`ドキュメントを生成
-        for (const worker of this.workers) {
-          // workerのデータと親ドキュメントのIDを使用してOperationWorkResultのインスタンスを生成
+        // workers 配列の中身をすべて OperationWorkResult ドキュメントとして作成
+        const promises = this.workers.map((worker) => {
           const workResultInstance = new OperationWorkResult({
             ...worker,
             operationResultId: doc.docId, // 親ドキュメントのIDを関連付け
             siteId: doc.siteId,
           })
-
-          // トランザクションを使用して`OperationWorkResult`ドキュメントを作成
-          await workResultInstance.create({ transaction })
-        }
+          return workResultInstance.create({ transaction })
+        })
+        await Promise.all(promises)
       })
     } catch (err) {
       // エラー時にエラーメッセージを出力 (ESLintの警告を無効化)
