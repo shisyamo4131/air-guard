@@ -369,14 +369,16 @@ export default {
                     half: parseInt(item.standardHalf),
                     cancel: parseInt(item.standardCancel),
                     total: parseInt(item.standardTotal),
-                    overtimeMinutes: parseFloat(item.standardOvertime) * 60,
+                    overtimeMinutes:
+                      parseFloat(item.standardOvertimeMinutes) * 60,
                   },
                   qualified: {
                     normal: parseInt(item.qualifiedNormal),
                     half: parseInt(item.qualifiedHalf),
                     cancel: parseInt(item.qualifiedCancel),
                     total: parseInt(item.qualifiedTotal),
-                    overtimeMinutes: parseFloat(item.qualifiedOvertime) * 60,
+                    overtimeMinutes:
+                      parseFloat(item.qualifiedOvertimeMinutes) * 60,
                   },
                   total: 0,
                   overtimeMinutes: 0,
