@@ -103,11 +103,11 @@ export default {
     },
     /**
      * 削除アイコンがクリックされた時の処理です。
-     * - 対象データが従業員の場合、`removeWorder` イベントを emit します。
+     * - 対象データが従業員の場合、`removeWorker` イベントを emit します。
      * - 対象データが外注先の場合、`removeOutsourcer` イベントを emit します。
      */
     onClickDelete(item) {
-      const event = `remove${item.isEmployee ? 'Worder' : 'Outsourcer'}`
+      const event = `remove${item.isEmployee ? 'Worker' : 'Outsourcer'}`
       this.$emit(event, item)
     },
   },
