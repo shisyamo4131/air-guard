@@ -15,6 +15,19 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+  calcMonthlySales: {
+    type: Object,
+    default: () => {
+      return {
+        status: 'ready',
+        lastExecutedAt: null,
+        executeStatus: null,
+        error: null,
+      }
+    },
+    required: false,
+    requiredByClass: true,
+  },
   maintenanceMode: {
     type: Boolean,
     default: false,

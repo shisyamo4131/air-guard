@@ -20,6 +20,7 @@ import System from '~/models/System'
  ******************************************************************/
 export const state = () => ({
   calcAttendance: null,
+  calcMonthlySales: null,
   maintenanceMode: false,
   version: null,
   listener: null,
@@ -48,6 +49,7 @@ export const getters = {
 export const mutations = {
   setItem(state, item) {
     state.calcAttendance = item?.calcAttendance || null
+    state.calcMonthlySales = item?.calcMonthlySales || null
     state.maintenanceMode = item?.maintenanceMode ?? true
     state.version = item?.version || null
   },

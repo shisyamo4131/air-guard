@@ -6,6 +6,7 @@ import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/System.js'
 import DailyAttendance from './DailyAttendance.js'
 import MonthlyAttendance from './MonthlyAttendance.js'
+import DailySale from './DailySale.js'
 const firestore = getFirestore()
 dayjs.extend(updateLocale)
 dayjs.updateLocale('en', { weekStart: 1 })
@@ -171,6 +172,110 @@ export default class System extends FireModel {
       const message =
         '[calculateMonthlyAttendances] 出勤簿の更新処理でエラーが発生しました。'
       logger.error(message, { error })
+    }
+  }
+
+  /****************************************************************************
+   * 指定された月の月間売上集計処理を行います。
+   *
+   * NOTE:
+   * - 現在は日別売上の集計処理を行うのみ。修正予定。
+   *
+   * @param {*} param0
+   ****************************************************************************/
+  static async calculateMontlySales({ month }) {
+    // 引数のチェック
+    if (!month) {
+      const message =
+        '[calculateMontlySales] month の指定（YYYY-MM形式）が必要です。'
+      logger.error(message)
+      throw new Error(message)
+    }
+
+    // 月の形式が正しいかチェック
+    const regex = /^\d{4}-(0[1-9]|1[0-2])$/
+    if (typeof month !== 'string' || !regex.test(month)) {
+      const message = `[calculateMontlySales] month は 'YYYY-MM' 形式の文字列である必要があります。`
+      logger.error(message, { month })
+      throw new Error(message)
+    }
+
+    // System ドキュメントへの参照を取得
+    const systemInstance = new this()
+    const systemDocRef = firestore
+      .collection('Systems')
+      .doc('System')
+      .withConverter(systemInstance.converter())
+
+    try {
+      // トランザクションで System ドキュメントをチェック
+      const fileCheck = await firestore.runTransaction(async (transaction) => {
+        const systemDocSnapshot = await transaction.get(systemDocRef)
+
+        // System ドキュメントが存在するか確認
+        if (!systemDocSnapshot.exists) {
+          const message = `[calculateMontlySales] System ドキュメントが見つかりませんでした。`
+          logger.error(message)
+          return false
+        }
+
+        const systemDoc = systemDocSnapshot.data()
+
+        // calcMonthlySales プロパティのチェック
+        if (
+          !systemDoc?.calcMonthlySales ||
+          !systemDoc.calcMonthlySales?.status
+        ) {
+          const message = `[calculateMontlySales] System ドキュメントに calcMonthlySales または calcMonthlySales.status プロパティがありません。`
+          logger.error(message)
+          return false
+        }
+
+        // calcMonthlySales.status が 'ready' でない場合は実行中と判断
+        if (systemDoc.calcMonthlySales.status !== 'ready') {
+          const message = `[calculateMontlySales] 現在処理中のため、実行できません。`
+          logger.error(message)
+          return false
+        }
+
+        // ステータスを 'calculating' に更新
+        transaction.update(systemDocRef, {
+          'calcMonthlySales.status': 'calculating',
+        })
+        return true
+      })
+
+      if (!fileCheck) {
+        throw new Error(
+          `[calculateMonthlySales] System ファイルのチェックでエラーが発生しました。`
+        )
+      }
+
+      const from = dayjs(`${month}-01`).format('YYYY-MM-DD')
+      const to = dayjs(`${month}-01`).endOf('month').format('YYYY-MM-DD')
+
+      await DailySale.createInRange({ from, to })
+
+      // 処理が完了したら System ドキュメントを 'ready' に更新
+      await systemDocRef.update({
+        'calcMonthlySales.status': 'ready',
+        'calcMonthlySales.lastExecutedAt': new Date(),
+        'calcMonthlySales.executeStatus': 'success',
+        'calcMonthlySales.error': null,
+      })
+      logger.info(
+        `[calculateMonthlySales] 月間売上集計処理が正常に完了しました。`
+      )
+    } catch (error) {
+      await systemDocRef.update({
+        'calcMonthlySales.status': 'ready',
+        'calcMonthlySales.lastExecutedAt': new Date(),
+        'calcMonthlySales.executeStatus': 'error',
+        'calcMonthlySales.error': error.message,
+      })
+      const message = `[calculateMonthlySales] 月間売上集計処理でエラーが発生しました。`
+      logger.error(message, { month })
+      throw error
     }
   }
 }

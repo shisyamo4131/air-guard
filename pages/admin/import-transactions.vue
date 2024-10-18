@@ -440,7 +440,6 @@ export default {
                 )
               })
 
-              console.log(data)
               // data の中身のインスタンスについて、すべて refreshContract を実行
               await Promise.all(data.map((item) => item.refreshContract()))
               const noContract = data.filter((item) => !item.siteContract)

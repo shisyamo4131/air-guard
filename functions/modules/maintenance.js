@@ -137,3 +137,40 @@ export const refreshMonthlyAttendances = onCall(async (request) => {
     )
   }
 })
+
+/****************************************************************************
+ * 月次売上を更新するための onCall 関数です。
+ *
+ * @param {Object} request - Cloud Functions の `onCall` から渡されるリクエストオブジェクト。
+ * @param {string} request.month - 更新対象の年月（YYYY-MM形式）
+ * @returns {Promise<void>} - 更新処理が完了した場合に解決される Promise。
+ * @throws {https.HttpsError} アプリ側とサーバーログの両方にエラーメッセージを出力。
+ ****************************************************************************/
+export const refreshMonthlySales = onCall(async (request) => {
+  const { month } = request.data
+
+  try {
+    // 非同期処理の開始をログで通知
+    logger.info(
+      `[refreshMonthlySales] 月次売上の更新処理を開始しました。期間: ${month}`
+    )
+
+    // 非同期で calculateMontlySales を実行
+    await System.calculateMontlySales({ month })
+
+    // 処理完了のメッセージを返す
+    return {
+      message: `[refreshMonthlySales] 月次売上の更新処理が正常に完了しました。期間: ${month}`,
+    }
+  } catch (error) {
+    // サーバー側のエラーログ
+    logger.error(
+      `[refreshMonthlySales] 月次売上の更新処理で不明なエラーが発生しました。期間: ${month}`,
+      { request }
+    )
+    throw new https.HttpsError(
+      'unknown',
+      `[refreshMonthlySales] 月次売上の更新処理で不明なエラーが発生しました。`
+    )
+  }
+})
