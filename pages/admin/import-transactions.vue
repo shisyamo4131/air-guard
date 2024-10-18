@@ -1,6 +1,6 @@
 <script>
-import { writeBatch } from 'firebase/firestore'
-import { firestore } from 'air-firebase'
+// import { writeBatch } from 'firebase/firestore'
+// import { firestore } from 'air-firebase'
 import Autonumber from '~/models/Autonumber'
 import Employee from '~/models/Employee'
 import EmployeeContract from '~/models/EmployeeContract'
@@ -450,25 +450,53 @@ export default {
                 throw new Error(`${message}`)
               }
 
-              const batchArray = []
-              batchArray.push(writeBatch(firestore))
-              let batchIndex = 0
-
+              /**
+               * Promise を使ったインポート処理
+               * - バッチよりも時間はかかるが、OperationResult の メソッドを直接利用可能
+               */
+              const promises = []
               for (const item of data) {
-                if (!item.docId) {
-                  batchIndex = await item.createAsBatch({
-                    batchArray,
-                    batchIndex,
-                  })
-                } else {
-                  batchIndex = await item.updateAsBatch({
-                    batchArray,
-                    batchIndex,
-                  })
-                }
+                promises.push(item.docId ? item.update() : item.create())
                 this.progress.current++
+                if (promises.length % 10 === 0) {
+                  await Promise.all(promises)
+                  promises.splice(0)
+                }
               }
-              await Promise.all(batchArray.map((batch) => batch.commit()))
+              await Promise.all(promises)
+
+              /**
+               * バッチ処理によるインポート
+               * - Promise よりも短時間で終わるが、OperationResult のメソッドを使えない
+               */
+              // for (const item of data) {
+              //   if (!item.docId) {
+              //     await item.create()
+              //   } else {
+              //     await item.update()
+              //   }
+              //   this.progress.current++
+              // }
+
+              // const batchArray = []
+              // batchArray.push(writeBatch(firestore))
+              // let batchIndex = 0
+
+              // for (const item of data) {
+              //   if (!item.docId) {
+              //     batchIndex = await item.createAsBatch({
+              //       batchArray,
+              //       batchIndex,
+              //     })
+              //   } else {
+              //     batchIndex = await item.updateAsBatch({
+              //       batchArray,
+              //       batchIndex,
+              //     })
+              //   }
+              //   this.progress.current++
+              // }
+              // await Promise.all(batchArray.map((batch) => batch.commit()))
 
               await Autonumber.refresh('OperationResults')
             } catch (err) {
