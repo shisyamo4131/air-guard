@@ -1,4 +1,6 @@
 <script>
+import { writeBatch } from 'firebase/firestore'
+import { firestore } from 'air-firebase'
 import Autonumber from '~/models/Autonumber'
 import Employee from '~/models/Employee'
 import EmployeeContract from '~/models/EmployeeContract'
@@ -422,33 +424,52 @@ export default {
               }
 
               // 9. 既登録の稼働実績を取得
-              const OperationResultInstance = new OperationResultForImport() // *************
+              const OperationResultInstance = new OperationResultForImport()
               this.fetchedItems.operationResults =
                 await OperationResultInstance.fetchByCodes(
                   data.map(({ code }) => code)
                 )
 
-              for (const item of data) {
+              // data の中身をすべて OperationResultForImport インスタンスにする
+              data = data.map((item) => {
                 const existDoc = this.fetchedItems.operationResults.find(
                   ({ code }) => code === item.code
                 )
-                OperationResultInstance.initialize(
+                return new OperationResultForImport(
                   existDoc ? { ...existDoc, ...item } : { ...item }
                 )
-                await OperationResultInstance.refreshContract()
-                if (!OperationResultInstance.siteContract) {
-                  const message = `契約情報が存在しません。`
-                  // eslint-disable-next-line no-console
-                  console.error(message, OperationResultInstance)
-                  throw new Error(`${message}`)
+              })
+
+              // data の中身のインスタンスについて、すべて refreshContract を実行
+              await Promise.all(data.map((item) => item.refreshContract()))
+              const noContract = data.filter((item) => !item.siteContract)
+              if (noContract.length) {
+                const message = `契約情報が存在しません。`
+                // eslint-disable-next-line no-console
+                console.error(message, noContract)
+                throw new Error(`${message}`)
+              }
+
+              const batchArray = []
+              batchArray.push(writeBatch(firestore))
+              let batchIndex = 0
+
+              for (const item of data) {
+                if (!item.docId) {
+                  batchIndex = await item.createAsBatch({
+                    batchArray,
+                    batchIndex,
+                  })
+                } else {
+                  batchIndex = await item.updateAsBatch({
+                    batchArray,
+                    batchIndex,
+                  })
                 }
-                OperationResultInstance.docId
-                  ? await OperationResultInstance.update()
-                  : await OperationResultInstance.create({
-                      useAutonumber: false,
-                    })
                 this.progress.current++
               }
+              await Promise.all(batchArray.map((batch) => batch.commit()))
+
               await Autonumber.refresh('OperationResults')
             } catch (err) {
               // eslint-disable-next-line
