@@ -970,19 +970,19 @@ export default class FireModel {
    ****************************************************************************/
   async fetchDocs(constraints = []) {
     const colRef = firestore.collection(this.#collectionPath)
-    const q = colRef
+    let q = colRef
     const validQueryTypes = ['where', 'orderBy', 'limit']
     constraints.forEach((constraint) => {
       const [type, ...args] = constraint
       switch (type) {
         case 'where':
-          q.where(...args)
+          q = q.where(...args)
           break
         case 'orderBy':
-          q.orderBy(args[0], args[1] || 'asc')
+          q = q.orderBy(args[0], args[1] || 'asc')
           break
         case 'limit':
-          q.limit(args[0])
+          q = q.limit(args[0])
           break
         default:
           warn(
@@ -998,7 +998,7 @@ export default class FireModel {
       }
     })
 
-    q.withConverter(this.converter())
+    q = q.withConverter(this.converter())
 
     // Firestoreクエリの実行
     const querySnapshot = await q.get()
