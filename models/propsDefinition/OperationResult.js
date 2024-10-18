@@ -21,7 +21,10 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+  // 稼働日（売上計上日）
   date: { type: String, default: '', required: false, requiredByClass: true },
+  // 稼働月（売上計上月）
+  month: { type: String, default: '', required: false, requiredByClass: true },
   dayDiv: {
     type: String,
     default: 'weekdays',
@@ -48,6 +51,20 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+  // workers に含まれる従業員ID
+  employeeIds: {
+    type: Array,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
+  },
+  // workers に含まれる外注先ID
+  outsourcerIds: {
+    type: Array,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
+  },
   remarks: {
     type: String,
     default: '',
@@ -68,19 +85,6 @@ const propsDefinition = {
   },
 
   // 以下、Object.definePropertyで上書きされるプロパティ
-  employeeIds: {
-    type: Array,
-    default: () => [],
-    required: false,
-    requiredByClass: false,
-  },
-  outsourcerIds: {
-    type: Array,
-    default: () => [],
-    required: false,
-    requiredByClass: false,
-  },
-  month: { type: String, default: '', required: false, requiredByClass: true },
   operationCount: {
     type: Object,
     default: () => {
@@ -128,8 +132,6 @@ const propsDefinition = {
           cancel: null,
           overtime: null,
         },
-        halfRate: null,
-        cancelRate: null,
       }
     },
     required: false,

@@ -185,8 +185,6 @@ export default class OperationResult extends FireModel {
                 100,
               overtime: unitPrices.qualified?.overtime ?? null,
             },
-            halfRate: this.siteContract.halfRate,
-            cancelRate: this.siteContract.cancelRate,
           }
         },
         set(v) {
