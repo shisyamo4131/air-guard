@@ -10,11 +10,7 @@ import { classProps as addProps } from './propsDefinition/OperationWorkResult'
  * - 交通費申請に関わるデータの更新処理を行う為、独自のメソッドの中でsuper.update()をコールしています。
  * - 保有するプロパティはOperationResultWorkerを継承しつつ、交通費申請に必要なプロパティが追加されています。
  *
- * @version 2.1.0
  * @author shisyamo4131
- * @updates
- * - version 2.1.0 - 2024-10-11 - 追加プロパティを別ファイルで定義
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class OperationWorkResult extends FireModel {
   /****************************************************************************
@@ -69,33 +65,6 @@ export default class OperationWorkResult extends FireModel {
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(`[create] An error has occurred: ${err.message}`, { err })
-      throw err
-    }
-  }
-
-  /****************************************************************************
-   * 指定されたoperationResultIdに基づいて`OperationWorkResults`ドキュメントを取得します。
-   * - `operationResultId`と一致するドキュメントをFirestoreから取得します。
-   *
-   * @param {string} operationResultId - 取得対象のoperationResultId
-   * @returns {Promise<Array>} 一致するドキュメントの配列を返すPromise
-   * @throws {Error} ドキュメント取得中にエラーが発生した場合にエラーをスローします
-   ****************************************************************************/
-  async fetchByOperationResultId(operationResultId) {
-    try {
-      // operationResultIdに一致するドキュメントをFirestoreから取得
-      return await this.fetchDocs([
-        ['where', 'operationResultId', '==', operationResultId],
-      ])
-    } catch (err) {
-      // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
-      // eslint-disable-next-line no-console
-      console.error(
-        `[fetchByOperationResultId] Failed to fetch documents: ${err.message}`,
-        { err }
-      )
-
-      // エラーを再スローして呼び出し元に通知
       throw err
     }
   }
