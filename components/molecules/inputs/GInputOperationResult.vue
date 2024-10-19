@@ -338,7 +338,7 @@ export default {
               <g-select
                 v-model="editModel.dayDiv"
                 label="曜日区分"
-                :items="['weekdays', 'saturday', 'sunday', 'holiday']"
+                :items="$DAY_DIV_ARRAY"
                 required
               />
             </v-col>
