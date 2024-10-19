@@ -1,4 +1,5 @@
-import { FireModel } from 'air-firebase'
+import { FireModel, firestore } from 'air-firebase'
+import { doc } from 'firebase/firestore'
 import { classProps } from './propsDefinition/OperationResult'
 import Site from './Site'
 import OperationResultWorker from './OperationResultWorker'
@@ -16,22 +17,7 @@ import { getClosingDate, isValidDateFormat } from '~/utils/utility'
  *      Cloud Functionsでも同期削除の処理が必要です。
  *   -> 更新に対する同期はアプリ側のみで行います。
  *
- * @version 2.5.0
  * @author shisyamo4131
- * @updates
- * - version 2.5.0 - 2024-10-05 - Removed the price property for unit price and added the normal, half, and cancel properties.
- * - version 2.4.0 - 2024-10-02 - Object.defineProperties による `siteId` の定義を削除。
- *                              - `addOutsourcer`、`changeOutsourcer`、`removeOutsourcer` を追加。
- *                              - `refreshWorkersDate` を `refreshDetailsDate` に改名。
- * - version 2.3.0 - 2024-10-01 - `outsourcersIds` プロパティを追加。
- *                              - `operationCount` プロパティの計算に `outsourcers` を追加。
- * - version 2.2.1 - 2024-09-23 - `operationCount`プロパティの中身を細分化
- * - version 2.2.0 - 2024-09-18 - `operationCount`プロパティを追加。
- *                              - アプリ側から`site`オブジェクトがセットされる仕様に変更し、
- *                                `siteId`をObjectDefinePropertyによる`site`プロパティから取得するように修正。
- *                                結果、Firestoreのread件数を抑制。
- * - version 2.1.0 - 2024-09-07 - refreshClosingDate()を実装
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class OperationResult extends FireModel {
   /****************************************************************************
@@ -276,17 +262,16 @@ export default class OperationResult extends FireModel {
    ****************************************************************************/
   async create({ useAutonumber = true } = {}) {
     try {
-      await super.create({ useAutonumber }, async (transaction, doc) => {
+      await super.create({ useAutonumber }, (transaction, doc) => {
         // workers 配列の中身をすべて OperationWorkResult ドキュメントとして作成
-        const promises = this.workers.map((worker) => {
+        this.workers.forEach((worker) => {
           const workResultInstance = new OperationWorkResult({
             ...worker,
             operationResultId: doc.docId, // 親ドキュメントのIDを関連付け
             siteId: doc.siteId,
           })
-          return workResultInstance.create({ transaction })
+          workResultInstance.create({ transaction })
         })
-        await Promise.all(promises)
       })
     } catch (err) {
       // エラー時にエラーメッセージを出力 (ESLintの警告を無効化)
@@ -312,17 +297,25 @@ export default class OperationResult extends FireModel {
       await super.update({}, async (transaction) => {
         // 現在登録されている`OperationWorkResults`ドキュメントをすべて取得
         const WorkResultInstance = new OperationWorkResult()
-        const currentDocuments =
-          await WorkResultInstance.fetchByOperationResultId(this.docId)
+        const currentDocuments = await WorkResultInstance.fetchDocs([
+          ['where', 'operationResultId', '==', this.docId],
+        ])
 
-        // 削除対象の OperationWorkResult ドキュメントを取得
-        const deleteDocs = currentDocuments.filter((doc) => {
-          return !this.workers.some(
-            (worker) => worker.employeeId === doc.employeeId
-          )
-        })
+        // 現在の workers に存在しない従業員の OperationWorkResult ドキュメントを削除
+        currentDocuments
+          .filter(({ employeeId }) => {
+            return !this.workers.some(
+              (worker) => worker.employeeId === employeeId
+            )
+          })
+          .forEach((currentDoc) => {
+            const docId = `${this.docId}-${currentDoc.employeeId}`
+            const docRef = doc(firestore, 'OperationWorkResults', docId)
+            transaction.delete(docRef)
+          })
 
-        const promises = this.workers.map((worker) => {
+        // 既存ドキュメントの内容を保持しつつ workers 配列の要素分のドキュメントを作成
+        this.workers.forEach((worker) => {
           const existDocument = currentDocuments.find(({ employeeId }) => {
             return employeeId === worker.employeeId
           })
@@ -333,20 +326,11 @@ export default class OperationResult extends FireModel {
             siteId: this.siteId,
           })
           if (existDocument) {
-            return workResultInstance.update({ transaction })
+            workResultInstance.update({ transaction })
           } else {
-            return workResultInstance.create({ transaction })
+            workResultInstance.create({ transaction })
           }
         })
-
-        for (const deleteDoc of deleteDocs) {
-          const workResultInstance = new OperationWorkResult({
-            docId: `${this.docId}-${deleteDoc.employeeId}`, // 削除対象のドキュメントIDを生成
-          })
-          promises.push(workResultInstance.delete({ transaction })) // 削除処理を実行
-        }
-
-        await Promise.all(promises)
       })
     } catch (err) {
       // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
