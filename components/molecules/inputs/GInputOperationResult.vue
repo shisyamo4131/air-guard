@@ -322,7 +322,6 @@ export default {
           <g-text-field v-model="editModel.code" label="CODE" disabled />
           <g-autocomplete-site
             v-model="editModel.siteId"
-            label="現場"
             required
             @change="onSiteChanged"
           />

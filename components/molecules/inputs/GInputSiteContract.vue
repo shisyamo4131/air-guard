@@ -112,7 +112,6 @@ export default {
       <g-autocomplete-site
         v-if="!hideSite"
         v-model="editModel.siteId"
-        label="現場"
         required
         :disabled="editMode !== CREATE"
       />
