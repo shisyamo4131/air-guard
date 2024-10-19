@@ -237,82 +237,126 @@ export default {
         },
         {
           name: 'operation-results.txt',
-          handler: async (data) => {
-            /**
-             * `data.fetchedItems.sites`から、引数で指定されたcodeに一致する
-             * 現場ドキュメントを検索し該当するものを返します。
-             * 該当するものがない場合、undefinedを返します。
-             */
-            const getSite = (code) => {
-              const fetched = this.fetchedItems.sites.find(
-                (item) => item.code === code
-              )
-              return fetched || undefined
-            }
-            /**
-             * `data.fetchedItems.employees`から、引数で指定されたcodeに一致する
-             * 従業員ドキュメントを検索し該当するものを返します。
-             * 該当するものがない場合、undefinedを返します。
-             */
-            const getEmployee = (code) => {
-              const fetched = this.fetchedItems.employees.find(
-                (item) => item.code === code
-              )
-              return fetched || undefined
-            }
-            /**
-             * `data.fetchedItems.outsourcers`から、引数で指定されたcodeに一致する
-             * 外注先ドキュメントを検索し該当するものを返します。
-             * 該当するものがない場合、undefinedを返します。
-             */
-            const getOutsourcer = (code) => {
-              const fetched = this.fetchedItems.outsourcers.find(
-                (item) => item.code === code
-              )
-              return fetched || undefined
-            }
+          handler: async (csv) => {
+            let data = csv
             this.progress.max = data.length
             this.progress.current = 0
 
             try {
               /****************************************************************
-               * workers の用意
-               * - operation-result-details を読み込み、fetchedItems.employees に従業員データを読み込んでおく
-               * - code から docId を取得してセット
-               * - docId が取得できないデータが存在したらエラーを返して終了
-               * - 型変換を行い、すべてのデータを OperationResultWorker クラスに変換
+               * 1. workers, outsourcers の csv 読み込み
                ****************************************************************/
               const workersFile = this.files.find(
                 ({ name }) => name === 'operation-result-details.txt'
               )
-              const workersData = workersFile
+              let workersData = workersFile
                 ? await this.readCsv(workersFile)
                 : []
-              this.fetchedItems.employees = await new Employee().fetchByCodes(
-                workersData.map(({ employeeCode }) => employeeCode)
+              const outsourcersFile = this.files.find(
+                ({ name }) => name === `operation-result-outsourcers.txt`
               )
-              workersData.forEach((item) => {
-                const employee = getEmployee(item.employeeCode)
-                item.employeeId = employee?.docId || undefined
-              })
-              const unknownEmployee = workersData.filter(
-                (item) => !item.employeeId
+              let outsourcersData = outsourcersFile
+                ? await this.readCsv(outsourcersFile)
+                : []
+
+              /****************************************************************
+               * 2. sites, workers, outsourcers, operationResults, siteContracts ドキュメントの読み込み
+               ****************************************************************/
+              // siteContracts の読み込みに必要なため、先に sites を読み込んでおく
+              const sites = await new Site().fetchByCodes(
+                data.map(({ siteCode }) => siteCode)
               )
-              if (unknownEmployee.length) {
-                const message = `未登録の従業員が含まれています。処理を中断します。`
-                // eslint-disable-next-line
-                console.erroe(message, unknownEmployee)
-                throw new Error(message)
+
+              // sites の docId をチャンク（30件）
+              const siteIds = [...new Set(sites.map(({ docId }) => docId))]
+              const chunkedSiteIds = []
+              for (let i = 0; i < siteIds.length; i += 30) {
+                chunkedSiteIds.push(siteIds.slice(i, i + 30))
               }
-              workersData.forEach((item) => {
-                item.endAtNextday = item.endAtNextday === '1'
-                item.breakMinutes = parseInt(item.breakMinutes)
-                item.workMinutes = parseInt(item.workMinutes)
-                item.overtimeMinutes = parseInt(item.overtimeMinutes)
-                item.nighttimeMinutes = parseInt(item.nighttimeMinutes)
-                item.qualification = item.qualification === '1'
-                item.ojt = item.ojt === '1'
-                item = new OperationResultWorker(item)
+
+              // employees, outsourcers, operationResults, siteContracts を非同期で取得
+              const [
+                employees,
+                outsourcers,
+                operationResults,
+                ...siteContractsArray
+              ] = await Promise.all([
+                new Employee().fetchByCodes(
+                  workersData.map(({ employeeCode }) => employeeCode)
+                ),
+                new Outsourcer().fetchByCodes(
+                  outsourcersData.map(({ outsourcerCode }) => outsourcerCode)
+                ),
+                new OperationResultForImport().fetchByCodes(
+                  data.map(({ code }) => code)
+                ),
+                ...chunkedSiteIds.map((docIds) => {
+                  return new SiteContract().fetchDocs([
+                    ['where', 'siteId', 'in', docIds],
+                  ])
+                }),
+              ])
+              const siteContracts = siteContractsArray.flat()
+
+              this.fetchedItems.employees = employees
+              this.fetchedItems.outsourcers = outsourcers
+              this.fetchedItems.sites = sites
+              this.fetchedItems.operationResults = operationResults
+
+              /****************************************************************
+               * 3. workers, outsourcers, sites で存在しないものがあればエラーを返して終了
+               ****************************************************************/
+              const missingItems = {
+                unknownEmployees: workersData.filter(
+                  ({ employeeCode }) =>
+                    !this.fetchedItems.employees.some(
+                      ({ code }) => code === employeeCode
+                    )
+                ),
+                unknownOutsourcers: outsourcersData.filter(
+                  ({ outsourcerCode }) =>
+                    !this.fetchedItems.outsourcers.some(
+                      ({ code }) => code === outsourcerCode
+                    )
+                ),
+                unknownSites: data.filter(
+                  ({ siteCode }) =>
+                    !this.fetchedItems.sites.some(
+                      ({ code }) => code === siteCode
+                    )
+                ),
+              }
+
+              // エラーがある場合の処理
+              if (Object.values(missingItems).some((arr) => arr.length)) {
+                const message =
+                  '未登録の従業員、外注先、または現場があります。インポートできません。'
+                // console.error(message, missingItems)
+                throw new Error(
+                  `${message} 詳細: ${JSON.stringify(missingItems)}`
+                )
+              }
+
+              /****************************************************************
+               * workers の変換
+               * - code から docId を取得してセット
+               * - 型変換を行い、すべてのデータを OperationResultWorker クラスに変換
+               ****************************************************************/
+              workersData = workersData.map((item) => {
+                const employee = this.fetchedItems.employees.find(
+                  ({ code }) => code === item.employeeCode
+                )
+                return {
+                  ...item,
+                  employeeId: employee?.docId, // employee が見つからない可能性を考慮
+                  endAtNextday: item.endAtNextday === '1',
+                  breakMinutes: parseInt(item.breakMinutes, 10),
+                  workMinutes: parseInt(item.workMinutes, 10),
+                  overtimeMinutes: parseInt(item.overtimeMinutes, 10),
+                  nighttimeMinutes: parseInt(item.nighttimeMinutes, 10),
+                  qualification: item.qualification === '1',
+                  ojt: item.ojt === '1',
+                }
               })
 
               /****************************************************************
@@ -323,47 +367,27 @@ export default {
                * - 型変換を行い、すべてのデータを OperationResultOutsourcer クラスに変換
                *   -> id を付与するために branch として index を付与
                ****************************************************************/
-              const outsourcersFile = this.files.find(
-                ({ name }) => name === `operation-result-outsourcers.txt`
-              )
-              const outsourcersData = outsourcersFile
-                ? await this.readCsv(outsourcersFile)
-                : []
-              this.fetchedItems.outsourcers =
-                await new Outsourcer().fetchByCodes(
-                  outsourcersData.map(({ outsourcerCode }) => outsourcerCode)
+              outsourcersData = outsourcersData.map((item, branch) => {
+                const outsourcer = this.fetchedItems.outsourcers.find(
+                  ({ code }) => code === item.outsourcerCode
                 )
-              outsourcersData.forEach((item) => {
-                const outsourcer = getOutsourcer(item.outsourcerCode)
-                item.outsourcerId = outsourcer?.docId || undefined
-              })
-              const unknownOutsourcer = outsourcersData.filter(
-                (item) => !item.outsourcerId
-              )
-              if (unknownOutsourcer.length) {
-                const message = `未登録の外注先が含まれています。処理を中断します。`
-                // eslint-disable-next-line
-                console.error(message, unknownOutsourcer)
-                throw new Error(message)
-              }
-              outsourcersData.forEach((item, branch) => {
-                item.endAtNextday = item.endAtNextday === '1'
-                item.breakMinutes = parseInt(item.breakMinutes)
-                item.workMinutes = parseInt(item.workMinutes)
-                item.overtimeMinutes = parseInt(item.overtimeMinutes)
-                item.nighttimeMinutes = parseInt(item.nighttimeMinutes)
-                item.qualification = item.qualification === '1'
-                item.ojt = item.ojt === '1'
-                item = new OperationResultOutsourcer({ ...item, branch })
+                return {
+                  ...item,
+                  outsourcerId: outsourcer?.docId || undefined,
+                  endAtNextday: item.endAtNextday === '1',
+                  breakMinutes: parseInt(item.breakMinutes, 10),
+                  workMinutes: parseInt(item.workMinutes, 10),
+                  overtimeMinutes: parseInt(item.overtimeMinutes, 10),
+                  nighttimeMinutes: parseInt(item.nighttimeMinutes, 10),
+                  qualification: item.qualification === '1',
+                  ojt: item.ojt === '1',
+                  branch, // 引数の branch を追加
+                }
               })
 
-              // 6. dataに含まれる現場ドキュメントを取得しておく
-              this.fetchedItems.sites = await new Site().fetchByCodes(
-                data.map(({ siteCode }) => siteCode)
-              )
               // 7. dataにsite、siteIdを付与し、`workers`、`outsourcers` をセット
               data.forEach((item) => {
-                item.site = getSite(item.siteCode)
+                item.site = sites.find(({ code }) => code === item.siteCode)
                 item.siteId = item.site?.docId || undefined
                 item.operationCount = {
                   standard: {
@@ -405,30 +429,16 @@ export default {
                     overtime: parseInt(item.unitPriceQualifiedOvertime),
                   },
                 }
-                item.workers = workersData.filter(
-                  ({ code }) => code === item.code
-                )
-                item.outsourcers = outsourcersData.filter(
-                  ({ code }) => code === item.code
-                )
+                item.workers = workersData
+                  .filter(({ code }) => code === item.code)
+                  .map((worker) => new OperationResultWorker(worker))
+                item.outsourcers = outsourcersData
+                  .filter(({ code }) => code === item.code)
+                  .map(
+                    (outsourcer) => new OperationResultOutsourcer(outsourcer)
+                  )
                 item.closingDate = item.deadline
               })
-
-              // 8. siteIdが取得できなかったdataが存在すればエラー
-              const unknown = data.filter((item) => !item.siteId)
-              if (unknown.length) {
-                const message = `未登録現場の稼働実績が含まれています。処理を中断します。`
-                // eslint-disable-next-line
-                console.error(message, unknown)
-                throw new Error(message)
-              }
-
-              // 9. 既登録の稼働実績を取得
-              const OperationResultInstance = new OperationResultForImport()
-              this.fetchedItems.operationResults =
-                await OperationResultInstance.fetchByCodes(
-                  data.map(({ code }) => code)
-                )
 
               // data の中身をすべて OperationResultForImport インスタンスにする
               data = data.map((item) => {
@@ -440,8 +450,19 @@ export default {
                 )
               })
 
-              // data の中身のインスタンスについて、すべて refreshContract を実行
-              await Promise.all(data.map((item) => item.refreshContract()))
+              // data の中身のインスタンスについて、siteContract を適用
+              data.forEach((item) => {
+                item.siteContract = siteContracts
+                  .filter(
+                    ({ siteId, workShift, startDate }) =>
+                      siteId === item.siteId &&
+                      workShift === item.workShift &&
+                      startDate <= item.date
+                  )
+                  .sort(
+                    (a, b) => new Date(b.startDate) - new Date(a.startDate)
+                  )[0]
+              })
               const noContract = data.filter((item) => !item.siteContract)
               if (noContract.length) {
                 const message = `契約情報が存在しません。`
@@ -452,11 +473,10 @@ export default {
 
               /**
                * Promise を使ったインポート処理
-               * - バッチよりも時間はかかるが、OperationResult の メソッドを直接利用可能
                */
               const promises = []
-              for (const item of data.filter((_, index) => index < 10)) {
-                // for (const item of data) {
+              // for (const item of data.filter((_, index) => index < 10)) {
+              for (const item of data) {
                 promises.push(item.docId ? item.update() : item.create())
                 this.progress.current++
                 if (promises.length % 10 === 0) {
