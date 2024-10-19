@@ -133,6 +133,18 @@ const CUSTOMER_STATUS_ARRAY = [
   { value: 'expired', text: '契約終了' },
 ]
 
+const DAY_DIV = {
+  weekdays: '平日',
+  saturday: '土曜',
+  sunday: '日曜',
+  holiday: '祝日',
+}
+
+const DAY_DIV_ARRAY = Object.entries(DAY_DIV).map(([key, value]) => ({
+  text: value,
+  value: key,
+}))
+
 const DAY_OF_WEEK_JA = {
   Sun: {
     short: '日',
@@ -389,6 +401,8 @@ export default (context, inject) => {
   inject('CONTRACT_TYPE_ARRAY', CONTRACT_TYPE_ARRAY)
   inject('CUSTOMER_STATUS', CUSTOMER_STATUS)
   inject('CUSTOMER_STATUS_ARRAY', CUSTOMER_STATUS_ARRAY)
+  inject('DAY_DIV', DAY_DIV)
+  inject('DAY_DIV_ARRAY', DAY_DIV_ARRAY)
   inject('DAY_OF_WEEK_JA', DAY_OF_WEEK_JA)
   inject('DAY_TYPE', DAY_TYPE)
   inject('DAY_TYPE_ARRAY', DAY_TYPE_ARRAY)
