@@ -381,17 +381,11 @@ const TRANSPORTATION_COST_APPLICATION_STATUS_ARRAY = [
   { value: '9:expired', text: '期限切れ' },
 ]
 
-const WORK_SHIFT = {
-  day: '日勤',
-  night: '夜勤',
-  else: 'その他',
-}
+const WORK_SHIFT = { day: '日勤', night: '夜勤' }
 
-const WORK_SHIFT_ARRAY = [
-  { value: 'day', text: '日勤' },
-  { value: 'night', text: '夜勤' },
-  { value: 'else', text: 'その他' },
-]
+const WORK_SHIFT_ARRAY = Object.entries(WORK_SHIFT).map(([key, value]) => {
+  return { value: key, text: value }
+})
 
 export default (context, inject) => {
   inject('ATTENDANCE_STATUS', ATTENDANCE_STATUS)
