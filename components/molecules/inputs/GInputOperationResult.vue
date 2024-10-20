@@ -346,7 +346,7 @@ export default {
               <g-select
                 v-model="editModel.workShift"
                 label="勤務区分"
-                :items="['day', 'night']"
+                :items="$WORK_SHIFT_ARRAY"
                 required
                 @change="onWorkShiftChanged"
               />
