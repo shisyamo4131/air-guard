@@ -93,32 +93,55 @@ export default class DailyAttendance extends FireModel {
           // 該当する契約がない場合 'undefined' を返す
           if (!applicableContract) return 'undefined'
 
-          // 振替出勤日であるかどうかの判断
-          const isSubstituteWork =
-            this.leaveRecord?.leaveType === 'substitute' &&
-            this.leaveRecord?.substituteWorkDate === this.date
-          if (isSubstituteWork) return 'scheduled'
+          // 就業規則を取得 -> 該当がなければ undefined を返す
+          const workRegulation = applicableContract.workRegulation
+          if (!workRegulation) return 'undefined'
 
-          // 振替休日であるかどうかの判断
-          const isSubstituted =
-            this.leaveRecord?.leaveType === 'substitute' &&
-            this.leaveRecord?.date === this.date
-          if (isSubstituted) return this.leaveRecord.substitutedDayType
+          // 一旦、就業規則に沿った dayType を設定
+          let result = ''
+          if (workRegulation.scheduledWorkDays.includes(this.dayOfWeek)) {
+            result = 'scheduled'
+          } else if (workRegulation.legalHoliday === this.dayOfWeek) {
+            result = 'legal-holiday'
+          } else {
+            result = 'non-statutory-holiday'
+          }
 
-          // dayType の決定
-          const isScheduled =
-            applicableContract.workRegulation.scheduledWorkDays.includes(
-              this.dayOfWeek
-            )
+          // `scheduled` で isHolidayWorkDay が false かつ holidays に当該日が存在する場合は 'non-statutory-holiday' を設定
+          if (
+            result === 'scheduled' &&
+            !workRegulation.isHolidayWorkDay &&
+            workRegulation.holidays.includes(this.date)
+          ) {
+            result = 'non-statutory-holiday'
+          }
 
-          const isLegalHoliday =
-            applicableContract.workRegulation.legalHoliday === this.dayOfWeek
+          // 休暇申請がある場合の処理
+          if (this.leaveRecord && this.leaveRecord.docId) {
+            /**
+             * 下記条件を満たす場合、振替出勤日と判断して scheduled を返す
+             * - leaveRecord の leaveType が `substitute`
+             * - leaveRecord の substituteWorkDate が 当該日
+             */
+            const isSubstituteWork =
+              this.leaveRecord?.leaveType === 'substitute' &&
+              this.leaveRecord?.substituteWorkDate === this.date
+            if (isSubstituteWork) result = 'scheduled'
 
-          return isScheduled
-            ? 'scheduled'
-            : isLegalHoliday
-            ? 'legal-holiday'
-            : 'non-statutory-holiday'
+            /**
+             * 下記条件を満たす場合、振替休日と判断
+             * - leaveRecord の leaveType が `substitute`
+             * - leaveRecord の date が 当該日
+             * - substitutedDayType を設定
+             */
+            const isSubstituted =
+              this.leaveRecord?.leaveType === 'substitute' &&
+              this.leaveRecord?.date === this.date
+            // 運用上かなりイレギュラーだが、振替の振替があるとここがうまくいかないのでは？
+            if (isSubstituted) result = this.leaveRecord.substitutedDayType
+          }
+
+          return result
         },
         set(v) {},
       },
