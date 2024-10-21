@@ -281,17 +281,21 @@ export default {
           />
         </v-col>
         <v-col cols="12">
-          <h4>祝日登録</h4>
-          <!-- editModel.year 以外の日付は選択不可 -->
-          <g-date-picker
-            v-model="editModel.holidays"
-            :allowed-dates="
-              (val) => editModel.year && val.slice(0, 4) === editModel.year
-            "
-            multiple
-            no-title
-            :picker-date.sync="pickerDate"
-          />
+          <v-expand-transition>
+            <div v-show="!editModel.isHolidayWorkDay">
+              <h4>祝日登録</h4>
+              <!-- editModel.year 以外の日付は選択不可 -->
+              <g-date-picker
+                v-model="editModel.holidays"
+                :allowed-dates="
+                  (val) => editModel.year && val.slice(0, 4) === editModel.year
+                "
+                multiple
+                no-title
+                :picker-date.sync="pickerDate"
+              />
+            </div>
+          </v-expand-transition>
         </v-col>
         <v-col cols="12">
           <g-textarea v-model="editModel.remarks" label="備考" hide-details />
