@@ -29,7 +29,6 @@ export default class DailySale extends FireModel {
    ****************************************************************************/
   constructor(item = {}) {
     super(item)
-
     Object.defineProperties(this, {
       amount: {
         configurable: true,
