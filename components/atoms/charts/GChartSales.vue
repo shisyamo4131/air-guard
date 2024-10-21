@@ -19,7 +19,19 @@ export default {
    ***************************************************************************/
   props: {
     count: { type: Number, default: 3, required: false },
-    date: { type: String, default: undefined, required: false },
+    /**
+     * 表示のメインとなる年月を YYYY-MM の形式で指定します。
+     * 未指定の場合、現在の年月が対象となります。
+     */
+    month: {
+      type: String,
+      default: undefined,
+      validator: (v) => {
+        const regex = /^\d(4)-(0[1-9]|1[1-2])$/
+        return regex.test(v)
+      },
+      required: false,
+    },
     height: { type: Number, default: undefined, required: false },
     items: { type: Array, default: () => [], required: false },
   },
@@ -88,7 +100,9 @@ export default {
      * 集計対象の年月
      */
     months() {
-      const currentDate = this.date ? this.$dayjs(this.date) : this.$dayjs()
+      const currentDate = this.month
+        ? this.$dayjs(`${this.month}-01`)
+        : this.$dayjs().startOf('month')
       return [...Array(this.count)].map((_, i) =>
         currentDate.subtract(this.count - (i + 1), 'month').format('YYYY-MM')
       )
