@@ -115,6 +115,9 @@ export default {
         currentDate.subtract(this.cols - (i + 1), 'month').format('YYYY-MM')
       )
     },
+    /**
+     * 月別の売上を警備区分別に集計し、結果を売上金額のみの配列で返します。
+     */
     sales() {
       // Array.reduce()の初期値に使うオブジェクトを生成
       // 例）{ traffic: { '2024-01': 0, '2024-02': 0, '2024-03': 0 }, ...}
@@ -144,6 +147,9 @@ export default {
       })
       return result
     },
+    /**
+     * 月別の稼働数を集計し、稼働数のみの配列を返します。
+     */
     workersData() {
       // Array.reduce()の初期値に使うオブジェクトを生成
       // 例）{ '2024-01': 0, '2024-02': 0, '2024-03': 0 }
