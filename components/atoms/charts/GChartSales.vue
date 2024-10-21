@@ -4,8 +4,7 @@ import GChartBar from '~/components/atoms/charts/GChartBar.vue'
  * ### BChartSales
  *
  * 売上高の棒グラフ（縦）コンポーネントです。
- * props.dateを指定すると、当月から遡ってprops.countで指定された月数分の
- * 売上高を棒グラフで描画します。
+ * - DailySale ドキュメントの配列を props.items で受け取り、売上高を棒グラフで描画します。
  *
  * @author shisyamo4131
  */
@@ -18,7 +17,10 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
-    count: { type: Number, default: 3, required: false },
+    /**
+     * 表示する月数です。
+     */
+    cols: { type: Number, default: 3, required: false },
     /**
      * 表示のメインとなる年月を YYYY-MM の形式で指定します。
      * 未指定の場合、現在の年月が対象となります。
@@ -109,8 +111,8 @@ export default {
       const currentDate = this.month
         ? this.$dayjs(`${this.month}-01`)
         : this.$dayjs().startOf('month')
-      return [...Array(this.count)].map((_, i) =>
-        currentDate.subtract(this.count - (i + 1), 'month').format('YYYY-MM')
+      return [...Array(this.cols)].map((_, i) =>
+        currentDate.subtract(this.cols - (i + 1), 'month').format('YYYY-MM')
       )
     },
     sales() {
