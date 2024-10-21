@@ -3,6 +3,8 @@ import { generateVueProps, generateClassProps } from './propsUtil'
 const propsDefinition = {
   docId: { type: String, default: '', required: false, requiredByClass: false },
   date: { type: String, default: '', required: false, requiredByClass: true },
+  month: { type: String, default: '', required: false, requiredByClass: true },
+  year: { type: String, default: '', required: false, requiredByClass: true },
   operationResults: {
     type: Array,
     default: () => [],
