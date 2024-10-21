@@ -38,6 +38,7 @@ export default class OperationResultForImport extends OperationResult {
    * INITIALIZE
    ****************************************************************************/
   initialize(item = {}) {
+    super.initialize(item)
     delete this.operationCount
     delete this.unitPrice
     // operationCount を再定義
@@ -75,6 +76,5 @@ export default class OperationResultForImport extends OperationResult {
         overtime: item?.unitPrice?.qualified?.overtime ?? null,
       },
     }
-    super.initialize(item)
   }
 }
