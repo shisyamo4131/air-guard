@@ -32,7 +32,13 @@ export default {
       },
       required: false,
     },
+    /**
+     * グラフコンポーネントの高さです。
+     */
     height: { type: Number, default: undefined, required: false },
+    /**
+     * DailySale ドキュメントの配列を受け取ります。
+     */
     items: { type: Array, default: () => [], required: false },
   },
   /***************************************************************************
