@@ -240,10 +240,13 @@ export default {
           }
         }
         for (const item of this.selectedUnsync) {
+          const customer = customers.find(
+            ({ code }) => code === item.customerCode
+          )
           const instance = new Site({
             ...item,
-            customerId: customers[0].docId,
-            customer: customers[0],
+            customerId: customer.docId,
+            customer,
           })
           const docRef = await instance.create({ useAutonum: false })
           const dbRef = ref(database, `AirGuard/Sites/${item.code}`)
