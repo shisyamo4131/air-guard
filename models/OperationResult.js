@@ -38,10 +38,10 @@ export default class OperationResult extends FireModel {
   }
 
   /****************************************************************************
-   * CONSTRUCTOR
+   * INITIALIZE
    ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
+  initialize(item = {}) {
+    super.initialize(item)
     Object.defineProperties(this, {
       /**
        * `workers` に保存されているオブジェクトから `employeeId` のみを抽出したものです。
