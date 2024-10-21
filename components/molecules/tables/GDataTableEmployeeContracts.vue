@@ -5,12 +5,6 @@
  * 従業員の雇用契約情報を表示するDataTableコンポーネントです。
  *
  * @author shisyamo4131
- * @version 2.0.0
- *
- * @updates
- * - version 2.0.0 - 2024-07-24 - 雇用契約情報の編集機能を排除 -> 純粋なDataTableコンポーネントとして再実装
- *                              - 現在有効な雇用契約について、契約日の前にアイコンを表示。
- * - version 1.0.0 - 2024-07-18 - 初版作成
  */
 import GDataTable from '../../atoms/tables/GDataTable.vue'
 export default {
