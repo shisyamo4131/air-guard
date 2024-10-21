@@ -1,4 +1,5 @@
-import OperationResult from './OperationResult'
+import { FireModel } from 'air-firebase'
+import { classProps } from './propsDefinition/OperationResult'
 
 /**
  * ## OperationResultForDailySale
@@ -7,17 +8,26 @@ import OperationResult from './OperationResult'
  *
  * @author shisyamo4131
  */
-export default class OperationResultForDailySale extends OperationResult {
+export default class OperationResultForDailySale extends FireModel {
   /****************************************************************************
-   * CONSTRUCTOR
+   * STATIC
    ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
+  static collectionPath = 'OperationResults'
+  static useAutonumber = true
+  static classProps = classProps
 
+  /****************************************************************************
+   * INITIALIZE
+   ****************************************************************************/
+  initialize(item = {}) {
+    super.initialize(item)
+
+    // 読み取り専用クラスとして実装
     delete this.create
     delete this.update
     delete this.delete
 
+    // 不要なプロパティを削除
     delete this.site
     delete this.workers
     delete this.outsourcers
@@ -26,11 +36,8 @@ export default class OperationResultForDailySale extends OperationResult {
     delete this.remarks
     delete this.siteContract
     delete this.siteContractId
-  }
 
-  initialize(item = {}) {
-    super.initialize(item)
-
+    // 個別プロパティを定義
     this.securityType = item?.securityType || item?.site?.securityType || ''
     this.customerId = item?.customerId || item?.site?.customer?.docId || ''
   }
