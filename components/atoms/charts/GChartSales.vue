@@ -29,7 +29,7 @@ export default {
       type: String,
       default: undefined,
       validator: (v) => {
-        const regex = /^\d(4)-(0[1-9]|1[1-2])$/
+        const regex = /^\d{4}-(0[1-9]|1[0-2])$/
         return regex.test(v)
       },
       required: false,
