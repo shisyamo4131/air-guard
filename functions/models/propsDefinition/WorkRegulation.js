@@ -80,6 +80,12 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+  holidays: {
+    type: Array,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
+  },
 }
 
 const vueProps = generateVueProps(propsDefinition)
