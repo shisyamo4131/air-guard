@@ -38,7 +38,7 @@ export default {
       validator: (v) => ['date', 'month'].includes(v),
       required: false,
     },
-    value: { type: String, default: undefined, required: false },
+    value: { type: [Array, String], default: undefined, required: false },
   },
 
   /***************************************************************************
