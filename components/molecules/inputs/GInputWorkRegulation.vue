@@ -3,10 +3,6 @@
  * ## GInputWorkRegulation
  *
  * @author shisayamo4131
- * @version 1.1.0
- * @updates
- * - version 1.1.0 - 2024-10-04 - Use `GCheckboxDeleteData` instead of `GCheckbox`.
- * - version 1.0.0 - 2024-09-13 - 初版作成
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
@@ -17,6 +13,7 @@ import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
+import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -29,6 +26,7 @@ export default {
     GCardInputForm,
     GSelect,
     GCheckboxDeleteData,
+    GDatePicker,
   },
   /***************************************************************************
    * MIXINS
@@ -61,6 +59,7 @@ export default {
         { text: '日曜日', value: 'sun' },
       ],
       editModel: new WorkRegulation(),
+      pickerDate: null,
       /**
        * 所定労働に関するルールです。
        * - 所定労働日は1つ以上選択されていなければなりません。
@@ -78,6 +77,9 @@ export default {
       },
     }
   },
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
   watch: {
     startTime(v) {
       this.$refs.scheduledWorkDays.validate()
@@ -102,6 +104,21 @@ export default {
       )
       this.editModel.scheduledWorkDays = result
     },
+    onChangedYear() {
+      this.pickerDate = this.editModel.year
+        ? this.$dayjs(`${this.editModel.year}-01-01`).format('YYYY-MM-DD')
+        : null
+      this.refreshHolidays()
+    },
+    refreshHolidays() {
+      if (!this.editModel.year) {
+        this.editModel.holidays.splice(0)
+      } else {
+        this.editModel.holidays = this.editModel.holidays.filter((date) => {
+          return date.slice(0, 4) === this.editModel.year
+        })
+      }
+    },
   },
 }
 </script>
@@ -125,6 +142,7 @@ export default {
             :rules="[(v) => !v || v.length === 4 || '西暦で入力']"
             required
             suffix="年"
+            @change="onChangedYear"
           />
         </v-col>
 
@@ -260,6 +278,19 @@ export default {
             v-model="editModel.bonusEligibility"
             class="mt-0"
             label="賞与対象"
+          />
+        </v-col>
+        <v-col cols="12">
+          <h4>祝日登録</h4>
+          <!-- editModel.year 以外の日付は選択不可 -->
+          <g-date-picker
+            v-model="editModel.holidays"
+            :allowed-dates="
+              (val) => editModel.year && val.slice(0, 4) === editModel.year
+            "
+            multiple
+            no-title
+            :picker-date.sync="pickerDate"
           />
         </v-col>
         <v-col cols="12">
