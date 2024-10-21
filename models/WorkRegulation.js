@@ -74,6 +74,30 @@ export default class WorkRegulation extends FireModel {
   }
 
   /****************************************************************************
+   * beforeCreate をオーバーライドします。
+   * - isHolidayWorkDay が true の場合 holidays を初期化します。
+   * @returns Promise
+   ****************************************************************************/
+  beforeCreate() {
+    return new Promise((resolve) => {
+      if (this.isHolidayWorkDay) this.holidays.splice(0)
+      resolve()
+    })
+  }
+
+  /****************************************************************************
+   * beforeUpdate をオーバーライドします。
+   * - isHolidayWorkDay が true の場合 holidays を初期化します。
+   * @returns Promise
+   ****************************************************************************/
+  beforeUpdate() {
+    return new Promise((resolve) => {
+      if (this.isHolidayWorkDay) this.holidays.splice(0)
+      resolve()
+    })
+  }
+
+  /****************************************************************************
    * Retrieves default attendance for each day within the specified date range.
    *
    * This function fetches a document by `docId`, and if the document exists,
