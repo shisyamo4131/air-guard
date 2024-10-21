@@ -1,13 +1,11 @@
 import OperationResult from './OperationResult.js'
+
 /**
  * ## OperationResultForDailySale
  *
  * DailySale クラス専用の OperationResult クラスです。
  *
- * @version 1.0.0
  * @author shisyamo4131
- * @updates
- * - version 1.0.0 - 2024-10-18 - 初版作成
  */
 export default class OperationResultForDailySale extends OperationResult {
   /****************************************************************************
@@ -33,6 +31,7 @@ export default class OperationResultForDailySale extends OperationResult {
   initialize(item = {}) {
     super.initialize(item)
 
-    this.securityType = item?.site?.securityType || ''
+    this.securityType = item?.securityType || item?.site?.securityType || ''
+    this.customerId = item?.customerId || item?.site?.customer?.docId || ''
   }
 }
