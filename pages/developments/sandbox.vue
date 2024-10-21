@@ -1,32 +1,27 @@
 <template>
   <v-container>
-    <div>
-      <g-calendar-daily-attendances
-        :items="items.length ? items[1].dailyAttendances : []"
-      />
-    </div>
+    <div></div>
   </v-container>
 </template>
 
 <script>
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import MonthlyAttendance from '~/models/MonthlyAttendance'
-import GCalendarDailyAttendances from '~/components/molecules/calendars/GCalendarDailyAttendances.vue'
-dayjs.extend(utc)
+import OperationResult from '~/models/OperationResult'
 export default {
-  components: { GCalendarDailyAttendances },
   data() {
     return {
-      items: [],
-      listener: new MonthlyAttendance(),
+      instance: new OperationResult(),
     }
   },
   computed: {},
   mounted() {
-    this.items = this.listener.subscribeDocs([
-      ['where', 'month', '==', '2024-10'],
-    ])
+    this.test()
+  },
+  methods: {
+    async test() {
+      await this.instance.fetchDocs([
+        ['where', 'docId', '==', '00wfglbWeVCKXabMPVPr'],
+      ])
+    },
   },
 }
 </script>
