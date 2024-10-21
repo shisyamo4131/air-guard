@@ -1,6 +1,4 @@
 <script>
-import { collection, onSnapshot, query, where } from 'firebase/firestore'
-import { firestore } from 'air-firebase/dist/firebase.init'
 import GChartBar from '~/components/atoms/charts/GChartBar.vue'
 /**
  * ### BChartSales
@@ -23,14 +21,13 @@ export default {
     count: { type: Number, default: 3, required: false },
     date: { type: String, default: undefined, required: false },
     height: { type: Number, default: undefined, required: false },
+    items: { type: Array, default: () => [], required: false },
   },
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      items: [],
-      listener: null,
       /**
        * chartjsのoption設定
        */
@@ -110,7 +107,6 @@ export default {
       // 例）{ traffic: { '2024-01': xxxxx, '2024-02': xxxxx, '2024-03': xxxxx }, ...}
       const result = this.items.reduce((sum, i) => {
         securityTypes.forEach((securityType) => {
-          // sum[securityType][i.month] += i.sales[securityType]
           sum[securityType][i.month] += i.operationResults
             .filter((result) => result.securityType === securityType)
             .reduce((total, result) => {
@@ -201,34 +197,6 @@ export default {
           },
         ],
       }
-    },
-  },
-  /***************************************************************************
-   * WATCH
-   ***************************************************************************/
-  watch: {
-    date: {
-      handler(v) {
-        this.unsubscribe()
-        this.subscribe()
-      },
-      immediate: true,
-    },
-  },
-  /***************************************************************************
-   * METHODS
-   ***************************************************************************/
-  methods: {
-    subscribe() {
-      const colRef = collection(firestore, 'DailySales')
-      const q = query(colRef, where('month', 'in', this.months))
-      this.listener = onSnapshot(q, (querySnapshot) => {
-        this.items = querySnapshot.docs.map((doc) => doc.data())
-      })
-    },
-    unsubscribe() {
-      if (this.listener) this.listener()
-      this.listener = null
     },
   },
 }
