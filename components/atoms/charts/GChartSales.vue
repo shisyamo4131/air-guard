@@ -1,5 +1,6 @@
 <script>
-import { collectionGroup, onSnapshot, query, where } from 'firebase/firestore'
+import { collection, onSnapshot, query, where } from 'firebase/firestore'
+import { firestore } from 'air-firebase/dist/firebase.init'
 import GChartBar from '~/components/atoms/charts/GChartBar.vue'
 /**
  * ### BChartSales
@@ -109,7 +110,13 @@ export default {
       // 例）{ traffic: { '2024-01': xxxxx, '2024-02': xxxxx, '2024-03': xxxxx }, ...}
       const result = this.items.reduce((sum, i) => {
         securityTypes.forEach((securityType) => {
-          sum[securityType][i.month] += i.sales[securityType]
+          // sum[securityType][i.month] += i.sales[securityType]
+          sum[securityType][i.month] += i.operationResults
+            .filter((result) => result.securityType === securityType)
+            .reduce((total, result) => {
+              total = total + result.sales.total
+              return total
+            }, 0)
         })
         return sum
       }, defaultValue)
@@ -123,23 +130,18 @@ export default {
       // Array.reduce()の初期値に使うオブジェクトを生成
       // 例）{ '2024-01': 0, '2024-02': 0, '2024-03': 0 }
       const defaultValue = Object.fromEntries(this.months.map((i) => [i, 0]))
+
       // Array.reduce()を使ってfetchしたsalesデータを集計
       // 例）{ '2024-01': 120, '2024-02': 153, '2024-03': 145 }
-      const securityTypes = ['traffic', 'jam', 'facility', 'patrol']
-      const types = ['standard', 'qualified']
-      const workResults = ['normal', 'half', 'canceled']
-      const result = this.items
-        // .filter(({ total }) => !!total)
-        .reduce((sum, i) => {
-          securityTypes.forEach((securityType) => {
-            types.forEach((type) => {
-              workResults.forEach((workResult) => {
-                sum[i.month] += i.workers[securityType][type][workResult]
-              })
-            })
-          })
-          return sum
-        }, defaultValue)
+      const result = this.items.reduce((sum, dailyAttendance) => {
+        // 該当月の合計に加算
+        sum[dailyAttendance.month] += dailyAttendance.operationResults.reduce(
+          (total, result) => total + result.operationCount.total,
+          0
+        )
+        // 更新された sum を返す
+        return sum
+      }, defaultValue)
       // 集計結果を値のみの配列にして返す
       // 例）[ 1230943, 23947, 2349987 ]
       return Object.values(result)
@@ -218,7 +220,7 @@ export default {
    ***************************************************************************/
   methods: {
     subscribe() {
-      const colRef = collectionGroup(this.$firestore, 'SiteMonthlySales')
+      const colRef = collection(firestore, 'DailySales')
       const q = query(colRef, where('month', 'in', this.months))
       this.listener = onSnapshot(q, (querySnapshot) => {
         this.items = querySnapshot.docs.map((doc) => doc.data())
