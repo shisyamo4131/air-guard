@@ -29,4 +29,10 @@ export default class OperationResultForDailySale extends OperationResult {
     delete this.siteContract
     delete this.siteContractId
   }
+
+  initialize(item = {}) {
+    super.initialize(item)
+
+    this.securityType = item?.site?.securityType || ''
+  }
 }
