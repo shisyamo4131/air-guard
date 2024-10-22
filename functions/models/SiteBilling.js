@@ -136,6 +136,7 @@ export default class SiteBilling extends FireModel {
           ),
         ].map((docId) => JSON.parse(docId))
 
+        const promises = []
         for (const docId of docIds) {
           const { siteId, closingDate } = docId
           const operationResults = operationResultsAll.filter(
@@ -150,8 +151,9 @@ export default class SiteBilling extends FireModel {
             closingDate,
             operationResults,
           })
-          await instance.create()
+          promises.push(instance.create())
         }
+        await Promise.all(promises)
       } catch (error) {
         const message = `[createInRange] SiteBilling ドキュメントの作成中にエラーが発生しました。`
         logger.error(message, { from, to, error })
