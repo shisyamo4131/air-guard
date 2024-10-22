@@ -28,7 +28,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
-  calcSiteSales: {
+  calcSiteBillings: {
     type: Object,
     default: () => {
       return {
