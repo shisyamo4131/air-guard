@@ -18,6 +18,12 @@
     "lists": []
   },
   {
+    "name": "月次請求額",
+    "icon": "mdi-train-bus",
+    "to": "/monthly-billings",
+    "lists": []
+  },
+  {
     "name": "稼働実績管理",
     "icon": "mdi-train-bus",
     "to": "/operation-results",
