@@ -24,6 +24,8 @@ export default class OperationResultForSiteBilling extends FireModel {
     delete this.create
     delete this.update
     delete this.delete
+
+    delete this.tokenMap
   }
 
   /****************************************************************************

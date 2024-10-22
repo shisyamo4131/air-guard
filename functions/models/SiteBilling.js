@@ -25,12 +25,19 @@ export default class SiteBilling extends FireModel {
   }
 
   /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item)
+
+    delete this.tokenMap // tokenMap は不要
+  }
+
+  /****************************************************************************
    * INITIALIZE
    ****************************************************************************/
   initialize(item = {}) {
     super.initialize(item)
-
-    delete this.tokenMap
 
     Object.defineProperties(this, {
       month: {
