@@ -231,7 +231,11 @@ export default {
 </script>
 
 <template>
-  <g-chart-bar :chart-data="chartData" :height="height" :options="options" />
+  <g-chart-bar
+    :chart-data="chartData"
+    :styles="{ height: '100%', width: '100%', position: 'relative' }"
+    :options="options"
+  />
 </template>
 
 <style></style>

@@ -29,8 +29,8 @@
         </v-toolbar>
         <v-container>
           <v-row>
-            <v-col cols="12" md="6">
-              <v-card outlined>
+            <v-col cols="12" md="6" class="d-flex">
+              <v-card outlined class="flex-grow-1">
                 <g-chart-sales :items="items" :month="month" />
               </v-card>
             </v-col>
