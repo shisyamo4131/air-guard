@@ -2,13 +2,13 @@ import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/OperationResult.js'
 
 /**
- * ## OperationResultForDailyBilling
+ * ## OperationResultForSiteBilling
  *
- * DailyBilling クラス専用の OperationResult クラスです。
+ * SiteBilling クラス専用の OperationResult クラスです。
  *
  * @author shisyamo4131
  */
-export default class OperationResultForDailyBilling extends FireModel {
+export default class OperationResultForSiteBilling extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
