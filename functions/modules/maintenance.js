@@ -174,3 +174,40 @@ export const refreshMonthlySales = onCall(async (request) => {
     )
   }
 })
+
+/****************************************************************************
+ * 月別の現場請求額を更新するための onCall 関数です。
+ *
+ * @param {Object} request - Cloud Functions の `onCall` から渡されるリクエストオブジェクト。
+ * @param {string} request.month - 更新対象の年月（YYYY-MM形式）
+ * @returns {Promise<void>} - 更新処理が完了した場合に解決される Promise。
+ * @throws {https.HttpsError} アプリ側とサーバーログの両方にエラーメッセージを出力。
+ ****************************************************************************/
+export const refreshSiteSales = onCall(async (request) => {
+  const { month } = request.data
+
+  try {
+    // 非同期処理の開始をログで通知
+    logger.info(
+      `[refreshSiteSales] 月別の現場請求額更新処理を開始しました。期間: ${month}`
+    )
+
+    // 非同期で calculateSiteSales を実行
+    await System.calculateSiteSales({ month })
+
+    // 処理完了のメッセージを返す
+    return {
+      message: `[refreshSiteSales] 月別の現場請求額更新処理が正常に完了しました。期間: ${month}`,
+    }
+  } catch (error) {
+    // サーバー側のエラーログ
+    logger.error(
+      `[refreshSiteSales] 月別の現場請求額更新処理で不明なエラーが発生しました。期間: ${month}`,
+      { request }
+    )
+    throw new https.HttpsError(
+      'unknown',
+      `[refreshSiteSales] 月別の現場請求額更新処理で不明なエラーが発生しました。`
+    )
+  }
+})
