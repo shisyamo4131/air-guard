@@ -4,8 +4,35 @@
 
 import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import dayjs from 'dayjs'
 const firestore = getFirestore()
 const BATCH_LIMIT = 500
+
+/****************************************************************************
+ * 指定された日付が 'YYYY-MM-DD' 形式であり、かつ有効な日付かどうかをチェックします。
+ * - 日付が文字列として正しく指定されていない場合はエラーをスローします。
+ * - 'YYYY-MM-DD' 形式に一致しない場合は false を返します。
+ * - dayjs でバリデートし、有効な日付であるかを確認します。
+ *
+ * @param {string} date - チェックする日付（'YYYY-MM-DD' 形式の文字列）。
+ * @returns {boolean} - 日付が有効であれば true、無効であれば false を返します。
+ * @throws {Error} - date が文字列で指定されていない場合、または日付が未指定の場合にエラーをスローします。
+ ****************************************************************************/
+export const dateIsValid = (date) => {
+  // 引数が指定されていない場合や、文字列でない場合はエラーをスロー
+  if (!date || typeof date !== 'string') {
+    const message = `[dateIsValid] date は文字列で必ず指定されなければなりません。`
+    logger.error(message, { date })
+    throw new Error(message)
+  }
+
+  // 'YYYY-MM-DD'形式のチェック
+  const regex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/
+  if (!regex.test(date)) return false
+
+  // dayjsで有効な日付かどうかを確認
+  return dayjs(date, 'YYYY-MM-DD', true).isValid()
+}
 
 /****************************************************************************
  * Firestoreドキュメントの内容に変更があったかどうかを返します。
