@@ -31,26 +31,37 @@ const generatePdf = async ({ content = [], download = false } = {}) => {
     // pdfmakeのモジュールはクライアントサイドでのみ読み込み
     const { default: pdfMake } = await import('pdfmake/build/pdfmake')
 
-    // 日本語フォントを読み込む
-    const { default: pdfFonts } = await import('@/static/vfs_fonts')
-
     // vfs に日本語フォントを設定
-    pdfMake.vfs = pdfFonts.pdfMake.vfs
+    pdfMake.vfs = {
+      'NotoSansJP-Regular.ttf': await fetch(
+        '/fonts/NotoSansJP/NotoSansJP-Regular.ttf'
+      ).then((res) => res.arrayBuffer()),
+      'NotoSansJP-Bold.ttf': await fetch(
+        '/fonts/NotoSansJP/NotoSansJP-Bold.ttf'
+      ).then((res) => res.arrayBuffer()),
+    }
 
     // フォント設定
     pdfMake.fonts = {
-      GenShin: {
-        normal: 'genshin-normal.ttf',
-        bold: 'genshin-bold.ttf',
+      NotoSansJP: {
+        normal: 'NotoSansJP-Regular.ttf',
+        bold: 'NotoSansJP-Bold.ttf',
       },
     }
 
     // PDF ドキュメントの定義
     const docDefinition = {
       defaultStyle: {
-        font: 'GenShin', // デフォルトフォントを日本語フォントに設定
+        font: 'NotoSansJP', // デフォルトフォントをNotoSansJPに設定
       },
       content,
+      footer: function (currentPage, pageCount) {
+        return {
+          text: currentPage.toString() + ' / ' + pageCount.toString(), // 現在のページ番号と総ページ数
+          alignment: 'center', // ページ番号を中央揃え
+          fontSize: 8,
+        }
+      },
     }
 
     if (download) {
