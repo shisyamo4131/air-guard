@@ -320,15 +320,18 @@ export default class System extends FireModel {
 
         const systemDoc = systemDocSnapshot.data()
 
-        // calcSiteSales プロパティのチェック
-        if (!systemDoc?.calcSiteSales || !systemDoc.calcSiteSales?.status) {
-          const message = `[calculateSiteBillings] System ドキュメントに calcSiteSales または calcSiteSales.status プロパティがありません。`
+        // calcSiteBillings プロパティのチェック
+        if (
+          !systemDoc?.calcSiteBillings ||
+          !systemDoc.calcSiteBillings?.status
+        ) {
+          const message = `[calculateSiteBillings] System ドキュメントに calcSiteBillings または calcSiteBillings.status プロパティがありません。`
           logger.error(message)
           return false
         }
 
-        // calcSiteSales.status が 'ready' でない場合は実行中と判断
-        if (systemDoc.calcSiteSales.status !== 'ready') {
+        // calcSiteBillings.status が 'ready' でない場合は実行中と判断
+        if (systemDoc.calcSiteBillings.status !== 'ready') {
           const message = `[calculateSiteBillings] 現在処理中のため、実行できません。`
           logger.error(message)
           return false
@@ -336,7 +339,7 @@ export default class System extends FireModel {
 
         // ステータスを 'calculating' に更新
         transaction.update(systemDocRef, {
-          'calcSiteSales.status': 'calculating',
+          'calcSiteBillings.status': 'calculating',
         })
         return true
       })
@@ -354,20 +357,20 @@ export default class System extends FireModel {
 
       // 処理が完了したら System ドキュメントを 'ready' に更新
       await systemDocRef.update({
-        'calcSiteSales.status': 'ready',
-        'calcSiteSales.lastExecutedAt': new Date(),
-        'calcSiteSales.executeStatus': 'success',
-        'calcSiteSales.error': null,
+        'calcSiteBillings.status': 'ready',
+        'calcSiteBillings.lastExecutedAt': new Date(),
+        'calcSiteBillings.executeStatus': 'success',
+        'calcSiteBillings.error': null,
       })
       logger.info(
         `[calculateSiteBillings] 現場別月間請求額集計処理が正常に完了しました。`
       )
     } catch (error) {
       await systemDocRef.update({
-        'calcSiteSales.status': 'ready',
-        'calcSiteSales.lastExecutedAt': new Date(),
-        'calcSiteSales.executeStatus': 'error',
-        'calcSiteSales.error': error.message,
+        'calcSiteBillings.status': 'ready',
+        'calcSiteBillings.lastExecutedAt': new Date(),
+        'calcSiteBillings.executeStatus': 'error',
+        'calcSiteBillings.error': error.message,
       })
       const message = `[calculateSiteBillings] 現場別月間請求額集計処理でエラーが発生しました。`
       logger.error(message, { month })
