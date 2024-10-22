@@ -26,7 +26,11 @@
  * @param {Array} options.content - PDFに表示する内容の配列。各要素はテキストや画像など。
  * @param {boolean} [options.download=false] - trueの場合はPDFをダウンロード、falseの場合はブラウザで表示。
  */
-const generatePdf = async ({ content = [], download = false } = {}) => {
+const generatePdf = async ({
+  content = [],
+  background = null,
+  download = false,
+} = {}) => {
   try {
     // pdfmakeのモジュールはクライアントサイドでのみ読み込み
     const { default: pdfMake } = await import('pdfmake/build/pdfmake')
@@ -54,6 +58,7 @@ const generatePdf = async ({ content = [], download = false } = {}) => {
       defaultStyle: {
         font: 'NotoSansJP', // デフォルトフォントをNotoSansJPに設定
       },
+      background,
       content,
       footer: function (currentPage, pageCount) {
         return {
