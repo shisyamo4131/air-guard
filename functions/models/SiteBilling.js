@@ -1,9 +1,12 @@
 import { logger } from 'firebase-functions/v2'
+import { getFirestore } from 'firebase-admin/firestore'
 import { dateIsValid } from '../modules/utils.js'
 import FireModel from './FireModel.js'
 import OperationResultForSiteBilling from './OperationResultForSiteBilling.js'
 import { classProps } from './propsDefinition/SiteBilling.js'
 import OperationResult from './OperationResult.js'
+const firestore = getFirestore()
+const BATCH_LIMIT = 500
 
 /**
  * SiteBillingsドキュメントデータモデル
@@ -120,6 +123,19 @@ export default class SiteBilling extends FireModel {
       }
 
       try {
+        // 既存ドキュメントを削除
+        const existQueryRef = firestore
+          .collection('SiteBillings')
+          .where('closingDate', '>=', from)
+          .where('closingDate', '<=', to)
+        const existQuerySnapshot = await existQueryRef.get()
+        const batchArray = []
+        existQuerySnapshot.docs.forEach((doc, index) => {
+          if (index % BATCH_LIMIT === 0) batchArray.push(firestore.batch())
+          batchArray[batchArray.length - 1].delete(doc.ref)
+        })
+        await Promise.all(batchArray.map((batch) => batch.commit()))
+
         // closingDate を基準に OperationResults ドキュメントを取得
         const operationResultInstance = new OperationResult()
         const operationResultsAll = await operationResultInstance.fetchDocs([
