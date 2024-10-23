@@ -44,11 +44,11 @@ export default class OperationResultForImport extends OperationResult {
     // operationCount を再定義
     this.operationCount = {
       standard: {
-        normal: item?.operationCount?.starndard?.normal ?? 0,
-        half: item?.operationCount?.starndard?.half ?? 0,
-        cancel: item?.operationCount?.starndard?.cancel ?? 0,
-        total: item?.operationCount?.starndard?.total ?? 0,
-        overtimeMinutes: item?.operationCount?.starndard?.overtimeMinutes ?? 0,
+        normal: item?.operationCount?.standard?.normal ?? 0,
+        half: item?.operationCount?.standard?.half ?? 0,
+        cancel: item?.operationCount?.standard?.cancel ?? 0,
+        total: item?.operationCount?.standard?.total ?? 0,
+        overtimeMinutes: item?.operationCount?.standard?.overtimeMinutes ?? 0,
       },
       qualified: {
         normal: item?.operationCount?.qualified?.normal ?? 0,
@@ -64,10 +64,10 @@ export default class OperationResultForImport extends OperationResult {
     // unitPrice を再定義
     this.unitPrice = {
       standard: {
-        normal: item?.unitPrice?.starndard?.normal ?? null,
-        half: item?.unitPrice?.starndard?.half ?? null,
-        cancel: item?.unitPrice?.starndard?.cancel ?? null,
-        overtime: item?.unitPrice?.starndard?.overtime ?? null,
+        normal: item?.unitPrice?.standard?.normal ?? null,
+        half: item?.unitPrice?.standard?.half ?? null,
+        cancel: item?.unitPrice?.standard?.cancel ?? null,
+        overtime: item?.unitPrice?.standard?.overtime ?? null,
       },
       qualified: {
         normal: item?.unitPrice?.qualified?.normal ?? null,
