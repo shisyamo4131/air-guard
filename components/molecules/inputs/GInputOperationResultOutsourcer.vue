@@ -86,7 +86,7 @@ export default {
             v-model="editModel.workResult"
             label="勤務結果"
             required
-            :items="['normal', 'half', 'cancel']"
+            :items="$WORK_RESULT_ARRAY"
           />
         </v-col>
       </v-row>
