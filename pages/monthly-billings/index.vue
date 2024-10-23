@@ -60,11 +60,13 @@ import {
   getFunctions,
   httpsCallable,
 } from 'firebase/functions'
+import ja from 'dayjs/locale/ja'
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import SiteBilling from '~/models/SiteBilling'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import Customer from '~/models/Customer'
+
 export default {
   name: 'MonthlyBillings',
   components: { GDialogMonthPicker, GTemplateDefault, GDataTable },
@@ -388,7 +390,7 @@ export default {
      *
      * - 1行目は現場名が出力されます。
      * - 出力項目は以下のとおりです。
-     * | 日付 | 勤務 | 区分 | 結果 | 数量 | 単価 | 残業時間 | 単価 | 金額 |
+     * | 日付 | 曜日区分 | 勤務区分 | 勤務結果 | 数量 | 単価 | 残業時間 | 単価 | 金額 |
      *************************************************************************/
     operationDetailsBody(detail) {
       const cols = 10
@@ -399,7 +401,7 @@ export default {
       // 現場名の出力
       result.push([
         { text: site.name, colSpan: cols, alignment: 'left' },
-        ...Array(cols - 1).fill(''), // colSpan のために空のセルを出力
+        ...Array(cols - 1).fill(null), // colSpan のために空のセルを出力
       ])
 
       // detail が保有する operationResults を date, workShift の昇順で並べ替える
@@ -412,9 +414,9 @@ export default {
 
       // 明細部の出力
       operationResults.forEach((operationResult) => {
-        const date = `${this.$dayjs(operationResult.date).format(
-          'MM-DD (ddd)'
-        )}`
+        const date = `${this.$dayjs(operationResult.date)
+          .locale(ja)
+          .format('MM-DD (ddd)')}`
         const dayDiv = this.$DAY_DIV[operationResult.dayDiv]
         const operationCount = operationResult.operationCount
         const unitPrice = operationResult.unitPrice
@@ -422,29 +424,51 @@ export default {
           { text: 'A', value: 'qualified' },
           { text: 'B', value: 'standard' },
         ]
+        const workResults = this.$WORK_RESULT_ARRAY
         types.forEach((type) => {
-          if (operationCount[type.value].total > 0) {
-            const workShift = this.$WORK_SHIFT[operationResult.workShift]
-            const volume = operationCount[type.value].normal.toLocaleString()
-            const price = unitPrice[type.value].normal.toLocaleString()
-            const overtimeMinutes = operationCount[type.value].overtimeMinutes
-            const priceOvertime =
-              unitPrice[type.value].overtime.toLocaleString()
-            const amount =
-              operationResult.sales[type.value].normal.toLocaleString()
-            result.push([
-              { text: date, alignment: 'center' },
-              { text: dayDiv, alignment: 'center' },
-              { text: workShift, alignment: 'center' },
-              { text: `交通誘導員${type.text}`, alignment: 'center' },
-              { text: '結果', alignment: 'center' },
-              { text: volume, alignment: 'center' },
-              { text: price, alignment: 'right' },
-              { text: (overtimeMinutes / 60).toFixed(2), alignment: 'center' },
-              { text: priceOvertime, alignment: 'right' },
-              { text: amount, alignment: 'right' },
-            ])
-          }
+          workResults.forEach((workResult) => {
+            if (operationCount[type.value][workResult.value] > 0) {
+              const workShift = this.$WORK_SHIFT[operationResult.workShift]
+              const volume = operationCount[type.value][workResult.value]
+              const price = unitPrice[type.value][workResult.value]
+
+              // 残業時間は workResult が normal の場合にのみ出力
+              const overtimeMinutes =
+                workResult.value === 'normal'
+                  ? operationCount[type.value].overtimeMinutes
+                  : 0
+
+              // 残業単価は workResult が normal の場合にのみ出力
+              const priceOvertime =
+                workResult.value === 'normal'
+                  ? unitPrice[type.value].overtime
+                  : 0
+
+              // 金額は workResult が normal の場合は 売上 + 残業代、それ以外は売上のみ
+              const amount =
+                workResult.value === 'normal'
+                  ? operationResult.sales[type.value][workResult.value] +
+                    operationResult.sales[type.value].overtime
+                  : operationResult.sales[type.value][workResult.value]
+
+              // 出力部生成
+              result.push([
+                { text: date, alignment: 'center' },
+                { text: dayDiv, alignment: 'center' },
+                { text: workShift, alignment: 'center' },
+                { text: `交通誘導員${type.text}`, alignment: 'center' },
+                { text: workResult.text, alignment: 'center' },
+                { text: volume.toLocaleString(), alignment: 'center' },
+                { text: price.toLocaleString(), alignment: 'right' },
+                {
+                  text: (overtimeMinutes / 60).toFixed(2),
+                  alignment: 'center',
+                },
+                { text: priceOvertime.toLocaleString(), alignment: 'right' },
+                { text: amount.toLocaleString(), alignment: 'right' },
+              ])
+            }
+          })
         })
       })
 
