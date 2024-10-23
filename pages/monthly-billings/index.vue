@@ -35,10 +35,15 @@
                   :headers="[
                     { text: '取引先', value: 'code' },
                     { text: '請求額', value: 'amount' },
+                    { text: 'PDF', value: 'action' },
                   ]"
                   :items="billingsByCustomer"
                   sort-by="code"
-                ></g-data-table>
+                >
+                  <template #[`item.action`]="{ item }">
+                    <v-icon @click="generatePdf(item)">mdi-file-pdf-box</v-icon>
+                  </template>
+                </g-data-table>
               </v-card>
             </v-col>
           </v-row>
@@ -59,6 +64,7 @@ import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicke
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import SiteBilling from '~/models/SiteBilling'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
+import Customer from '~/models/Customer'
 export default {
   name: 'MonthlyBillings',
   components: { GDialogMonthPicker, GTemplateDefault, GDataTable },
@@ -68,6 +74,18 @@ export default {
       listener: new SiteBilling(),
       loading: false,
       month: this.$dayjs().format('YYYY-MM'),
+      // 以下、pdfMake での出力に関わる定数定義
+      operationDetailsTableHeader: [
+        { text: '日付', alignment: 'center' },
+        { text: '勤務', alignment: 'center' },
+        { text: '区分', alignment: 'center' },
+        { text: '結果', alignment: 'center' },
+        { text: '数量', alignment: 'center' },
+        { text: '単価', alignment: 'center' },
+        { text: '残業時間', alignment: 'center' },
+        { text: '単価', alignment: 'center' },
+        { text: '金額', alignment: 'center' },
+      ],
     }
   },
   computed: {
@@ -130,6 +148,7 @@ export default {
      */
     async recalc() {
       this.loading = true
+      this.unsubscribe()
       try {
         const firebaseApp = getApp()
         const functions = getFunctions(firebaseApp, 'asia-northeast1')
@@ -142,8 +161,294 @@ export default {
       } catch (err) {
         console.error('Error calling function:', err) // eslint-disable-line no-console
       } finally {
+        this.subscribe()
         this.loading = false
       }
+    },
+    /*************************************************************************
+     * 請求書 PDF 出力処理
+     *************************************************************************/
+    async generatePdf(item) {
+      const content = [
+        // タイトル
+        {
+          text: 'ご請求書',
+          bold: true,
+          fontSize: 16,
+          alignment: 'center',
+          margin: [0, 0, 0, 20],
+        },
+
+        // 宛先
+        ...(await this.customerLines(item)),
+
+        // 自社情報
+        this.companyTable({ x: 0, y: 84 }),
+
+        // 総請求額
+        {
+          text: `以下のとおりご請求申し上げます。`,
+          fontSize: 9,
+          margin: [0, 0, 0, 20],
+        },
+        {
+          text: `ご請求額:  ￥ ${item.amount.toLocaleString()} -`,
+          decoration: 'underline',
+          margin: [0, 0, 0, 20],
+          fontSize: 16,
+        },
+
+        // 現場別請求明細
+        this.siteBillingsTable(item),
+
+        // 稼働明細タイトル
+        {
+          text: '稼働明細',
+          bold: true,
+          fontSize: 16,
+          alignment: 'center',
+          margin: [0, 0, 0, 20],
+        },
+
+        // 稼働明細の明細部
+        this.operationDetailsTable(item),
+      ]
+
+      // logo.pngをBase64に変換
+      const logoBase64 = await fetch('/logo.png') // staticディレクトリ内のlogo.pngを取得
+        .then((response) => response.blob())
+        .then(
+          (blob) =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader()
+              reader.onloadend = () => resolve(reader.result)
+              reader.onerror = reject
+              reader.readAsDataURL(blob)
+            })
+        )
+      const background = function (currentPage) {
+        if (currentPage === 1) {
+          return {
+            image: logoBase64,
+            width: 150,
+            opacity: 0.3,
+            absolutePosition: { x: 400, y: 72 },
+          } // 背景にロゴを配置
+        } else {
+          return null
+        }
+      }
+
+      // PDF を生成
+      await this.$generatePdf({ content, background })
+    },
+    /*************************************************************************
+     * 背景画像を生成して返します。
+     *************************************************************************/
+    async backbround() {
+      // logo.pngをBase64に変換
+      const logoBase64 = await fetch('/logo.png') // staticディレクトリ内のlogo.pngを取得
+        .then((response) => response.blob())
+        .then(
+          (blob) =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader()
+              reader.onloadend = () => resolve(reader.result)
+              reader.onerror = reject
+              reader.readAsDataURL(blob)
+            })
+        )
+      const background = function (currentPage) {
+        if (currentPage === 1) {
+          return {
+            image: logoBase64,
+            width: 150,
+            opacity: 0.3,
+            absolutePosition: { x: 400, y: 72 },
+          } // 背景にロゴを配置
+        } else {
+          return null
+        }
+      }
+      return background
+    },
+    /*************************************************************************
+     * 宛先情報を生成して返します。
+     *************************************************************************/
+    async customerLines(item) {
+      const customer = new Customer()
+      await customer.fetch(item.customer.docId)
+      return [
+        { text: `〒${customer.zipcode}`, fontSize: 10 },
+        { text: customer.address1, fontSize: 10 },
+        { text: customer.address2, margin: [0, 0, 0, 10], fontSize: 10 },
+        { text: `${customer.name1} 御中` },
+        { text: customer.name2 || ' ', margin: [0, 0, 0, 20] },
+      ]
+    },
+    /*************************************************************************
+     * 自社情報テーブルを生成して返します。
+     *************************************************************************/
+    companyTable({ x = 0, y = 0 } = {}) {
+      const rows = [
+        { text: '〒1110022 東京都台東区清川1-23-1', fontSize: 10 },
+        { text: '株式会社 唯心', fontSize: 12 },
+        { text: '警備事業部', fontSize: 10 },
+        { text: 'T0000000000000', fontSize: 10 },
+        {
+          text: '城北信用金庫 浅草支店 普通 9999999',
+          fontSize: 10,
+          noWrap: true,
+        },
+        { text: 'お振込み手数料はご負担ください。', fontSize: 8, noWrap: true },
+      ]
+
+      const result = {
+        table: {
+          widths: ['100%'],
+          body: rows.map((row) => [{ ...row, alignment: 'right' }]), // 各行の生成を簡略化
+        },
+        layout: {
+          hLineWidth: () => 0,
+          vLineWidth: () => 0,
+          paddingTop: () => 1,
+          paddingBottom: () => 1,
+        },
+        ...(x || y ? { absolutePosition: { x, y } } : {}),
+      }
+
+      return result
+    },
+    /*************************************************************************
+     * 現場別請求明細部を生成して返します。
+     *************************************************************************/
+    siteBillingsTable(item) {
+      const fontSize = 9
+      const header = ['現場名', { text: 'ご請求額', alignment: 'right' }]
+
+      // 明細部の生成
+      const siteSalesBody = item.details.map((detail) => {
+        const siteName = this.$store.getters['sites/get'](detail.siteId).name
+        const billing = detail.amount.operationResults.toLocaleString()
+        return [siteName, { text: billing, alignment: 'right' }]
+      })
+
+      // table として返す
+      return {
+        table: {
+          headerRows: 1,
+          widths: ['*', 84],
+          body: [header, ...siteSalesBody],
+        },
+        fontSize,
+        layout: {
+          hLineWidth: (i, node) => 0.1, // 水平方向の線幅
+          vLineWidth: (i, node) => 0.1, // 垂直方向の線幅
+          paddingTop: (i, node) => 5, // 上方向のパディング
+          paddingBottom: (i, node) => 5, // 下方向のパディング
+        },
+        pageBreak: 'after',
+      }
+    },
+    /*************************************************************************
+     * 取引先の請求データ (billingsByCustomer) を受け取り、稼働明細となる table を
+     * 生成して返します。
+     *************************************************************************/
+    operationDetailsTable(item) {
+      const header = [
+        { text: '日付', alignment: 'center' },
+        { text: '曜日', alignment: 'center' },
+        { text: '勤務', alignment: 'center' },
+        { text: '配置区分', alignment: 'center' },
+        { text: '結果', alignment: 'center' },
+        { text: '数量', alignment: 'center' },
+        { text: '単価', alignment: 'center' },
+        { text: '残業時間', alignment: 'center' },
+        { text: '単価', alignment: 'center' },
+        { text: '金額', alignment: 'center' },
+      ]
+      const fontSize = 9
+      return {
+        table: {
+          headerRows: 1,
+          widths: [60, '*', '*', 60, '*', '*', '*', '*', '*', '*'],
+          body: [header, ...item.details.map(this.operationDetailsBody).flat()],
+        },
+        fontSize,
+        layout: {
+          hLineWidth: (i, node) => 0.1, // 水平方向の線幅
+          vLineWidth: (i, node) => 0.1, // 垂直方向の線幅
+          paddingTop: (i, node) => 5, // 上方向のパディング
+          paddingBottom: (i, node) => 5, // 下方向のパディング
+        },
+      }
+    },
+    /*************************************************************************
+     * 現場単位の明細データを受け取り pdfMake で出力する稼働明細の明細部を生成して返します。
+     *
+     * - 1行目は現場名が出力されます。
+     * - 出力項目は以下のとおりです。
+     * | 日付 | 勤務 | 区分 | 結果 | 数量 | 単価 | 残業時間 | 単価 | 金額 |
+     *************************************************************************/
+    operationDetailsBody(detail) {
+      const cols = 10
+      const result = []
+      const siteId = detail.siteId
+      const site = this.$store.getters['sites/get'](siteId)
+
+      // 現場名の出力
+      result.push([
+        { text: site.name, colSpan: cols, alignment: 'left' },
+        ...Array(cols - 1).fill(''), // colSpan のために空のセルを出力
+      ])
+
+      // detail が保有する operationResults を date, workShift の昇順で並べ替える
+      const operationResults = detail.operationResults.slice().sort((a, b) => {
+        if (a.date !== b.date) return a.date < b.date ? -1 : 1
+        if (a.workShift !== b.workShift)
+          return a.workShift < b.workShift ? -1 : 1
+        return 0
+      })
+
+      // 明細部の出力
+      operationResults.forEach((operationResult) => {
+        const date = `${this.$dayjs(operationResult.date).format(
+          'MM-DD (ddd)'
+        )}`
+        const dayDiv = this.$DAY_DIV[operationResult.dayDiv]
+        const operationCount = operationResult.operationCount
+        const unitPrice = operationResult.unitPrice
+        const types = [
+          { text: 'A', value: 'qualified' },
+          { text: 'B', value: 'standard' },
+        ]
+        types.forEach((type) => {
+          if (operationCount[type.value].total > 0) {
+            const workShift = this.$WORK_SHIFT[operationResult.workShift]
+            const volume = operationCount[type.value].normal.toLocaleString()
+            const price = unitPrice[type.value].normal.toLocaleString()
+            const overtimeMinutes = operationCount[type.value].overtimeMinutes
+            const priceOvertime =
+              unitPrice[type.value].overtime.toLocaleString()
+            const amount =
+              operationResult.sales[type.value].normal.toLocaleString()
+            result.push([
+              { text: date, alignment: 'center' },
+              { text: dayDiv, alignment: 'center' },
+              { text: workShift, alignment: 'center' },
+              { text: `交通誘導員${type.text}`, alignment: 'center' },
+              { text: '結果', alignment: 'center' },
+              { text: volume, alignment: 'center' },
+              { text: price, alignment: 'right' },
+              { text: (overtimeMinutes / 60).toFixed(2), alignment: 'center' },
+              { text: priceOvertime, alignment: 'right' },
+              { text: amount, alignment: 'right' },
+            ])
+          }
+        })
+      })
+
+      return result
     },
   },
 }
