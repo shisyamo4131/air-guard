@@ -184,11 +184,11 @@ export default class System extends FireModel {
    *
    * @param {*} param0
    ****************************************************************************/
-  static async calculateSiteSales({ month }) {
+  static async calculateMonthlySales({ month }) {
     // 引数のチェック
     if (!month) {
       const message =
-        '[calculateSiteSales] month の指定（YYYY-MM形式）が必要です。'
+        '[calculateMonthlySales] month の指定（YYYY-MM形式）が必要です。'
       logger.error(message)
       throw new Error(message)
     }
@@ -196,7 +196,7 @@ export default class System extends FireModel {
     // 月の形式が正しいかチェック
     const regex = /^\d{4}-(0[1-9]|1[0-2])$/
     if (typeof month !== 'string' || !regex.test(month)) {
-      const message = `[calculateSiteSales] month は 'YYYY-MM' 形式の文字列である必要があります。`
+      const message = `[calculateMonthlySales] month は 'YYYY-MM' 形式の文字列である必要があります。`
       logger.error(message, { month })
       throw new Error(message)
     }
@@ -215,30 +215,33 @@ export default class System extends FireModel {
 
         // System ドキュメントが存在するか確認
         if (!systemDocSnapshot.exists) {
-          const message = `[calculateSiteSales] System ドキュメントが見つかりませんでした。`
+          const message = `[calculateMonthlySales] System ドキュメントが見つかりませんでした。`
           logger.error(message)
           return false
         }
 
         const systemDoc = systemDocSnapshot.data()
 
-        // calcSiteSales プロパティのチェック
-        if (!systemDoc?.calcSiteSales || !systemDoc.calcSiteSales?.status) {
-          const message = `[calculateSiteSales] System ドキュメントに calcSiteSales または calcSiteSales.status プロパティがありません。`
+        // calcMonthlySales プロパティのチェック
+        if (
+          !systemDoc?.calcMonthlySales ||
+          !systemDoc.calcMonthlySales?.status
+        ) {
+          const message = `[calculateMonthlySales] System ドキュメントに calcMonthlySales または calcMonthlySales.status プロパティがありません。`
           logger.error(message)
           return false
         }
 
-        // calcSiteSales.status が 'ready' でない場合は実行中と判断
-        if (systemDoc.calcSiteSales.status !== 'ready') {
-          const message = `[calculateSiteSales] 現在処理中のため、実行できません。`
+        // calcMonthlySales.status が 'ready' でない場合は実行中と判断
+        if (systemDoc.calcMonthlySales.status !== 'ready') {
+          const message = `[calculateMonthlySales] 現在処理中のため、実行できません。`
           logger.error(message)
           return false
         }
 
         // ステータスを 'calculating' に更新
         transaction.update(systemDocRef, {
-          'calcSiteSales.status': 'calculating',
+          'calcMonthlySales.status': 'calculating',
         })
         return true
       })
@@ -256,20 +259,20 @@ export default class System extends FireModel {
 
       // 処理が完了したら System ドキュメントを 'ready' に更新
       await systemDocRef.update({
-        'calcSiteSales.status': 'ready',
-        'calcSiteSales.lastExecutedAt': new Date(),
-        'calcSiteSales.executeStatus': 'success',
-        'calcSiteSales.error': null,
+        'calcMonthlySales.status': 'ready',
+        'calcMonthlySales.lastExecutedAt': new Date(),
+        'calcMonthlySales.executeStatus': 'success',
+        'calcMonthlySales.error': null,
       })
       logger.info(
         `[calculateMonthlySales] 月間売上集計処理が正常に完了しました。`
       )
     } catch (error) {
       await systemDocRef.update({
-        'calcSiteSales.status': 'ready',
-        'calcSiteSales.lastExecutedAt': new Date(),
-        'calcSiteSales.executeStatus': 'error',
-        'calcSiteSales.error': error.message,
+        'calcMonthlySales.status': 'ready',
+        'calcMonthlySales.lastExecutedAt': new Date(),
+        'calcMonthlySales.executeStatus': 'error',
+        'calcMonthlySales.error': error.message,
       })
       const message = `[calculateMonthlySales] 月間売上集計処理でエラーが発生しました。`
       logger.error(message, { month })
