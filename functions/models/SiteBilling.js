@@ -3,7 +3,7 @@ import { getFirestore } from 'firebase-admin/firestore'
 import { dateIsValid } from '../modules/utils.js'
 import FireModel from './FireModel.js'
 import OperationResultForSiteBilling from './OperationResultForSiteBilling.js'
-import { classProps } from './propsDefinition/SiteBilling.js'
+import { accessor, classProps } from './propsDefinition/SiteBilling.js'
 import OperationResult from './OperationResult.js'
 const firestore = getFirestore()
 const BATCH_LIMIT = 500
@@ -43,37 +43,11 @@ export default class SiteBilling extends FireModel {
     super.initialize(item)
 
     Object.defineProperties(this, {
-      month: {
-        configurable: true,
-        enumerable: true,
-        get() {
-          if (!this.closingDate) return ''
-          return this.closingDate.slice(0, 7)
-        },
-        set(v) {},
-      },
-      year: {
-        configurable: true,
-        enumerable: true,
-        get() {
-          if (!this.month) return
-          return this.month.slice(0, 4)
-        },
-        set(v) {},
-      },
-      amount: {
-        configurable: true,
-        enumerable: true,
-        get() {
-          const result = { operationResults: 0 }
-          result.operationResults = this.operationResults.reduce(
-            (sum, i) => sum + i.sales.total,
-            0
-          )
-          return result
-        },
-        set(v) {},
-      },
+      amount: accessor.amount,
+      consumptionTax: accessor.consumptionTax,
+      consumptionTaxs: accessor.consumptionTaxs,
+      month: accessor.month,
+      year: accessor.year,
     })
   }
 
