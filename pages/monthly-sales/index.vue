@@ -26,6 +26,10 @@
             @click="recalc"
             >実績更新</v-btn
           >
+          <v-spacer />
+          <div>
+            {{ status }}
+          </div>
         </v-toolbar>
         <v-container>
           <v-row>
@@ -84,6 +88,12 @@ export default {
     }
   },
   computed: {
+    status() {
+      const lastExecutedAt = this.$dayjs(
+        this.$store.state.systems.calcMonthlySales.lastExecutedAt
+      ).format('YYYY-MM-DD HH:mm:ss')
+      return lastExecutedAt
+    },
     salesByCustomer() {
       const operationResults = this.items
         .filter(({ month }) => month === this.month)
