@@ -1,12 +1,13 @@
 import { FireModel, firestore } from 'air-firebase'
 import { doc } from 'firebase/firestore'
-import { classProps } from './propsDefinition/OperationResult'
+import { accessor, classProps } from './propsDefinition/OperationResult'
 import Site from './Site'
 import OperationResultWorker from './OperationResultWorker'
 import SiteContract from './SiteContract'
 import OperationWorkResult from './OperationWorkResult'
 import OperationResultOutsourcer from './OperationResultOutsourcer'
 import { getClosingDate, isValidDateFormat } from '~/utils/utility'
+
 /**
  * ## OperationResults ドキュメントデータモデル【物理削除】
  *
@@ -248,6 +249,7 @@ export default class OperationResult extends FireModel {
         },
         set(v) {},
       },
+      consumptionTax: accessor.consumptionTax,
     })
   }
 
