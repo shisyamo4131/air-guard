@@ -21,6 +21,12 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+  consumptionTax: {
+    type: Number,
+    default: null,
+    required: false,
+    requiredByClass: false,
+  },
 }
 
 const vueProps = generateVueProps(propsDefinition)
