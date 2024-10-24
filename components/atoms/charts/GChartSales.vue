@@ -52,6 +52,11 @@ export default {
        * chartjsのoption設定
        */
       options: {
+        title: {
+          display: true,
+          text: '売上推移',
+          fontSize: 14,
+        },
         scales: {
           yAxes: [
             {
@@ -88,10 +93,49 @@ export default {
         },
         tooltips: {
           callbacks: {
-            // ツールチップに表示される金額を3桁で区切る
+            // ツールチップに表示される金額を3桁で区切り、属性ごとの割合を追加
             label: function (tooltipItem, data) {
-              const suffix = tooltipItem.datasetIndex === 0 ? '人工' : '円'
-              return `${tooltipItem.yLabel.toLocaleString()}${suffix}`
+              if (tooltipItem.datasetIndex === 0) {
+                return `${tooltipItem.yLabel.toLocaleString()}人工`
+              }
+              // 属性ごとの合計値
+              const currentValue = tooltipItem.yLabel
+
+              // データセット全体の総合計を計算（"workers" 軸を持つ dataset を除外）
+              const totalSum = data.datasets
+                .filter((dataset, index) => dataset.yAxisID !== 'workers')
+                .reduce((sum, dataset) => {
+                  return (
+                    sum +
+                    dataset.data.reduce((dataSum, value) => dataSum + value, 0)
+                  )
+                }, 0)
+
+              // 割合の計算
+              const percentage = ((currentValue / totalSum) * 100).toFixed(2)
+
+              // 結果を表示
+              return `${currentValue.toLocaleString()}円 (${percentage}%)`
+            },
+            // ツールチップの下部に全データセットの総合計を表示
+            footer: function (tooltipItems, data) {
+              // datasetIndex が 0 のデータポイントが1つでも含まれている場合は、総合計を表示しない
+              const containsDatasetIndexZero = tooltipItems.some(
+                (item) => item.datasetIndex === 0
+              )
+              if (containsDatasetIndexZero) return ''
+
+              // 総合計を計算
+              const totalSum = data.datasets
+                .filter((dataset) => dataset.yAxisID !== 'workers')
+                .reduce((sum, dataset) => {
+                  return (
+                    sum +
+                    dataset.data.reduce((dataSum, value) => dataSum + value, 0)
+                  )
+                }, 0)
+
+              return `総合計: ${totalSum.toLocaleString()}円`
             },
           },
         },
@@ -121,7 +165,8 @@ export default {
     sales() {
       // Array.reduce()の初期値に使うオブジェクトを生成
       // 例）{ traffic: { '2024-01': 0, '2024-02': 0, '2024-03': 0 }, ...}
-      const securityTypes = ['traffic', 'jam', 'facility', 'patrol']
+      // const securityTypes = ['traffic', 'jam', 'facility', 'patrol']
+      const securityTypes = ['traffic', 'jam', 'facility', 'patrol', 'other']
       const defaultValue = Object.fromEntries(
         securityTypes.map((securityType) => [
           securityType,
@@ -221,6 +266,15 @@ export default {
             borderColor: 'rgb(75, 192, 192)',
             borderWidth: 1,
             data: this.sales.patrol,
+            yAxisID: 'sales',
+          },
+          {
+            type: 'bar',
+            label: ['その他'],
+            backgroundColor: 'rgba(128, 128, 128, 0.2)',
+            borderColor: 'rgb(128, 128, 128)',
+            borderWidth: 1,
+            data: this.sales.other,
             yAxisID: 'sales',
           },
         ],
