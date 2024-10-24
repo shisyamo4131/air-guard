@@ -57,7 +57,7 @@ class ConsumptionTax {
 
   // 日付を設定するメソッド
   setDate(dateString) {
-    const date = new Date(dateString)
+    const date = dateString ? new Date(dateString) : new Date()
     if (isNaN(date)) {
       throw new TypeError(
         '無効な日付形式です。YYYY-MM-DDの形式で入力してください。'
