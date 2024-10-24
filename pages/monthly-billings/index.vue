@@ -34,12 +34,32 @@
                 <g-data-table
                   :headers="[
                     { text: '取引先', value: 'code' },
-                    { text: '請求額', value: 'amount' },
-                    { text: 'PDF', value: 'action' },
+                    { text: '税抜金額', value: 'amount', align: 'right' },
+                    {
+                      text: '消費税額',
+                      value: 'consumptionTax',
+                      align: 'right',
+                    },
+                    { text: '請求額', value: 'billingTotal', align: 'right' },
+                    {
+                      text: 'PDF',
+                      value: 'action',
+                      align: 'right',
+                      sortable: false,
+                    },
                   ]"
                   :items="billingsByCustomer"
                   sort-by="code"
                 >
+                  <template #[`item.amount`]="{ item }">
+                    {{ item.amount.toLocaleString() }}
+                  </template>
+                  <template #[`item.consumptionTax`]="{ item }">
+                    {{ item.consumptionTax.toLocaleString() }}
+                  </template>
+                  <template #[`item.billingTotal`]="{ item }">
+                    {{ item.billingTotal.toLocaleString() }}
+                  </template>
                   <template #[`item.action`]="{ item }">
                     <v-icon @click="generatePdf(item)">mdi-file-pdf-box</v-icon>
                   </template>
@@ -98,9 +118,33 @@ export default {
       return Object.values(
         this.items.reduce((acc, item) => {
           if (acc[item.customerId]) {
+            // 既存の customerId に対して、amount と consumptionTax を合計
             acc[item.customerId].amount += item.amount.operationResults
+            acc[item.customerId].consumptionTax += item.consumptionTax
+            acc[item.customerId].billingTotal +=
+              item.amount.operationResults + item.consumptionTax
+
+            // consumptionTaxs を rate ごとに合計
+            item.consumptionTaxs.forEach((tax) => {
+              const existingTax = acc[item.customerId].consumptionTaxs.find(
+                (t) => t.rate === tax.rate
+              )
+              if (existingTax) {
+                // 既存の rate に対して amount を合計
+                existingTax.amount += tax.amount
+              } else {
+                // 新しい rate の場合は追加
+                acc[item.customerId].consumptionTaxs.push({
+                  rate: tax.rate,
+                  amount: tax.amount,
+                })
+              }
+            })
+
+            // details に item を追加
             acc[item.customerId].details.push(item)
           } else {
+            // 初めての customerId の場合、初期化
             const customer = this.$store.getters['customers/get'](
               item.customerId
             )
@@ -110,6 +154,9 @@ export default {
               code: customer.code,
               customer,
               details: [item],
+              consumptionTax: item.consumptionTax,
+              consumptionTaxs: [...item.consumptionTaxs], // 初期化
+              billingTotal: item.amount.operationResults + item.consumptionTax,
             }
           }
           return acc
@@ -209,11 +256,11 @@ export default {
                   alignment: 'right',
                 },
                 {
-                  text: `￥ ${item.amount.toLocaleString()} -`,
+                  text: `￥ ${item.consumptionTax.toLocaleString()} -`,
                   alignment: 'right',
                 },
                 {
-                  text: `￥ ${item.amount.toLocaleString()} -`,
+                  text: `￥ ${item.billingTotal.toLocaleString()} -`,
                   alignment: 'right',
                 },
               ],
