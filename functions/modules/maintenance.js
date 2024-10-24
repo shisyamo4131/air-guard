@@ -156,7 +156,7 @@ export const refreshMonthlySales = onCall(async (request) => {
     )
 
     // 非同期で calculateMontlySales を実行
-    await System.calculateMontlySales({ month })
+    await System.calculateMonthlySales({ month })
 
     // 処理完了のメッセージを返す
     return {
