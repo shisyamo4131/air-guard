@@ -1,15 +1,10 @@
 /**
  * ## OperationResults ドキュメントプロパティ定義
  *
- * @version 1.3.0
- * @updates
- * - version 1.3.0 - 2024-10-04 - Added `isLocked` property.
- * - version 1.2.0 - 2024-10-02 - `siteId` プロパティを追加。
- *                              - `OperationResult` クラスで上書きされるプロパティを定義。
- *                                `OperationBillingBasis` クラスでそのまま使用する。
- * - version 1.1.0 - 2024-10-01 - 外注先を受け入れるためのプロパティとして `outsourcers` を追加。
+ * @author shisyamo4131
  */
 import { generateVueProps, generateClassProps } from './propsUtil'
+import ConsumptionTax from '~/plugins/consumption-tax'
 
 const propsDefinition = {
   docId: { type: String, default: '', required: false, requiredByClass: false },
@@ -167,9 +162,48 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+  // 消費税額
+  consumptionTax: {
+    type: Object,
+    default: () => {
+      return {
+        rate: null,
+        amount: null,
+      }
+    },
+    required: false,
+    requiredByClass: false,
+  },
 }
 
 const vueProps = generateVueProps(propsDefinition)
 const classProps = generateClassProps(propsDefinition)
 
-export { vueProps, classProps }
+/*****************************************************************************
+ * ACCESSOR
+ *****************************************************************************/
+// 消費税
+const consumptionTax = {
+  configurable: true,
+  enumerable: true,
+  get() {
+    // consumptionTax インスタンスを作成
+    const tax = ConsumptionTax(this.date, { rounding: 'round', unit: 0 })
+
+    // 税率と消費税額を計算
+    const rate = tax.rate
+    const amount = tax.calc(this.sales.total)
+
+    // オブジェクトで返す
+    return {
+      rate, // 適用された税率（例: 0.10）
+      amount, // 消費税額（例: 100）
+    }
+  },
+  set(v) {},
+}
+const accessor = {
+  consumptionTax,
+}
+
+export { vueProps, classProps, accessor }
