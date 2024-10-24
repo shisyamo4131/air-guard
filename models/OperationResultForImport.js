@@ -40,7 +40,10 @@ export default class OperationResultForImport extends OperationResult {
    ****************************************************************************/
   initialize(item = {}) {
     super.initialize(item)
-    this.operationCount = classProps.operationCount.default()
-    this.unitPrice = classProps.unitPrice.default()
+    delete this.operationCount
+    delete this.unitPrice
+    this.operationCount =
+      item?.operationCount || classProps.operationCount.default()
+    this.unitPrice = item?.unitPrice || classProps.unitPrice.default()
   }
 }
