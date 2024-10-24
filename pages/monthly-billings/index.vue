@@ -193,11 +193,33 @@ export default {
           fontSize: 9,
           margin: [0, 0, 0, 20],
         },
+
         {
-          text: `ご請求額:  ￥ ${item.amount.toLocaleString()} -`,
-          decoration: 'underline',
+          table: {
+            widths: ['*', '*', '*'],
+            body: [
+              [
+                { text: '税抜請求額', alignment: 'center' },
+                { text: '消費税額（10%）', alignment: 'center' },
+                { text: '税込請求額', alignment: 'center' },
+              ],
+              [
+                {
+                  text: `￥ ${item.amount.toLocaleString()} -`,
+                  alignment: 'right',
+                },
+                {
+                  text: `￥ ${item.amount.toLocaleString()} -`,
+                  alignment: 'right',
+                },
+                {
+                  text: `￥ ${item.amount.toLocaleString()} -`,
+                  alignment: 'right',
+                },
+              ],
+            ],
+          },
           margin: [0, 0, 0, 20],
-          fontSize: 16,
         },
 
         // 現場別請求明細
@@ -361,11 +383,11 @@ export default {
         { text: '日付', alignment: 'center' },
         { text: '曜日', alignment: 'center' },
         { text: '勤務', alignment: 'center' },
-        { text: '配置区分', alignment: 'center' },
+        { text: '配置', alignment: 'center' },
         { text: '結果', alignment: 'center' },
         { text: '数量', alignment: 'center' },
         { text: '単価', alignment: 'center' },
-        { text: '残業時間', alignment: 'center' },
+        { text: '残業', alignment: 'center' },
         { text: '単価', alignment: 'center' },
         { text: '金額', alignment: 'center' },
       ]
@@ -377,12 +399,13 @@ export default {
           body: [header, ...item.details.map(this.operationDetailsBody).flat()],
         },
         fontSize,
-        layout: {
-          hLineWidth: (i, node) => 0.1, // 水平方向の線幅
-          vLineWidth: (i, node) => 0.1, // 垂直方向の線幅
-          paddingTop: (i, node) => 5, // 上方向のパディング
-          paddingBottom: (i, node) => 5, // 下方向のパディング
-        },
+        // layout: {
+        //   hLineWidth: (i, node) => 0.1, // 水平方向の線幅
+        //   vLineWidth: (i, node) => 0.1, // 垂直方向の線幅
+        //   paddingTop: (i, node) => 5, // 上方向のパディング
+        //   paddingBottom: (i, node) => 5, // 下方向のパディング
+        // },
+        layout: 'lightHorizontalLines', // optional
       }
     },
     /*************************************************************************
