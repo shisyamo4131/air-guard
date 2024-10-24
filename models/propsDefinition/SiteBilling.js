@@ -3,6 +3,9 @@
  */
 import { generateVueProps, generateClassProps } from './propsUtil'
 
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
 const propsDefinition = {
   /**
    * ${siteId}-${closingDate}
@@ -41,6 +44,19 @@ const propsDefinition = {
         operationResults: 0,
       }
     },
+    required: false,
+    requiredByClass: false,
+  },
+  // 税率が期間内に変更される可能性があるため、税率ごとに保存できるよう配列にしておく
+  consumptionTaxs: {
+    type: Array,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
+  },
+  consumptionTax: {
+    type: Number,
+    default: null,
     required: false,
     requiredByClass: false,
   },
