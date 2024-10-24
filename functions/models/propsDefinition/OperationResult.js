@@ -156,6 +156,17 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+  consumptionTax: {
+    type: Object,
+    default: () => {
+      return {
+        rate: null,
+        amount: null,
+      }
+    },
+    required: false,
+    requiredByClass: false,
+  },
 }
 
 const vueProps = generateVueProps(propsDefinition)
