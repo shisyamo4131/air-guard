@@ -12,7 +12,7 @@
  * @version 1.0.0
  ****************************************************************************/
 
-import functions from 'firebase-functions'
+import functions from 'firebase-functions/v1'
 import User from '../models/User.js'
 
 /****************************************************************************
