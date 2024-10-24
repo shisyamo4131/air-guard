@@ -39,12 +39,16 @@
                 <g-data-table
                   :headers="[
                     { text: '取引先', value: 'customerId' },
-                    { text: '売上高', value: 'amount' },
+                    { text: '売上高', value: 'amount', align: 'right' },
                   ]"
                   :items="salesByCustomer"
+                  disable-sort
                 >
                   <template #[`item.customerId`]="{ item }">
                     {{ $store.getters['customers/get'](item.customerId).abbr }}
+                  </template>
+                  <template #[`item.amount`]="{ item }">
+                    {{ item.amount.toLocaleString() }}
                   </template>
                 </g-data-table>
               </v-card>
@@ -90,9 +94,11 @@ export default {
         sum[i.customerId] += i.sales.total
         return sum
       }, {})
-      return Object.entries(sales).map(([key, value]) => {
-        return { customerId: key, amount: value }
-      })
+      return Object.entries(sales)
+        .map(([key, value]) => {
+          return { customerId: key, amount: value }
+        })
+        .sort((a, b) => b.amount - a.amount)
     },
     isCalculating() {
       return this.$store.state.systems.calcMonthlySales?.status !== 'ready'
