@@ -3,16 +3,13 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore.js'
 import { logger } from 'firebase-functions/v2'
 import FireModel from './FireModel.js'
 import OperationResultForDailySale from './OperationResultForDailySale.js'
-import { classProps } from './propsDefinition/DailySale.js'
+import { accessor, classProps } from './propsDefinition/DailySale.js'
 dayjs.extend(isSameOrBefore)
 
 /**
- * DailySalesドキュメントデータモデル
+ * ## DailySaleドキュメントデータモデル
  *
- * @version 1.0.0
  * @author shisyamo4131
- * @updates
- * - version 1.0.0 - 2024-10-18 - 初版作成
  */
 export default class DailySale extends FireModel {
   /****************************************************************************
@@ -36,38 +33,52 @@ export default class DailySale extends FireModel {
 
     delete this.tokenMap
 
+    // Object.defineProperties(this, {
+    //   month: {
+    //     configurable: true,
+    //     enumerable: true,
+    //     get() {
+    //       if (!this.date) return ''
+    //       return this.date.slice(0, 7)
+    //     },
+    //     set(v) {},
+    //   },
+    //   year: {
+    //     configurable: true,
+    //     enumerable: true,
+    //     get() {
+    //       if (!this.month) return
+    //       return this.month.slice(0, 4)
+    //     },
+    //     set(v) {},
+    //   },
+    //   amount: {
+    //     configurable: true,
+    //     enumerable: true,
+    //     get() {
+    //       const result = { operationResults: 0 }
+    //       result.operationResults = this.operationResults.reduce(
+    //         (sum, i) => sum + i.sales.total,
+    //         0
+    //       )
+    //       return result
+    //     },
+    //     set(v) {},
+    //   },
+    // })
+  }
+
+  /****************************************************************************
+   * INITIALIZE
+   ****************************************************************************/
+  initialize(item = {}) {
+    super.initialize(item)
+
     Object.defineProperties(this, {
-      month: {
-        configurable: true,
-        enumerable: true,
-        get() {
-          if (!this.date) return ''
-          return this.date.slice(0, 7)
-        },
-        set(v) {},
-      },
-      year: {
-        configurable: true,
-        enumerable: true,
-        get() {
-          if (!this.month) return
-          return this.month.slice(0, 4)
-        },
-        set(v) {},
-      },
-      amount: {
-        configurable: true,
-        enumerable: true,
-        get() {
-          const result = { operationResults: 0 }
-          result.operationResults = this.operationResults.reduce(
-            (sum, i) => sum + i.sales.total,
-            0
-          )
-          return result
-        },
-        set(v) {},
-      },
+      month: accessor.month,
+      year: accessor.year,
+      amount: accessor.amount,
+      consumptionTax: accessor.consumptionTax,
     })
   }
 
