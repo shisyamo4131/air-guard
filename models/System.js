@@ -60,4 +60,23 @@ export default class System extends FireModel {
       throw err
     }
   }
+
+  /****************************************************************************
+   * 各種ステータスを編集
+   ****************************************************************************/
+  fromFirestore(snapshot) {
+    const data = snapshot.data()
+    const calcMonthlySales = {
+      error: data?.calcMonthlySales?.error || null,
+      executeStatus: data?.calcMonthlySales?.executeStatus || null,
+      lastExecutedAt: data?.calcMonthlySales?.lastExecutedAt?.toDate
+        ? data.calcMonthlySales.lastExecutedAt.toDate()
+        : null,
+      status: data?.calcMonthlySales?.status || 'ready',
+    }
+    return {
+      ...super.fromFirestore(snapshot),
+      calcMonthlySales,
+    }
+  }
 }
