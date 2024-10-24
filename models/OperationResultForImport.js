@@ -1,4 +1,5 @@
 import OperationResult from './OperationResult'
+import { classProps } from './propsDefinition/OperationResult'
 
 /**
  * ## OperationResults インポート用データモデル
@@ -39,42 +40,7 @@ export default class OperationResultForImport extends OperationResult {
    ****************************************************************************/
   initialize(item = {}) {
     super.initialize(item)
-    delete this.operationCount
-    delete this.unitPrice
-    // operationCount を再定義
-    this.operationCount = {
-      standard: {
-        normal: item?.operationCount?.standard?.normal ?? 0,
-        half: item?.operationCount?.standard?.half ?? 0,
-        cancel: item?.operationCount?.standard?.cancel ?? 0,
-        total: item?.operationCount?.standard?.total ?? 0,
-        overtimeMinutes: item?.operationCount?.standard?.overtimeMinutes ?? 0,
-      },
-      qualified: {
-        normal: item?.operationCount?.qualified?.normal ?? 0,
-        half: item?.operationCount?.qualified?.half ?? 0,
-        cancel: item?.operationCount?.qualified?.cancel ?? 0,
-        total: item?.operationCount?.qualified?.total ?? 0,
-        overtimeMinutes: item?.operationCount?.qualified?.overtimeMinutes ?? 0,
-      },
-      total: item?.operationCount?.total ?? 0,
-      overtimeMinutes: item?.operationCount?.overtimeMinutes ?? 0,
-    }
-
-    // unitPrice を再定義
-    this.unitPrice = {
-      standard: {
-        normal: item?.unitPrice?.standard?.normal ?? null,
-        half: item?.unitPrice?.standard?.half ?? null,
-        cancel: item?.unitPrice?.standard?.cancel ?? null,
-        overtime: item?.unitPrice?.standard?.overtime ?? null,
-      },
-      qualified: {
-        normal: item?.unitPrice?.qualified?.normal ?? null,
-        half: item?.unitPrice?.qualified?.half ?? null,
-        cancel: item?.unitPrice?.qualified?.cancel ?? null,
-        overtime: item?.unitPrice?.qualified?.overtime ?? null,
-      },
-    }
+    this.operationCount = classProps.operationCount.default()
+    this.unitPrice = classProps.unitPrice.default()
   }
 }
