@@ -29,30 +29,11 @@ export default class DailySale extends FireModel {
    ****************************************************************************/
   constructor(item = {}) {
     super(item)
-    Object.defineProperties(this, {
-      amount: {
-        configurable: true,
-        enumerable: true,
-        get() {
-          const result = { operationResults: 0 }
-          result.operationResults = this.operationResults.reduce(
-            (sum, i) => sum + i.sales.total,
-            0
-          )
-        },
-        set(v) {},
-      },
-    })
-  }
 
-  /****************************************************************************
-   * createをオーバーライドします。
-   * - ドキュメントIDを`${date}`に固定します。
-   * - super.create({docId})を呼び出します。
-   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
-   ****************************************************************************/
-  async create() {
-    const docId = `${this.date}`
-    return await super.create({ docId })
+    delete this.create
+    delete this.update
+    delete this.delete
+
+    delete this.tokenMap
   }
 }
