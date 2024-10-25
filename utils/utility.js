@@ -1,29 +1,29 @@
-import dayjs from '~/plugins/dayjs'
+import dayjs from 'dayjs'
 
 /****************************************************************************
  * 指定された日付が 'YYYY-MM-DD' 形式であり、かつ有効な日付かどうかをチェックします。
- * - 日付が文字列として正しく指定されていない場合はエラーをスローします。
+ * - 日付が文字列として正しく指定されていない場合は false を返します。
  * - 'YYYY-MM-DD' 形式に一致しない場合は false を返します。
  * - dayjs でバリデートし、有効な日付であるかを確認します。
  *
  * @param {string} date - チェックする日付（'YYYY-MM-DD' 形式の文字列）。
  * @returns {boolean} - 日付が有効であれば true、無効であれば false を返します。
- * @throws {Error} - date が文字列で指定されていない場合、または日付が未指定の場合にエラーをスローします。
  ****************************************************************************/
 export const dateIsValid = (date) => {
-  // 引数が指定されていない場合や、文字列でない場合はエラーをスロー
+  // 引数が指定されていない場合や、文字列でない場合は false を返す
   if (!date || typeof date !== 'string') {
-    const message = `[dateIsValid] date は文字列で必ず指定されなければなりません。`
-    // console.error(message, { date }) // eslint-disable-line no-console
-    throw new Error(`${message} date: ${date}`)
+    return false
   }
 
   // 'YYYY-MM-DD'形式のチェック
   const regex = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/
-  if (!regex.test(date)) return false
+  if (!regex.test(date)) {
+    return false
+  }
 
   // dayjsで有効な日付かどうかを確認
-  return dayjs(date, 'YYYY-MM-DD', true).isValid()
+  const isValid = dayjs(date, 'YYYY-MM-DD', true).isValid()
+  return isValid
 }
 
 /**
