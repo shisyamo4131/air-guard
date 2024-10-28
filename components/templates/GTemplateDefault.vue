@@ -25,9 +25,10 @@ export default {
       const bar = this.$vuetify.application.bar
       const footer = this.$vuetify.application.footer
       const bottom = this.$vuetify.application.bottom
-      const padding = this.$vuetify.breakpoint.xs ? 0 : 24
+      // const padding = this.$vuetify.breakpoint.xs ? 0 : 24
       const height = this.$vuetify.breakpoint.height
-      return height - (top + bar + footer + bottom + padding)
+      // return height - (top + bar + footer + bottom + padding)
+      return height - (top + bar + footer + bottom)
     },
   },
 }
