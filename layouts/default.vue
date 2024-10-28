@@ -198,4 +198,23 @@ export default {
 .flex-table > div {
   width: 100%;
 }
+
+/*****************************************************************************
+ * arrangement-table (配置管理用テーブル) 
+ *****************************************************************************/
+#arrangement-table > div > table > thead > tr > th:nth-child(1) {
+  position: sticky;
+  left: 0;
+  background-color: white; /* スクロール時に背景色を指定 */
+  z-index: 3 !important; /* 他の要素より前面に表示 */
+  /* box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1); */ /* 境界線を強調するための影 */
+}
+
+#arrangement-table > div > table > tbody > tr > td:nth-child(1) {
+  position: sticky;
+  left: 0;
+  background-color: white; /* スクロール時に背景色を指定 */
+  z-index: 2 !important; /* 他の要素より前面に表示 */
+  /* box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1); */ /* 境界線を強調するための影 */
+}
 </style>
