@@ -5,13 +5,6 @@
  * 現場のDataTableコンポーネントです。
  *
  * @author shisyamo4131
- * @version 1.1.1
- *
- * @updates
- * - version 1.1.1 - 2024-07-31 - breakpointごとの表示カラムを再調整
- *                              - `props.sortBy`、`props.sortDesc`を規定値付きで用意。
- * - version 1.1.0 - 2024-07-25 - breakpointに応じて表示するカラムを変更。
- * - version 1.0.0 - 2024-06-26 - 初版作成
  */
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 export default {
@@ -60,12 +53,24 @@ export default {
       return result
     },
   },
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    /**
+     * テーブルのトップにスクロールする
+     */
+    scrollToTop() {
+      this.$refs.table.scrollToTop()
+    },
+  },
 }
 </script>
 
 <template>
   <g-data-table
     v-bind="$attrs"
+    ref="table"
     :headers="headers"
     :mobile-breakpoint="0"
     :sort-by="sortBy"
