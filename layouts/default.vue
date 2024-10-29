@@ -202,19 +202,23 @@ export default {
 /*****************************************************************************
  * arrangement-table (配置管理用テーブル) 
  *****************************************************************************/
-#arrangement-table > div > table > thead > tr > th:nth-child(1) {
+#arrangement-table > div > table > tbody > tr:nth-child(odd) td[colspan] div {
   position: sticky;
-  left: 0;
-  background-color: white; /* スクロール時に背景色を指定 */
-  z-index: 3 !important; /* 他の要素より前面に表示 */
+  left: 16px;
+  z-index: 1 !important; /* 他の要素より前面に表示 */
   /* box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1); */ /* 境界線を強調するための影 */
 }
 
-#arrangement-table > div > table > tbody > tr > td:nth-child(1) {
-  position: sticky;
-  left: 0;
-  background-color: white; /* スクロール時に背景色を指定 */
-  z-index: 2 !important; /* 他の要素より前面に表示 */
-  /* box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1); */ /* 境界線を強調するための影 */
+#arrangement-table > div > table > thead > tr > th {
+  text-align: center;
+  min-width: 218px;
+  max-width: 218px;
+}
+
+/*****************************************************************************
+ * vue-draggable で ドラッグ用アイコンのポインターを指定
+ *****************************************************************************/
+.handle {
+  cursor: pointer;
 }
 </style>
