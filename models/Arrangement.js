@@ -58,9 +58,7 @@ class ArrangedEmployee {
  * @author shisyamo
  */
 export default class Arrangement {
-  #data = null
   #listener = null
-  #siteContract = null
 
   // 到着許可時間のオフセット（ミリ秒単位で設定: 1時間）
   static ARRIVAL_ALLOWED_TIME_OFFSET = 60 * 60 * 1000
@@ -75,42 +73,26 @@ export default class Arrangement {
     this.siteId = siteId
     this.date = date
     this.workShift = workShift
+    this.data = null
     this.#subscribeIfNeeded()
   }
 
   /**
-   * 配置情報のゲッターです。
-   * @returns {Object|null} 配置情報データ
+   * 購読する data を参照するためのパスを返します。
    */
-  get data() {
-    return this.#data
+  get dataPath() {
+    return `Arrangements/${this.date}/${this.siteId}/${this.workShift}`
   }
 
   /**
-   * SiteContractのゲッターです。
-   * @returns {Object|null} 現在のSiteContractデータ
+   * assignment までのパスを返します。
    */
-  get siteContract() {
-    return this.#siteContract
+  get assignmentEmployeesPath() {
+    return `Arrangements/assignments/employees/${this.date}`
   }
 
-  /**
-   * SiteContractのデータを設定します。
-   * @param {Object} siteContractData - SiteContractデータオブジェクト
-   */
-  set siteContract(siteContractData) {
-    this.#siteContract = siteContractData
-  }
-
-  /**
-   * Realtime Database への参照を返します。
-   * @returns {firebase.database.Reference} Firebaseの参照オブジェクト
-   */
-  get dbRef() {
-    return ref(
-      database,
-      `Arrangements/${this.date}/${this.siteId}/${this.workShift}`
-    )
+  get assignmentSitesPath() {
+    return `Arrangements/assignments/sites/${this.date}`
   }
 
   /**
@@ -150,7 +132,7 @@ export default class Arrangement {
   #handleError(err) {
     // eslint-disable-next-line no-console
     console.error('エラーが発生しました:', err.message)
-    this.#unsubscribe()
+    this.unsubscribe()
     throw err
   }
 
@@ -174,35 +156,52 @@ export default class Arrangement {
    * 現場IDと日付に基づきリアルタイムリスナーをセットします。
    */
   #subscribe() {
-    this.#unsubscribe() // 既存のリスナーがあれば解除
+    this.unsubscribe() // 既存のリスナーがあれば解除
 
-    this.#listener = onValue(this.dbRef, (snapshot) => {
-      this.#data = snapshot.val()
+    const targetRef = ref(database, `${this.dataPath}`)
+    this.#listener = onValue(targetRef, (snapshot) => {
+      this.data = snapshot.val()
     })
   }
 
   /**
    * 配置情報へのリアルタイムリスナーを解除します。
    */
-  #unsubscribe() {
+  unsubscribe() {
     if (this.#listener) this.#listener()
     this.#listener = null
   }
 
   /**
    * 指定された従業員を配置します。
-   * SiteContractプロパティが設定されている場合、startTime, endTime, breakMinutesを参照します。
-   * SiteContractプロパティが設定されていない場合、これらはnullになります。
-   * @param {string} employeeId - 従業員ID
+   * siteContractが指定されている場合、startTime, endTime, breakMinutesを参照します。
+   * siteContractが指定されていない場合、これらはnullになります。
+   * @param {Object} params - 従業員の配置に必要なパラメータを含むオブジェクト
+   * @param {string} params.employeeId - 従業員ID（必須）
+   * @param {Object} [params.siteContract] - 現場の取極め情報（オプション）
+   * @param {string} [params.siteContract.startTime] - 現場取極めの開始時間
+   * @param {string} [params.siteContract.endTime] - 現場取極めの終了時間
+   * @param {number} [params.siteContract.breakMinutes] - 現場取極めの休憩時間（分）
+   * @param {number} [params.index] - 追加する位置のインデックス（オプション）。指定がない場合、配列の最後に追加。
    * @returns {Promise<void>} 従業員の配置が完了した時点で解決されるPromise
    * @throws {Error} 配置中にエラーが発生した場合
    */
-  async addEmployee(employeeId) {
+  async add({ employeeId, siteContract = {}, index = null }) {
+    if (!employeeId) {
+      throw new Error('従業員IDは必須です。')
+    }
+
+    // 現在のemployeeIndexを取得し、新しいemployeeIdを指定された位置に挿入
+    const currentEmployeeIndex = [...(this.data?.employeeIndex || [])]
+    if (currentEmployeeIndex.includes(employeeId)) {
+      throw new Error('既に登録されている従業員です。')
+    }
+
     try {
-      // SiteContractプロパティが設定されている場合の参照
-      const startTime = this.siteContract?.startTime || null
-      const endTime = this.siteContract?.endTime || null
-      const breakMinutes = this.siteContract?.breakMinutes || null
+      // siteContractが指定されている場合の参照
+      const startTime = siteContract.startTime || null
+      const endTime = siteContract.endTime || null
+      const breakMinutes = siteContract.breakMinutes || null
 
       // 新しい従業員情報を生成（temperatureは規定値をnullに設定）
       const newEmployee = new ArrangedEmployee({
@@ -215,22 +214,27 @@ export default class Arrangement {
         temperature: null,
       })
 
-      // employeeIndexに新しいemployeeIdを追加
-      const updatedEmployeeIndex = [
-        ...(this.#data?.employeeIndex || []),
-        employeeId,
-      ]
+      if (index !== null && index >= 0 && index < currentEmployeeIndex.length) {
+        // 有効なindexが指定された場合、その位置に追加
+        currentEmployeeIndex.splice(index, 0, employeeId)
+      } else {
+        // indexが指定されていないか、範囲外の場合は最後に追加
+        currentEmployeeIndex.push(employeeId)
+      }
 
       // アトミックに更新するための更新オブジェクトを作成
       const updates = {
-        [`employeeIndex`]: updatedEmployeeIndex,
-        [`employees/${employeeId}`]: newEmployee.toObject(),
+        [`${this.dataPath}/employeeIndex`]: currentEmployeeIndex,
+        [`${this.dataPath}/employees/${employeeId}`]: newEmployee.toObject(),
+        [`${this.assignmentEmployeesPath}/${employeeId}/${this.workShift}/${this.siteId}/siteId`]:
+          this.siteId,
+        [`${this.assignmentSitesPath}/${this.siteId}/${this.workShift}/${employeeId}/employeeId`]:
+          employeeId,
       }
 
-      // Firebaseへのアトミックな更新
-      await update(this.dbRef, updates)
+      // Firebaseにアトミックに書き込む
+      await update(ref(database), updates)
     } catch (error) {
-      // エラーハンドリング：エラーをログに記録し、エラーをスロー
       // eslint-disable-next-line no-console
       console.error('従業員の配置中にエラーが発生しました:', error.message)
       this.#handleError(
@@ -245,23 +249,26 @@ export default class Arrangement {
    * @returns {Promise<void>} 従業員の除外が完了した時点で解決されるPromise
    * @throws {Error} 除外中にエラーが発生した場合
    */
-  async removeEmployee(employeeId) {
+  async remove(employeeId) {
     try {
       // 現在のemployeeIndexから該当するemployeeIdを削除
-      const updatedEmployeeIndex = (this.#data?.employeeIndex || []).filter(
+      const updatedEmployeeIndex = (this.data?.employeeIndex || []).filter(
         (id) => id !== employeeId
       )
 
       // アトミックに更新するための更新オブジェクトを作成
       const updates = {
-        [`employeeIndex`]: updatedEmployeeIndex,
-        [`employees/${employeeId}`]: null, // nullをセットするとノードが削除される
+        [`${this.dataPath}/employeeIndex`]: updatedEmployeeIndex,
+        [`${this.dataPath}/employees/${employeeId}`]: null, // nullをセットするとノードが削除される
+        [`${this.assignmentEmployeesPath}/${employeeId}/${this.workShift}/${this.siteId}/siteId`]:
+          null,
+        [`${this.assignmentSitesPath}/${this.siteId}/${this.workShift}/${employeeId}/employeeId`]:
+          null,
       }
 
-      // Firebaseへのアトミックな更新
-      await update(this.dbRef, updates)
+      // Firebaseにアトミックに書き込む
+      await update(ref(database), updates)
     } catch (error) {
-      // エラーハンドリング：エラーをログに記録し、エラーをスロー
       // eslint-disable-next-line no-console
       console.error('従業員の除外中にエラーが発生しました:', error.message)
       this.#handleError(
@@ -279,10 +286,10 @@ export default class Arrangement {
    * @returns {Promise<void>} 従業員の更新が完了した時点で解決されるPromise
    * @throws {Error} 更新中にエラーが発生した場合
    */
-  async updateEmployee(employeeId, startTime, endTime, breakMinutes) {
+  async update(employeeId, startTime, endTime, breakMinutes) {
     try {
-      // this.#dataから該当する従業員情報を取得
-      const currentEmployeeData = this.#data?.employees?.[employeeId]
+      // this.dataから該当する従業員情報を取得
+      const currentEmployeeData = this.data?.employees?.[employeeId]
 
       if (!currentEmployeeData) {
         throw new Error(`指定された従業員IDが見つかりません: ${employeeId}`)
@@ -295,10 +302,10 @@ export default class Arrangement {
 
       // 更新後のデータをFirebaseにアトミックに書き込む
       const updates = {
-        [`employees/${employeeId}`]: currentEmployeeData,
+        [`${this.dataPath}/employees/${employeeId}`]: currentEmployeeData,
       }
 
-      await update(this.dbRef, updates)
+      await update(ref(database), updates)
     } catch (error) {
       // エラーハンドリング：エラーをログに記録し、エラーをスロー
       // eslint-disable-next-line no-console
@@ -328,8 +335,8 @@ export default class Arrangement {
         )
       }
 
-      // this.#dataから該当する従業員情報を取得
-      const currentEmployeeData = this.#data?.employees?.[employeeId]
+      // this.dataから該当する従業員情報を取得
+      const currentEmployeeData = this.data?.employees?.[employeeId]
 
       if (!currentEmployeeData) {
         throw new Error(`指定された従業員IDが見つかりません: ${employeeId}`)
@@ -365,17 +372,18 @@ export default class Arrangement {
 
       // 更新用のオブジェクトを作成（arrivedAtの更新、temperatureの記録と、必要であればstartTimeの更新）
       const updates = {
-        [`employees/${employeeId}/arrivedAt`]: currentTimeISO,
-        [`employees/${employeeId}/temperature`]: temperature,
+        [`${this.dataPath}/employees/${employeeId}/arrivedAt`]: currentTimeISO,
+        [`${this.dataPath}/employees/${employeeId}/temperature`]: temperature,
       }
 
       // 新しいstartTimeが提供されていて、既存のstartTimeと異なる場合は更新
       if (startTime && startTime !== currentEmployeeData.startTime) {
-        updates[`employees/${employeeId}/startTime`] = startTime
+        updates[`${this.dataPath}/employees/${employeeId}/startTime`] =
+          startTime
       }
 
       // Firebaseにアトミックに書き込む
-      await update(this.dbRef, updates)
+      await update(ref(database), updates)
     } catch (error) {
       // エラーハンドリング：エラーをログに記録し、エラーをスロー
       // eslint-disable-next-line no-console
@@ -400,8 +408,8 @@ export default class Arrangement {
    */
   async resetArrival(employeeId) {
     try {
-      // this.#dataから該当する従業員情報を取得
-      const currentEmployeeData = this.#data?.employees?.[employeeId]
+      // this.dataから該当する従業員情報を取得
+      const currentEmployeeData = this.data?.employees?.[employeeId]
 
       if (!currentEmployeeData) {
         throw new Error(`指定された従業員IDが見つかりません: ${employeeId}`)
@@ -416,11 +424,11 @@ export default class Arrangement {
 
       // arrivedAtを初期化
       const updates = {
-        [`employees/${employeeId}/arrivedAt`]: null, // 初期化のためnullに設定
+        [`${this.dataPath}/employees/${employeeId}/arrivedAt`]: null, // 初期化のためnullに設定
       }
 
       // Firebaseにアトミックに書き込む
-      await update(this.dbRef, updates)
+      await update(ref(database), updates)
     } catch (error) {
       // エラーハンドリング：エラーをログに記録し、エラーをスロー
       // eslint-disable-next-line no-console
@@ -447,8 +455,8 @@ export default class Arrangement {
     breakMinutes = null
   ) {
     try {
-      // this.#dataから該当する従業員情報を取得
-      const currentEmployeeData = this.#data?.employees?.[employeeId]
+      // this.dataから該当する従業員情報を取得
+      const currentEmployeeData = this.data?.employees?.[employeeId]
 
       if (!currentEmployeeData) {
         throw new Error(`指定された従業員IDが見つかりません: ${employeeId}`)
@@ -466,17 +474,18 @@ export default class Arrangement {
 
       // 更新用のオブジェクトを作成（leavedAtの更新と、必要であればstartTime, endTime, breakMinutesの更新）
       const updates = {
-        [`employees/${employeeId}/leavedAt`]: currentTimeISO,
+        [`${this.dataPath}/employees/${employeeId}/leavedAt`]: currentTimeISO,
       }
 
       // 新しいstartTimeが提供されていて、既存のstartTimeと異なる場合は更新
       if (startTime && startTime !== currentEmployeeData.startTime) {
-        updates[`employees/${employeeId}/startTime`] = startTime
+        updates[`${this.dataPath}/employees/${employeeId}/startTime`] =
+          startTime
       }
 
       // 新しいendTimeが提供されていて、既存のendTimeと異なる場合は更新
       if (endTime && endTime !== currentEmployeeData.endTime) {
-        updates[`employees/${employeeId}/endTime`] = endTime
+        updates[`${this.dataPath}/employees/${employeeId}/endTime`] = endTime
       }
 
       // 新しいbreakMinutesが提供されていて、既存のbreakMinutesと異なる場合は更新
@@ -484,11 +493,12 @@ export default class Arrangement {
         breakMinutes !== null &&
         breakMinutes !== currentEmployeeData.breakMinutes
       ) {
-        updates[`employees/${employeeId}/breakMinutes`] = breakMinutes
+        updates[`${this.dataPath}/employees/${employeeId}/breakMinutes`] =
+          breakMinutes
       }
 
       // Firebaseにアトミックに書き込む
-      await update(this.dbRef, updates)
+      await update(ref(database), updates)
     } catch (error) {
       // エラーハンドリング：エラーをログに記録し、エラーをスロー
       // eslint-disable-next-line no-console
@@ -513,8 +523,8 @@ export default class Arrangement {
    */
   async resetLeave(employeeId) {
     try {
-      // this.#dataから該当する従業員情報を取得
-      const currentEmployeeData = this.#data?.employees?.[employeeId]
+      // this.dataから該当する従業員情報を取得
+      const currentEmployeeData = this.data?.employees?.[employeeId]
 
       if (!currentEmployeeData) {
         throw new Error(`指定された従業員IDが見つかりません: ${employeeId}`)
@@ -522,7 +532,8 @@ export default class Arrangement {
 
       // 初期化用のオブジェクトを作成
       const updates = {
-        [`employees/${employeeId}/leavedAt`]: null, // 離脱記録を初期化
+        [`${this.siteId}/${this.workShift}/employees/${employeeId}/leavedAt`]:
+          null, // 離脱記録を初期化
       }
 
       // siteContractプロパティを参照
@@ -530,17 +541,63 @@ export default class Arrangement {
       const contractBreakMinutes = this.siteContract?.breakMinutes || 0
 
       // 終了時刻と休憩時間を強制的に初期化
-      updates[`employees/${employeeId}/endTime`] = contractEndTime
-      updates[`employees/${employeeId}/breakMinutes`] = contractBreakMinutes
+      updates[`${this.dataPath}/employees/${employeeId}/endTime`] =
+        contractEndTime
+      updates[`${this.dataPath}/employees/${employeeId}/breakMinutes`] =
+        contractBreakMinutes
 
       // Firebaseにアトミックに書き込む
-      await update(this.dbRef, updates)
+      await update(ref(database), updates)
     } catch (error) {
       // エラーハンドリング：エラーをログに記録し、エラーをスロー
       // eslint-disable-next-line no-console
       console.error('離脱記録の初期化中にエラーが発生しました:', error.message)
       this.#handleError(
         new Error(`離脱記録の初期化に失敗しました。employeeId: ${employeeId}`)
+      )
+    }
+  }
+
+  /**
+   * 指定された従業員の順序を変更し、Realtime Databaseを更新します。
+   * @param {string} employeeId - 従業員ID
+   * @param {number} newIndex - 新しいインデックス位置
+   * @param {number} oldIndex - 元のインデックス位置
+   * @returns {Promise<void>} 順序変更が完了した時点で解決されるPromise
+   * @throws {Error} 順序変更中にエラーが発生した場合
+   */
+  async move(employeeId, newIndex, oldIndex) {
+    try {
+      // employeeIndexを取得
+      const currentEmployeeIndex = [...(this.data?.employeeIndex || [])]
+
+      // インデックスが範囲外の場合はエラー
+      if (
+        oldIndex < 0 ||
+        oldIndex >= currentEmployeeIndex.length ||
+        newIndex < 0 ||
+        newIndex >= currentEmployeeIndex.length
+      ) {
+        throw new Error('指定されたインデックスが無効です。')
+      }
+
+      // employeeIndexの順序を変更
+      const [movedEmployee] = currentEmployeeIndex.splice(oldIndex, 1)
+      currentEmployeeIndex.splice(newIndex, 0, movedEmployee)
+
+      // アトミックに更新するための更新オブジェクトを作成
+      const updates = {
+        [`${this.dataPath}/employeeIndex`]: currentEmployeeIndex,
+      }
+
+      // Firebaseへのアトミックな更新
+      await update(ref(database), updates)
+    } catch (error) {
+      // エラーハンドリング：エラーをログに記録し、エラーをスロー
+      // eslint-disable-next-line no-console
+      console.error('従業員の順序変更中にエラーが発生しました:', error.message)
+      this.#handleError(
+        new Error(`従業員の順序変更に失敗しました。employeeId: ${employeeId}`)
       )
     }
   }
