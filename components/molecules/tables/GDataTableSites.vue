@@ -20,14 +20,6 @@ export default {
     sortDesc: { type: [Boolean, Array], default: true, required: false },
   },
   /***************************************************************************
-   * DATA
-   ***************************************************************************/
-  data() {
-    return {
-      search: null,
-    }
-  },
-  /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
@@ -35,12 +27,12 @@ export default {
       const result = [{ text: 'CODE', value: 'code', width: 84 }]
       switch (this.$vuetify.breakpoint.name) {
         case 'xs':
-          result.push({ text: '略称', value: 'name-xs', sortable: false })
+          result.push({ text: '略称', value: 'abbr', sortable: false })
           break
         case 'sm':
           result.push({
             text: '現場名/住所',
-            value: 'name-sm',
+            value: 'abbr',
             sortable: false,
           })
           break
@@ -77,7 +69,7 @@ export default {
     :sort-desc="sortDesc"
     v-on="$listeners"
   >
-    <template #[`item.name-xs`]="{ item }">
+    <!-- <template #[`item.name-xs`]="{ item }">
       <div class="d-flex">
         <div class="align-self-center">
           <v-icon v-if="item.status === 'active'" color="green" left x-small
@@ -86,8 +78,8 @@ export default {
         </div>
         <div>{{ item.abbr }}</div>
       </div>
-    </template>
-    <template #[`item.name-sm`]="{ item }">
+    </template> -->
+    <!-- <template #[`item.namesm`]="{ item }">
       <div class="d-flex">
         <div class="align-self-center">
           <v-icon v-if="item.status === 'active'" color="green" left x-small
@@ -103,7 +95,7 @@ export default {
           </div>
         </div>
       </div>
-    </template>
+    </template> -->
     <template #[`item.name`]="{ item }">
       <div class="d-flex">
         <div class="align-self-center">

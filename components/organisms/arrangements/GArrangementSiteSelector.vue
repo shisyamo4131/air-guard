@@ -60,6 +60,8 @@ export default {
       if (v) return
       this.selectedItems.splice(0)
       this.search = null
+      this.page = 1
+      this.$refs.table.scrollToTop()
     },
   },
   /***************************************************************************
@@ -97,6 +99,7 @@ export default {
       </v-container>
       <v-container class="px-4 d-flex overflow-y-hidden">
         <g-data-table-sites
+          ref="table"
           v-model="selectedItems"
           class="flex-table"
           checkbox-color="primary"

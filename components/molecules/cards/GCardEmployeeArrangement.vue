@@ -56,10 +56,14 @@ export default {
         </v-icon>
         <h4>{{ employee.abbr }}</h4>
         <v-spacer />
-        <v-icon left small>mdi-pencil</v-icon>
-        <v-icon small @click="$emit('click:remove', employeeId)">
-          mdi-close
-        </v-icon>
+        <v-btn icon x-small>
+          <v-icon small>mdi-pencil</v-icon>
+        </v-btn>
+        <v-btn icon x-small>
+          <v-icon small @click="$emit('click:remove', employeeId)">
+            mdi-close
+          </v-icon>
+        </v-btn>
       </div>
       <div v-show="!ellipsis">
         <div class="d-flex align-center">
