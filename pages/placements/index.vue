@@ -110,6 +110,11 @@ import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GPlacementSiteWorkShiftRow from '~/components/organisms/placements/GPlacementSiteWorkShiftRow.vue'
 export default {
   /***************************************************************************
+   * NAME
+   ***************************************************************************/
+  name: 'PlacementsIndex',
+
+  /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {

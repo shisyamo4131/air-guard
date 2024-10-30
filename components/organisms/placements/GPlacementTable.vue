@@ -1,52 +1,52 @@
 <script>
 /**
- * ## GArrangementTable
- *
- * 配置管理用の v-simple-table コンポーネントです。
- *
- * - props.currentDate, props.length を指定すると、指定された期間の日付列を生成します。
- * - props.siteWorkShiftIds で指定された分の行を生成します。
- *   -> siteWorkShiftIds 配列の要素は ${siteId}-${workShift} でなければなりません。
- *   -> .sync 修飾子で同期することができます。
- * - slots.col を使って各セルにコンポーネントを配置することができます。
- *
- * @author shisyamo4131
+ * GPlacementTable
  */
 import dayjs from 'dayjs'
 import ja from 'dayjs/locale/ja'
-import GArrangementSiteWorkShiftRow from './GArrangementSiteWorkShiftRow.vue'
 export default {
-  /***************************************************************************
-   * COMPONENTS
-   ***************************************************************************/
-  components: { GArrangementSiteWorkShiftRow },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
     /**
-     * Arrangements/assignments/employees を受け取ります。
-     * - 従業員の同一日、同一勤務区分配置や連勤状態の確認に使用されます。
+     * The starting date for generating columns, formatted as a string.
+     * - Defaults to today's date in 'YYYY-MM-DD' format, using dayjs.
+     * - Used as the base date in 'YYYY-MM-DD' format for the column generation process.
      */
-    assignments: { type: Object, default: () => ({}), required: false },
-    currentDate: { type: String, default: undefined, required: false },
+    currentDate: {
+      type: String,
+      default: () => dayjs().format('YYYY-MM-DD'),
+    },
     /**
-     * 省略表示にします。
+     * The number of days to generate columns for, starting from currentDate.
+     * - Defines the length of the date range for column generation.
      */
-    ellipsis: { type: Boolean, default: false, required: false },
-    length: { type: Number, default: 7, required: false },
+    length: { type: Number, default: 7 },
     /**
-     * 現場の取極め情報の配列です。
-     * - 現場や勤務区分を限定する必要はありません。コンポーネント内で抽出されます。
-     * - 該当する取極め情報が存在すると、従業員を配置した際に上番・下番時間などが設定されます。
+     * Enables abbreviated display if set to true.
      */
-    siteContracts: { type: Array, default: () => [], required: false },
+    ellipsis: { type: Boolean, default: false },
     /**
-     * ${siteId}-${workShift} の配列です。
-     * - .sync 修飾子を使用することができます。
+     * Assignment data object.
+     * - Contains data related to employee and site assignments.
+     * - Defaults to null if no assignments are provided.
      */
-    siteWorkShiftIds: { type: Array, default: () => [], required: false },
+    assignments: { type: Object, default: null },
+    /**
+     * Array of site contract information.
+     * - No filtering by site or work shift is required; relevant data is extracted within the component as needed.
+     * - If applicable contract information exists, it sets start and end times when assigning employees.
+     */
+    siteContracts: { type: Array, default: () => [] },
+    /**
+     * Array representing the order of sites.
+     * - Defines the sequence in which sites are arranged or processed.
+     * - Defaults to an empty array if no site order is provided.
+     */
+    siteOrder: { type: Array, default: () => [] },
   },
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -60,10 +60,20 @@ export default {
       },
     }
   },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
+    /**
+     * Generates an array of columns based on the current date and specified length.
+     * - If currentDate is not set, returns an empty array.
+     * - Creates an array of dates from currentDate, each formatted as 'YYYY-MM-DD'.
+     * - Maps each date to an object containing:
+     *   - date: the formatted date string,
+     *   - index: the column index,
+     *   - col: a localized string in 'MM/DD(ddd)' format.
+     */
     columns() {
       if (!this.currentDate) return []
       const dates = [...Array(this.length)].map((_, i) =>
@@ -78,31 +88,29 @@ export default {
       })
     },
   },
-  /***************************************************************************
-   * WATCH
-   ***************************************************************************/
-  watch: {
-    'dialog.siteDetail'(v) {
-      if (v) return
-      this.item.siteDetail = null
-    },
-  },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
     /**
-     * 現場の削除アイコンがクリックされた時の処理です。
-     * - siteWorkShiftIds から該当する siteWorkShiftId を除外して update:siteWorkShiftIds イベントを emit します。
+     * Excludes a specified site and work shift from the siteOrder.
+     * - Finds the index of the given siteWorkShiftId in siteOrder.
+     * - If found, removes it from the array and emits an update event to the parent component.
      */
     onClickExcludeSite(siteWorkShiftId) {
-      const index = this.siteWorkShiftIds.indexOf(siteWorkShiftId)
+      const index = this.siteOrder.indexOf(siteWorkShiftId)
       if (index !== -1) {
-        const updatedSiteIndex = [...this.siteWorkShiftIds]
+        const updatedSiteIndex = [...this.siteOrder]
         updatedSiteIndex.splice(index, 1)
-        this.$emit('update:siteWorkShiftIds', updatedSiteIndex)
+        this.$emit('update:site-order', updatedSiteIndex)
       }
     },
+    /**
+     * Displays detailed information for a specified site item.
+     * - Clones the item data to avoid direct mutations and assigns it to item.siteDetail.
+     * - Opens the site detail dialog by setting dialog.siteDetail to true.
+     */
     onClickShowSiteDetail(item) {
       this.item.siteDetail = structuredClone(item)
       this.dialog.siteDetail = true
@@ -112,7 +120,7 @@ export default {
 </script>
 
 <template>
-  <v-simple-table id="arrangement-table" fixed-header>
+  <v-simple-table id="placement-table" fixed-header>
     <thead>
       <tr>
         <th v-for="column of columns" :key="column.date">
@@ -121,28 +129,33 @@ export default {
       </tr>
     </thead>
     <tbody>
-      <template v-for="(siteWorkShiftId, index) of siteWorkShiftIds">
+      <template v-for="(siteWorkShiftId, index) of siteOrder">
         <tr :key="`site-row-${index}`">
           <td colspan="7">
-            <g-arrangement-site-work-shift-row
-              :value="siteWorkShiftId"
-              @click:show-detail="onClickShowSiteDetail"
-              @click:exclude="onClickExcludeSite"
+            <slot
+              name="site-row"
+              v-bind="{
+                attrs: { siteWorkShiftId },
+                on: {
+                  'click:remove': () => onClickExcludeSite(siteWorkShiftId),
+                  'click:show-detail': (item) => onClickShowSiteDetail(item),
+                },
+              }"
             />
           </td>
         </tr>
-        <tr :key="`arrangement-row-${index}`">
+        <tr :key="`placement-row-${index}`">
           <td v-for="column of columns" :key="column.date">
             <slot
-              name="default"
+              name="col"
               v-bind="{
                 attrs: {
                   assignments: assignments?.[column.date] || {},
                   date: column.date,
-                  ellipsis,
                   siteId: siteWorkShiftId.split('-')[0],
-                  siteContracts,
                   workShift: siteWorkShiftId.split('-')[1],
+                  siteContracts,
+                  ellipsis,
                 },
               }"
             />

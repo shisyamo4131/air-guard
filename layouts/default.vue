@@ -200,24 +200,34 @@ export default {
 }
 
 /*****************************************************************************
- * arrangement-table (配置管理用テーブル) 
+ * placements
  *****************************************************************************/
-#arrangement-table > div > table > thead > tr > th {
+#placement-table > div > table > thead > tr > th {
   text-align: center;
   min-width: 240px;
   max-width: 240px;
 }
 
-#arrangement-table > div > table > tbody > tr:nth-child(odd) td[colspan] {
-  background-color: lightgrey;
+#placement-table > div > table > tbody > tr:nth-child(odd) td[colspan] {
+  background-color: beige;
 }
 
-#arrangement-table > div > table > tbody > tr:nth-child(odd) td[colspan] div {
+#placement-table > div > table > tbody > tr:nth-child(odd) td[colspan] div {
   display: inline-block;
   position: sticky;
   left: 16px;
   z-index: 1 !important; /* 他の要素より前面に表示 */
   /* box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1); */ /* 境界線を強調するための影 */
+}
+
+.placement-cell {
+  border: 1px solid lightgray;
+  height: 100%;
+  min-height: 84px;
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 8px;
 }
 
 /*****************************************************************************

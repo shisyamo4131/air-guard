@@ -1,12 +1,6 @@
 <script>
 /**
- * ## GArrangementSiteSelector
- *
- * 配置管理上で現場を選択するためのコンポーネントです。
- * - 現場のみでなく、勤務区分も選択します。
- * - 確定ボタンをクリックすると { siteId, workShift } オブジェクトを emit します。
- *
- * @author shisyamo4131
+ * GArrangementSiteSelector
  */
 import { mapGetters } from 'vuex'
 import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'

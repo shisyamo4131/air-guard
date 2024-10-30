@@ -1,21 +1,25 @@
 <script>
 import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
 /**
- * ## ArrangementSiteWorkShiftRow
- *
- * 配置表の現場勤務区分行に使用するコンポーネントです。
- *
- * @author shisyamo4131
+ * PlacementSiteWorkShiftRow
  */
 export default {
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
   components: { GChipWorkShift },
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
-    // ${siteId}-${workShift}
-    value: { type: String, required: true },
+    /**
+     * Identifier in the format "${siteId}-${workShift}".
+     * - Represents the combination of site and work shift.
+     */
+    siteWorkShiftId: { type: String, required: true },
   },
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -30,41 +34,63 @@ export default {
         {
           title: 'この現場を除外',
           icon: 'playlist-minus',
-          on: { click: () => this.onClickExclude() },
+          on: { click: () => this.onClickRemove() },
         },
       ],
     }
   },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
+    /**
+     * Retrieves the customer information based on the customerId from site.
+     * - Returns null if site is not available.
+     */
     customer() {
       if (!this.site) return null
       const customerId = this.site.customerId
       return this.$store.getters['customers/get'](customerId)
     },
+
+    /**
+     * Retrieves the site information based on the siteId extracted from siteWorkShiftId.
+     * - Returns null if siteWorkShiftId is not set.
+     */
     site() {
-      if (!this.value) return null
-      const [siteId] = this.value.split('-')
+      if (!this.siteWorkShiftId) return null
+      const [siteId] = this.siteWorkShiftId.split('-')
       return this.$store.getters['sites/get'](siteId)
     },
+
+    /**
+     * Extracts the work shift from the siteWorkShiftId prop.
+     * - Returns null if siteWorkShiftId is not set or the work shift is unavailable.
+     */
     workShift() {
-      if (!this.value) return null
-      const parts = this.value.split('-')
+      if (!this.siteWorkShiftId) return null
+      const parts = this.siteWorkShiftId.split('-')
       return parts[1] || null
     },
   },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    onClickExclude() {
-      if (!this.value) return
-      this.$emit('click:exclude', this.value)
+    /**
+     * Emits a click:remove event to notify the parent component of an remove action.
+     */
+    onClickRemove() {
+      this.$emit('click:remove')
     },
+
+    /**
+     * Emits a click:show-detail event with site and customer details.
+     * - Passes an object containing site and customer data as parameters to the parent component.
+     */
     onClickShowDetail() {
-      if (!this.value) return
       const params = {
         site: this.site,
         customer: this.customer,

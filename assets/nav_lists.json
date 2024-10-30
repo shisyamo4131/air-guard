@@ -6,6 +6,12 @@
     "lists": []
   },
   {
+    "name": "配置管理",
+    "icon": "mdi-map",
+    "to": "/placements",
+    "lists": []
+  },
+  {
     "name": "勤怠実績管理",
     "icon": "mdi-train-bus",
     "to": "/monthly-attendances",
