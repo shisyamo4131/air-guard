@@ -40,6 +40,7 @@ export default class ArrangementSiteIndex {
         this.data = Array.isArray(data) ? data : []
       })
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to subscribe to Realtime Database:', error)
     }
   }
@@ -53,6 +54,7 @@ export default class ArrangementSiteIndex {
       if (this.#listener) this.#listener() // リスナーが設定されている場合は解除
       this.#listener = null
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to unsubscribe from Realtime Database:', error)
     }
   }
