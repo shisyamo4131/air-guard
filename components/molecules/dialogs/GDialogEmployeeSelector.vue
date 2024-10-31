@@ -139,6 +139,7 @@ export default {
     v-bind="$attrs"
     v-model="dialog"
     :fullscreen="$vuetify.breakpoint.mobile"
+    :max-width="maxWidth"
     scrollable
     v-on="$listeners"
   >
@@ -146,7 +147,9 @@ export default {
       <slot name="activator" v-bind="{ attrs, on }" />
     </template>
     <v-card :tile="$vuetify.breakpoint.mobile">
-      <v-card-title class="g-card__title">従業員選択</v-card-title>
+      <v-toolbar class="flex-grow-0" color="primary" dark dense flat>
+        <v-toolbar-title>従業員選択</v-toolbar-title>
+      </v-toolbar>
       <v-divider />
       <v-container class="d-flex justify-end">
         <g-switch
