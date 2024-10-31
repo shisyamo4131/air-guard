@@ -220,16 +220,6 @@ export default {
   /* box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1); */ /* 境界線を強調するための影 */
 }
 
-.placement-cell {
-  border: 1px solid lightgray;
-  min-height: 84px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  padding: 8px;
-  gap: 8px;
-}
-
 /*****************************************************************************
  * vue-draggable で ドラッグ用アイコンのポインターを指定
  *****************************************************************************/
