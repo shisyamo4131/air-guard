@@ -98,6 +98,12 @@ export default {
       }
       this.$emit('input', v)
     },
+    includeExpired(newVal) {
+      if (newVal) return
+      this.selectedItems = this.selectedItems.filter(
+        ({ status }) => status === 'active'
+      )
+    },
     /**
      * props.value を監視します。
      * - 値を data.dialog に同期します。
@@ -130,6 +136,10 @@ export default {
       this.$emit('click:submit', structuredClone(this.selectedItems))
       this.dialog = false
     },
+
+    onClickChipClose(index) {
+      this.selectedItems.splice(index, 1)
+    },
   },
 }
 </script>
@@ -148,7 +158,9 @@ export default {
     </template>
     <v-card :tile="$vuetify.breakpoint.mobile">
       <v-toolbar class="flex-grow-0" color="primary" dark dense flat>
-        <v-toolbar-title>従業員選択</v-toolbar-title>
+        <v-toolbar-title
+          ><v-icon>mdi-account</v-icon>従業員選択</v-toolbar-title
+        >
       </v-toolbar>
       <v-divider />
       <v-container class="d-flex justify-end">
@@ -160,15 +172,7 @@ export default {
         />
       </v-container>
       <v-divider />
-      <v-card-text class="pa-0 d-flex flex-grow-1" style="height: 480px">
-        <v-container style="width: 68px">
-          <g-chip-group-kana-filter
-            ref="filter"
-            :chip-options="{ small: true, label: true }"
-            column
-            :regex.sync="regex"
-          />
-        </v-container>
+      <v-card-text class="d-flex pa-0" style="height: 336px">
         <g-data-table
           v-model="selectedItems"
           class="flex-table"
@@ -181,7 +185,7 @@ export default {
           show-select
         >
           <template #[`item.abbr`]="{ item }">
-            {{ item.abbr }}
+            {{ item.fullName }}
             <g-chip-employee-status
               v-if="item.status === 'expired'"
               class="ml-2"
@@ -190,6 +194,29 @@ export default {
             />
           </template>
         </g-data-table>
+        <div class="filter-container py-1 px-3" style="width: 60px">
+          <g-chip-group-kana-filter
+            ref="filter"
+            :chip-options="{ small: true, label: true }"
+            column
+            :regex.sync="regex"
+          />
+        </div>
+      </v-card-text>
+      <v-divider />
+      <v-card-text class="pa-2" style="height: 144px">
+        <div class="d-flex flex-wrap" style="gap: 8px">
+          <v-chip
+            v-for="(employee, index) of selectedItems"
+            :key="index"
+            small
+            label
+            close
+            @click:close="onClickChipClose(index)"
+          >
+            {{ employee.abbr }}
+          </v-chip>
+        </div>
       </v-card-text>
       <v-divider />
       <v-card-actions class="justify-space-between">
@@ -204,4 +231,9 @@ export default {
   </v-dialog>
 </template>
 
-<style></style>
+<style scoped>
+/* GChipKanaFileter 内の VChip が既定で保有する右側のパディングを削除 */
+.filter-container >>> .v-chip {
+  margin-right: 0px !important;
+}
+</style>
