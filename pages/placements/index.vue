@@ -40,7 +40,6 @@
               </v-alert>
             </v-expand-transition>
             <v-divider />
-            <!-- 配置表部分 -->
             <div class="overflow-hidden d-flex">
               <g-placement-table
                 id="placement-table"
@@ -55,36 +54,10 @@
                 <template #site-row="{ attrs, on }">
                   <g-placement-site-work-shift-row v-bind="attrs" v-on="on" />
                 </template>
-                <!-- <template #col="props">
-                  <g-placement-draggable-cell
-                    v-bind="props.attrs"
-                    :dragging-item.sync="draggingItem"
-                  >
-                    <template #default="{ attrs, on }">
-                      <g-placement-employee-card v-bind="attrs" v-on="on" />
-                    </template>
-                  </g-placement-draggable-cell>
-                </template> -->
                 <template #col="{ attrs, on }">
                   <g-placement-employee-card v-bind="attrs" v-on="on" />
                 </template>
               </g-placement-table>
-            </div>
-          </v-sheet>
-          <!-- リスト部分 -->
-          <v-sheet
-            v-if="!$vuetify.breakpoint.mobile"
-            class="px-4 pb-4 d-flex flex-column overflow-y-hidden"
-            style="min-width: 196px"
-          >
-            <g-switch
-              v-model="includesExpiredEmployee"
-              label="退職者を含める"
-            />
-            <div class="pa-1 overflow-y-auto">
-              <g-placement-draggable-employee-list
-                :includes-expired="includesExpiredEmployee"
-              />
             </div>
           </v-sheet>
         </div>
@@ -95,7 +68,6 @@
 
 <script>
 import dayjs from 'dayjs'
-import GPlacementDraggableEmployeeList from '~/components/organisms/placements/GPlacementDraggableEmployeeList.vue'
 import GPlacementEmployeeCard from '~/components/organisms/placements/GPlacementEmployeeCard.vue'
 import GPlacementTable from '~/components/organisms/placements/GPlacementTable.vue'
 import { AssignmentsMonitor, SiteOrderMonitor } from '~/models/Placement'
@@ -103,7 +75,6 @@ import SiteContract from '~/models/SiteContract'
 import GPlacementSiteSelector from '~/components/organisms/placements/GPlacementSiteSelector.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
-import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GPlacementSiteWorkShiftRow from '~/components/organisms/placements/GPlacementSiteWorkShiftRow.vue'
 export default {
   /***************************************************************************
@@ -116,12 +87,10 @@ export default {
    ***************************************************************************/
   components: {
     GPlacementEmployeeCard,
-    GPlacementDraggableEmployeeList,
     GPlacementTable,
     GPlacementSiteSelector,
     GCheckbox,
     GTemplateDefault,
-    GSwitch,
     GPlacementSiteWorkShiftRow,
   },
 
