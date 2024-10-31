@@ -61,12 +61,7 @@
                     :dragging-item.sync="draggingItem"
                   >
                     <template #default="{ attrs, on }">
-                      <g-placement-employee-card
-                        v-bind="attrs"
-                        color="indigo darken-4"
-                        dark
-                        v-on="on"
-                      />
+                      <g-placement-employee-card v-bind="attrs" v-on="on" />
                     </template>
                   </g-placement-draggable-cell>
                 </template>
