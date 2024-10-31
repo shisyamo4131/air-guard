@@ -43,7 +43,7 @@ export default {
 
 <template>
   <v-card v-bind="$attrs" v-on="$listeners">
-    <v-card-text class="pa-2 white--text">
+    <v-card-text class="pa-2">
       <!-- Main line -->
       <div class="d-flex">
         <!--
