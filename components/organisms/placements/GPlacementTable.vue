@@ -5,8 +5,16 @@
 import dayjs from 'dayjs'
 import ja from 'dayjs/locale/ja'
 import GPlacementDraggableCell from './GPlacementDraggableCell.vue'
+import GDialogEmployeeSelector from '~/components/molecules/dialogs/GDialogEmployeeSelector.vue'
 export default {
-  components: { GPlacementDraggableCell },
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
+  components: {
+    GPlacementDraggableCell,
+    GDialogEmployeeSelector,
+  },
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -55,11 +63,14 @@ export default {
   data() {
     return {
       dialog: {
+        employeeSelector: false,
         siteDetail: false,
       },
       item: {
         siteDetail: null,
       },
+      // ユーザーがアクションを行ったセルのインスタンス
+      activeCell: null,
     }
   },
 
@@ -92,6 +103,11 @@ export default {
   },
 
   /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {},
+
+  /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
@@ -117,6 +133,33 @@ export default {
       this.item.siteDetail = structuredClone(item)
       this.dialog.siteDetail = true
     },
+
+    openEmployeeSelector() {
+      this.dialog.employeeSelector = true
+    },
+
+    /**
+     * 複数の従業員を一括で配置します。
+     * - data.activeCell で指定されたインデックスに生成されている
+     *   GPlacementCell コンポーネントの addBulk() を実行します。
+     * - data.activeCell の参照が正しくない場合、エラーになります。
+     */
+    async addEmployeesInBulk(employees) {
+      if (
+        isNaN(this.activeCell) ||
+        this.$refs.cell.length - 1 < this.activeCell
+      ) {
+        const message = `activeCell の参照が正しくありません。`
+        // eslint-disable-next-line no-console
+        console.error(message, { activeCell: this.activeCell })
+        alert(message)
+        return
+      }
+      await this.$refs.cell[this.activeCell].addBulk(
+        employees.map(({ docId }) => docId)
+      )
+      this.dialog.employeeSelector = false
+    },
   },
 }
 </script>
@@ -131,8 +174,8 @@ export default {
       </tr>
     </thead>
     <tbody>
-      <template v-for="(siteWorkShiftId, index) of siteOrder">
-        <tr :key="`site-row-${index}`">
+      <template v-for="(siteWorkShiftId, rowIndex) of siteOrder">
+        <tr :key="`site-row-${rowIndex}`">
           <td colspan="7">
             <slot
               name="site-row"
@@ -146,34 +189,37 @@ export default {
             />
           </td>
         </tr>
-        <tr :key="`placement-row-${index}`">
-          <td v-for="column of columns" :key="column.date">
-            <div style="height: 100%; gap: 4px" class="d-flex flex-column pa-1">
-              <div class="d-flex" style="gap: 4px">
-                <v-btn depressed x-small>
-                  <v-icon small>mdi-account-plus</v-icon>
-                </v-btn>
-                <v-btn depressed x-small>
-                  <v-icon small>mdi-account-edit</v-icon>
-                </v-btn>
-              </div>
-              <g-placement-draggable-cell
-                :assignments="assignments?.[column.date] || {}"
-                :date="column.date"
-                :site-id="siteWorkShiftId.split('-')[0]"
-                :work-shift="siteWorkShiftId.split('-')[1]"
-                :site-contracts="siteContracts"
-                :ellipsis="ellipsis"
-              >
-                <template #default="{ attrs, on }">
-                  <slot name="col" v-bind="{ attrs, on }" />
-                </template>
-              </g-placement-draggable-cell>
-            </div>
+        <tr :key="`placement-row-${rowIndex}`">
+          <td v-for="(column, colIndex) of columns" :key="column.date">
+            <g-placement-draggable-cell
+              ref="cell"
+              :cell-index="colIndex"
+              :assignments="assignments?.[column.date] || {}"
+              :date="column.date"
+              :site-id="siteWorkShiftId.split('-')[0]"
+              :work-shift="siteWorkShiftId.split('-')[1]"
+              :site-contracts="siteContracts"
+              :ellipsis="ellipsis"
+              @active-cell="activeCell = $event"
+              @click:addEmployee="openEmployeeSelector"
+            >
+              <template #default="{ attrs, on }">
+                <slot name="col" v-bind="{ attrs, on }" />
+              </template>
+            </g-placement-draggable-cell>
           </td>
         </tr>
       </template>
     </tbody>
+
+    <!-- employee selector -->
+    <g-dialog-employee-selector
+      v-model="dialog.employeeSelector"
+      :items="$store.getters['employees/items']"
+      @click:submit="addEmployeesInBulk"
+    />
+
+    <!-- detail dialog -->
     <v-dialog v-model="dialog.siteDetail" max-width="480">
       <v-card>
         <v-toolbar color="primary" dark dense flat>
