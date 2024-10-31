@@ -10,6 +10,22 @@
  * Synchronizes with the Realtime Database using the Placement class.
  *
  * Provides a slot for displaying information about the placed employees.
+ *
+ * ### cellIndexについて:
+ * - このコンポーネントは v-for ディレクティブで繰り返し生成されることが前提です。
+ * - また、Placement クラスを利用した Realtime Database へのデータ更新処理はこのコンポーネントから行われます。
+ * - props.cellIndex で自身を一意に識別するためのインデックスを受け取り、
+ * - 各種イベントが emit される際は、このインデックスを親に通知します。
+ * - 親コンポーネントからこのコンポーネントが提供するメソッドを利用するには、
+ * - 各種イベントで emit されるインデックスを利用してください。
+ *
+ * ### draggingItemについて:
+ * - draggingItem は draggable コンポーネントの start イベントで生成される、
+ *   employeeId, siteId, workShift から構成されるオブジェクトです。
+ * - update:dragging-item イベントでこのオブジェクトを親コンポーネントに emit します。
+ * - 同時に、このコンポーネントは props.draggingItem でこのオブジェクトを受け取ります。
+ * - このコンポーネントは props.draggingItem の内容を確認し、自身が受け取ることのできない
+ *   item を受け取ることができないよう、computed.acceptable で監視しています。
  */
 import draggable from 'vuedraggable'
 import { Placement } from '~/models/Placement'
@@ -61,6 +77,10 @@ export default {
      * - If applicable contract information exists, it sets start and end times when assigning employees.
      */
     siteContracts: { type: Array, default: () => [] },
+    /**
+     * このコンポーネントのインデックスです。
+     */
+    cellIndex: { type: Number, required: true },
   },
 
   /***************************************************************************
@@ -313,47 +333,86 @@ export default {
       const path = this.placement.getEmployeesPath(item.employeeId)
       this.$emit('click:edit', structuredClone({ path, item }))
     },
+
+    /**
+     * 従業員追加ボタンがクリックされた時の処理です。
+     * - active-cell イベントで自身のインデックスを emit します。
+     * - click:addEmployee イベント emit します。
+     */
+    onClickAddEmployee() {
+      this.$emit('active-cell', this.cellIndex)
+      this.$nextTick(() => this.$emit('click:addEmployee'))
+    },
+
+    /**
+     * 複数の従業員を一括で配置します。
+     * - 当該コンポーネントでは使用していません。
+     * - 親コンポーネントから実行されます。
+     */
+    async addBulk(employeeIds) {
+      await this.placement.employee.addBulk({
+        employeeIds,
+        siteContract: this.siteContract,
+      })
+    },
   },
 }
 </script>
 
 <template>
-  <draggable
-    class="placement-cell"
-    :style="{
-      backgroundColor: !acceptable ? 'gray' : 'transparent',
-    }"
-    :value="employeeOrder"
-    :disabled="!acceptable"
-    :group="group"
-    @start="createGraggingItem"
-    @end="deleteDraggingItem"
-    @change="onChange"
-  >
-    <div v-for="employeeId of employeeOrder" :key="employeeId">
-      <slot
-        name="default"
-        v-bind="{
-          attrs: {
-            employeeId,
-            date,
-            siteId,
-            workShift,
-            ellipsis,
-            startTime: employees?.[employeeId]?.startTime || '',
-            endTime: employees?.[employeeId]?.endTime || '',
-            showError: employeeIdsWithMultipleSiteIds.includes(employeeId),
-            showContinuous:
-              employeeIdsWithDifferentWorkShifts.includes(employeeId),
-          },
-          on: {
-            'click:edit': () => onClickEdit(employees?.[employeeId] || null),
-            'click:remove': () => handleRemove({ element: employeeId }),
-          },
-        }"
-      />
+  <div style="height: 100%" class="py-1 d-flex flex-column">
+    <div class="d-flex pb-1" style="gap: 4px">
+      <v-btn depressed x-small @click="onClickAddEmployee">
+        <v-icon small>mdi-account-plus</v-icon>
+      </v-btn>
+      <v-btn depressed x-small>
+        <v-icon small>mdi-account-edit</v-icon>
+      </v-btn>
+      <v-btn depressed x-small>
+        <v-icon small>mdi-account-remove</v-icon>
+      </v-btn>
     </div>
-  </draggable>
+
+    <draggable
+      class="d-flex flex-column pa-2 flex-grow-1"
+      :style="{
+        border: `1px solid lightgray`,
+        backgroundColor: !acceptable ? 'gray' : 'transparent',
+        minHeight: '84px',
+        gap: '8px',
+      }"
+      :value="employeeOrder"
+      :disabled="!acceptable"
+      :group="group"
+      @start="createGraggingItem"
+      @end="deleteDraggingItem"
+      @change="onChange"
+    >
+      <div v-for="employeeId of employeeOrder" :key="employeeId">
+        <slot
+          name="default"
+          v-bind="{
+            attrs: {
+              employeeId,
+              date,
+              siteId,
+              workShift,
+              ellipsis,
+              startTime: employees?.[employeeId]?.startTime || '',
+              endTime: employees?.[employeeId]?.endTime || '',
+              showError: employeeIdsWithMultipleSiteIds.includes(employeeId),
+              showContinuous:
+                employeeIdsWithDifferentWorkShifts.includes(employeeId),
+            },
+            on: {
+              'click:edit': () => onClickEdit(employees?.[employeeId] || null),
+              'click:remove': () => handleRemove({ element: employeeId }),
+            },
+          }"
+        />
+      </div>
+    </draggable>
+  </div>
 </template>
 
 <style></style>
