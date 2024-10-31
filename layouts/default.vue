@@ -222,10 +222,10 @@ export default {
 
 .placement-cell {
   border: 1px solid lightgray;
-  height: 100%;
   min-height: 84px;
   display: flex;
   flex-direction: column;
+  flex: 1;
   padding: 8px;
   gap: 8px;
 }

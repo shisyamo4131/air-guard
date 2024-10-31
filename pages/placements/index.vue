@@ -55,7 +55,7 @@
                 <template #site-row="{ attrs, on }">
                   <g-placement-site-work-shift-row v-bind="attrs" v-on="on" />
                 </template>
-                <template #col="props">
+                <!-- <template #col="props">
                   <g-placement-draggable-cell
                     v-bind="props.attrs"
                     :dragging-item.sync="draggingItem"
@@ -64,6 +64,9 @@
                       <g-placement-employee-card v-bind="attrs" v-on="on" />
                     </template>
                   </g-placement-draggable-cell>
+                </template> -->
+                <template #col="{ attrs, on }">
+                  <g-placement-employee-card v-bind="attrs" v-on="on" />
                 </template>
               </g-placement-table>
             </div>
@@ -92,7 +95,6 @@
 
 <script>
 import dayjs from 'dayjs'
-import GPlacementDraggableCell from '~/components/organisms/placements/GPlacementDraggableCell.vue'
 import GPlacementDraggableEmployeeList from '~/components/organisms/placements/GPlacementDraggableEmployeeList.vue'
 import GPlacementEmployeeCard from '~/components/organisms/placements/GPlacementEmployeeCard.vue'
 import GPlacementTable from '~/components/organisms/placements/GPlacementTable.vue'
@@ -113,7 +115,6 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GPlacementDraggableCell,
     GPlacementEmployeeCard,
     GPlacementDraggableEmployeeList,
     GPlacementTable,

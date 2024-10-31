@@ -4,7 +4,9 @@
  */
 import dayjs from 'dayjs'
 import ja from 'dayjs/locale/ja'
+import GPlacementDraggableCell from './GPlacementDraggableCell.vue'
 export default {
+  components: { GPlacementDraggableCell },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -146,19 +148,28 @@ export default {
         </tr>
         <tr :key="`placement-row-${index}`">
           <td v-for="column of columns" :key="column.date">
-            <slot
-              name="col"
-              v-bind="{
-                attrs: {
-                  assignments: assignments?.[column.date] || {},
-                  date: column.date,
-                  siteId: siteWorkShiftId.split('-')[0],
-                  workShift: siteWorkShiftId.split('-')[1],
-                  siteContracts,
-                  ellipsis,
-                },
-              }"
-            />
+            <div style="height: 100%; gap: 4px" class="d-flex flex-column pa-1">
+              <div class="d-flex" style="gap: 4px">
+                <v-btn depressed x-small>
+                  <v-icon small>mdi-account-plus</v-icon>
+                </v-btn>
+                <v-btn depressed x-small>
+                  <v-icon small>mdi-account-edit</v-icon>
+                </v-btn>
+              </div>
+              <g-placement-draggable-cell
+                :assignments="assignments?.[column.date] || {}"
+                :date="column.date"
+                :site-id="siteWorkShiftId.split('-')[0]"
+                :work-shift="siteWorkShiftId.split('-')[1]"
+                :site-contracts="siteContracts"
+                :ellipsis="ellipsis"
+              >
+                <template #default="{ attrs, on }">
+                  <slot name="col" v-bind="{ attrs, on }" />
+                </template>
+              </g-placement-draggable-cell>
+            </div>
           </td>
         </tr>
       </template>
