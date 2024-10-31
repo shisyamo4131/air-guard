@@ -318,42 +318,52 @@ export default {
 </script>
 
 <template>
-  <draggable
-    class="placement-cell"
-    :style="{
-      backgroundColor: !acceptable ? 'gray' : 'transparent',
-    }"
-    :value="employeeOrder"
-    :disabled="!acceptable"
-    :group="group"
-    @start="createGraggingItem"
-    @end="deleteDraggingItem"
-    @change="onChange"
-  >
-    <div v-for="employeeId of employeeOrder" :key="employeeId">
-      <slot
-        name="default"
-        v-bind="{
-          attrs: {
-            employeeId,
-            date,
-            siteId,
-            workShift,
-            ellipsis,
-            startTime: employees?.[employeeId]?.startTime || '',
-            endTime: employees?.[employeeId]?.endTime || '',
-            showError: employeeIdsWithMultipleSiteIds.includes(employeeId),
-            showContinuous:
-              employeeIdsWithDifferentWorkShifts.includes(employeeId),
-          },
-          on: {
-            'click:edit': () => onClickEdit(employees?.[employeeId] || null),
-            'click:remove': () => handleRemove({ element: employeeId }),
-          },
-        }"
-      />
-    </div>
-  </draggable>
+  <div>
+    <!-- <div class="d-flex">
+      <v-btn icon small color="primary">
+        <v-icon>mdi-account-plus</v-icon>
+      </v-btn>
+      <v-btn icon small color="primary">
+        <v-icon>mdi-account-edit</v-icon>
+      </v-btn>
+    </div> -->
+    <draggable
+      class="placement-cell"
+      :style="{
+        backgroundColor: !acceptable ? 'gray' : 'transparent',
+      }"
+      :value="employeeOrder"
+      :disabled="!acceptable"
+      :group="group"
+      @start="createGraggingItem"
+      @end="deleteDraggingItem"
+      @change="onChange"
+    >
+      <div v-for="employeeId of employeeOrder" :key="employeeId">
+        <slot
+          name="default"
+          v-bind="{
+            attrs: {
+              employeeId,
+              date,
+              siteId,
+              workShift,
+              ellipsis,
+              startTime: employees?.[employeeId]?.startTime || '',
+              endTime: employees?.[employeeId]?.endTime || '',
+              showError: employeeIdsWithMultipleSiteIds.includes(employeeId),
+              showContinuous:
+                employeeIdsWithDifferentWorkShifts.includes(employeeId),
+            },
+            on: {
+              'click:edit': () => onClickEdit(employees?.[employeeId] || null),
+              'click:remove': () => handleRemove({ element: employeeId }),
+            },
+          }"
+        />
+      </div>
+    </draggable>
+  </div>
 </template>
 
 <style></style>
