@@ -149,10 +149,18 @@ class Placement {
    * @param {string} args.workShift - The target work shift, either 'day' or 'night'.
    */
   constructor({ date, siteId, workShift }) {
+    // Initialize properties with provided arguments
     this.setDate(date)
     this.setSiteId(siteId)
     this.setWorkShift(workShift)
+
+    // Placeholder for employee data and orders
     this.data = {}
+
+    // Expose employee methods in employee property
+    this.employee = {
+      addBulk: this.addBulk.bind(this), // Bind addBulk method to employee property for easy access
+    }
   }
 
   /**
@@ -333,6 +341,74 @@ class Placement {
       console.log(
         'Unsubscribed from placement data and reset data to an empty object.'
       )
+    }
+  }
+
+  /**
+   * Adds multiple employees to the site in bulk.
+   * - New employees are added to the end of `employeeOrder`.
+   * @param {Object} options - Options for bulk employee addition.
+   * @param {Array<string>} options.employeeIds - Array of employee IDs to add.
+   * @param {Object|null} options.siteContract - Contract details for the site, including startTime, endTime, and breakMinutes.
+   * @throws {TypeError} Throws if `employeeIds` is not an array or contains non-string elements.
+   */
+  async addBulk({ employeeIds = [], siteContract = null } = {}) {
+    // Validate that employeeIds is an array
+    if (!Array.isArray(employeeIds)) {
+      const message = `[addBulk] "employeeIds" must be an array. Provided: ${employeeIds}`
+      throw new TypeError(message)
+    }
+
+    // Check if employeeIds array is empty
+    if (employeeIds.length === 0) {
+      // eslint-disable-next-line no-console
+      console.warn(`[addBulk] "employeeIds" array is empty.`)
+      return
+    }
+
+    // Validate that each element in employeeIds is a string
+    for (const employeeId of employeeIds) {
+      if (typeof employeeId !== 'string') {
+        const message = `[addBulk] "employeeIds" contains non-string values. Provided: ${employeeIds}`
+        throw new TypeError(message)
+      }
+    }
+
+    const employeeOrder = this.data?.employeeOrder || []
+    const updates = {}
+
+    employeeIds.forEach((employeeId) => {
+      if (!employeeOrder.includes(employeeId)) {
+        // Create a new PlacedEmployee instance with provided contract details
+        const newEmployee = new PlacedEmployee({
+          employeeId,
+          startTime: siteContract?.startTime || null,
+          endTime: siteContract?.endTime || null,
+          breakMinutes: siteContract?.breakMinutes || null,
+        })
+        employeeOrder.push(employeeId)
+
+        // Populate the updates object with the new employee's data
+        updates[this.getEmployeesPath(employeeId)] = newEmployee.toObject()
+        updates[`${this.getAssignmentsEmployeesPath(employeeId)}/siteId`] =
+          this.siteId
+        updates[`${this.getAssignmentsSitesPath(employeeId)}/employeeId`] =
+          employeeId
+      }
+    })
+
+    // Update employee order in the database
+    updates[this.getEmployeeOrderPath()] = employeeOrder
+
+    // Perform an atomic update in the database with error handling
+    try {
+      await update(ref(database), updates)
+      // eslint-disable-next-line no-console
+      console.info(`[addBulk] Successfully added bulk employees.`)
+    } catch (error) {
+      const message = `[addBulk] Failed to update the database with new placement entries.`
+      console.error(message, error) // eslint-disable-line no-console
+      throw new Error(`${message} ${error.message}`)
     }
   }
 
