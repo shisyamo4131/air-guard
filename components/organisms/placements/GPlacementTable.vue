@@ -92,14 +92,7 @@ export default {
         this.$store.state.assignments.employees?.[this.activeCell.date] || {}
 
       // 配置されている従業員のIDを収集
-      const placementedIds = Object.keys(
-        Object.entries(assignments).reduce((acc, [_, employees]) => {
-          Object.keys(employees).forEach((employeeId) => {
-            acc[employeeId] = true
-          })
-          return acc
-        }, {})
-      )
+      const placementedIds = Object.entries(assignments).map(([key]) => key)
 
       // 全従業員を Vuex から取得
       const allEmployees = this.$store.getters['employees/items']
