@@ -1,12 +1,12 @@
 <template>
   <g-template-default>
-    <!-- <v-container fluid style="height: 100%"> -->
     <v-card style="height: 100%" class="d-flex flex-column" tile>
-      <!-- <v-toolbar class="flex-grow-0" color="primary" dark dense flat> -->
       <v-toolbar color="secondary" dark class="flex-grow-0" dense flat>
         <v-toolbar-title>配置管理</v-toolbar-title>
         <v-spacer />
         <v-toolbar-items>
+          <v-btn text><v-icon left>mdi-chevron-left</v-icon>前の週へ</v-btn>
+          <v-btn text>次の週へ<v-icon right>mdi-chevron-right</v-icon></v-btn>
           <g-placement-site-selector @selected="onNewSiteSeleced">
             <template #activator="{ attrs, on }">
               <v-btn v-bind="attrs" text v-on="on"
