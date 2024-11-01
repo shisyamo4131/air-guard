@@ -1,9 +1,11 @@
 import { database } from 'air-firebase' // Firebase 初期化と Firestore のインポート
 import { ref, onValue, set } from 'firebase/database' // Firebase Realtime Database
+import Site from '~/models/Site'
 import SiteContract from '~/models/SiteContract'
 
 export const state = () => ({
   data: [], // サイトオーダーの現在のリストを保持
+  sites: [], // Firestore の Sites コレクションのデータを配列で保持
   siteContracts: [], // Firestore の SiteContracts コレクションのデータを配列で保持
 })
 
@@ -36,8 +38,18 @@ export const mutations = {
       }
     })
   },
+  ADD_SITES(state, sites) {
+    // 重複する siteId を除外して追加
+    sites.forEach((site) => {
+      const exists = state.sites.some((s) => s.docId === site.docId)
+      if (!exists) state.sites.push(site)
+    })
+  },
   RESET_SITE_CONTRACTS(state) {
     state.siteContracts = []
+  },
+  RESET_SITES(state) {
+    state.sites = []
   },
 }
 
@@ -46,13 +58,16 @@ export const actions = {
   subscribe({ commit, dispatch }) {
     try {
       const dbRef = ref(database, 'Placements/siteOrder')
-      const listener = onValue(dbRef, async (snapshot) => {
+      const listener = onValue(dbRef, (snapshot) => {
         const data = snapshot.val()
         const siteOrder = Array.isArray(data) ? data : []
         commit('SET_DATA', siteOrder)
 
         // Firestore から SiteContracts のドキュメントを取得
-        await dispatch('fetchSiteContracts', siteOrder)
+        dispatch('fetchSites', siteOrder)
+
+        // Firestore から SiteContracts のドキュメントを取得
+        dispatch('fetchSiteContracts', siteOrder)
       })
 
       // Firebaseのリスナーを返す（解除するために使用）
@@ -61,6 +76,23 @@ export const actions = {
       // eslint-disable-next-line no-console
       console.error('Failed to subscribe to site order data:', error)
       throw new Error('Subscription failed due to a database error.')
+    }
+  },
+
+  // Firestore から SiteContracts を取得
+  async fetchSites({ state, commit }, siteOrder) {
+    const siteIdsToFetch = siteOrder
+      .map((item) => item.siteId)
+      .filter((siteId) => !state.sites.some((site) => site.docIdId === siteId)) // 既に取得済みの siteId を除外
+
+    if (siteIdsToFetch.length === 0) return // 新しい siteId がなければ終了
+
+    try {
+      const newSites = await new Site().fetchByIds(siteIdsToFetch)
+      commit('ADD_SITES', newSites)
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to fetch site contracts:', error)
     }
   },
 
@@ -91,6 +123,7 @@ export const actions = {
     try {
       if (listener) listener() // リスナーを解除
       commit('SET_DATA', []) // data を空にする
+      commit('RESET_SITES') // sites を空にする
       commit('RESET_SITE_CONTRACTS') // siteContracts を空にする
     } catch (error) {
       // eslint-disable-next-line no-console
