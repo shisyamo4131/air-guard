@@ -63,7 +63,6 @@
         </v-sheet>
       </div>
     </v-card>
-    <!-- </v-container> -->
   </g-template-default>
 </template>
 
@@ -71,7 +70,7 @@
 import dayjs from 'dayjs'
 import GPlacementEmployeeCard from '~/components/organisms/placements/GPlacementEmployeeCard.vue'
 import GPlacementTable from '~/components/organisms/placements/GPlacementTable.vue'
-import { AssignmentsMonitor, SiteOrderMonitor } from '~/models/Placement'
+import { AssignmentsMonitor } from '~/models/Placement'
 import SiteContract from '~/models/SiteContract'
 import GPlacementSiteSelector from '~/components/organisms/placements/GPlacementSiteSelector.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
@@ -119,7 +118,6 @@ export default {
       draggingItem: null,
 
       assignmentsMonitor: new AssignmentsMonitor(),
-      siteOrderMonitor: new SiteOrderMonitor(),
 
       siteContracts: [],
     }
@@ -168,10 +166,10 @@ export default {
      */
     siteOrder: {
       get() {
-        return this.siteOrderMonitor?.data || []
+        return this.$store.state['site-order'].data
       },
-      async set(v) {
-        await this.siteOrderMonitor.update(v)
+      set(v) {
+        this.$store.dispatch('site-order/update', v)
       },
     },
 
@@ -185,12 +183,16 @@ export default {
       const assigned = Object.values(this.assignments.sites).flatMap(
         (siteIds) =>
           Object.entries(siteIds).flatMap(([siteId, workShifts]) =>
-            Object.keys(workShifts).map((workShift) => `${siteId}-${workShift}`)
+            Object.keys(workShifts).map((workShift) => ({
+              id: `${siteId}-${workShift}`,
+              siteId,
+              workShift,
+            }))
           )
       )
 
       return assigned.filter(
-        (id) => !this.siteOrder.some((order) => order.id === id)
+        ({ id }) => !this.siteOrder.some((order) => order.id === id)
       )
     },
   },
@@ -224,6 +226,10 @@ export default {
     },
   },
 
+  mounted() {
+    this.$store.dispatch('site-order/subscribe')
+  },
+
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
@@ -244,7 +250,6 @@ export default {
       this.unsubscribe()
       if (!this.from || !this.to) return
       this.assignmentsMonitor.subscribe(this.from, this.to)
-      this.siteOrderMonitor.subscribe(this.from, this.to)
     },
 
     /**
@@ -253,7 +258,7 @@ export default {
      */
     unsubscribe() {
       this.assignmentsMonitor.unsubscribe()
-      this.siteOrderMonitor.unsubscribe()
+      this.$store.dispatch('site-order/unsubscribe')
     },
 
     /**
@@ -293,25 +298,22 @@ export default {
     },
 
     /**
-     * Adds a new site and work shift to the siteWorkShiftMonitor.
-     * - Triggered when a new site is selected.
+     * 引数で受け取った現場-勤務区分を site-order に追加します。
      */
     async onNewSiteSeleced({ siteId, workShift }) {
-      await this.siteOrderMonitor.add(siteId, workShift)
+      await this.$store.dispatch('site-order/add', { siteId, workShift })
     },
 
     /**
-     * Shows hidden sites by adding them to the siteWorkShiftMonitor.
-     * - Checks if there are any hidden sites, then adds each one to the monitor.
-     * - Splits each hidden site key to extract siteId and workShift.
+     * computed.hiddenSites を参照し、対象の現場-勤務区分を site-order に追加します。
      */
     async onClickShowHiddenSites() {
       if (!this.hiddenSites.length) return
-      const promises = this.hiddenSites.map((key) => {
-        const [siteId, workShift] = key.split('-')
-        return this.siteOrderMonitor.add(siteId, workShift)
-      })
-      await Promise.all(promises)
+      await Promise.all(
+        this.hiddenSites.map(({ siteId, workShift }) =>
+          this.$store.dispatch('site-order/add', { siteId, workShift })
+        )
+      )
     },
   },
 }
