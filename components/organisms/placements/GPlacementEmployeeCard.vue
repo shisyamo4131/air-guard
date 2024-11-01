@@ -52,6 +52,7 @@ export default {
     <v-card-text class="pa-2">
       <!-- Main line -->
       <div class="d-flex">
+        <v-icon class="handle" left small>mdi-menu</v-icon>
         <!--
           Error icon
           - It takes priority over the continuous icon when displayed.

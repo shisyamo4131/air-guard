@@ -370,6 +370,7 @@ export default {
       :value="employeeOrder"
       :disabled="!acceptable"
       :group="group"
+      handle=".handle"
       @start="createGraggingItem"
       @end="deleteDraggingItem"
       @change="onChange"
