@@ -2,6 +2,10 @@
 import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
 /**
  * PlacementSiteWorkShiftRow
+ *
+ * 配置表の現場-勤務区分を表示する行コンポーネントです。
+ *
+ * @author shisyamo4131
  */
 export default {
   /***************************************************************************
@@ -13,11 +17,12 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
-    /**
-     * Identifier in the format "${siteId}-${workShift}".
-     * - Represents the combination of site and work shift.
-     */
-    siteWorkShiftId: { type: String, required: true },
+    siteId: { type: String, required: true },
+    workShift: {
+      type: String,
+      validator: (v) => ['day', 'night'].includes(v),
+      required: true,
+    },
   },
 
   /***************************************************************************
@@ -55,23 +60,11 @@ export default {
     },
 
     /**
-     * Retrieves the site information based on the siteId extracted from siteWorkShiftId.
-     * - Returns null if siteWorkShiftId is not set.
+     * Retrieves the site information based on the siteId.
+     * - Returns undefined if could not get site object from vuex.
      */
     site() {
-      if (!this.siteWorkShiftId) return null
-      const [siteId] = this.siteWorkShiftId.split('-')
-      return this.$store.getters['sites/get'](siteId)
-    },
-
-    /**
-     * Extracts the work shift from the siteWorkShiftId prop.
-     * - Returns null if siteWorkShiftId is not set or the work shift is unavailable.
-     */
-    workShift() {
-      if (!this.siteWorkShiftId) return null
-      const parts = this.siteWorkShiftId.split('-')
-      return parts[1] || null
+      return this.$store.getters['sites/get'](this.siteId)
     },
   },
 
