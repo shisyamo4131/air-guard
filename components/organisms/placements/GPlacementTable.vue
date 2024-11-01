@@ -14,10 +14,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: {
-    GPlacementDraggableCell,
-    GDialogEmployeeSelector,
-  },
+  components: { GPlacementDraggableCell, GDialogEmployeeSelector },
 
   /***************************************************************************
    * PROPS
@@ -66,7 +63,7 @@ export default {
           customer: null,
         },
       },
-      // ユーザーがアクションを行ったセルのインスタンス
+      // ユーザーがアクションを行ったセルを特定するためのオブジェクト
       activeCell: null,
     }
   },
@@ -84,6 +81,9 @@ export default {
       return [...Array(this.length)].map((_, i) =>
         dayjs(this.currentDate).add(i, 'day').format('YYYY-MM-DD')
       )
+    },
+    selectableEmployees() {
+      return this.$store.getters['employees/items']
     },
   },
 
@@ -148,24 +148,27 @@ export default {
 
     /**
      * 複数の従業員を一括で配置します。
-     * - data.activeCell で指定されたインデックスに生成されている
-     *   GPlacementCell コンポーネントの addBulk() を実行します。
-     * - data.activeCell の参照が正しくない場合、エラーになります。
+     * - 一括配置を行うためのメソッドは GPlacementDraggableCell が保有しています。
+     * - data.activeCell が ref 参照のための情報を保持しています。
      */
     async addEmployeesInBulk(employees) {
-      if (
-        isNaN(this.activeCell) ||
-        this.$refs.cell.length - 1 < this.activeCell
-      ) {
+      if (!this.activeCell) {
         const message = `activeCell の参照が正しくありません。`
         // eslint-disable-next-line no-console
         console.error(message, { activeCell: this.activeCell })
         alert(message)
         return
       }
-      await this.$refs.cell[this.activeCell].addBulk(
-        employees.map(({ docId }) => docId)
-      )
+      const { date, siteId, workShift } = this.activeCell
+      const cell = this.$refs?.[`cell-${date}-${siteId}-${workShift}`] || null
+      if (!cell || !cell.length) {
+        const message = `activeCell の参照を取得できませんでした。`
+        // eslint-disable-next-line no-console
+        console.error(message, { activeCell: this.activeCell })
+        alert(message)
+        return
+      }
+      await cell[0].addBulk(employees.map(({ docId }) => docId))
       this.dialog.employeeSelector = false
     },
   },
@@ -200,10 +203,9 @@ export default {
           </td>
         </tr>
         <tr :key="`placement-row-${rowIndex}`">
-          <td v-for="(column, colIndex) of columns" :key="column.date">
+          <td v-for="column of columns" :key="column.date">
             <g-placement-draggable-cell
-              ref="cell"
-              :cell-index="rowIndex * length + colIndex"
+              :ref="`cell-${column.date}-${order.siteId}-${order.workShift}`"
               :date="column.date"
               :site-id="order.siteId"
               :work-shift="order.workShift"
@@ -224,7 +226,7 @@ export default {
     <!-- employee selector -->
     <g-dialog-employee-selector
       v-model="dialog.employeeSelector"
-      :items="$store.getters['employees/items']"
+      :items="selectableEmployees"
       @click:submit="addEmployeesInBulk"
     />
 
