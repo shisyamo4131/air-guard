@@ -10,6 +10,9 @@ export const state = () => ({
 })
 
 export const getters = {
+  site: (state) => (siteId) => {
+    return state.sites.find(({ docId }) => docId === siteId)
+  },
   siteContract:
     (state) =>
     ({ date, siteId, workShift }) => {
