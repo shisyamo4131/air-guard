@@ -42,12 +42,6 @@ export default {
      */
     ellipsis: { type: Boolean, default: false },
     /**
-     * Assignment data object.
-     * - Contains data related to employee and site assignments.
-     * - Defaults to null if no assignments are provided.
-     */
-    assignments: { type: Object, default: null },
-    /**
      * Array of site contract information.
      * - No filtering by site or work shift is required; relevant data is extracted within the component as needed.
      * - If applicable contract information exists, it sets start and end times when assigning employees.
@@ -70,6 +64,7 @@ export default {
         employeeSelector: false,
         siteDetail: false,
       },
+      draggingItem: null,
       item: {
         siteDetail: null,
       },
@@ -198,12 +193,12 @@ export default {
             <g-placement-draggable-cell
               ref="cell"
               :cell-index="rowIndex * length + colIndex"
-              :assignments="assignments?.[column.date] || {}"
               :date="column.date"
               :site-id="order.siteId"
               :work-shift="order.workShift"
               :site-contracts="siteContracts"
               :ellipsis="ellipsis"
+              :dragging-item.sync="draggingItem"
               @active-cell="activeCell = $event"
               @click:addEmployee="openEmployeeSelector"
             >

@@ -45,7 +45,6 @@
             <g-placement-table
               id="placement-table"
               class="flex-table"
-              :assignments="assignments.employees"
               :current-date="currentDate"
               :ellipsis="ellipsis"
               :length="length"

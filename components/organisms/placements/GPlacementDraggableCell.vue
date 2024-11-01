@@ -40,11 +40,6 @@ export default {
    ***************************************************************************/
   props: {
     /**
-     * Receives data from Placements/assignments/employees/${date}.
-     * - Used to check for employee assignments on the same date and work shift, and to verify continuous work status.
-     */
-    assignments: { type: Object, default: () => ({}) },
-    /**
      * The target date in YYYY-MM-DD format.
      */
     date: { type: String, required: true },
@@ -141,13 +136,16 @@ export default {
     },
 
     /**
-     * Returns an array of employee IDs assigned to multiple sites within the same work shift.
+     * 同一日、同一勤務区分で複数の現場に配置されている従業員IDの配列を返します。
+     * - 他現場の配置情報は Vuex の assignments を参照します。
      */
     employeeIdsWithMultipleSiteIds() {
+      const assignments =
+        this.$store.state.assignments.employees?.[this.date] || {}
       const result = []
 
       // Iterate over each employeeId and its assigned shifts
-      for (const [employeeId, shifts] of Object.entries(this.assignments)) {
+      for (const [employeeId, shifts] of Object.entries(assignments)) {
         // Check each work shift for multiple site IDs
         const isMultipleSites = Object.values(shifts).some(
           (siteId) => Object.keys(siteId).length > 1
@@ -159,13 +157,16 @@ export default {
     },
 
     /**
-     * Returns an array of employee IDs assigned to multiple work shifts.
+     * 同一日、異なる勤務区分で複数配置されている従業員IDの配列を返します。
+     * - 他現場の配置情報は Vuex の assignments を参照します。
      */
     employeeIdsWithDifferentWorkShifts() {
+      const assignments =
+        this.$store.state.assignments.employees?.[this.date] || {}
       const result = []
 
       // Iterate over each employeeId and its assigned shifts
-      for (const [employeeId, shifts] of Object.entries(this.assignments)) {
+      for (const [employeeId, shifts] of Object.entries(assignments)) {
         // Add to result if there are multiple work shifts
         if (Object.keys(shifts).length > 1) {
           result.push(employeeId)
