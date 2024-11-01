@@ -55,16 +55,7 @@
  */
 
 import { database } from 'air-firebase'
-import {
-  ref,
-  onValue,
-  update,
-  query,
-  child,
-  orderByKey,
-  startAt,
-  endAt,
-} from 'firebase/database'
+import { ref, onValue, update } from 'firebase/database'
 
 const ARRIVAL_ALLOWED_TIME_OFFSET = 60 * 60 * 1000
 
@@ -777,105 +768,4 @@ class Placement {
   }
 }
 
-/**
- * The AssignmentsMonitor class manages real-time subscriptions to assignment data
- * from the Firebase Realtime Database. It listens for changes in assignment records
- * for both employees and sites, updating stored data in real-time.
- *
- * Key Responsibilities:
- * - Subscribe to and unsubscribe from real-time assignment data within a specified key range.
- * - Track and store assignment data for employees and sites in `employees` and `sites` properties.
- * - Maintain data consistency by ensuring that real-time updates are reflected
- *   in the properties and that subscriptions are efficiently managed.
- *
- * This class facilitates synchronized, live monitoring of assignment data,
- * making it accessible for real-time operations and analysis.
- */
-class AssignmentsMonitor {
-  // An object holding listeners for employees and sites data.
-  #listeners = { employees: null, sites: null }
-
-  constructor() {
-    // Properties to store current assignment data for employees and sites.
-    this.employees = {}
-    this.sites = {}
-  }
-
-  /**
-   * Provides the reference to the 'Placements/assignments' path in the Realtime Database.
-   * @returns {DatabaseReference} The database reference for the assignments path.
-   */
-  get dbRef() {
-    return ref(database, `Placements/assignments`)
-  }
-
-  /**
-   * Subscribes to real-time assignment data within the specified key range.
-   * Sets up real-time listeners for employee and site assignments between `from` and `to`.
-   *
-   * @param {string} from - The starting key for the data range to subscribe.
-   * @param {string} to - The ending key for the data range to subscribe.
-   */
-  subscribe(from, to) {
-    // Unsubscribe from any existing listeners before setting new ones
-    this.unsubscribe()
-    try {
-      // Set up queries with the specified range for employees and sites
-      const employeesQuery = query(
-        child(this.dbRef, 'employees'),
-        orderByKey(),
-        startAt(from),
-        endAt(to)
-      )
-      const sitesQuery = query(
-        child(this.dbRef, 'sites'),
-        orderByKey(),
-        startAt(from),
-        endAt(to)
-      )
-
-      // Set real-time listener for employees assignment data
-      this.#listeners.employees = onValue(employeesQuery, (snapshot) => {
-        const data = snapshot.val()
-        // Update employees data or set as empty object if no data exists
-        this.employees = data && typeof data === 'object' ? data : {}
-      })
-
-      // Set real-time listener for sites assignment data
-      this.#listeners.sites = onValue(sitesQuery, (snapshot) => {
-        const data = snapshot.val()
-        // Update sites data or set as empty object if no data exists
-        this.sites = data && typeof data === 'object' ? data : {}
-      })
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to subscribe to assignment data:', error)
-      throw new Error('Subscription failed due to a database error.')
-    }
-  }
-
-  /**
-   * Unsubscribes from all active real-time assignment listeners.
-   * Resets stored data and listener properties to null, ensuring cleanup.
-   */
-  unsubscribe() {
-    try {
-      // Unsubscribe from each listener and reset its reference
-      Object.keys(this.#listeners).forEach((key) => {
-        if (this.#listeners[key]) {
-          this.#listeners[key]() // Detach the listener
-          this.#listeners[key] = null
-        }
-      })
-      // Reset stored data properties
-      this.employees = {}
-      this.sites = {}
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Failed to unsubscribe from assignment data:', error)
-      throw new Error('Unsubscription failed due to an unexpected error.')
-    }
-  }
-}
-
-export { Placement, AssignmentsMonitor }
+export { Placement }

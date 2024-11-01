@@ -70,7 +70,6 @@
 import dayjs from 'dayjs'
 import GPlacementEmployeeCard from '~/components/organisms/placements/GPlacementEmployeeCard.vue'
 import GPlacementTable from '~/components/organisms/placements/GPlacementTable.vue'
-import { AssignmentsMonitor } from '~/models/Placement'
 import SiteContract from '~/models/SiteContract'
 import GPlacementSiteSelector from '~/components/organisms/placements/GPlacementSiteSelector.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
@@ -117,8 +116,6 @@ export default {
        ***********************************************************************/
       draggingItem: null,
 
-      assignmentsMonitor: new AssignmentsMonitor(),
-
       siteContracts: [],
     }
   },
@@ -149,20 +146,19 @@ export default {
     },
 
     /**
-     * Retrieves assignment data from the assignmentsMonitor.
-     * - Returns an object containing employees and sites data.
+     * Vuex.assginments の内容を返します。
      */
     assignments() {
       const result = {
-        employees: this.assignmentsMonitor.employees,
-        sites: this.assignmentsMonitor.sites,
+        employees: this.$store.state.assignments.employees,
+        sites: this.$store.state.assignments.sites,
       }
       return result
     },
 
     /**
-     * An array of site-workShift ids designated to be displayed.
-     * - The value will be recorded in Realtime Database by the class when updated.
+     * getter: Vuex.site-order の内容を返します。
+     * setter: Vuex.site-order.dispatch.update を実行します。
      */
     siteOrder: {
       get() {
@@ -202,13 +198,18 @@ export default {
    ***************************************************************************/
   watch: {
     /**
-     * Watcher for currentDate.
-     * - Triggers the subscribe method whenever currentDate changes.
-     * - Executes immediately upon component creation.
+     * data.currentDate を監視します。
+     * - Vuex.assignments への購読を解除します。
+     * - from, to が有効だと判断できる場合のみ、 Vuex.assignments への購読を開始します。
      */
     currentDate: {
       handler() {
-        this.subscribe()
+        this.$store.dispatch('assignments/unsubscribe')
+        if (!this.from || !this.to) return
+        this.$store.dispatch('assignments/subscribe', {
+          from: this.from,
+          to: this.to,
+        })
       },
       immediate: true,
     },
@@ -226,7 +227,11 @@ export default {
     },
   },
 
+  /***************************************************************************
+   * MOUNTED
+   ***************************************************************************/
   mounted() {
+    // Vuex.site-order への購読を開始します。
     this.$store.dispatch('site-order/subscribe')
   },
 
@@ -234,33 +239,15 @@ export default {
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.unsubscribe()
+    // Vuex.site-order, assignments への購読を解除します。
+    this.$store.dispatch('site-order/unsubscribe')
+    this.$store.dispatch('assignments/unsubscribe')
   },
 
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    /**
-     * Subscribes to assignments and site order monitors within the specified date range.
-     * - Calls unsubscribe first to clear any existing subscriptions.
-     * - If either from or to date is not set, subscription is skipped.
-     */
-    subscribe() {
-      this.unsubscribe()
-      if (!this.from || !this.to) return
-      this.assignmentsMonitor.subscribe(this.from, this.to)
-    },
-
-    /**
-     * Unsubscribes from both assignments and site order monitors.
-     * - Ensures any active subscriptions are cleared.
-     */
-    unsubscribe() {
-      this.assignmentsMonitor.unsubscribe()
-      this.$store.dispatch('site-order/unsubscribe')
-    },
-
     /**
      * Refreshes the site contract information by fetching missing data for site IDs.
      * - Extracts unique site IDs from siteOrder.
