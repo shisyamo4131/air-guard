@@ -1,6 +1,10 @@
 <script>
 /**
  * GPlacementTable
+ *
+ * 配置管理用のテーブルコンポーネントです。
+ *
+ * @author shisyamo4131
  */
 import dayjs from 'dayjs'
 import ja from 'dayjs/locale/ja'
@@ -116,8 +120,8 @@ export default {
      * - Finds the index of the given siteWorkShiftId in siteOrder.
      * - If found, removes it from the array and emits an update event to the parent component.
      */
-    onClickExcludeSite(siteWorkShiftId) {
-      const index = this.siteOrder.indexOf(siteWorkShiftId)
+    onClickExcludeSite(id) {
+      const index = this.siteOrder.findIndex((order) => order.id === id)
       if (index !== -1) {
         const updatedSiteIndex = [...this.siteOrder]
         updatedSiteIndex.splice(index, 1)
@@ -174,15 +178,15 @@ export default {
       </tr>
     </thead>
     <tbody>
-      <template v-for="(siteWorkShiftId, rowIndex) of siteOrder">
+      <template v-for="(order, rowIndex) of siteOrder">
         <tr :key="`site-row-${rowIndex}`">
           <td colspan="7">
             <slot
               name="site-row"
               v-bind="{
-                attrs: { siteWorkShiftId },
+                attrs: { siteId: order.siteId, workShift: order.workShift },
                 on: {
-                  'click:remove': () => onClickExcludeSite(siteWorkShiftId),
+                  'click:remove': () => onClickExcludeSite(order.id),
                   'click:show-detail': (item) => onClickShowSiteDetail(item),
                 },
               }"
@@ -196,8 +200,8 @@ export default {
               :cell-index="rowIndex * length + colIndex"
               :assignments="assignments?.[column.date] || {}"
               :date="column.date"
-              :site-id="siteWorkShiftId.split('-')[0]"
-              :work-shift="siteWorkShiftId.split('-')[1]"
+              :site-id="order.siteId"
+              :work-shift="order.workShift"
               :site-contracts="siteContracts"
               :ellipsis="ellipsis"
               @active-cell="activeCell = $event"
