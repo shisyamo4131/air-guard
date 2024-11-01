@@ -7,6 +7,20 @@ export const state = () => ({
   siteContracts: [], // Firestore の SiteContracts コレクションのデータを配列で保持
 })
 
+export const getters = {
+  siteContract:
+    (state) =>
+    ({ date, siteId, workShift }) => {
+      return state.siteContracts
+        .filter(
+          (contract) =>
+            contract.siteId === siteId && contract.workShift === workShift
+        )
+        .sort((a, b) => b.startDate - a.startDate) // Sort by startDate in descending order
+        .find(({ startDate }) => startDate <= date)
+    },
+}
+
 export const mutations = {
   SET_DATA(state, payload) {
     state.data = payload

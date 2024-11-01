@@ -48,7 +48,6 @@
               :current-date="currentDate"
               :ellipsis="ellipsis"
               :length="length"
-              :site-contracts="siteContracts"
               :site-order.sync="siteOrder"
             >
               <template #site-row="{ attrs, on }">
@@ -69,7 +68,6 @@
 import dayjs from 'dayjs'
 import GPlacementEmployeeCard from '~/components/organisms/placements/GPlacementEmployeeCard.vue'
 import GPlacementTable from '~/components/organisms/placements/GPlacementTable.vue'
-import SiteContract from '~/models/SiteContract'
 import GPlacementSiteSelector from '~/components/organisms/placements/GPlacementSiteSelector.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
@@ -114,8 +112,6 @@ export default {
        * - Provided from GArrangementCell.
        ***********************************************************************/
       draggingItem: null,
-
-      siteContracts: [],
     }
   },
 
@@ -212,18 +208,6 @@ export default {
       },
       immediate: true,
     },
-
-    /**
-     * Watcher for changes in the length of siteOrder.
-     * - Calls refreshSiteContracts whenever the siteOrder length changes to ensure site contracts are up-to-date.
-     * - Executes immediately upon component creation.
-     */
-    'siteOrder.length': {
-      async handler() {
-        await this.refreshSiteContracts()
-      },
-      immediate: true,
-    },
   },
 
   /***************************************************************************
@@ -247,42 +231,6 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
-    /**
-     * Refreshes the site contract information by fetching missing data for site IDs.
-     * - Extracts unique site IDs from siteOrder.
-     * - Compares with existing siteContracts to identify missing site contracts.
-     * - If any missing site contracts are found, fetches them from the server and adds to siteContracts.
-     * - Catches and logs any errors, displaying an alert with the error message if an error occurs.
-     */
-    async refreshSiteContracts() {
-      try {
-        // Extract unique site IDs from siteOrder
-        const siteIds = [...new Set(this.siteOrder.map(({ siteId }) => siteId))]
-
-        // Identify missing site contracts by comparing with existing siteContracts
-        const lackedSiteIds = siteIds.filter(
-          (siteId) =>
-            !this.siteContracts.some(({ siteId: id }) => id === siteId)
-        )
-
-        // Exit if there are no missing site contracts
-        if (lackedSiteIds.length === 0) return
-
-        // Fetch missing site contract information from the server
-        const siteContractInstance = new SiteContract()
-        const lackedSiteContracts = await siteContractInstance.fetchBySiteIds(
-          lackedSiteIds
-        )
-
-        // Add fetched site contracts to siteContracts
-        this.siteContracts.push(...lackedSiteContracts)
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('Error occurred while refreshing site contracts:', error)
-        alert(error.message)
-      }
-    },
-
     /**
      * 引数で受け取った現場-勤務区分を site-order に追加します。
      */

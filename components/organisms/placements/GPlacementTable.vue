@@ -42,12 +42,6 @@ export default {
      */
     ellipsis: { type: Boolean, default: false },
     /**
-     * Array of site contract information.
-     * - No filtering by site or work shift is required; relevant data is extracted within the component as needed.
-     * - If applicable contract information exists, it sets start and end times when assigning employees.
-     */
-    siteContracts: { type: Array, default: () => [] },
-    /**
      * Array representing the order of sites.
      * - Defines the sequence in which sites are arranged or processed.
      * - Defaults to an empty array if no site order is provided.
@@ -196,7 +190,6 @@ export default {
               :date="column.date"
               :site-id="order.siteId"
               :work-shift="order.workShift"
-              :site-contracts="siteContracts"
               :ellipsis="ellipsis"
               :dragging-item.sync="draggingItem"
               @active-cell="activeCell = $event"

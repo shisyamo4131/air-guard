@@ -67,12 +67,6 @@ export default {
      */
     ellipsis: { type: Boolean, default: false },
     /**
-     * Array of site contract information.
-     * - No filtering by site or work shift is required; relevant data is extracted within the component as needed.
-     * - If applicable contract information exists, it sets start and end times when assigning employees.
-     */
-    siteContracts: { type: Array, default: () => [] },
-    /**
      * このコンポーネントのインデックスです。
      */
     cellIndex: { type: Number, required: true },
@@ -177,19 +171,15 @@ export default {
     },
 
     /**
-     * Retrieves the applicable site contract from props.siteContracts.
-     * - Filters contracts by matching siteId and workShift with component props.
-     * - Sorts the filtered contracts in descending order by startDate.
-     * - Returns the most recent applicable contract if found; otherwise, returns undefined.
+     * Vuex.site-order から適用すべき site-contract を取得して返します。
+     * - 該当するものがなければ undefined を返します。
      */
     siteContract() {
-      return this.siteContracts
-        .filter(
-          ({ siteId, workShift }) =>
-            siteId === this.siteId && workShift === this.workShift
-        )
-        .sort((a, b) => b.startDate - a.startDate) // Sort by startDate in descending order
-        .find(({ startDate }) => startDate <= this.date)
+      return this.$store.getters['site-order/siteContract']({
+        date: this.date,
+        siteId: this.siteId,
+        workShift: this.workShift,
+      })
     },
   },
 
