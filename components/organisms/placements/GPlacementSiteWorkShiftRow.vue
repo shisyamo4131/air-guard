@@ -64,7 +64,7 @@ export default {
      * - Returns undefined if could not get site object from vuex.
      */
     site() {
-      return this.$store.getters['sites/get'](this.siteId)
+      return this.$store.getters['site-order/site'](this.siteId)
     },
   },
 
