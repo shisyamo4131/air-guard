@@ -84,11 +84,7 @@ export default {
      * - Passes an object containing site and customer data as parameters to the parent component.
      */
     onClickShowDetail() {
-      const params = {
-        site: this.site,
-        customer: this.customer,
-      }
-      this.$emit('click:show-detail', params)
+      this.$emit('click:show-detail')
     },
   },
 }
