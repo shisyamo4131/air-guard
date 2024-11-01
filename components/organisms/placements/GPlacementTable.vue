@@ -193,7 +193,7 @@ export default {
           <td v-for="(column, colIndex) of columns" :key="column.date">
             <g-placement-draggable-cell
               ref="cell"
-              :cell-index="colIndex"
+              :cell-index="rowIndex * length + colIndex"
               :assignments="assignments?.[column.date] || {}"
               :date="column.date"
               :site-id="siteWorkShiftId.split('-')[0]"
