@@ -189,7 +189,9 @@ export default {
           )
       )
 
-      return assigned.filter((siteId) => !this.siteOrder.includes(siteId))
+      return assigned.filter(
+        (id) => !this.siteOrder.some((order) => order.id === id)
+      )
     },
   },
 
@@ -264,9 +266,7 @@ export default {
     async refreshSiteContracts() {
       try {
         // Extract unique site IDs from siteOrder
-        const siteIds = [
-          ...new Set(this.siteOrder.map((key) => key.split('-')[0])),
-        ]
+        const siteIds = [...new Set(this.siteOrder.map(({ siteId }) => siteId))]
 
         // Identify missing site contracts by comparing with existing siteContracts
         const lackedSiteIds = siteIds.filter(
