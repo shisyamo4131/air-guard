@@ -11,14 +11,6 @@
  *
  * Provides a slot for displaying information about the placed employees.
  *
- * ### cellIndexについて:
- * - このコンポーネントは v-for ディレクティブで繰り返し生成されることが前提です。
- * - また、Placement クラスを利用した Realtime Database へのデータ更新処理はこのコンポーネントから行われます。
- * - props.cellIndex で自身を一意に識別するためのインデックスを受け取り、
- * - 各種イベントが emit される際は、このインデックスを親に通知します。
- * - 親コンポーネントからこのコンポーネントが提供するメソッドを利用するには、
- * - 各種イベントで emit されるインデックスを利用してください。
- *
  * ### draggingItemについて:
  * - draggingItem は draggable コンポーネントの start イベントで生成される、
  *   employeeId, siteId, workShift から構成されるオブジェクトです。
@@ -66,10 +58,6 @@ export default {
      * Enables abbreviated display if set to true.
      */
     ellipsis: { type: Boolean, default: false },
-    /**
-     * このコンポーネントのインデックスです。
-     */
-    cellIndex: { type: Number, required: true },
   },
 
   /***************************************************************************
@@ -327,11 +315,15 @@ export default {
 
     /**
      * 従業員追加ボタンがクリックされた時の処理です。
-     * - active-cell イベントで自身のインデックスを emit します。
+     * - active-cell イベントで自身を特定するためのオブジェクトを emit します。
      * - click:addEmployee イベント emit します。
      */
     onClickAddEmployee() {
-      this.$emit('active-cell', this.cellIndex)
+      this.$emit('active-cell', {
+        date: this.date,
+        siteId: this.siteId,
+        workShift: this.workShift,
+      })
       this.$nextTick(() => this.$emit('click:addEmployee'))
     },
 
