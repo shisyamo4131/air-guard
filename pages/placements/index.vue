@@ -1,68 +1,69 @@
 <template>
   <g-template-default>
-    <v-container fluid style="height: 100%">
-      <v-card style="height: 100%" class="d-flex flex-column">
-        <v-toolbar class="flex-grow-0" color="primary" dark dense flat>
-          <v-toolbar-title>配置管理</v-toolbar-title>
-          <v-spacer />
-          <v-toolbar-items>
-            <g-placement-site-selector @selected="onNewSiteSeleced">
-              <template #activator="{ attrs, on }">
-                <v-btn v-bind="attrs" text v-on="on"
-                  ><v-icon left>mdi-plus</v-icon>現場追加</v-btn
-                >
+    <!-- <v-container fluid style="height: 100%"> -->
+    <v-card style="height: 100%" class="d-flex flex-column" tile>
+      <!-- <v-toolbar class="flex-grow-0" color="primary" dark dense flat> -->
+      <v-toolbar color="secondary" dark class="flex-grow-0" dense flat>
+        <v-toolbar-title>配置管理</v-toolbar-title>
+        <v-spacer />
+        <v-toolbar-items>
+          <g-placement-site-selector @selected="onNewSiteSeleced">
+            <template #activator="{ attrs, on }">
+              <v-btn v-bind="attrs" text v-on="on"
+                ><v-icon left>mdi-plus</v-icon>現場追加</v-btn
+              >
+            </template>
+          </g-placement-site-selector>
+        </v-toolbar-items>
+      </v-toolbar>
+      <div class="d-flex flex-grow-1 overflow-y-hidden">
+        <v-sheet class="overflow-x-auto flex-grow-1 d-flex flex-column">
+          <v-toolbar dense flat class="flex-grow-0">
+            <g-checkbox v-model="ellipsis" hide-details label="省略表示" />
+          </v-toolbar>
+          <v-expand-transition>
+            <v-alert
+              v-show="hiddenSites.length"
+              class="ma-2"
+              dense
+              type="error"
+              outlined
+              text
+            >
+              <v-row align="center">
+                <v-col class="grow"> 非表示現場があります。 </v-col>
+                <v-col class="shrink">
+                  <v-btn color="error" small @click="onClickShowHiddenSites"
+                    >表示する</v-btn
+                  >
+                </v-col>
+              </v-row>
+            </v-alert>
+          </v-expand-transition>
+          <v-divider />
+          <div class="overflow-hidden d-flex flex-grow-1">
+            <g-placement-table
+              id="placement-table"
+              class="flex-table"
+              :assignments="assignments.employees"
+              :current-date="currentDate"
+              :ellipsis="ellipsis"
+              :length="length"
+              :site-contracts="siteContracts"
+              :site-order.sync="siteOrder"
+            >
+              <template #site-row="{ attrs, on }">
+                <g-placement-site-work-shift-row v-bind="attrs" v-on="on" />
               </template>
-            </g-placement-site-selector>
-          </v-toolbar-items>
-        </v-toolbar>
-        <div class="d-flex flex-grow-1 overflow-y-hidden">
-          <v-sheet class="overflow-x-auto flex-grow-1 d-flex flex-column">
-            <v-toolbar dense flat class="flex-grow-0">
-              <g-checkbox v-model="ellipsis" hide-details label="省略表示" />
-            </v-toolbar>
-            <v-expand-transition>
-              <v-alert
-                v-show="hiddenSites.length"
-                class="ma-2"
-                dense
-                type="error"
-                outlined
-                text
-              >
-                <v-row align="center">
-                  <v-col class="grow"> 非表示現場があります。 </v-col>
-                  <v-col class="shrink">
-                    <v-btn color="error" small @click="onClickShowHiddenSites"
-                      >表示する</v-btn
-                    >
-                  </v-col>
-                </v-row>
-              </v-alert>
-            </v-expand-transition>
-            <v-divider />
-            <div class="overflow-hidden d-flex">
-              <g-placement-table
-                id="placement-table"
-                class="flex-table"
-                :assignments="assignments.employees"
-                :current-date="currentDate"
-                :ellipsis="ellipsis"
-                :length="length"
-                :site-contracts="siteContracts"
-                :site-order.sync="siteOrder"
-              >
-                <template #site-row="{ attrs, on }">
-                  <g-placement-site-work-shift-row v-bind="attrs" v-on="on" />
-                </template>
-                <template #col="{ attrs, on }">
-                  <g-placement-employee-card v-bind="attrs" v-on="on" />
-                </template>
-              </g-placement-table>
-            </div>
-          </v-sheet>
-        </div>
-      </v-card>
-    </v-container>
+              <template #col="{ attrs, on }">
+                <g-placement-employee-card v-bind="attrs" v-on="on" />
+              </template>
+            </g-placement-table>
+          </div>
+        </v-sheet>
+      </div>
+    </v-card>
+    <!-- </v-container> -->
   </g-template-default>
 </template>
 
