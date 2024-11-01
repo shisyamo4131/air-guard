@@ -83,24 +83,26 @@ export default {
      *   -> This condition prevents the component from rejecting its own item upon dragging.
      */
     acceptable() {
-      // Accepts unconditionally if draggingItem does not exist
+      // draggingItem が設定されていなければ true を返す
       if (!this.draggingItem) return true
 
-      // Extract individual properties from draggingItem
-      const { employeeId, siteId, workShift } = this.draggingItem
+      // draggingItem から各プロパティを取得
+      const { employeeId, date, siteId, workShift } = this.draggingItem
 
-      // Reject if employeeId is not present
-      if (!employeeId) return false
+      // 取得したプロパティのどれか1つでも取得できなければ false を返す
+      if (!employeeId || !date || !siteId || !workShift) return false
 
-      // Returns true if employeeId is not in the component's employeeOrder
-      // -> Ensures no duplicate employeeId on the same day and work shift
+      // employeeId が自身の employeeOrder に含まれていなければ true を返す
+      // -> 自身の中で employeeId の重複が発生しないため
       if (!this.employeeOrder.includes(employeeId)) return true
 
-      // Returns true if either siteId or workShift is missing
-      if (!siteId || !workShift) return true
-
-      // Checks if both siteId and workShift match the component's props
-      return this.siteId === siteId && this.workShift === workShift
+      // date, siteId, workShift が一致していれば true を返す
+      // -> そうでないと自身のアイテムを自身が受け付けられなくなってしまう
+      return (
+        this.date === date &&
+        this.siteId === siteId &&
+        this.workShift === workShift
+      )
     },
 
     /**
@@ -241,10 +243,12 @@ export default {
      */
     createGraggingItem(event) {
       const index = event.oldIndex
-      const employeeId = this.employeeOrder[index]
-      const siteId = this.siteId
-      const workShift = this.workShift
-      this.$emit('update:dragging-item', { employeeId, siteId, workShift })
+      this.$emit('update:dragging-item', {
+        employeeId: this.employeeOrder[index],
+        date: this.date,
+        siteId: this.siteId,
+        workShift: this.workShift,
+      })
     },
 
     /**
@@ -360,7 +364,6 @@ export default {
       class="d-flex flex-column pa-2 flex-grow-1"
       :style="{
         border: `1px solid lightgray`,
-        backgroundColor: !acceptable ? 'gray' : 'transparent',
         minHeight: '84px',
         gap: '8px',
       }"
@@ -384,6 +387,11 @@ export default {
               startTime: employees?.[employeeId]?.startTime || '',
               endTime: employees?.[employeeId]?.endTime || '',
               showError: employeeIdsWithMultipleSiteIds.includes(employeeId),
+              showExist:
+                employeeId === draggingItem?.employeeId &&
+                date === draggingItem?.date &&
+                (siteId !== draggingItem?.siteId ||
+                  workShift !== draggingItem?.workShift),
               showContinuous:
                 employeeIdsWithDifferentWorkShifts.includes(employeeId),
             },
