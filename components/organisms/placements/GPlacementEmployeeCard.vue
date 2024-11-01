@@ -49,7 +49,7 @@ export default {
     :color="showExist ? 'red' : undefined"
     v-on="$listeners"
   >
-    <v-card-text class="pa-2">
+    <v-card-text :class="ellipsis ? 'pa-1' : 'pa-2'">
       <!-- Main line -->
       <div class="d-flex">
         <v-icon class="handle" left small>mdi-menu</v-icon>
