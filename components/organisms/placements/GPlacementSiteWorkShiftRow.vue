@@ -23,6 +23,7 @@ export default {
       validator: (v) => ['day', 'night'].includes(v),
       required: true,
     },
+    ellipsis: { type: Boolean, default: false },
   },
 
   /***************************************************************************
@@ -115,7 +116,7 @@ export default {
       <g-chip-work-shift class="mr-2" :value="workShift" x-small />
       {{ site?.abbr || 'undefined' }}
     </div>
-    <div class="text-caption pl-6">
+    <div v-if="!ellipsis" class="text-caption pl-6">
       {{ customer?.abbr || 'undefined' }}
     </div>
   </div>

@@ -216,7 +216,11 @@ export default {
             <slot
               name="site-row"
               v-bind="{
-                attrs: { siteId: order.siteId, workShift: order.workShift },
+                attrs: {
+                  siteId: order.siteId,
+                  workShift: order.workShift,
+                  ellipsis,
+                },
                 on: {
                   'click:remove': () => onClickExcludeSite(order.id),
                   'click:show-detail': () =>
