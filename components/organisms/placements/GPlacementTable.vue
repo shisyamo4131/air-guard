@@ -82,8 +82,32 @@ export default {
         dayjs(this.currentDate).add(i, 'day').format('YYYY-MM-DD')
       )
     },
+
     selectableEmployees() {
-      return this.$store.getters['employees/items']
+      // activeCellが存在しない場合は空の配列を返す
+      if (!this.activeCell) return []
+
+      // 現在のactiveCellの日付に関連する従業員の割り当てを取得
+      const assignments =
+        this.$store.state.assignments.employees?.[this.activeCell.date] || {}
+
+      // 配置されている従業員のIDを収集
+      const placementedIds = Object.keys(
+        Object.entries(assignments).reduce((acc, [_, employees]) => {
+          Object.keys(employees).forEach((employeeId) => {
+            acc[employeeId] = true
+          })
+          return acc
+        }, {})
+      )
+
+      // 全従業員を Vuex から取得
+      const allEmployees = this.$store.getters['employees/items']
+
+      // 配置されていない従業員をフィルタリングして返す
+      return allEmployees.filter(
+        (employee) => !placementedIds.includes(employee.docId)
+      )
     },
   },
 
@@ -207,6 +231,7 @@ export default {
             <g-placement-draggable-cell
               :ref="`cell-${column.date}-${order.siteId}-${order.workShift}`"
               :date="column.date"
+              :group="{ name: column.date }"
               :site-id="order.siteId"
               :work-shift="order.workShift"
               :ellipsis="ellipsis"
