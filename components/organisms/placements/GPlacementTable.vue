@@ -54,6 +54,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      columns: [],
       dialog: {
         employeeSelector: false,
         siteDetail: false,
@@ -75,38 +76,49 @@ export default {
    ***************************************************************************/
   computed: {
     /**
-     * Generates an array of columns based on the current date and specified length.
-     * - If currentDate is not set, returns an empty array.
+     * Generates an array of dates based on the current date and specified length.
      * - Creates an array of dates from currentDate, each formatted as 'YYYY-MM-DD'.
-     * - Maps each date to an object containing:
-     *   - date: the formatted date string,
-     *   - index: the column index,
-     *   - col: a localized string in 'MM/DD(ddd)' format.
      */
-    columns() {
+    dates() {
       if (!this.currentDate) return []
-      const dates = [...Array(this.length)].map((_, i) =>
+      return [...Array(this.length)].map((_, i) =>
         dayjs(this.currentDate).add(i, 'day').format('YYYY-MM-DD')
       )
-      return dates.map((date, index) => {
-        return {
-          date,
-          index,
-          col: dayjs(date).locale(ja).format('MM/DD(ddd)'),
-        }
-      })
     },
   },
 
   /***************************************************************************
    * WATCH
    ***************************************************************************/
-  watch: {},
+  watch: {
+    currentDate: {
+      handler() {
+        this.updateColumns()
+      },
+      immediate: true,
+    },
+  },
 
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
+    async updateColumns() {
+      const columns = await Promise.all(
+        this.dates.map(async (date, index) => {
+          const isHoliday =
+            this.$dayjs(date).day() && (await this.$holiday.isHoliday(date))
+          return {
+            date,
+            index,
+            col: dayjs(date).locale(ja).format('MM/DD(ddd)'),
+            isHoliday, // 祝日情報を追加
+          }
+        })
+      )
+      this.columns = columns
+    },
+
     /**
      * Excludes a specified site and work shift from the siteOrder.
      * - Finds the index of the given siteWorkShiftId in siteOrder.
@@ -165,6 +177,7 @@ export default {
     <thead>
       <tr>
         <th v-for="column of columns" :key="column.date">
+          <v-icon v-if="column.isHoliday" color="red">mdi-flag-variant</v-icon>
           {{ column.col }}
         </th>
       </tr>
