@@ -7,6 +7,7 @@
  * /
  * |- Placements
  *    |- siteOrder: <Array>
+ *    |  |- 0: { id, siteId, workShift }
  *    |- ${date} (YYYY-MM-DD)
  *    |  |- ${siteId}
  *    |     |- ${workShift} ('day' or 'night')
@@ -951,17 +952,17 @@ class SiteOrderMonitor {
       throw new TypeError('Arguments "siteId" and "workShift" must be strings.')
     }
 
-    const key = `${siteId}-${workShift}`
+    const id = `${siteId}-${workShift}`
     try {
       // Only add if the combination is not already present
-      if (!this.data.includes(key)) {
-        const updatedIndex = [...this.data, key]
+      if (!this.data.some((item) => item.id === id)) {
+        const updatedIndex = [...this.data, { id, siteId, workShift }]
         await set(this.dbRef, updatedIndex)
       }
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error(`Failed to add new key "${key}":`, error)
-      throw new Error(`Failed to add new key "${key}": ${error.message}`)
+      console.error(`Failed to add new id "${id}":`, error)
+      throw new Error(`Failed to add new id "${id}": ${error.message}`)
     }
   }
 
@@ -977,15 +978,15 @@ class SiteOrderMonitor {
       throw new TypeError('Arguments "siteId" and "workShift" must be strings.')
     }
 
-    const key = `${siteId}-${workShift}`
+    const id = `${siteId}-${workShift}`
     try {
       // Filter out the specified key to update the index
-      const updatedIndex = this.data.filter((id) => id !== key)
+      const updatedIndex = this.data.filter((item) => item.id !== id)
       await set(this.dbRef, updatedIndex)
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error(`Failed to remove key "${key}":`, error)
-      throw new Error(`Failed to remove key "${key}": ${error.message}`)
+      console.error(`Failed to remove id "${id}":`, error)
+      throw new Error(`Failed to remove id "${id}": ${error.message}`)
     }
   }
 
