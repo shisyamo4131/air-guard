@@ -266,4 +266,49 @@ export default class Site extends FireModel {
       )
     }
   }
+
+  /****************************************************************************
+   * 指定された複数の`siteId`に該当するドキュメントを取得します。
+   * - 30件ずつチャンクに分けてFirestoreにクエリを実行します。
+   * - 各クエリ結果をまとめて返します。
+   *
+   * @param {Array<string>} ids - 取得対象のsiteIdsの配列
+   * @returns {Promise<Array>} - 一致するドキュメントの配列を返すPromise
+   * @throws {Error} ドキュメント取得中にエラーが発生した場合にエラーをスローします
+   ****************************************************************************/
+  async fetchByIds(ids) {
+    // 引数が配列でない、または空の場合は空配列を返す
+    if (!Array.isArray(ids) || ids.length === 0) return []
+
+    try {
+      // 重複を排除した`ids`を取得
+      const unique = [...new Set(ids)]
+
+      // `unique`配列を30件ずつのチャンクに分割
+      const chunked = unique.flatMap((_, i) =>
+        i % 30 ? [] : [unique.slice(i, i + 30)]
+      )
+
+      // 各チャンクに対してFirestoreクエリを実行し、ドキュメントを取得
+      const promises = chunked.map(async (arr) => {
+        const constraints = [['where', 'docId', 'in', arr]]
+        return await this.fetchDocs(constraints)
+      })
+
+      // すべてのクエリ結果が解決されるまで待機
+      const snapshots = await Promise.all(promises)
+
+      // 各クエリ結果をフラットにまとめて返す
+      return snapshots.flat()
+    } catch (err) {
+      // エラーハンドリング：エラーメッセージを出力し、エラーを再スロー
+      // eslint-disable-next-line no-console
+      console.error(`[fetchByIds] Error fetching documents: ${err.message}`, {
+        err,
+      })
+
+      // エラーを再スローして呼び出し元に通知
+      throw err
+    }
+  }
 }
