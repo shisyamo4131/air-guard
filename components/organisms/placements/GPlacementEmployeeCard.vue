@@ -23,6 +23,8 @@ export default {
     showContinuous: { type: Boolean, default: false },
     // Show an error icon at the beginning of the employee name if true
     showError: { type: Boolean, default: false },
+    // 存在状態にするかどうかです
+    showExist: { type: Boolean, default: false },
     // Start time in HH:MM format
     startTime: { type: String, default: '' },
   },
@@ -42,7 +44,11 @@ export default {
 </script>
 
 <template>
-  <v-card v-bind="$attrs" v-on="$listeners">
+  <v-card
+    v-bind="$attrs"
+    :color="showExist ? 'red' : undefined"
+    v-on="$listeners"
+  >
     <v-card-text class="pa-2">
       <!-- Main line -->
       <div class="d-flex">
