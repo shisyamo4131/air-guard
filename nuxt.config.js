@@ -38,13 +38,13 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
-    // './plugins/firebase.js',
     './plugins/firebase.auth.js',
     './plugins/dayjs.js',
     './plugins/air-vuetify.js',
     './plugins/constants.js',
     './plugins/vue-papa-parse.js',
     './plugins/generate-pdf.js',
+    './plugins/holiday.js',
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
