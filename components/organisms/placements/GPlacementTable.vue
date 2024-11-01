@@ -60,7 +60,10 @@ export default {
       },
       draggingItem: null,
       item: {
-        siteDetail: null,
+        siteDetail: {
+          site: null,
+          customer: null,
+        },
       },
       // ユーザーがアクションを行ったセルのインスタンス
       activeCell: null,
@@ -122,8 +125,8 @@ export default {
      * - Clones the item data to avoid direct mutations and assigns it to item.siteDetail.
      * - Opens the site detail dialog by setting dialog.siteDetail to true.
      */
-    onClickShowSiteDetail(item) {
-      this.item.siteDetail = structuredClone(item)
+    onClickShowSiteDetail(siteId) {
+      this.item.siteDetail.site = this.$store.getters['site-order/site'](siteId)
       this.dialog.siteDetail = true
     },
 
@@ -176,7 +179,8 @@ export default {
                 attrs: { siteId: order.siteId, workShift: order.workShift },
                 on: {
                   'click:remove': () => onClickExcludeSite(order.id),
-                  'click:show-detail': (item) => onClickShowSiteDetail(item),
+                  'click:show-detail': () =>
+                    onClickShowSiteDetail(order.siteId),
                 },
               }"
             />
