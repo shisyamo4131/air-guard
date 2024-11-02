@@ -1,34 +1,16 @@
 <template>
   <g-template-default>
     <v-card style="height: 100%" class="d-flex flex-column" tile>
-      <v-toolbar color="secondary" dark class="flex-grow-0" dense flat>
-        <v-toolbar-title>配置管理</v-toolbar-title>
-        <v-spacer />
-        <v-toolbar-items>
-          <v-btn text><v-icon left>mdi-chevron-left</v-icon>前の週へ</v-btn>
-          <v-btn text>次の週へ<v-icon right>mdi-chevron-right</v-icon></v-btn>
-          <g-placement-site-selector @selected="onNewSiteSeleced">
-            <template #activator="{ attrs, on }">
-              <v-btn v-bind="attrs" text v-on="on"
-                ><v-icon left>mdi-plus</v-icon>現場追加</v-btn
-              >
-            </template>
-          </g-placement-site-selector>
-          <g-placement-draggable-site-order>
-            <template #activator="{ attrs, on }">
-              <v-btn v-bind="attrs" text v-on="on"
-                ><v-icon left>mdi-order-alphabetical-ascending</v-icon
-                >並べ替え</v-btn
-              >
-            </template>
-          </g-placement-draggable-site-order>
-        </v-toolbar-items>
-      </v-toolbar>
+      <!-- ツールバーの表示 -->
+      <g-placement-toolbar />
+      <!-- メインコンテナ -->
       <div class="d-flex flex-grow-1 overflow-y-hidden">
         <v-sheet class="overflow-x-auto flex-grow-1 d-flex flex-column">
+          <!-- サブメニュー -->
           <v-toolbar dense flat class="flex-grow-0">
             <g-checkbox v-model="ellipsis" hide-details label="省略表示" />
           </v-toolbar>
+          <!-- 非表示現場存在アラート -->
           <v-expand-transition>
             <v-alert
               v-show="hiddenSites.length"
@@ -49,6 +31,7 @@
             </v-alert>
           </v-expand-transition>
           <v-divider />
+          <!-- 配置表コンテナ -->
           <div class="overflow-hidden d-flex flex-grow-1">
             <g-placement-table
               id="placement-table"
@@ -76,11 +59,10 @@
 import dayjs from 'dayjs'
 import GPlacementEmployeeCard from '~/components/organisms/placements/GPlacementEmployeeCard.vue'
 import GPlacementTable from '~/components/organisms/placements/GPlacementTable.vue'
-import GPlacementSiteSelector from '~/components/organisms/placements/GPlacementSiteSelector.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GPlacementSiteWorkShiftRow from '~/components/organisms/placements/GPlacementSiteWorkShiftRow.vue'
-import GPlacementDraggableSiteOrder from '~/components/organisms/placements/GPlacementDraggableSiteOrder.vue'
+import GPlacementToolbar from '~/components/organisms/placements/GPlacementToolbar.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -93,11 +75,10 @@ export default {
   components: {
     GPlacementEmployeeCard,
     GPlacementTable,
-    GPlacementSiteSelector,
     GCheckbox,
     GTemplateDefault,
     GPlacementSiteWorkShiftRow,
-    GPlacementDraggableSiteOrder,
+    GPlacementToolbar,
   },
 
   /***************************************************************************
@@ -241,13 +222,6 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
-    /**
-     * 引数で受け取った現場-勤務区分を site-order に追加します。
-     */
-    async onNewSiteSeleced({ siteId, workShift }) {
-      await this.$store.dispatch('site-order/add', { siteId, workShift })
-    },
-
     /**
      * computed.hiddenSites を参照し、対象の現場-勤務区分を site-order に追加します。
      */
