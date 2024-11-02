@@ -25,7 +25,7 @@ export default {
    ***************************************************************************/
   props: {
     chipOptions: { type: Object, default: () => ({}), required: false },
-    value: { type: String, default: 'ア', required: false },
+    value: { type: String, default: '全', required: false },
   },
 
   /***************************************************************************
@@ -35,6 +35,7 @@ export default {
     return {
       internalValue: this.value,
       regexMap: {
+        全: /^.*/,
         ア: /^[アイウエオ]/,
         カ: /^[カキクケコガギグゲゴ]/,
         サ: /^[サシスセソザジズゼゾ]/,
@@ -46,7 +47,7 @@ export default {
         ラ: /^[ラリルレロ]/,
         ワ: /^[ワヲン]/,
       },
-      chars: ['ア', 'カ', 'サ', 'タ', 'ナ', 'ハ', 'マ', 'ヤ', 'ラ', 'ワ'],
+      chars: ['全', 'ア', 'カ', 'サ', 'タ', 'ナ', 'ハ', 'マ', 'ヤ', 'ラ', 'ワ'],
     }
   },
 
@@ -78,7 +79,7 @@ export default {
      * カナのフィルターを初期化します。
      */
     initialize() {
-      this.internalValue = 'ア'
+      this.internalValue = '全'
     },
   },
 }

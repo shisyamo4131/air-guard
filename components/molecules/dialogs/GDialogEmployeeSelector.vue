@@ -172,7 +172,7 @@ export default {
         />
       </v-container>
       <v-divider />
-      <v-card-text class="d-flex pa-0" style="height: 336px">
+      <v-card-text class="d-flex pa-0" style="height: 368px">
         <g-data-table
           v-model="selectedItems"
           class="flex-table"
@@ -204,7 +204,7 @@ export default {
         </div>
       </v-card-text>
       <v-divider />
-      <v-card-text class="pa-2" style="height: 144px">
+      <v-card-text class="pa-2" style="height: 112px">
         <div class="d-flex flex-wrap" style="gap: 8px">
           <v-chip
             v-for="(employee, index) of selectedItems"
