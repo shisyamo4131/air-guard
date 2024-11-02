@@ -89,9 +89,11 @@ export default {
 
       // 現在のactiveCellの日付に関連する従業員の割り当てを取得
       const assignments =
-        this.$store.state.assignments.employees?.[this.activeCell.date] || {}
+        this.$store.state.assignments.sites?.[this.activeCell.date]?.[
+          this.activeCell.siteId
+        ]?.[this.activeCell.workShift] || {}
 
-      // 配置されている従業員のIDを収集
+      // activeCell に配置されている従業員のIDを収集
       const placementedIds = Object.entries(assignments).map(([key]) => key)
 
       // 全従業員を Vuex から取得
