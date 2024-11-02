@@ -86,7 +86,7 @@ export default {
           tag="v-list"
           handle=".handle"
           :disabled="loading"
-          :options="{ animation: 300 }"
+          v-bind="{ animation: 300 }"
         >
           <div v-for="(order, index) in internalOrder" :key="index">
             <v-list-item>
