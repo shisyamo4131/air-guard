@@ -371,6 +371,7 @@ export default {
       :disabled="!acceptable"
       :group="group"
       handle=".handle"
+      v-bind="{ animation: 300 }"
       @start="createGraggingItem"
       @end="deleteDraggingItem"
       @change="onChange"
