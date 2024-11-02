@@ -21,7 +21,7 @@ export const getters = {
           (contract) =>
             contract.siteId === siteId && contract.workShift === workShift
         )
-        .sort((a, b) => b.startDate - a.startDate) // Sort by startDate in descending order
+        .sort((a, b) => new Date(b.startDate) - new Date(a.startDate)) // Sort by startDate in descending order
         .find(({ startDate }) => startDate <= date)
     },
 }
@@ -31,11 +31,9 @@ export const mutations = {
     state.data = payload
   },
   ADD_SITE_CONTRACTS(state, contracts) {
-    // 重複する siteId を除外して追加
+    // ドキュメントIDが重複するものは除外して追加
     contracts.forEach((contract) => {
-      const exists = state.siteContracts.some(
-        (c) => c.siteId === contract.siteId
-      )
+      const exists = state.siteContracts.some((c) => c.docId === contract.docId)
       if (!exists) {
         state.siteContracts.push(contract)
       }
