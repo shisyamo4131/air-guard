@@ -14,6 +14,14 @@
               >
             </template>
           </g-placement-site-selector>
+          <g-placement-draggable-site-order>
+            <template #activator="{ attrs, on }">
+              <v-btn v-bind="attrs" text v-on="on"
+                ><v-icon left>mdi-order-alphabetical-ascending</v-icon
+                >並べ替え</v-btn
+              >
+            </template>
+          </g-placement-draggable-site-order>
         </v-toolbar-items>
       </v-toolbar>
       <div class="d-flex flex-grow-1 overflow-y-hidden">
@@ -72,6 +80,7 @@ import GPlacementSiteSelector from '~/components/organisms/placements/GPlacement
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GPlacementSiteWorkShiftRow from '~/components/organisms/placements/GPlacementSiteWorkShiftRow.vue'
+import GPlacementDraggableSiteOrder from '~/components/organisms/placements/GPlacementDraggableSiteOrder.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -88,6 +97,7 @@ export default {
     GCheckbox,
     GTemplateDefault,
     GPlacementSiteWorkShiftRow,
+    GPlacementDraggableSiteOrder,
   },
 
   /***************************************************************************
