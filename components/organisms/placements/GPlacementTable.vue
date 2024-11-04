@@ -11,6 +11,10 @@ import ja from 'dayjs/locale/ja'
 import GPlacementDraggableCell from './GPlacementDraggableCell.vue'
 import GDialogEmployeeSelector from '~/components/molecules/dialogs/GDialogEmployeeSelector.vue'
 import GDialogOutsourcerSelector from '~/components/molecules/dialogs/GDialogOutsourcerSelector.vue'
+import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
+import GInputSiteOperationSchedule from '~/components/molecules/inputs/GInputSiteOperationSchedule.vue'
+import SiteOperationSchedule from '~/models/SiteOperationSchedule'
+import GEditModeMixin from '~/mixins/GEditModeMixin'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -19,7 +23,14 @@ export default {
     GPlacementDraggableCell,
     GDialogEmployeeSelector,
     GDialogOutsourcerSelector,
+    GDialogInput,
+    GInputSiteOperationSchedule,
   },
+
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GEditModeMixin],
 
   /***************************************************************************
    * PROPS
@@ -60,9 +71,13 @@ export default {
       dialog: {
         employeeSelector: false,
         outsourcerSelector: false,
+        schedule: false,
         siteDetail: false,
       },
       draggingItem: null,
+      editModel: {
+        schedule: new SiteOperationSchedule(),
+      },
       item: {
         siteDetail: {
           site: null,
@@ -230,6 +245,20 @@ export default {
       await cell[0].addBulkOutsourcers(outsourcers[0].docId, 1)
       this.dialog.outsourcerSelector = false
     },
+
+    /**
+     * 現場の稼働予定を編集するためのダイアログを開きます。
+     * - GPlacementDraggableCell コンポーネントの click:schedule イベントを受けて実行される処理です。
+     * - 当該イベントが emit したデータがドキュメントとして存在すれば UPDATE, そうでなければ CREATE モードで開きます。
+     * - 日付、現場、勤務区分は emit されたデータが保持しています。
+     * - GPlacementDraggableCell コンポーネントが現場の取極め情報の取得に成功している場合、
+     *   CREATE モードでも開始時刻、終了時刻がそれぞれ初期値として設定されます。
+     */
+    openScheduleEditor(item) {
+      this.editModel.schedule.initialize(item)
+      this.editMode = item?.docId ? this.UPDATE : this.CREATE
+      this.dialog.schedule = true
+    },
   },
 }
 </script>
@@ -278,6 +307,7 @@ export default {
               @active-cell="activeCell = $event"
               @click:addEmployee="openEmployeeSelector"
               @click:addOutsourcer="openOutsourcerSelector"
+              @click:schedule="openScheduleEditor"
             >
               <template #employees="{ attrs, on }">
                 <slot name="employees-col" v-bind="{ attrs, on }" />
@@ -339,6 +369,21 @@ export default {
         </v-list>
       </v-card>
     </v-dialog>
+
+    <!-- schedule dialog -->
+    <g-dialog-input v-model="dialog.schedule" max-width="360">
+      <template #default="{ attrs, on }">
+        <g-input-site-operation-schedule
+          v-bind="attrs"
+          :instance="editModel.schedule"
+          :edit-mode="editMode"
+          hide-date
+          hide-site
+          hide-work-shift
+          v-on="on"
+        />
+      </template>
+    </g-dialog-input>
   </v-simple-table>
 </template>
 
