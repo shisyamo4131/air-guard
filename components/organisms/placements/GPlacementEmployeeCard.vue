@@ -52,7 +52,10 @@ export default {
     <v-card-text :class="ellipsis ? 'pa-1' : 'pa-2'">
       <!-- Main line -->
       <div class="d-flex">
-        <v-icon class="handle" left small>mdi-menu</v-icon>
+        <!-- Remove button -->
+        <v-btn icon x-small @click="$emit('click:remove')">
+          <v-icon small>mdi-close</v-icon>
+        </v-btn>
         <!--
           Error icon
           - It takes priority over the continuous icon when displayed.
@@ -66,17 +69,7 @@ export default {
         </v-icon>
         <h4>{{ employee?.abbr || 'N/A' }}</h4>
         <v-spacer />
-        <!--
-          Edit button
-          - It is displayed only when the ellipsis property is set to true.
-        -->
-        <v-btn v-if="!ellipsis" icon x-small @click="$emit('click:edit')">
-          <v-icon small>mdi-pencil</v-icon>
-        </v-btn>
-        <!-- Remove button -->
-        <v-btn icon x-small @click="$emit('click:remove')">
-          <v-icon small>mdi-close</v-icon>
-        </v-btn>
+        <v-icon class="handle" left small>mdi-arrow-all</v-icon>
       </div>
       <!--
         Start and end time
@@ -88,6 +81,9 @@ export default {
           <div>{{ startTime }}</div>
           <div>-</div>
           <div>{{ endTime }}</div>
+          <v-btn class="ml-1" icon x-small @click="$emit('click:edit')">
+            <v-icon small>mdi-pencil</v-icon>
+          </v-btn>
         </div>
       </div>
     </v-card-text>
