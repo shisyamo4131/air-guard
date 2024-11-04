@@ -20,8 +20,18 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
-  start: { type: String, default: '', required: false, requiredByClass: true },
-  end: { type: String, default: '', required: false, requiredByClass: true },
+  startTime: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+  endTime: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
   requiredWorkers: {
     type: Number,
     default: null,

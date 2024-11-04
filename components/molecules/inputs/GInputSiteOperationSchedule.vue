@@ -114,7 +114,7 @@ export default {
       <v-row dense>
         <v-col cols="6">
           <g-text-field
-            v-model="editModel.start"
+            v-model="editModel.startTime"
             class="center-input"
             label="開始時刻"
             required
@@ -123,7 +123,7 @@ export default {
         </v-col>
         <v-col cols="6">
           <g-text-field
-            v-model="editModel.end"
+            v-model="editModel.endTime"
             class="center-input"
             label="終了時刻"
             required
