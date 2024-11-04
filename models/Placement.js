@@ -13,13 +13,23 @@
  *    |     |- ${workShift} ('day' or 'night')
  *    |        |- employeeOrder: <Array>
  *    |        |- employees
- *    |           |- employeeId: 'emp123'
- *    |           |- startTime: '08:00'
- *    |           |- endTime: '17:00'
- *    |           |- breakMinutes: 60
- *    |           |- arrivedAt: timestamp
- *    |           |- leavedAt: timestamp
- *    |           |- temperature: 36.5
+ *    |        |  |- ${employeeId}
+ *    |        |    |- employeeId: 'emp123'
+ *    |        |    |- startTime: '08:00'
+ *    |        |    |- endTime: '17:00'
+ *    |        |    |- breakMinutes: 60
+ *    |        |    |- arrivedAt: timestamp
+ *    |        |    |- leavedAt: timestamp
+ *    |        |    |- temperature: 36.5
+ *    |        |- outsourcers
+ *    |           |- ${outsoucerId}-${branch}
+ *    |             |- outsoucerId: 'emp123'
+ *    |             |- branch: ${branch}
+ *    |             |- startTime: '08:00'
+ *    |             |- endTime: '17:00'
+ *    |             |- breakMinutes: 60
+ *    |             |- arrivedAt: timestamp
+ *    |             |- leavedAt: timestamp
  *    |- assignments
  *       |- employees
  *       |  |- ${date} (YYYY-MM-DD)
@@ -150,7 +160,14 @@ class Placement {
 
     // Expose employee methods in employee property
     this.employee = {
-      addBulk: this.addBulk.bind(this), // Bind addBulk method to employee property for easy access
+      add: this.addEmployee.bind(this),
+      addBulk: this.addEmployees.bind(this),
+      arrive: this.arriveEmployee.bind(this),
+      move: this.moveEmployee.bind(this),
+      leave: this.leaveEmployee.bind(this),
+      remove: this.removeEmployee.bind(this),
+      resetArrival: this.resetEmployeeArrival.bind(this),
+      resetLeave: this.resetEmployeeLeave.bind(this),
     }
   }
 
@@ -343,7 +360,7 @@ class Placement {
    * @param {Object|null} options.siteContract - Contract details for the site, including startTime, endTime, and breakMinutes.
    * @throws {TypeError} Throws if `employeeIds` is not an array or contains non-string elements.
    */
-  async addBulk({ employeeIds = [], siteContract = null } = {}) {
+  async addEmployees({ employeeIds = [], siteContract = null } = {}) {
     // Validate that employeeIds is an array
     if (!Array.isArray(employeeIds)) {
       const message = `[addBulk] "employeeIds" must be an array. Provided: ${employeeIds}`
@@ -416,7 +433,7 @@ class Placement {
    * @param {Object} [args.siteContract=null] - Details of the employee's shift (startTime, endTime, breakMinutes).
    * @throws Will throw an error if `employeeId` is not provided or is not a string, or if the employee already exists in `employeeOrder`.
    */
-  async add({ employeeId, index = null, siteContract = null } = {}) {
+  async addEmployee({ employeeId, index = null, siteContract = null } = {}) {
     // Validate employeeId
     if (!employeeId || typeof employeeId !== 'string') {
       const message = `employeeId must be specified as a string. Received ${employeeId}`
@@ -480,7 +497,7 @@ class Placement {
    * @param {string} employeeId - The ID of the employee to remove from placements.
    * @throws Will throw an error if there is an issue with the database update.
    */
-  async remove(employeeId) {
+  async removeEmployee(employeeId) {
     // Create a new employeeOrder array, excluding the specified employee ID.
     const employeeOrder = (this.data?.employeeOrder || []).filter(
       (id) => id !== employeeId
@@ -516,7 +533,7 @@ class Placement {
    * @param {string|null} [startTime=null] - Optional new start time for the employee (format: HH:MM).
    * @throws Will throw an error if the temperature is invalid, employee data is missing, or arrival is recorded too early.
    */
-  async arrive(employeeId, temperature, startTime = null) {
+  async arriveEmployee(employeeId, temperature, startTime = null) {
     // Validate that temperature is provided and is a valid number
     if (typeof temperature !== 'number' || isNaN(temperature)) {
       throw new TypeError(
@@ -588,7 +605,7 @@ class Placement {
    * @param {string} employeeId - The ID of the employee whose arrival information is being reset.
    * @throws Will throw an error if the employee data is not found or if a departure record exists.
    */
-  async resetArrival(employeeId) {
+  async resetEmployeeArrival(employeeId) {
     try {
       // Retrieve the current employee data
       const currentEmployeeData = this.data?.employees?.[employeeId]
@@ -631,7 +648,7 @@ class Placement {
    * @param {number|null} [breakMinutes=null] - Optional break duration in minutes.
    * @throws Will throw an error if the employee is not found or has no arrival record.
    */
-  async leave(
+  async leaveEmployee(
     employeeId,
     startTime = null,
     endTime = null,
@@ -697,7 +714,7 @@ class Placement {
    * @param {string} employeeId - The ID of the employee whose leave information is being reset.
    * @throws Will throw an error if the employee data is not found.
    */
-  async resetLeave(employeeId) {
+  async resetEmployeeLeave(employeeId) {
     // Retrieve current employee data
     const currentEmployeeData = this.data?.employees?.[employeeId]
     if (!currentEmployeeData) {
@@ -732,7 +749,7 @@ class Placement {
    * @param {number} oldIndex - The current index of the employee to move.
    * @throws Will throw an error if either `oldIndex` or `newIndex` is out of bounds.
    */
-  async move(newIndex, oldIndex) {
+  async moveEmployee(newIndex, oldIndex) {
     // Clone the current employee order array
     const employeeOrder = [...(this.data?.employeeOrder || [])]
 

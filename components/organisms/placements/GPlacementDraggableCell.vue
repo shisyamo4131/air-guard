@@ -296,7 +296,7 @@ export default {
      * - Uses employeeId, index, and siteContract to add the employee in the correct position with contract details.
      */
     async handleAdd({ element, newIndex }) {
-      await this.placement.add({
+      await this.placement.employee.add({
         employeeId: element,
         index: newIndex,
         siteContract: this.siteContract,
@@ -309,7 +309,7 @@ export default {
      * - Uses employeeId, newIndex, and oldIndex to reorder the employees correctly.
      */
     async handleMove({ newIndex, oldIndex }) {
-      await this.placement.move(newIndex, oldIndex)
+      await this.placement.employee.move(newIndex, oldIndex)
     },
 
     /**
@@ -318,7 +318,7 @@ export default {
      * - Uses employeeId from the event to identify and remove the employee.
      */
     async handleRemove({ element }) {
-      await this.placement.remove(element)
+      await this.placement.employee.remove(element)
     },
 
     /**
