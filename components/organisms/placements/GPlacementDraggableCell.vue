@@ -488,10 +488,12 @@ export default {
         :color="isLackedWorkers ? 'error' : 'info'"
         small
         @click="onClickSchedule"
-        >{{ placedAmount }}/{{
-          siteOperationSchedule.requiredWorkers || '-'
-        }}</v-chip
       >
+        <v-icon v-if="siteOperationSchedule?.qualification" small left>
+          mdi-star
+        </v-icon>
+        {{ placedAmount }}/{{ siteOperationSchedule.requiredWorkers || '-' }}
+      </v-chip>
       <v-fab-transition>
         <v-btn
           v-show="!ellipsis"
