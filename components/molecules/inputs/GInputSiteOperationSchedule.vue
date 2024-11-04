@@ -8,10 +8,6 @@
  * - 日付、勤務区分は変更できません。
  *
  * @author shisyamo4131
- * @version 1.1.0
- * @updates
- * - version 1.1.0 - 2024-10-04 - Use `GCheckboxDeleteData` instead of `GCheckbox`.
- * - version 1.0.0 - 2024-09-16 - 初版作成
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
@@ -52,7 +48,9 @@ export default {
         return instance instanceof SiteOperationSchedule
       },
     },
+    hideDate: { type: Boolean, default: false, required: false },
     hideSite: { type: Boolean, default: false, required: false },
+    hideWorkShift: { type: Boolean, default: false, required: false },
   },
   computed: {
     date: {
@@ -90,13 +88,14 @@ export default {
         :disabled="editMode !== CREATE"
       />
       <g-combobox-date
+        v-if="!hideDate"
         v-model="date"
         label="日付"
         :multiple="editMode === CREATE"
         required
         :disabled="editMode !== CREATE"
       />
-      <div class="d-flex mb-6 flex-wrap" flat>
+      <div v-if="!hideWorkShift" class="d-flex mb-6 flex-wrap" flat>
         <h5 class="align-self-end pr-4" style="color: rgba(0, 0, 0, 0.6)">
           勤務区分
         </h5>
