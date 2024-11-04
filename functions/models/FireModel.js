@@ -1169,7 +1169,7 @@ export default class FireModel {
         }
 
         const docSnapshot = await docRef.get()
-        if (!docSnapshot.exists()) {
+        if (!docSnapshot.exists) {
           throw new Error(
             getMessage(sender, 'NO_DOCUMENT_TO_DELETE', this.docId)
           )
