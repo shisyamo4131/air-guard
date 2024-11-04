@@ -50,41 +50,44 @@ export default {
     v-on="$listeners"
   >
     <v-card-text :class="ellipsis ? 'pa-1' : 'pa-2'">
-      <!-- Main line -->
       <div class="d-flex">
-        <!-- Remove button -->
-        <v-btn icon x-small @click="$emit('click:remove')">
-          <v-icon small>mdi-close</v-icon>
-        </v-btn>
-        <!--
+        <div>
+          <!-- Main line -->
+          <div class="d-flex">
+            <!-- Remove button -->
+            <v-btn icon x-small @click="$emit('click:remove')">
+              <v-icon small>mdi-close</v-icon>
+            </v-btn>
+            <!--
           Error icon
           - It takes priority over the continuous icon when displayed.
         -->
-        <v-icon v-if="showError" left small color="error">
-          mdi-alert-circle
-        </v-icon>
-        <!-- Coutinuous icon -->
-        <v-icon v-else-if="showContinuous" left small color="warning">
-          mdi-star
-        </v-icon>
-        <h4>{{ employee?.abbr || 'N/A' }}</h4>
-        <v-spacer />
-        <v-icon class="handle" left small>mdi-arrow-all</v-icon>
-      </div>
-      <!--
-        Start and end time
-        - It is displayed only when the ellipsis property is set to true.
-      -->
-      <div v-show="!ellipsis">
-        <div class="d-flex align-center">
-          <v-icon left small>mdi-clock-outline</v-icon>
-          <div>{{ startTime }}</div>
-          <div>-</div>
-          <div>{{ endTime }}</div>
-          <v-btn class="ml-1" icon x-small @click="$emit('click:edit')">
-            <v-icon small>mdi-pencil</v-icon>
-          </v-btn>
+            <v-icon v-if="showError" left small color="error">
+              mdi-alert-circle
+            </v-icon>
+            <!-- Coutinuous icon -->
+            <v-icon v-else-if="showContinuous" left small color="warning">
+              mdi-star
+            </v-icon>
+            <h4>{{ employee?.abbr || 'N/A' }}</h4>
+          </div>
+          <!--
+            Start and end time
+            - It is displayed only when the ellipsis property is set to true.
+          -->
+          <div v-show="!ellipsis">
+            <div class="d-flex align-center">
+              <v-icon left small>mdi-clock-outline</v-icon>
+              <div>{{ startTime }}</div>
+              <div>-</div>
+              <div>{{ endTime }}</div>
+              <v-btn class="ml-1" icon x-small @click="$emit('click:edit')">
+                <v-icon small>mdi-pencil</v-icon>
+              </v-btn>
+            </div>
+          </div>
         </div>
+        <v-icon class="handle ml-auto">mdi-arrow-all</v-icon>
       </div>
     </v-card-text>
   </v-card>
