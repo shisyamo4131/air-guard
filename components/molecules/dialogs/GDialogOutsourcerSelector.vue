@@ -80,8 +80,11 @@ export default {
      * - 値を input イベントで emit します。
      */
     dialog(v) {
-      if (v) return
-      this.selectedItems.splice(0)
+      if (!v) {
+        this.selectedItems.splice(0)
+        this.$refs.filter.initialize()
+      }
+      this.$emit('input', v)
     },
     includeExpired(newVal) {
       if (newVal) return
