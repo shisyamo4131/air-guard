@@ -74,13 +74,20 @@ export default {
 </script>
 
 <template>
-  <v-dialog v-model="dialog" max-width="720" scrollable>
+  <v-dialog
+    v-model="dialog"
+    max-width="720"
+    scrollable
+    :fullscreen="$vuetify.breakpoint.mobile"
+  >
     <template #activator="{ attrs, on }">
       <slot name="activator" v-bind="{ attrs, on }" />
     </template>
-    <v-card class="d-flex flex-column">
-      <v-card-title class="g-card__title">現場選択</v-card-title>
-      <v-toolbar dense flat>
+    <v-card class="d-flex flex-column" :tile="$vuetify.breakpoint.mobile">
+      <v-toolbar class="flex-grow-0" color="secondary" dark dense flat>
+        <v-toolbar-title>現場選択</v-toolbar-title>
+      </v-toolbar>
+      <v-toolbar class="flex-grow-0" flat>
         <g-text-field-search v-model="search" />
       </v-toolbar>
       <v-container class="px-4 py-0 d-flex justify-end">
@@ -91,7 +98,7 @@ export default {
           label="終了現場を含める"
         />
       </v-container>
-      <v-container class="px-4 d-flex overflow-y-hidden">
+      <v-container class="px-4 d-flex overflow-y-hidden" style="height: 480px">
         <g-data-table-sites
           ref="table"
           v-model="selectedItems"
