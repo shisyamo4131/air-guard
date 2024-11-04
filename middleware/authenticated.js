@@ -15,6 +15,12 @@ export default ({ app, store, route, redirect, error }) => {
   const userRoles = store.getters[STORE_GETTERS.ROLES] || []
   const publicPages = ['login', 'register']
 
+  // メンテナンスモードの取得
+  const isMaintenance = store.state.systems.maintenanceMode
+  if (isMaintenance && route.name !== 'maintenancing') {
+    redirect('/maintenancing')
+  }
+
   if (!isAuthenticated) {
     if (!publicPages.includes(route.name)) redirect('/login')
   } else if (publicPages.includes(route.name)) {
