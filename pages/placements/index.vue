@@ -48,7 +48,11 @@
                 <g-placement-employee-card v-bind="attrs" v-on="on" />
               </template>
               <template #outsourcers-col="{ attrs, on }">
-                <g-placement-outsourcer-card v-bind="attrs" v-on="on" />
+                <g-placement-outsourcer-card
+                  v-bind="attrs"
+                  color="orange lighten-4"
+                  v-on="on"
+                />
               </template>
             </g-placement-table>
           </div>
