@@ -44,8 +44,11 @@
               <template #site-row="{ attrs, on }">
                 <g-placement-site-work-shift-row v-bind="attrs" v-on="on" />
               </template>
-              <template #col="{ attrs, on }">
+              <template #employees-col="{ attrs, on }">
                 <g-placement-employee-card v-bind="attrs" v-on="on" />
+              </template>
+              <template #outsourcers-col="{ attrs, on }">
+                <g-placement-outsourcer-card v-bind="attrs" v-on="on" />
               </template>
             </g-placement-table>
           </div>
@@ -63,6 +66,7 @@ import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GPlacementSiteWorkShiftRow from '~/components/organisms/placements/GPlacementSiteWorkShiftRow.vue'
 import GPlacementToolbar from '~/components/organisms/placements/GPlacementToolbar.vue'
+import GPlacementOutsourcerCard from '~/components/organisms/placements/GPlacementOutsourcerCard.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -79,6 +83,7 @@ export default {
     GTemplateDefault,
     GPlacementSiteWorkShiftRow,
     GPlacementToolbar,
+    GPlacementOutsourcerCard,
   },
 
   /***************************************************************************
