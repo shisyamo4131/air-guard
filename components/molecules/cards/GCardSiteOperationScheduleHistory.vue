@@ -39,8 +39,8 @@ export default {
       required: false,
     },
     before: { type: Object, default: null, required: false },
-    start: { type: String, default: '', required: false },
-    end: { type: String, default: '', required: false },
+    startTime: { type: String, default: '', required: false },
+    endTime: { type: String, default: '', required: false },
   },
   /***************************************************************************
    * COMPUTED
@@ -96,11 +96,11 @@ export default {
         <div v-if="type === 'create'">
           <div>
             <span>{{ `開始: ` }}</span>
-            <span>{{ `${start}` }}</span>
+            <span>{{ `${startTime}` }}</span>
           </div>
           <div>
             <span>{{ `終了: ` }}</span>
-            <span>{{ `${end}` }}</span>
+            <span>{{ `${endTime}` }}</span>
           </div>
           <div>
             <span>{{ `人数: ` }}</span>
@@ -114,23 +114,23 @@ export default {
         <div v-if="type === 'update'">
           <div>
             <span>{{ `開始: ` }}</span>
-            <span v-if="before.start !== start">
+            <span v-if="before.startTime !== startTime">
               <span class="text-decoration-line-through">
-                {{ `${before.start}` }}
+                {{ `${before.startTime}` }}
               </span>
               <v-icon small>mdi-chevron-right</v-icon>
             </span>
-            <span>{{ `${start}` }}</span>
+            <span>{{ `${startTime}` }}</span>
           </div>
           <div>
             <span>{{ `終了: ` }}</span>
-            <span v-if="before.end !== end">
+            <span v-if="before.endTime !== endTime">
               <span class="text-decoration-line-through">
-                {{ `${before.end}` }}
+                {{ `${before.endTime}` }}
               </span>
               <v-icon small>mdi-chevron-right</v-icon>
             </span>
-            <span>{{ `${end}` }}</span>
+            <span>{{ `${endTime}` }}</span>
           </div>
           <div>
             <span>{{ `人数: ` }}</span>
@@ -159,13 +159,13 @@ export default {
           <div>
             <span>{{ `開始: ` }}</span>
             <span class="text-decoration-line-through">
-              {{ `${start}` }}
+              {{ `${startTime}` }}
             </span>
           </div>
           <div>
             <span>{{ `終了: ` }}</span>
             <span class="text-decoration-line-through">
-              {{ `${end}` }}
+              {{ `${endTime}` }}
             </span>
           </div>
           <div>
