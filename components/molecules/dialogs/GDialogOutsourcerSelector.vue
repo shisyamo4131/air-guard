@@ -15,9 +15,6 @@ import GDataTable from '~/components/atoms/tables/GDataTable.vue'
  * - 既定では取引中の外注先のみが一覧表示されます。switch の切り替えで取引終了分も含めることができます。
  *
  * @author shisyamo4131
- * @version 1.0.0
- * @updates
- * - version 1.0.0 - 2024-10-04 - 初版作成
  */
 
 export default {
@@ -38,6 +35,8 @@ export default {
    ***************************************************************************/
   props: {
     items: { type: Array, default: () => [], required: false },
+    maxWidth: { type: [String, Number], default: 360, required: false },
+    value: { type: Boolean, default: false, required: false },
   },
 
   /***************************************************************************
@@ -74,9 +73,31 @@ export default {
    * WATCHERS
    ***************************************************************************/
   watch: {
+    /**
+     * data.dialog を監視します。
+     * - 値が false に更新されたら data.selectedItems を初期化します。
+     * - 値が false に更新されたら GChipGroupKanaFileter の initialize() を実行します。
+     * - 値を input イベントで emit します。
+     */
     dialog(v) {
       if (v) return
       this.selectedItems.splice(0)
+    },
+    includeExpired(newVal) {
+      if (newVal) return
+      this.selectedItems = this.selectedItems.filter(
+        ({ status }) => status === 'active'
+      )
+    },
+    /**
+     * props.value を監視します。
+     * - 値を data.dialog に同期します。
+     */
+    value: {
+      handler(v) {
+        this.dialog = v
+      },
+      immediate: true,
     },
   },
 
@@ -84,33 +105,59 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    /**
+     * cancel ボタンがクリックされた時の処理です。
+     * - data.dialog を false に更新します。
+     */
     onClickCancel() {
       this.dialog = false
     },
+    /**
+     * submit ボタンがクリックされた時の処理です。
+     * - data.selectedItems の内容を複製して click:submit イベントで emit します。
+     * - data.dialog を false に更新します。
+     */
     onClickSubmit() {
       this.$emit('click:submit', structuredClone(this.selectedItems))
       this.dialog = false
+    },
+
+    onClickChipClose(index) {
+      this.selectedItems.splice(index, 1)
     },
   },
 }
 </script>
 
 <template>
-  <v-dialog v-model="dialog" scrollable max-width="360">
+  <v-dialog
+    v-bind="$attrs"
+    v-model="dialog"
+    :fullscreen="$vuetify.breakpoint.mobile"
+    :max-width="maxWidth"
+    scrollable
+    v-on="$listeners"
+  >
     <template #activator="{ attrs, on }">
       <slot name="activator" v-bind="{ attrs, on }" />
     </template>
-    <v-card>
-      <v-card-title class="g-card__title">外注先選択</v-card-title>
+    <v-card :tile="$vuetify.breakpoint.mobile">
+      <v-toolbar class="flex-grow-0" color="primary" dark dense flat>
+        <v-toolbar-title
+          ><v-icon>mdi-account</v-icon>外注先選択</v-toolbar-title
+        >
+      </v-toolbar>
       <v-divider />
-      <v-card-text class="pa-0 d-flex flex-grow-1" style="height: 480px">
-        <v-container style="width: 68px">
-          <g-chip-group-kana-filter
-            :chip-options="{ small: true, label: true }"
-            column
-            :regex.sync="regex"
-          />
-        </v-container>
+      <v-container class="d-flex justify-end">
+        <g-switch
+          v-model="includeExpired"
+          class="mt-0"
+          label="取引終了を含める"
+          hide-details
+        />
+      </v-container>
+      <v-divider />
+      <v-card-text class="d-flex pa-0" style="height: 368px">
         <g-data-table
           v-model="selectedItems"
           class="flex-table"
@@ -121,6 +168,7 @@ export default {
           :items-per-page="-1"
           :mobile-breakpoint="0"
           show-select
+          single-select
         >
           <template #[`item.abbr`]="{ item }">
             {{ item.abbr }}
@@ -132,16 +180,30 @@ export default {
             />
           </template>
         </g-data-table>
+        <div class="filter-container py-1 px-3" style="width: 60px">
+          <g-chip-group-kana-filter
+            ref="filter"
+            :chip-options="{ small: true, label: true }"
+            column
+            :regex.sync="regex"
+          />
+        </div>
       </v-card-text>
       <v-divider />
-      <v-container class="d-flex justify-end">
-        <g-switch
-          v-model="includeExpired"
-          class="mt-0"
-          label="取引終了を含める"
-          hide-details
-        />
-      </v-container>
+      <v-card-text class="pa-2" style="height: 112px">
+        <div class="d-flex flex-wrap" style="gap: 8px">
+          <v-chip
+            v-for="(outsourcer, index) of selectedItems"
+            :key="index"
+            small
+            label
+            close
+            @click:close="onClickChipClose(index)"
+          >
+            {{ outsourcer.abbr }}
+          </v-chip>
+        </div>
+      </v-card-text>
       <v-divider />
       <v-card-actions class="justify-space-between">
         <g-btn-cancel-icon @click="onClickCancel" />
@@ -155,4 +217,9 @@ export default {
   </v-dialog>
 </template>
 
-<style></style>
+<style scoped>
+/* GChipKanaFileter 内の VChip が既定で保有する右側のパディングを削除 */
+.filter-container >>> .v-chip {
+  margin-right: 0px !important;
+}
+</style>
