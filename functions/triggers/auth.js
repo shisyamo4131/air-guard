@@ -22,26 +22,26 @@ import User from '../models/User.js'
  * @param {Object} user - 作成されたユーザーの情報（UIDなどが含まれています）
  * @returns {Promise<void>} Firestoreにドキュメントを作成する非同期処理
  ****************************************************************************/
-export const onCreate = functions
-  .region('asia-northeast1')
-  .auth.user()
-  .onCreate(async (user) => {
-    const uid = user.uid
-    const instance = new User({ uid })
-    try {
-      // Firestoreに新しいユーザードキュメントを作成
-      await instance.create({ docId: uid })
-      functions.logger.info(
-        `User created and Firestore document created for UID: ${uid}`
-      )
-    } catch (err) {
-      // Firestoreドキュメント作成時のエラー処理
-      functions.logger.error(
-        `Error creating Firestore document for UID: ${uid}`,
-        err
-      )
-    }
-  })
+// export const onCreate = functions
+//   .region('asia-northeast1')
+//   .auth.user()
+//   .onCreate(async (user) => {
+//     const uid = user.uid
+//     const instance = new User({ uid })
+//     try {
+//       // Firestoreに新しいユーザードキュメントを作成
+//       await instance.create({ docId: uid })
+//       functions.logger.info(
+//         `User created and Firestore document created for UID: ${uid}`
+//       )
+//     } catch (err) {
+//       // Firestoreドキュメント作成時のエラー処理
+//       functions.logger.error(
+//         `Error creating Firestore document for UID: ${uid}`,
+//         err
+//       )
+//     }
+//   })
 
 /****************************************************************************
  * Firebase Authenticationでユーザーが削除されたときに呼び出される関数です。
