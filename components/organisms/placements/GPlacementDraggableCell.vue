@@ -46,9 +46,8 @@ export default {
     workShift: { type: String, required: true },
     /**
      * Options for the draggable component's group.
-     * - By default, the group name is set to 'employeeId'.
      */
-    group: { type: Object, default: () => ({ name: 'employeeId' }) },
+    group: { type: Object, required: true },
     /**
      * Receives an object with properties employeeId, siteId, and workShift.
      * - Used to determine whether the dragged object can be accepted.
@@ -115,10 +114,24 @@ export default {
     },
 
     /**
+     * Retrieves the outsourcerOrder from the Realtime Database.
+     */
+    outsourcerOrder() {
+      return this.placement?.data?.outsourcerOrder || []
+    },
+
+    /**
      * Retrieves the employees data from the Realtime Database.
      */
     employees() {
       return this.placement?.data?.employees || null
+    },
+
+    /**
+     * Retrieves the outsourcers data from the Realtime Database.
+     */
+    outsourcers() {
+      return this.placement?.data?.outsourcers || null
     },
 
     /**
@@ -176,12 +189,20 @@ export default {
 
     /**
      * 配置した従業員数が必要人員数を満たしているかどうかを返します。
+     * - 配置されている従業員数には外注先を含めます。
      * - 満たしていない場合 true を返します。
      */
     isLackedWorkers() {
       const required = this.siteOperationSchedule.requiredWorkers || 0
-      const placed = this.employeeOrder.length
-      return required > placed
+      return required > this.placedAmount
+    },
+
+    /**
+     * 配置されている人員数です。
+     * - 人員数は従業員数 + 外注先数です。
+     */
+    placedAmount() {
+      return this.employeeOrder.length + this.outsourcerOrder.length
     },
   },
 
@@ -278,12 +299,12 @@ export default {
      * - Processes added, moved, or removed events to update the employee order accordingly.
      * - Catches and logs any errors, displaying an alert with the error message if an error occurs.
      */
-    async onChange(event) {
+    async onChangeEmployee(event) {
       try {
         const { added, moved, removed } = event
-        if (added) await this.handleAdd(added)
-        if (moved) await this.handleMove(moved)
-        if (removed) await this.handleRemove(removed)
+        if (added) await this.handleAddEmployee(added)
+        if (moved) await this.hadleMoveEmployee(moved)
+        if (removed) await this.handleRemoveEmployee(removed)
       } catch (err) {
         console.error(err) // eslint-disable-line no-console
         alert(err.message)
@@ -295,7 +316,7 @@ export default {
      * - Accepts an event object from draggable as the argument.
      * - Uses employeeId, index, and siteContract to add the employee in the correct position with contract details.
      */
-    async handleAdd({ element, newIndex }) {
+    async handleAddEmployee({ element, newIndex }) {
       await this.placement.employee.add({
         employeeId: element,
         index: newIndex,
@@ -308,7 +329,7 @@ export default {
      * - Accepts an event object from draggable as the argument.
      * - Uses employeeId, newIndex, and oldIndex to reorder the employees correctly.
      */
-    async handleMove({ newIndex, oldIndex }) {
+    async hadleMoveEmployee({ newIndex, oldIndex }) {
       await this.placement.employee.move(newIndex, oldIndex)
     },
 
@@ -317,8 +338,60 @@ export default {
      * - Accepts an event object from draggable as the argument.
      * - Uses employeeId from the event to identify and remove the employee.
      */
-    async handleRemove({ element }) {
+    async handleRemoveEmployee({ element }) {
       await this.placement.employee.remove(element)
+    },
+
+    /**
+     * Handles changes to the outsourcer order triggered by draggable events.
+     * - Processes added, moved, or removed events to update the outsourcer order accordingly.
+     * - Catches and logs any errors, displaying an alert with the error message if an error occurs.
+     */
+    async onChangeOutsourcer(event) {
+      try {
+        const { added, moved, removed } = event
+        // if (added) await this.handleAddOutsourcer(added)
+        if (added) {
+          alert('ドラッグによる別現場への移動はできません。') // KEY にインデックスを使用するため D&D による追加は不可。
+        }
+        if (moved) await this.hadleMoveOutsourcer(moved)
+        if (removed) await this.handleRemoveOutsourcer(removed)
+      } catch (err) {
+        console.error(err) // eslint-disable-line no-console
+        alert(err.message)
+      }
+    },
+
+    /**
+     * 外注先を配置に追加します。
+     * - draggable から提供されるオブジェクトを引数に受け取ります。
+     * - draggable からの移動による追加処理となるため、element には outsourcerKey が設定されているはずです。
+     * NOTE: KEY にインデックスを使用するため D&D による追加は不可。
+     */
+    // async handleAddOutsourcer({ element, newIndex }) {
+    //   await this.placement.outsourcer.add({
+    //     outsourcerKey: element,
+    //     index: newIndex,
+    //     siteContract: this.siteContract,
+    //   })
+    // },
+
+    /**
+     * Adjusts the order of outsourcers in the placement.
+     * - Accepts an event object from draggable as the argument.
+     * - Uses outsourcerId, newIndex, and oldIndex to reorder the outsourcers correctly.
+     */
+    async hadleMoveOutsourcer({ newIndex, oldIndex }) {
+      await this.placement.outsourcer.move(newIndex, oldIndex)
+    },
+
+    /**
+     * Removes an outsourcer from the placement.
+     * - Accepts an event object from draggable as the argument.
+     * - Uses outsourcerKey from the event to identify and remove the outsourcer.
+     */
+    async handleRemoveOutsourcer({ element }) {
+      await this.placement.outsourcer.remove(element)
     },
 
     /**
@@ -346,13 +419,41 @@ export default {
     },
 
     /**
+     * 外注先追加ボタンがクリックされた時の処理です。
+     * - active-cell イベントで自身を特定するためのオブジェクトを emit します。
+     * - click:addOutsourcer イベント emit します。
+     */
+    onClickAddOutsourcer() {
+      this.$emit('active-cell', {
+        date: this.date,
+        siteId: this.siteId,
+        workShift: this.workShift,
+      })
+      this.$nextTick(() => this.$emit('click:addOutsourcer'))
+    },
+
+    /**
      * 複数の従業員を一括で配置します。
      * - 当該コンポーネントでは使用していません。
      * - 親コンポーネントから実行されます。
      */
-    async addBulk(employeeIds) {
+    async addBulkEmployees(employeeIds) {
       await this.placement.employee.addBulk({
         employeeIds,
+        siteContract: this.siteContract,
+      })
+    },
+
+    /**
+     * 複数の外注先を一括で配置します。
+     * - 当該コンポーネントでは使用していません。
+     * - 親コンポーネントから実行されます。
+     * - 単一の外注先を複数登録するメソッドです。
+     */
+    async addBulkOutsourcers(outsourcerId, length) {
+      await this.placement.outsourcer.addBulk({
+        outsourcerId,
+        length,
         siteContract: this.siteContract,
       })
     },
@@ -372,13 +473,16 @@ export default {
       <v-btn depressed x-small>
         <v-icon small>mdi-account-remove</v-icon>
       </v-btn>
+      <v-btn depressed x-small @click="onClickAddOutsourcer">
+        <v-icon small>mdi-account-remove</v-icon>
+      </v-btn>
     </div>
 
     <v-chip
       style="position: absolute; right: -4px; top: 12px"
       :color="isLackedWorkers ? 'error' : 'info'"
       small
-      >{{ employeeOrder.length }}/{{
+      >{{ placedAmount }}/{{
         siteOperationSchedule.requiredWorkers || '-'
       }}</v-chip
     >
@@ -386,21 +490,21 @@ export default {
       class="d-flex flex-column pa-2 flex-grow-1"
       :style="{
         border: `1px solid lightgray`,
-        minHeight: '84px',
+        minHeight: '36px',
         gap: '8px',
       }"
       :value="employeeOrder"
       :disabled="!acceptable"
-      :group="group"
+      :group="{ ...group, name: `employees-${group?.name || ''}` }"
       handle=".handle"
       v-bind="{ animation: 300 }"
       @start="createGraggingItem"
       @end="deleteDraggingItem"
-      @change="onChange"
+      @change="onChangeEmployee"
     >
       <div v-for="employeeId of employeeOrder" :key="employeeId">
         <slot
-          name="default"
+          name="employees"
           v-bind="{
             attrs: {
               employeeId,
@@ -421,7 +525,51 @@ export default {
             },
             on: {
               'click:edit': () => onClickEdit(employees?.[employeeId] || null),
-              'click:remove': () => handleRemove({ element: employeeId }),
+              'click:remove': () =>
+                handleRemoveEmployee({ element: employeeId }),
+            },
+          }"
+        />
+      </div>
+    </draggable>
+    <v-divider class="my-1" />
+    <!--
+      外注先の Draggable コンポーネント
+      - 外注先の KEY にインデックスを使用するため D&D による追加は不可能。
+      - group.name を日付、現場、勤務区分で個別に設定して D&D による追加を回避。
+    -->
+    <draggable
+      class="d-flex flex-column pa-2 flex-grow-1"
+      :style="{
+        border: `1px solid lightgray`,
+        minHeight: '36px',
+        gap: '8px',
+      }"
+      :value="outsourcerOrder"
+      :disabled="!acceptable"
+      :group="{ ...group, name: `outsourcers-${date}-${siteId}-${workShift}` }"
+      handle=".handle"
+      v-bind="{ animation: 300 }"
+      @change="onChangeOutsourcer"
+    >
+      <div v-for="outsourcerKey of outsourcerOrder" :key="outsourcerKey">
+        <slot
+          name="outsourcers"
+          v-bind="{
+            attrs: {
+              outsourcerKey,
+              date,
+              siteId,
+              workShift,
+              ellipsis,
+              startTime: outsourcers?.[outsourcerKey]?.startTime || '',
+              endTime: outsourcers?.[outsourcerKey]?.endTime || '',
+            },
+            on: {
+              'click:edit': () =>
+                onClickEdit(outsourcers?.[outsourcerKey] || null),
+              'click:remove': () =>
+                handleRemoveOutsourcer({ element: outsourcerKey }),
             },
           }"
         />
