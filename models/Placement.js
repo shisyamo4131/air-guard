@@ -21,10 +21,19 @@
  *    |        |    |- arrivedAt: timestamp
  *    |        |    |- leavedAt: timestamp
  *    |        |    |- temperature: 36.5
+ *    |        |- outsourcerOrder: <Array>
+ *    |        |- outsourcers
+ *    |           |- ${outsourcerKey} -> ${outsoucerId}-${branch}
+ *    |             |- outsoucerKey: 'outsourcer1-0'
+ *    |             |- startTime: '08:00'
+ *    |             |- endTime: '17:00'
+ *    |             |- breakMinutes: 60
+ *    |             |- arrivedAt: timestamp
+ *    |             |- leavedAt: timestamp
  *    |- assignments
  *       |- employees
  *       |  |- ${date} (YYYY-MM-DD)
- *       |     |- ${employeeId}
+ *       |     |- ${employeeId} or ${outsourcerKey}
  *       |        |- ${workShift} ('day' or 'night')
  *       |           |- ${siteId}
  *       |              |- siteId: 'site456'
@@ -32,8 +41,9 @@
  *       |  |- ${date} (YYYY-MM-DD)
  *             |- ${siteId}
  *                |- ${workShift} ('day' or 'night')
- *                   |- ${employeeId}
- *                      |- employeeId: 'emp123'
+ *                   |- ${id}
+ *                      |- id: 'emp123' or 'outsourcer1-0'
+ *                      |- isEmployee: true or false
  *
  * [Placements/siteOrder<Array>]
  * - An array of 'siteId' and 'workShift' conbined '-'.
@@ -113,6 +123,61 @@ class PlacedEmployee {
 }
 
 /**
+ * Represents the placement information of an outsourcer, stored at
+ * `Placements/${date}/${siteId}/${workShift}/outsourcers` in the Realtime Database.
+ */
+class PlacedOutsourcer extends PlacedEmployee {
+  /**
+   * Initializes a PlacedOutsourcer instance.
+   * @constructor
+   * @param {Object} args - Initialization arguments.
+   * @param {string} args.outsourcerKey - The outsourcer's KEY.
+   * @param {string} args.startTime - The start time (HH:MM).
+   * @param {string} args.endTime - The end time (HH:MM).
+   * @param {number} args.breakMinutes - The break duration in minutes.
+   * @param {Object} args.arrivedAt - The arrival time (timestamp).
+   * @param {Object} args.leavedAt - The departure time (timestamp).
+   * @param {number} args.temperature - The temperature recorded.
+   */
+  constructor({
+    outsourcerKey,
+    startTime,
+    endTime,
+    breakMinutes,
+    arrivedAt,
+    leavedAt,
+    temperature,
+  }) {
+    super({
+      startTime,
+      endTime,
+      breakMinutes,
+      arrivedAt,
+      leavedAt,
+      temperature,
+    })
+    delete this.employeeId
+    this.outsourcerKey = outsourcerKey
+  }
+
+  /**
+   * Converts the PlacedEmployee instance to a plain object.
+   * @returns {Object} The plain object representation of the instance.
+   */
+  toObject() {
+    return {
+      outsourcerKey: this.outsourcerKey,
+      startTime: this.startTime,
+      endTime: this.endTime,
+      breakMinutes: this.breakMinutes,
+      arrivedAt: this.arrivedAt,
+      leavedAt: this.leavedAt,
+      temperature: this.temperature,
+    }
+  }
+}
+
+/**
  * The Placement class manages employee placement information stored in the Firebase Realtime Database.
  * It provides methods to set up real-time listeners, add or remove employee placements,
  * record employee arrivals and departures, reset leave data, and move employees within a specific order.
@@ -159,6 +224,18 @@ class Placement {
       remove: this.removeEmployee.bind(this),
       resetArrival: this.resetEmployeeArrival.bind(this),
       resetLeave: this.resetEmployeeLeave.bind(this),
+    }
+
+    // Expose outsourcer methods in outsourcer property
+    this.outsourcer = {
+      // add: this.addOutsourcer.bind(this), // KEY にインデックスを使用するため、D&D による追加は不可。
+      addBulk: this.addOutsourcers.bind(this),
+      arrive: this.arriveOutsourcer.bind(this),
+      move: this.moveOutsourcer.bind(this),
+      leave: this.leaveOutsourcer.bind(this),
+      remove: this.removeOutsourcer.bind(this),
+      resetArrival: this.resetOutsourcerArrival.bind(this),
+      resetLeave: this.resetOutsourcerLeave.bind(this),
     }
   }
 
@@ -241,11 +318,28 @@ class Placement {
   }
 
   /**
+   * Generates the path for outsourcers under Placements for the current date, site, and shift.
+   * @param {string} outsourcerKey - The outsourcer's KEY.
+   * @returns {string} The outsourcers path in the Realtime Database.
+   */
+  getOutsourcersPath(outsourcerKey) {
+    return `Placements/${this.date}/${this.siteId}/${this.workShift}/outsourcers/${outsourcerKey}`
+  }
+
+  /**
    * Generates the path for employeeOrder under Placements for the current date, site, and shift.
    * @returns {string} The employeeOrder path in the Realtime Database.
    */
   getEmployeeOrderPath() {
     return `Placements/${this.date}/${this.siteId}/${this.workShift}/employeeOrder`
+  }
+
+  /**
+   * Generates the path for outsourcerOrder under Placements for the current date, site, and shift.
+   * @returns {string} The outsourcerOrder path in the Realtime Database.
+   */
+  getOutsourcerOrderPath() {
+    return `Placements/${this.date}/${this.siteId}/${this.workShift}/outsourcerOrder`
   }
 
   /**
@@ -258,12 +352,21 @@ class Placement {
   }
 
   /**
+   * Generates the path for an outsourcer's assignment entry under Placements.
+   * @param {string} outsourcerKey - The outsourcer's KEY.
+   * @returns {string} The assignment path for the outsourcer in the Realtime Database.
+   */
+  getAssignmentsOutsourcersPath(outsourcerKey) {
+    return `Placements/assignments/outsourcers/${this.date}/${outsourcerKey}/${this.workShift}/${this.siteId}`
+  }
+
+  /**
    * Generates the path for a site's assignment entry under Placements.
-   * @param {string} employeeId - The employee's ID.
+   * @param {string} employeeId - The employee's ID or outsourcer's KEY.
    * @returns {string} The assignment path for the site in the Realtime Database.
    */
-  getAssignmentsSitesPath(employeeId) {
-    return `Placements/assignments/sites/${this.date}/${this.siteId}/${this.workShift}/${employeeId}`
+  getAssignmentsSitesPath(id) {
+    return `Placements/assignments/sites/${this.date}/${this.siteId}/${this.workShift}/${id}`
   }
 
   /**
@@ -412,6 +515,79 @@ class Placement {
   }
 
   /**
+   * Outsourcersを一括でサイトに追加します。
+   * - 新しいoutsourcerは`outsourcerOrder`の末尾に追加されます。
+   * - 外注先IDは単一しか受け付けません。
+   * @param {Object} options - Outsourcer追加のオプション。
+   * @param {string} options.outsourcerId - 追加する単一のoutsourcer ID。
+   * @param {number} options.length - 追加するoutsourcerの数。
+   * @param {Object|null} options.siteContract - サイト契約の詳細情報（startTime, endTime, breakMinutesを含む）。
+   * @throws {TypeError} `outsourcerId`が文字列でない場合、または`length`が1未満の場合にエラーを投げます。
+   */
+  async addOutsourcers({ outsourcerId, length, siteContract = null } = {}) {
+    // outsourcerIdが文字列かどうかを確認
+    if (typeof outsourcerId !== 'string') {
+      const message = `[addOutsourcers] "outsourcerId" must be a string. Provided: ${outsourcerId}`
+      throw new TypeError(message)
+    }
+
+    // lengthが1以上の数値かどうかを確認
+    if (typeof length !== 'number' || length < 1) {
+      // eslint-disable-next-line no-console
+      console.warn(`[addOutsourcers] "length" must be a number greater than 0.`)
+      return
+    }
+
+    const outsourcerOrder = this.data?.outsourcerOrder || []
+    const updates = {}
+
+    // outsourcerIdに一致する要素をフィルタリングして降順にソート
+    const filteredOrder = outsourcerOrder
+      .filter((outsourcer) => outsourcer.split('-')[0] === outsourcerId)
+      .sort((a, b) => (a < b ? 1 : -1))
+
+    // 次のカウント値を計算
+    const outsourcerCount = filteredOrder.length
+      ? parseInt(filteredOrder[filteredOrder.length - 1].split('-')[1], 10) + 1
+      : 0
+
+    // length分のoutsourcerを追加
+    for (let index = 0; index < length; index++) {
+      const outsourcerKey = `${outsourcerId}-${outsourcerCount + index}`
+
+      // 新しいPlacedOutsourcerインスタンスを作成
+      const newOutsourcer = new PlacedOutsourcer({
+        outsourcerKey,
+        startTime: siteContract?.startTime || null,
+        endTime: siteContract?.endTime || null,
+        breakMinutes: siteContract?.breakMinutes || null,
+      })
+
+      outsourcerOrder.push(outsourcerKey)
+
+      // updatesオブジェクトを構築
+      updates[this.getOutsourcersPath(outsourcerKey)] = newOutsourcer.toObject()
+      updates[`${this.getAssignmentsOutsourcersPath(outsourcerKey)}/siteId`] =
+        this.siteId
+      updates[`${this.getAssignmentsSitesPath(outsourcerKey)}/id`] =
+        outsourcerId
+    }
+
+    // データベースをアトミックに更新
+    updates[this.getOutsourcerOrderPath()] = outsourcerOrder
+
+    try {
+      await update(ref(database), updates)
+      // eslint-disable-next-line no-console
+      console.info(`[addOutsourcers] Successfully added bulk outsourcers.`)
+    } catch (error) {
+      const message = `[addOutsourcers] Failed to update the database with new placement entries.`
+      console.error(message, error) // eslint-disable-line no-console
+      throw new Error(`${message} ${error.message}`)
+    }
+  }
+
+  /**
    * Adds a new placement entry to the Realtime Database.
    * - Adds the employee ID to `employeeOrder`.
    * - Adds placement details to `employees`.
@@ -465,7 +641,8 @@ class Placement {
       [`${this.getEmployeeOrderPath()}`]: employeeOrder,
       [`${this.getEmployeesPath(employeeId)}`]: newEmployee.toObject(),
       [`${this.getAssignmentsEmployeesPath(employeeId)}/siteId`]: this.siteId,
-      [`${this.getAssignmentsSitesPath(employeeId)}/employeeId`]: employeeId,
+      [`${this.getAssignmentsSitesPath(employeeId)}/id`]: employeeId,
+      [`${this.getAssignmentsSitesPath(employeeId)}/isEmployee`]: true,
     }
 
     // Perform an atomic update in the database with error handling
@@ -477,6 +654,79 @@ class Placement {
       throw new Error(`${message} ${error.message}`)
     }
   }
+
+  /**
+   * Adds a new placement entry to the Realtime Database.
+   * - Adds the outsourcer KEY to `outsourcerOrder`.
+   * - Adds placement details to `outsourcers`.
+   * - Registers outsourcer assignment in `assignmentsOutsourcersPath`.
+   * - Registers site assignment in `assignmentsSitesPath`.
+   *
+   * @param {Object} args - The placement arguments.
+   * @param {string} args.outsourcerKey - The outsourcer's KEY.
+   * @param {number|null} [args.index=null] - The position in `outsourcerOrder` where the outsourcer KEY should be added.
+   * @param {Object} [args.siteContract=null] - Details of the outsourcer's shift (startTime, endTime, breakMinutes).
+   * @throws Will throw an error if `outsourcerId` is not provided or is not a string.
+   */
+  // async addOutsourcer({
+  //   outsourcerKey,
+  //   index = null,
+  //   siteContract = null,
+  // } = {}) {
+  //   // Validate outsourcerId
+  //   if (!outsourcerKey || typeof outsourcerKey !== 'string') {
+  //     const message = `outsourcerKey must be specified as a string. Received ${outsourcerKey}`
+  //     console.error(message) // eslint-disable-line no-console
+  //     throw new Error(message)
+  //   }
+
+  //   const outsourcerOrder = this.data?.outsourcerOrder || []
+
+  //   // Check if the outsourcer is already in outsourcerOrder
+  //   if (outsourcerOrder.includes(outsourcerKey)) {
+  //     const message = `Specified outsourcer already exists. outsourcerKey: ${outsourcerKey}`
+  //     console.error(message) // eslint-disable-line no-console
+  //     throw new Error(message)
+  //   }
+
+  //   /**
+  //    * Insert outsourcer KEY into outsourcerOrder.
+  //    * - If a valid index is provided, insert at that position.
+  //    * - If index is null or out of range, add to the end.
+  //    */
+  //   if (index !== null && index >= 0 && index < outsourcerOrder.length) {
+  //     outsourcerOrder.splice(index, 0, outsourcerKey)
+  //   } else {
+  //     outsourcerOrder.push(outsourcerKey)
+  //   }
+
+  //   // Create a new PlacedOutsourcer instance with siteContract details
+  //   const newOutsourcer = new PlacedOutsourcer({
+  //     outsourcerKey,
+  //     startTime: siteContract?.startTime || null,
+  //     endTime: siteContract?.endTime || null,
+  //     breakMinutes: siteContract?.breakMinutes || null,
+  //   })
+
+  //   // Prepare an atomic update object for the database
+  //   const updates = {
+  //     [`${this.getOutsourcerOrderPath()}`]: outsourcerOrder,
+  //     [`${this.getOutsourcersPath(outsourcerKey)}`]: newOutsourcer.toObject(),
+  //     [`${this.getAssignmentsOutsourcersPath(outsourcerKey)}/siteId`]:
+  //       this.siteId,
+  //     [`${this.getAssignmentsSitesPath(outsourcerKey)}/id`]: outsourcerKey,
+  //     [`${this.getAssignmentsSitesPath(outsourcerKey)}/isEmployee`]: false,
+  //   }
+
+  //   // Perform an atomic update in the database with error handling
+  //   try {
+  //     await update(ref(database), updates)
+  //   } catch (error) {
+  //     const message = `Failed to update Realtime Database with new placement entry.`
+  //     console.error(message, error) // eslint-disable-line no-console
+  //     throw new Error(`${message} ${error.message}`)
+  //   }
+  // }
 
   /**
    * Removes a placement entry for the specified employee from the Realtime Database.
@@ -507,6 +757,40 @@ class Placement {
       await update(ref(database), updates)
     } catch (error) {
       const message = `Failed to remove placement entry for employeeId: ${employeeId}.`
+      console.error(message, error) // eslint-disable-line no-console
+      throw new Error(`${message} ${error.message}`)
+    }
+  }
+
+  /**
+   * Removes a placement entry for the specified outsourcer from the Realtime Database.
+   * - Removes the outsourcer KEY from `outsourcerOrder`.
+   * - Deletes the outsourcer's placement data from `outsourcers`.
+   * - Removes the outsourcer's assignment from `assignmentsOutsourcersPath`.
+   * - Removes the site assignment for the outsourcer in `assignmentsSitesPath`.
+   *
+   * @param {string} outsourcerKey - The KEY of the outsourcer to remove from placements.
+   * @throws Will throw an error if there is an issue with the database update.
+   */
+  async removeOutsourcer(outsourcerKey) {
+    // Create a new outsourcerOrder array, excluding the specified outsourcer KEY.
+    const outsourcerOrder = (this.data?.outsourcerOrder || []).filter(
+      (id) => id !== outsourcerKey
+    )
+
+    try {
+      // Prepare atomic update object to remove outsourcer data and assignments
+      const updates = {
+        [`${this.getOutsourcerOrderPath()}`]: outsourcerOrder, // Update outsourcer order without the removed outsourcer
+        [`${this.getOutsourcersPath(outsourcerKey)}`]: null, // Remove outsourcer data from outsourcers node
+        [`${this.getAssignmentsOutsourcersPath(outsourcerKey)}/siteId`]: null, // Clear outsourcer's site assignment
+        [`${this.getAssignmentsSitesPath(outsourcerKey)}/id`]: null, // Clear site assignment for the outsourcer
+      }
+
+      // Perform atomic update in the database
+      await update(ref(database), updates)
+    } catch (error) {
+      const message = `Failed to remove placement entry for outsourcerKey: ${outsourcerKey}.`
       console.error(message, error) // eslint-disable-line no-console
       throw new Error(`${message} ${error.message}`)
     }
@@ -589,6 +873,82 @@ class Placement {
   }
 
   /**
+   * Records the arrival of an outsourcer at the specified start time and logs their temperature.
+   * - Ensures the temperature is a valid number.
+   * - Checks if the outsourcer exists in the data.
+   * - Verifies that the outsourcer has not already been marked as arrived.
+   * - Ensures arrival time is within an acceptable time window.
+   *
+   * @param {string} outsourcerKey - The KEy of the outsourcer arriving.
+   * @param {number} temperature - The recorded temperature of the outsourcer.
+   * @param {string|null} [startTime=null] - Optional new start time for the outsourcer (format: HH:MM).
+   * @throws Will throw an error if the temperature is invalid, outsourcer data is missing, or arrival is recorded too early.
+   */
+  async arriveOutsourcer(outsourcerKey, temperature, startTime = null) {
+    // Validate that temperature is provided and is a valid number
+    if (typeof temperature !== 'number' || isNaN(temperature)) {
+      throw new TypeError(
+        'Temperature is required and must be specified as a valid number.'
+      )
+    }
+
+    // Retrieve current outsourcer data
+    const currentOutsourcerData = this.data?.outsourcers?.[outsourcerKey]
+    if (!currentOutsourcerData) {
+      throw new Error(`Outsourcer KEY not found: ${outsourcerKey}`)
+    }
+
+    // Check if the outsourcer already has an arrival record
+    if (currentOutsourcerData.arrivedAt) {
+      throw new Error(
+        `Outsourcer KEY ${outsourcerKey} already has an arrival record.`
+      )
+    }
+
+    // Determine start date and effective start time
+    const startDate = this.date
+    const effectiveStartTime = startTime || currentOutsourcerData.startTime
+    if (!startDate || !effectiveStartTime) {
+      throw new Error('Date or start time is invalid.')
+    }
+
+    // Calculate the allowed time window for arrival
+    const baseTime = new Date(`${startDate}T${effectiveStartTime}:00.000Z`)
+    const allowedTime = new Date(
+      baseTime.getTime() - ARRIVAL_ALLOWED_TIME_OFFSET
+    )
+    const currentTime = new Date()
+
+    // Validate that current time is within the allowed window
+    if (currentTime < allowedTime) {
+      throw new Error(
+        'Arrival recording is allowed starting one hour before shift start time.'
+      )
+    }
+
+    // Prepare the data for updating the outsourcer's arrival status
+    const currentTimeISO = currentTime.toISOString()
+    const updates = {
+      [`${this.getOutsourcersPath(outsourcerKey)}/arrivedAt`]: currentTimeISO,
+      [`${this.getOutsourcersPath(outsourcerKey)}/temperature`]: temperature,
+    }
+
+    // Update startTime if a new start time is provided and differs from the current one
+    if (startTime && startTime !== currentOutsourcerData.startTime) {
+      updates[`${this.getOutsourcersPath(outsourcerKey)}/startTime`] = startTime
+    }
+
+    try {
+      // Perform atomic update in the database
+      await update(ref(this.database), updates)
+    } catch (error) {
+      const message = `Failed to record arrival for outsourcerKey: ${outsourcerKey}.`
+      console.error(message, error) // eslint-disable-line no-console
+      throw new Error(`${message} ${error.message}`)
+    }
+  }
+
+  /**
    * Resets the arrival record for a specified employee.
    * - Clears the `arrivedAt` timestamp for the employee, if no leave record exists.
    * - Ensures that the employee's data is present and no departure (`leavedAt`) record exists.
@@ -622,6 +982,45 @@ class Placement {
       await update(ref(this.database), updates)
     } catch (error) {
       const message = `Failed to reset arrival information for employeeId: ${employeeId}.`
+      console.error(message, error) // eslint-disable-line no-console
+      throw new Error(`${message} ${error.message}`)
+    }
+  }
+
+  /**
+   * Resets the arrival record for a specified outsourcer.
+   * - Clears the `arrivedAt` timestamp for the outsourcer, if no leave record exists.
+   * - Ensures that the outsourcer's data is present and no departure (`leavedAt`) record exists.
+   *
+   * @param {string} outsourcerKey - The KEY of the outsourcer whose arrival information is being reset.
+   * @throws Will throw an error if the outsourcer data is not found or if a departure record exists.
+   */
+  async resetOutsourcerArrival(outsourcerKey) {
+    try {
+      // Retrieve the current outsourcer data
+      const currentOutsourcerData = this.data?.outsourcers?.[outsourcerKey]
+
+      // Check if outsourcer data exists
+      if (!currentOutsourcerData) {
+        throw new Error(`Outsourcer KEY not found: ${outsourcerKey}`)
+      }
+
+      // Ensure that the outsourcer has not already recorded a departure
+      if (currentOutsourcerData.leavedAt) {
+        throw new Error(
+          `Outsourcer KEY ${outsourcerKey} already has a departure record. Arrival reset is not allowed.`
+        )
+      }
+
+      // Prepare the update object to reset arrival details
+      const updates = {
+        [`${this.getOutsourcersPath(outsourcerKey)}/arrivedAt`]: null,
+      }
+
+      // Perform atomic update in Firebase
+      await update(ref(this.database), updates)
+    } catch (error) {
+      const message = `Failed to reset arrival information for outsourcerKey: ${outsourcerKey}.`
       console.error(message, error) // eslint-disable-line no-console
       throw new Error(`${message} ${error.message}`)
     }
@@ -698,6 +1097,76 @@ class Placement {
   }
 
   /**
+   * Records the departure of an outsourcer, updating end time, break minutes, and other details as needed.
+   * - Checks that the outsourcer exists and has an arrival record.
+   * - Updates `leavedAt` with the current time.
+   * - Optionally updates `startTime`, `endTime`, and `breakMinutes` if new values are provided.
+   *
+   * @param {string} outsourcerKey - The KEY of the outsourcer leaving.
+   * @param {string|null} [startTime=null] - Optional start time for the shift (format: HH:MM).
+   * @param {string|null} [endTime=null] - Optional end time for the shift (format: HH:MM).
+   * @param {number|null} [breakMinutes=null] - Optional break duration in minutes.
+   * @throws Will throw an error if the outsourcer is not found or has no arrival record.
+   */
+  async leaveOutsourcer(
+    outsourcerKey,
+    startTime = null,
+    endTime = null,
+    breakMinutes = null
+  ) {
+    // Retrieve outsourcer data from this.data
+    const currentOutsourcerData = this.data?.outsourcers?.[outsourcerKey]
+
+    // Check if the outsourcer exists
+    if (!currentOutsourcerData) {
+      throw new Error(`Outsourcer KEY not found: ${outsourcerKey}`)
+    }
+
+    // Ensure the outsourcer has an arrival record before recording departure
+    if (!currentOutsourcerData.arrivedAt) {
+      throw new Error(
+        `Outsourcer KEY ${outsourcerKey} has no arrival record and cannot be marked as left.`
+      )
+    }
+
+    // Get the current time in ISO 8601 format for leavedAt
+    const currentTimeISO = new Date().toISOString()
+
+    // Create the update object (leavedAt, startTime, endTime, breakMinutes)
+    const updates = {
+      [`${this.getOutsourcersPath(outsourcerKey)}/leavedAt`]: currentTimeISO,
+    }
+
+    // Update startTime if provided and different from the current startTime
+    if (startTime && startTime !== currentOutsourcerData.startTime) {
+      updates[`${this.getOutsourcersPath(outsourcerKey)}/startTime`] = startTime
+    }
+
+    // Update endTime if provided and different from the current endTime
+    if (endTime && endTime !== currentOutsourcerData.endTime) {
+      updates[`${this.getOutsourcersPath(outsourcerKey)}/endTime`] = endTime
+    }
+
+    // Update breakMinutes if provided and different from the current breakMinutes
+    if (
+      breakMinutes !== null &&
+      breakMinutes !== currentOutsourcerData.breakMinutes
+    ) {
+      updates[`${this.getOutsourcersPath(outsourcerKey)}/breakMinutes`] =
+        breakMinutes
+    }
+
+    try {
+      // Perform atomic update to Firebase
+      await update(ref(this.database), updates)
+    } catch (error) {
+      const message = `Failed to record departure for outsourcerKey: ${outsourcerKey}.`
+      console.error(message, error) // eslint-disable-line no-console
+      throw new Error(`${message} ${error.message}`)
+    }
+  }
+
+  /**
    * Resets the leave information for a specified employee.
    * - Clears the `leavedAt` timestamp for the employee.
    * - Resets `endTime` and `breakMinutes` to default values based on site contract if available.
@@ -726,6 +1195,40 @@ class Placement {
       await update(ref(this.database), updates)
     } catch (error) {
       const message = `Failed to reset leave information for employeeId: ${employeeId}.`
+      console.error(message, error) // eslint-disable-line no-console
+      throw new Error(`${message} ${error.message}`)
+    }
+  }
+
+  /**
+   * Resets the leave information for a specified outsourcer.
+   * - Clears the `leavedAt` timestamp for the outsourcer.
+   * - Resets `endTime` and `breakMinutes` to default values based on site contract if available.
+   *
+   * @param {string} outsourcerKey - The KEY of the outsourcer whose leave information is being reset.
+   * @throws Will throw an error if the outsourcer data is not found.
+   */
+  async resetOutsourcerLeave(outsourcerKey) {
+    // Retrieve current outsourcer data
+    const currentOutsourcerData = this.data?.outsourcers?.[outsourcerKey]
+    if (!currentOutsourcerData) {
+      throw new Error(`Outsourcer KEY not found: ${outsourcerKey}`)
+    }
+
+    // Prepare the update object to reset leave details
+    const updates = {
+      [`${this.getOutsourcersPath(outsourcerKey)}/leavedAt`]: null,
+      [`${this.getOutsourcersPath(outsourcerKey)}/endTime`]:
+        this.siteContract?.endTime || null,
+      [`${this.getOutsourcersPath(outsourcerKey)}/breakMinutes`]:
+        this.siteContract?.breakMinutes || 0,
+    }
+
+    // Perform atomic update in Firebase with error handling
+    try {
+      await update(ref(this.database), updates)
+    } catch (error) {
+      const message = `Failed to reset leave information for outsourcerKey: ${outsourcerKey}.`
       console.error(message, error) // eslint-disable-line no-console
       throw new Error(`${message} ${error.message}`)
     }
@@ -770,6 +1273,50 @@ class Placement {
       await update(ref(database), updates)
     } catch (error) {
       const message = `Failed to move employee in the order list.`
+      console.error(message, error) // eslint-disable-line no-console
+      throw new Error(`${message} ${error.message}`)
+    }
+  }
+
+  /**
+   * Moves an outsour within the `outsourcerOrder` array to a new position.
+   * - Checks that both the old and new indices are within bounds.
+   * - Reorders the outsour list accordingly.
+   *
+   * @param {number} newIndex - The target index to move the outsour to.
+   * @param {number} oldIndex - The current index of the outsour to move.
+   * @throws Will throw an error if either `oldIndex` or `newIndex` is out of bounds.
+   */
+  async moveOutsourcer(newIndex, oldIndex) {
+    // Clone the current outsour order array
+    const outsourcerOrder = [...(this.data?.outsourcerOrder || [])]
+
+    // Validate indices
+    if (
+      oldIndex < 0 ||
+      oldIndex >= outsourcerOrder.length ||
+      newIndex < 0 ||
+      newIndex >= outsourcerOrder.length
+    ) {
+      throw new Error(
+        `The specified index is out of bounds. oldIndex: ${oldIndex}, newIndex: ${newIndex}`
+      )
+    }
+
+    // Remove the outsour from the old index and insert at the new index
+    const [movedOutsourcer] = outsourcerOrder.splice(oldIndex, 1)
+    outsourcerOrder.splice(newIndex, 0, movedOutsourcer)
+
+    // Prepare the update object with the reordered outsour list
+    const updates = {
+      [`${this.getOutsourcerOrderPath()}`]: outsourcerOrder,
+    }
+
+    try {
+      // Perform atomic update in Firebase
+      await update(ref(database), updates)
+    } catch (error) {
+      const message = `Failed to move outsour in the order list.`
       console.error(message, error) // eslint-disable-line no-console
       throw new Error(`${message} ${error.message}`)
     }
