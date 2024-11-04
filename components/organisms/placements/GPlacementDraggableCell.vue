@@ -473,15 +473,18 @@ export default {
           siteOperationSchedule.requiredWorkers || '-'
         }}</v-chip
       >
-      <v-btn
-        style="position: absolute; bottom: -12px; right: -12px; z-index: 3"
-        fab
-        x-small
-        color="primary lighten-2"
-        @click="onClickAddEmployee"
-      >
-        <v-icon>mdi-plus</v-icon>
-      </v-btn>
+      <v-fab-transition>
+        <v-btn
+          v-show="!ellipsis"
+          style="position: absolute; bottom: -12px; right: -12px; z-index: 3"
+          fab
+          x-small
+          color="primary lighten-2"
+          @click="onClickAddEmployee"
+        >
+          <v-icon>mdi-plus</v-icon>
+        </v-btn>
+      </v-fab-transition>
       <!-- 従業員用 Draggable コンポーネント -->
       <draggable
         class="d-flex flex-column pa-2 flex-grow-1"
@@ -534,15 +537,18 @@ export default {
     <v-divider class="my-1" />
     <!-- 外注先用 Draggable コンテナ -->
     <div class="d-flex flex-grow-1" style="position: relative">
-      <v-btn
-        style="position: absolute; bottom: -12px; right: -12px; z-index: 3"
-        fab
-        x-small
-        color="primary lighten-2"
-        @click="onClickAddOutsourcer"
-      >
-        <v-icon>mdi-plus</v-icon>
-      </v-btn>
+      <v-fab-transition>
+        <v-btn
+          v-show="!ellipsis"
+          style="position: absolute; bottom: -12px; right: -12px; z-index: 3"
+          fab
+          x-small
+          color="primary lighten-2"
+          @click="onClickAddOutsourcer"
+        >
+          <v-icon>mdi-plus</v-icon>
+        </v-btn>
+      </v-fab-transition>
       <!--
         外注先の Draggable コンポーネント
         - 外注先の KEY にインデックスを使用するため D&D による追加は不可能。
