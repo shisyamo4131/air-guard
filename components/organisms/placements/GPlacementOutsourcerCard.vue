@@ -19,12 +19,6 @@ export default {
     outsourcerKey: { type: String, required: true },
     // End time in HH:MM format
     endTime: { type: String, default: '' },
-    // Show an icon at the beginning of the name if the service is continuous
-    showContinuous: { type: Boolean, default: false },
-    // Show an error icon at the beginning of the outsourcer name if true
-    showError: { type: Boolean, default: false },
-    // 存在状態にするかどうかです
-    showExist: { type: Boolean, default: false },
     // Start time in HH:MM format
     startTime: { type: String, default: '' },
   },
@@ -47,11 +41,7 @@ export default {
 </script>
 
 <template>
-  <v-card
-    v-bind="$attrs"
-    :color="showExist ? 'red' : undefined"
-    v-on="$listeners"
-  >
+  <v-card v-bind="$attrs" v-on="$listeners">
     <v-card-text :class="ellipsis ? 'pa-1' : 'pa-2'">
       <!-- Main line -->
       <div class="d-flex">
@@ -59,17 +49,6 @@ export default {
         <v-btn icon x-small @click="$emit('click:remove')">
           <v-icon small>mdi-close</v-icon>
         </v-btn>
-        <!--
-          Error icon
-          - It takes priority over the continuous icon when displayed.
-        -->
-        <v-icon v-if="showError" left small color="error">
-          mdi-alert-circle
-        </v-icon>
-        <!-- Coutinuous icon -->
-        <v-icon v-else-if="showContinuous" left small color="warning">
-          mdi-star
-        </v-icon>
         <h4>{{ outsourcer?.abbr || 'N/A' }}</h4>
         <v-spacer />
         <v-icon class="handle" left small>mdi-arrow-all</v-icon>
