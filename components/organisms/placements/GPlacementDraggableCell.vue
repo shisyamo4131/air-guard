@@ -484,7 +484,7 @@ export default {
     <!-- 従業員用 Draggable コンテナ -->
     <div class="d-flex flex-grow-1" style="position: relative">
       <v-chip
-        style="position: absolute; right: -12px; top: -12px; z-index: 3"
+        style="position: absolute; right: -12px; top: -12px; z-index: 1"
         :color="isLackedWorkers ? 'error' : 'info'"
         small
         @click="onClickSchedule"
@@ -497,7 +497,7 @@ export default {
       <v-fab-transition>
         <v-btn
           v-show="!ellipsis"
-          style="position: absolute; bottom: -12px; right: -12px; z-index: 3"
+          style="position: absolute; bottom: -12px; right: -12px; z-index: 1"
           fab
           x-small
           color="primary lighten-2"
@@ -561,7 +561,7 @@ export default {
       <v-fab-transition>
         <v-btn
           v-show="!ellipsis"
-          style="position: absolute; bottom: -12px; right: -12px; z-index: 3"
+          style="position: absolute; bottom: -12px; right: -12px; z-index: 1"
           fab
           x-small
           color="primary lighten-2"
