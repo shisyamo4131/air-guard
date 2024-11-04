@@ -457,6 +457,24 @@ export default {
         siteContract: this.siteContract,
       })
     },
+
+    /**
+     * 配置人員数の VChip がクリックされた時の処理です。
+     * - active-cell イベントで自身を特定するためのオブジェクトを emit します。
+     * - click:addOutsourcer イベント emit します。
+     */
+    onClickSchedule() {
+      const item = this.siteOperationSchedule.docId
+        ? this.siteOperationSchedule.toObject()
+        : {
+            dates: [this.date],
+            siteId: this.siteId,
+            workShift: this.workShift,
+            startTime: this.siteContract?.startTime || '',
+            endTime: this.siteContract?.endTime || '',
+          }
+      this.$emit('click:schedule', item)
+    },
   },
 }
 </script>
@@ -469,6 +487,7 @@ export default {
         style="position: absolute; right: -12px; top: -12px; z-index: 3"
         :color="isLackedWorkers ? 'error' : 'info'"
         small
+        @click="onClickSchedule"
         >{{ placedAmount }}/{{
           siteOperationSchedule.requiredWorkers || '-'
         }}</v-chip
