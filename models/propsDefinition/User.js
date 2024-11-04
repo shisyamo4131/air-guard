@@ -4,12 +4,6 @@ const propsDefinition = {
   docId: { type: String, default: '', required: false, requiredByClass: false },
   uid: { type: String, default: '', required: false, requiredByClass: true },
   email: { type: String, default: '', required: false, requiredByClass: true },
-  password: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: true,
-  },
   displayName: {
     type: String,
     default: '',
