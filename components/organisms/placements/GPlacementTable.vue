@@ -10,11 +10,16 @@ import dayjs from 'dayjs'
 import ja from 'dayjs/locale/ja'
 import GPlacementDraggableCell from './GPlacementDraggableCell.vue'
 import GDialogEmployeeSelector from '~/components/molecules/dialogs/GDialogEmployeeSelector.vue'
+import GDialogOutsourcerSelector from '~/components/molecules/dialogs/GDialogOutsourcerSelector.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GPlacementDraggableCell, GDialogEmployeeSelector },
+  components: {
+    GPlacementDraggableCell,
+    GDialogEmployeeSelector,
+    GDialogOutsourcerSelector,
+  },
 
   /***************************************************************************
    * PROPS
@@ -54,6 +59,7 @@ export default {
       columns: [],
       dialog: {
         employeeSelector: false,
+        outsourcerSelector: false,
         siteDetail: false,
       },
       draggingItem: null,
@@ -103,6 +109,10 @@ export default {
       return allEmployees.filter(
         (employee) => !placementedIds.includes(employee.docId)
       )
+    },
+
+    selectableOutsourcers() {
+      return this.$store.getters['outsourcers/items']
     },
   },
 
@@ -165,6 +175,10 @@ export default {
       this.dialog.employeeSelector = true
     },
 
+    openOutsourcerSelector() {
+      this.dialog.outsourcerSelector = true
+    },
+
     /**
      * 複数の従業員を一括で配置します。
      * - 一括配置を行うためのメソッドは GPlacementDraggableCell が保有しています。
@@ -187,8 +201,34 @@ export default {
         alert(message)
         return
       }
-      await cell[0].addBulk(employees.map(({ docId }) => docId))
+      await cell[0].addBulkEmployees(employees.map(({ docId }) => docId))
       this.dialog.employeeSelector = false
+    },
+
+    /**
+     * 複数の外注先を一括で配置します。
+     * - 一括配置を行うためのメソッドは GPlacementDraggableCell が保有しています。
+     * - data.activeCell が ref 参照のための情報を保持しています。
+     */
+    async addOutsourcersInBulk(outsourcers) {
+      if (!this.activeCell) {
+        const message = `activeCell の参照が正しくありません。`
+        // eslint-disable-next-line no-console
+        console.error(message, { activeCell: this.activeCell })
+        alert(message)
+        return
+      }
+      const { date, siteId, workShift } = this.activeCell
+      const cell = this.$refs?.[`cell-${date}-${siteId}-${workShift}`] || null
+      if (!cell || !cell.length) {
+        const message = `activeCell の参照を取得できませんでした。`
+        // eslint-disable-next-line no-console
+        console.error(message, { activeCell: this.activeCell })
+        alert(message)
+        return
+      }
+      await cell[0].addBulkOutsourcers(outsourcers[0].docId, 1)
+      this.dialog.outsourcerSelector = false
     },
   },
 }
@@ -237,9 +277,13 @@ export default {
               :dragging-item.sync="draggingItem"
               @active-cell="activeCell = $event"
               @click:addEmployee="openEmployeeSelector"
+              @click:addOutsourcer="openOutsourcerSelector"
             >
-              <template #default="{ attrs, on }">
-                <slot name="col" v-bind="{ attrs, on }" />
+              <template #employees="{ attrs, on }">
+                <slot name="employees-col" v-bind="{ attrs, on }" />
+              </template>
+              <template #outsourcers="{ attrs, on }">
+                <slot name="outsourcers-col" v-bind="{ attrs, on }" />
               </template>
             </g-placement-draggable-cell>
           </td>
@@ -252,6 +296,13 @@ export default {
       v-model="dialog.employeeSelector"
       :items="selectableEmployees"
       @click:submit="addEmployeesInBulk"
+    />
+
+    <!-- outsourcer selector -->
+    <g-dialog-outsourcer-selector
+      v-model="dialog.outsourcerSelector"
+      :items="selectableOutsourcers"
+      @click:submit="addOutsourcersInBulk"
     />
 
     <!-- detail dialog -->
