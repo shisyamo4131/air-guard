@@ -1,6 +1,9 @@
 <template>
   <v-container>
     <v-card>
+      <v-card-text>
+        {{ instance }}
+      </v-card-text>
       <v-card-actions>
         <v-btn @click="add">add</v-btn>
       </v-card-actions>

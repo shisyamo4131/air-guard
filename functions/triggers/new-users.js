@@ -18,7 +18,6 @@ export const onCreated = onDocumentCreated(
   async (event) => {
     const userData = event.data.data()
     const { email, password, employeeId, displayName } = userData
-
     let uid = ''
     try {
       // Authentication に新しいユーザーアカウントを作成
