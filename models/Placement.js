@@ -21,15 +21,6 @@
  *    |        |    |- arrivedAt: timestamp
  *    |        |    |- leavedAt: timestamp
  *    |        |    |- temperature: 36.5
- *    |        |- outsourcers
- *    |           |- ${outsoucerId}-${branch}
- *    |             |- outsoucerId: 'emp123'
- *    |             |- branch: ${branch}
- *    |             |- startTime: '08:00'
- *    |             |- endTime: '17:00'
- *    |             |- breakMinutes: 60
- *    |             |- arrivedAt: timestamp
- *    |             |- leavedAt: timestamp
  *    |- assignments
  *       |- employees
  *       |  |- ${date} (YYYY-MM-DD)
