@@ -21,6 +21,7 @@
  */
 import draggable from 'vuedraggable'
 import { Placement } from '~/models/Placement'
+import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -69,6 +70,7 @@ export default {
        * Variable to store an instance of the Placement class.
        */
       placement: null,
+      siteOperationSchedule: new SiteOperationSchedule(),
     }
   },
 
@@ -171,6 +173,16 @@ export default {
         workShift: this.workShift,
       })
     },
+
+    /**
+     * 配置した従業員数が必要人員数を満たしているかどうかを返します。
+     * - 満たしていない場合 true を返します。
+     */
+    isLackedWorkers() {
+      const required = this.siteOperationSchedule.requiredWorkers || 0
+      const placed = this.employeeOrder.length
+      return required > placed
+    },
   },
 
   /***************************************************************************
@@ -215,6 +227,7 @@ export default {
         if (!date || !siteId || !workShift) return
         this.placement = new Placement({ date, siteId, workShift })
         this.placement.subscribe()
+        this.siteOperationSchedule.subscribe(`${siteId}-${date}-${workShift}`)
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error(err)
@@ -230,6 +243,7 @@ export default {
       try {
         if (this.placement) this.placement.unsubscribe()
         this.placement = null
+        this.siteOperationSchedule.unsubscribe()
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error(err)
@@ -347,7 +361,7 @@ export default {
 </script>
 
 <template>
-  <div style="height: 100%" class="py-1 d-flex flex-column">
+  <div style="height: 100%; position: relative" class="py-1 d-flex flex-column">
     <div class="d-flex pb-1" style="gap: 4px">
       <v-btn depressed x-small @click="onClickAddEmployee">
         <v-icon small>mdi-account-plus</v-icon>
@@ -360,6 +374,14 @@ export default {
       </v-btn>
     </div>
 
+    <v-chip
+      style="position: absolute; right: -4px; top: 12px"
+      :color="isLackedWorkers ? 'error' : 'info'"
+      small
+      >{{ employeeOrder.length }}/{{
+        siteOperationSchedule.requiredWorkers || '-'
+      }}</v-chip
+    >
     <draggable
       class="d-flex flex-column pa-2 flex-grow-1"
       :style="{
