@@ -83,8 +83,8 @@ export const onUpdate = onDocumentUpdated(
       await pushHistory(after, 'update', {
         requiredWorkers: before.requiredWorkers,
         qualification: before.qualification,
-        start: before.start,
-        end: before.end,
+        startTime: before.startTime,
+        endTime: before.endTime,
       })
     }
   }
@@ -121,8 +121,8 @@ async function pushHistory(data, type, before) {
     workShift: data.workShift,
     uid: data.uid,
     before: before && type === 'update' ? before : null,
-    start: data.start,
-    end: data.end,
+    startTime: data.startTime,
+    endTime: data.endTime,
   }
   const dbRef = database.ref(
     `History/SiteOperationSchedules/${siteId}/${timestamp}-${item.date}`
