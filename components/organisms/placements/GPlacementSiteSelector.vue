@@ -4,11 +4,16 @@
  */
 import { mapGetters } from 'vuex'
 import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
+import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
+import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
+import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GRadioGroupWorkShift from '~/components/molecules/inputs/GRadioGroupWorkShift.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
 import GDataTableSites from '~/components/molecules/tables/GDataTableSites.vue'
+import GEditModeMixin from '~/mixins/GEditModeMixin'
+import Site from '~/models/Site'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -20,7 +25,14 @@ export default {
     GBtnCancelIcon,
     GSwitch,
     GRadioGroupWorkShift,
+    GBtnRegistIcon,
+    GDialogInput,
+    GInputSite,
   },
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GEditModeMixin],
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -28,6 +40,8 @@ export default {
     return {
       dialog: false,
       includesExpired: false,
+      instance: new Site(),
+      internalDialog: false,
       page: 1,
       pageCount: 0,
       selectedItems: [],
@@ -86,6 +100,20 @@ export default {
     <v-card class="d-flex flex-column" :tile="$vuetify.breakpoint.mobile">
       <v-toolbar class="flex-grow-0" color="secondary" dark dense flat>
         <v-toolbar-title>現場選択</v-toolbar-title>
+        <v-spacer />
+        <g-dialog-input v-model="internalDialog">
+          <template #activator="{ attrs, on }">
+            <g-btn-regist-icon v-bind="attrs" v-on="on" />
+          </template>
+          <template #default="{ attrs, on }">
+            <g-input-site
+              v-bind="attrs"
+              :edit-mode="editMode"
+              :instance="instance"
+              v-on="on"
+            />
+          </template>
+        </g-dialog-input>
       </v-toolbar>
       <v-toolbar class="flex-grow-0" flat>
         <g-text-field-search v-model="search" />
