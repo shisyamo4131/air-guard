@@ -59,15 +59,15 @@ export default {
     <v-spacer />
     <component :is="component">
       <!-- 前の週へボタン -->
-      <v-btn v-bind="btnAttrs">
+      <!-- <v-btn v-bind="btnAttrs">
         <v-icon :left="!isMobile">mdi-chevron-left</v-icon>
         <span v-if="!isMobile">前の週へ</span>
-      </v-btn>
+      </v-btn> -->
       <!-- 次の週へボタン -->
-      <v-btn v-bind="btnAttrs">
+      <!-- <v-btn v-bind="btnAttrs">
         <span v-if="!isMobile">次の週へ</span>
         <v-icon :right="!isMobile">mdi-chevron-right</v-icon>
-      </v-btn>
+      </v-btn> -->
       <!-- 現場追加ボタン -->
       <g-placement-site-selector @selected="onNewSiteSelected">
         <template #activator="{ attrs, on }">
