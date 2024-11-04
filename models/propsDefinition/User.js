@@ -14,7 +14,7 @@ const propsDefinition = {
     type: String,
     default: '',
     required: false,
-    requiredByClass: true,
+    requiredByClass: false, // 管理者など、従業員IDを持たないユーザーが発生する可能性あり。
   },
 }
 
