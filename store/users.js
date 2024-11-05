@@ -25,6 +25,14 @@ export const state = () => ({
  * GETTERS
  ******************************************************************/
 export const getters = {
+  /**
+   * state.items の内容を返します。
+   * @param {*} state
+   * @returns {Array<Object>} ユーザー情報の配列
+   */
+  items(state) {
+    return state.items
+  },
   get: (state) => (docId) => {
     return state.items.find((item) => item.docId === docId)
   },
