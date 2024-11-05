@@ -527,7 +527,7 @@ export default {
         <draggable
           class="d-flex flex-column pa-2 flex-grow-1"
           :style="{
-            minHeight: '18px',
+            minHeight: '24px',
             gap: '8px',
           }"
           :value="employeeOrder"
@@ -582,7 +582,7 @@ export default {
         <draggable
           class="d-flex flex-column pa-2 flex-grow-1"
           :style="{
-            minHeight: '18px',
+            minHeight: '24px',
             gap: '8px',
           }"
           :value="outsourcerOrder"
