@@ -1,26 +1,30 @@
 <script>
 /**
- * Usersドキュメント入力コンポーネント
+ * ## Users コレクションドキュメント入力コンポーネント
  *
- * - UsersドキュメントはAuthenticationのアカウント作成時に、Cloud Functionsによって同期作成されます。
- * - uidは読み取り専用とします。
- * - Employeesドキュメントとの紐づけは専用の機能で行います。
+ * - Users コレクションドキュメントは Authentication のアカウント作成時に、Cloud Functionsによって同期作成されます。
+ * - よって、当該コンポーネントは編集専用となります。
+ * - uidは読み取り専用です。
  *
- * @version 2.0.0
  * @author shisyamo4131
- * @updates
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 import GTextField from '../../atoms/inputs/GTextField.vue'
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import User from '~/models/User'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import GAutocompleteEmployee from '~/components/atoms/inputs/GAutocompleteEmployee.vue'
+import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextField, GCardInputForm },
+  components: {
+    GTextField,
+    GCardInputForm,
+    GAutocompleteEmployee,
+    GCheckboxDeleteData,
+  },
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
@@ -59,14 +63,17 @@ export default {
   >
     <v-form @submit.prevent>
       <g-text-field
-        v-model="editModel.uid"
+        v-model="editModel.docId"
         label="uid"
         readonly
         hint="読み取り専用"
         persistent-hint
       />
       <g-text-field v-model="editModel.displayName" label="表示名" required />
+      <g-text-field v-model="editModel.email" label="email" required />
+      <g-autocomplete-employee v-model="editModel.employeeId" label="従業員" />
     </v-form>
+    <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
   </g-card-input-form>
 </template>
 

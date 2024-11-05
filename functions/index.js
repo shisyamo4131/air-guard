@@ -15,6 +15,7 @@ import * as operationResults from './triggers/operation-results.js'
 import * as maintenance from './modules/maintenance.js'
 import * as outsourcers from './triggers/outsourcers.js'
 import * as newUsers from './triggers/new-users.js'
+import * as users from './triggers/users.js'
 
 export {
   auth,
@@ -30,4 +31,5 @@ export {
   maintenance,
   outsourcers,
   newUsers,
+  users,
 }

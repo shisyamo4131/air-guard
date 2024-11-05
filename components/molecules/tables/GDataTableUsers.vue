@@ -1,13 +1,10 @@
 <script>
 /**
- * ### GDataTableUsers
+ * ## GDataTableUsers
  *
- * UsersのDataTableコンポーネント
+ * Users コレクションドキュメント用 DataTable コンポーネントです。
  *
- * @version 2.0.0
  * @author shisyamo4131
- * @updates
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 export default {
@@ -31,8 +28,9 @@ export default {
   computed: {
     headers() {
       return [
-        { text: 'uid', value: 'uid' },
         { text: '表示名', value: 'displayName' },
+        { text: 'email', value: 'email' },
+        { text: 'uid', value: 'docId' },
       ]
     },
   },
