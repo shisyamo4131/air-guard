@@ -13,6 +13,7 @@ module.exports = {
   'admin-work-regulations': ['admin', 'developer'],
   'admin-work-regulations-docId': ['admin', 'developer'],
   'admin-maintenance': ['admin', 'developer'],
+  'admin-users': ['admin', 'developer'],
   customers: ['admin', 'developer'],
   'customers-docId': ['admin', 'developer'],
   employees: ['admin', 'developer'],

@@ -75,6 +75,11 @@
     "icon": "mdi-wrench-cog",
     "lists": [
       {
+        "name": "ユーザー管理",
+        "to": "/admin/users",
+        "icon": "mdi-account"
+      },
+      {
         "name": "就業規則",
         "to": "/admin/work-regulations"
       },
