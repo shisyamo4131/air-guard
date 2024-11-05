@@ -65,6 +65,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      fab: false,
       /**
        * Variable to store an instance of the Placement class.
        */
@@ -480,141 +481,137 @@ export default {
 </script>
 
 <template>
-  <div style="height: 100%; position: relative" class="py-4 d-flex flex-column">
-    <!-- 従業員用 Draggable コンテナ -->
-    <div class="d-flex flex-grow-1" style="position: relative">
-      <v-chip
-        style="position: absolute; right: -12px; top: -12px; z-index: 1"
-        :color="isLackedWorkers ? 'error' : 'info'"
-        small
-        @click="onClickSchedule"
-      >
-        <v-icon v-if="siteOperationSchedule?.qualification" small left>
-          mdi-star
-        </v-icon>
-        {{ placedAmount }}/{{ siteOperationSchedule.requiredWorkers || '-' }}
-      </v-chip>
-      <v-fab-transition>
-        <v-btn
-          v-show="!ellipsis"
-          style="position: absolute; bottom: -12px; right: -12px; z-index: 1"
-          fab
-          x-small
-          color="primary lighten-2"
-          @click="onClickAddEmployee"
-        >
-          <v-icon>mdi-plus</v-icon>
+  <div style="height: 100%; position: relative" class="py-2 d-flex flex-column">
+    <v-chip
+      style="position: absolute; right: -12px; top: 4px; z-index: 1"
+      :color="isLackedWorkers ? 'error' : 'info'"
+      small
+      @click="onClickSchedule"
+    >
+      <v-icon v-if="siteOperationSchedule?.qualification" small left>
+        mdi-star
+      </v-icon>
+      {{ placedAmount }}/{{ siteOperationSchedule.requiredWorkers || '-' }}
+    </v-chip>
+    <v-speed-dial
+      v-model="fab"
+      style="position: absolute; bottom: 2px; right: -12px"
+      direction="left"
+      transition="slide-x-reverse-transition"
+    >
+      <template #activator>
+        <v-btn v-model="fab" color="primary" fab x-small>
+          <v-icon v-if="fab">mdi-close</v-icon>
+          <v-icon v-else>mdi-plus</v-icon>
         </v-btn>
-      </v-fab-transition>
-      <!-- 従業員用 Draggable コンポーネント -->
-      <draggable
-        class="d-flex flex-column pa-2 flex-grow-1"
-        :style="{
-          border: `1px solid lightgray`,
-          minHeight: '36px',
-          gap: '8px',
-        }"
-        :value="employeeOrder"
-        :disabled="!acceptable"
-        :group="{ ...group, name: `employees-${group?.name || ''}` }"
-        handle=".handle"
-        v-bind="{ animation: 300 }"
-        @start="createGraggingItem"
-        @end="deleteDraggingItem"
-        @change="onChangeEmployee"
-      >
-        <div v-for="employeeId of employeeOrder" :key="employeeId">
-          <slot
-            name="employees"
-            v-bind="{
-              attrs: {
-                employeeId,
-                date,
-                siteId,
-                workShift,
-                ellipsis,
-                startTime: employees?.[employeeId]?.startTime || '',
-                endTime: employees?.[employeeId]?.endTime || '',
-                showError: employeeIdsWithMultipleSiteIds.includes(employeeId),
-                showExist:
-                  employeeId === draggingItem?.employeeId &&
-                  date === draggingItem?.date &&
-                  (siteId !== draggingItem?.siteId ||
-                    workShift !== draggingItem?.workShift),
-                showContinuous:
-                  employeeIdsWithDifferentWorkShifts.includes(employeeId),
-              },
-              on: {
-                'click:edit': () =>
-                  onClickEdit(employees?.[employeeId] || null),
-                'click:remove': () =>
-                  handleRemoveEmployee({ element: employeeId }),
-              },
-            }"
-          />
-        </div>
-      </draggable>
-    </div>
-    <v-divider class="my-1" />
-    <!-- 外注先用 Draggable コンテナ -->
-    <div class="d-flex flex-grow-1" style="position: relative">
-      <v-fab-transition>
-        <v-btn
-          v-show="!ellipsis"
-          style="position: absolute; bottom: -12px; right: -12px; z-index: 1"
-          fab
-          x-small
-          color="primary lighten-2"
-          @click="onClickAddOutsourcer"
+      </template>
+      <v-btn color="indigo" dark fab x-small @click="onClickAddEmployee">
+        <v-icon>mdi-account</v-icon>
+      </v-btn>
+      <v-btn color="secondary" fab x-small @click="onClickAddOutsourcer">
+        <v-icon>mdi-handshake</v-icon>
+      </v-btn>
+    </v-speed-dial>
+    <!-- メインコンテナ -->
+    <div style="border: 1px solid lightgray" class="py-2 flex-grow-1">
+      <!-- 従業員用 Draggable コンテナ -->
+      <div class="d-flex flex-grow-1">
+        <!-- 従業員用 Draggable コンポーネント -->
+        <draggable
+          class="d-flex flex-column pa-2 flex-grow-1"
+          :style="{
+            minHeight: '18px',
+            gap: '8px',
+          }"
+          :value="employeeOrder"
+          :disabled="!acceptable"
+          :group="{ ...group, name: `employees-${group?.name || ''}` }"
+          handle=".handle"
+          v-bind="{ animation: 300 }"
+          @start="createGraggingItem"
+          @end="deleteDraggingItem"
+          @change="onChangeEmployee"
         >
-          <v-icon>mdi-plus</v-icon>
-        </v-btn>
-      </v-fab-transition>
-      <!--
+          <div v-for="employeeId of employeeOrder" :key="employeeId">
+            <slot
+              name="employees"
+              v-bind="{
+                attrs: {
+                  employeeId,
+                  date,
+                  siteId,
+                  workShift,
+                  ellipsis,
+                  startTime: employees?.[employeeId]?.startTime || '',
+                  endTime: employees?.[employeeId]?.endTime || '',
+                  showError:
+                    employeeIdsWithMultipleSiteIds.includes(employeeId),
+                  showExist:
+                    employeeId === draggingItem?.employeeId &&
+                    date === draggingItem?.date &&
+                    (siteId !== draggingItem?.siteId ||
+                      workShift !== draggingItem?.workShift),
+                  showContinuous:
+                    employeeIdsWithDifferentWorkShifts.includes(employeeId),
+                },
+                on: {
+                  'click:edit': () =>
+                    onClickEdit(employees?.[employeeId] || null),
+                  'click:remove': () =>
+                    handleRemoveEmployee({ element: employeeId }),
+                },
+              }"
+            />
+          </div>
+        </draggable>
+      </div>
+      <!-- 外注先用 Draggable コンテナ -->
+      <div class="d-flex flex-grow-1">
+        <!--
         外注先の Draggable コンポーネント
         - 外注先の KEY にインデックスを使用するため D&D による追加は不可能。
         - group.name を日付、現場、勤務区分で個別に設定して D&D による追加を回避。
       -->
-      <draggable
-        class="d-flex flex-column pa-2 flex-grow-1"
-        :style="{
-          border: `1px solid lightgray`,
-          minHeight: '36px',
-          gap: '8px',
-        }"
-        :value="outsourcerOrder"
-        :disabled="!acceptable"
-        :group="{
-          ...group,
-          name: `outsourcers-${date}-${siteId}-${workShift}`,
-        }"
-        handle=".handle"
-        v-bind="{ animation: 300 }"
-        @change="onChangeOutsourcer"
-      >
-        <div v-for="outsourcerKey of outsourcerOrder" :key="outsourcerKey">
-          <slot
-            name="outsourcers"
-            v-bind="{
-              attrs: {
-                outsourcerKey,
-                date,
-                siteId,
-                workShift,
-                ellipsis,
-                startTime: outsourcers?.[outsourcerKey]?.startTime || '',
-                endTime: outsourcers?.[outsourcerKey]?.endTime || '',
-              },
-              on: {
-                'click:edit': () =>
-                  onClickEdit(outsourcers?.[outsourcerKey] || null),
-                'click:remove': () =>
-                  handleRemoveOutsourcer({ element: outsourcerKey }),
-              },
-            }"
-          />
-        </div>
-      </draggable>
+        <draggable
+          class="d-flex flex-column pa-2 flex-grow-1"
+          :style="{
+            minHeight: '18px',
+            gap: '8px',
+          }"
+          :value="outsourcerOrder"
+          :disabled="!acceptable"
+          :group="{
+            ...group,
+            name: `outsourcers-${date}-${siteId}-${workShift}`,
+          }"
+          handle=".handle"
+          v-bind="{ animation: 300 }"
+          @change="onChangeOutsourcer"
+        >
+          <div v-for="outsourcerKey of outsourcerOrder" :key="outsourcerKey">
+            <slot
+              name="outsourcers"
+              v-bind="{
+                attrs: {
+                  outsourcerKey,
+                  date,
+                  siteId,
+                  workShift,
+                  ellipsis,
+                  startTime: outsourcers?.[outsourcerKey]?.startTime || '',
+                  endTime: outsourcers?.[outsourcerKey]?.endTime || '',
+                },
+                on: {
+                  'click:edit': () =>
+                    onClickEdit(outsourcers?.[outsourcerKey] || null),
+                  'click:remove': () =>
+                    handleRemoveOutsourcer({ element: outsourcerKey }),
+                },
+              }"
+            />
+          </div>
+        </draggable>
+      </div>
     </div>
   </div>
 </template>
