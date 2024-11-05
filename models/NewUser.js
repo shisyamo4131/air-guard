@@ -1,5 +1,5 @@
 import { FireModel } from 'air-firebase'
-import { classProps } from './propsDefinition/User'
+import { classProps } from './propsDefinition/NewUser'
 
 /**
  * NewUserドキュメントデータモデル【論理削除】
