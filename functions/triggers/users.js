@@ -1,10 +1,13 @@
 import { getAuth } from 'firebase-admin/auth'
+import { getFirestore } from 'firebase-admin/firestore'
 import {
   onDocumentCreated,
   onDocumentDeleted,
+  onDocumentUpdated,
 } from 'firebase-functions/firestore'
 import { logger } from 'firebase-functions/v2'
 const auth = getAuth()
+const firestore = getFirestore()
 
 /**
  * Users コレクションドキュメントが作成された時の処理です。
@@ -25,6 +28,41 @@ export const onCreate = onDocumentCreated(`Users/{docId}`, async (event) => {
   } catch (error) {
     const message = 'Auth ユーザーアカウントの有効化処理に失敗しました。'
     logger.error(message, { uid, error })
+  }
+})
+
+/**
+ * Users コレクションドキュメントが更新された時の処理です。
+ * - isAdmin, isDeveloper の値に応じて権限の設定を行います。
+ */
+export const onUpdate = onDocumentUpdated(`Users/{docId}`, async (event) => {
+  const uid = event.params.docId
+  const { isAdmin, isDeveloper } = event.data.after.data()
+
+  // Firestoreの参照を取得
+  const adminRef = firestore.collection('admin_users').doc(uid)
+  const developerRef = firestore.collection('developer_users').doc(uid)
+
+  try {
+    // isAdmin の値に応じて admin_users コレクションを更新または削除
+    if (isAdmin) {
+      await adminRef.set({ uid })
+    } else {
+      await adminRef.delete()
+    }
+
+    // isDeveloper の値に応じて developer_users コレクションを更新または削除
+    if (isDeveloper) {
+      await developerRef.set({ uid })
+    } else {
+      await developerRef.delete()
+    }
+  } catch (error) {
+    // エラーログを記録
+    logger.error('権限の設定変更処理でエラーが発生しました。', {
+      error,
+      uid,
+    })
   }
 })
 
