@@ -21,7 +21,7 @@
  */
 import draggable from 'vuedraggable'
 import { Placement } from '~/models/Placement'
-import SiteOperationSchedule from '~/models/SiteOperationSchedule'
+// import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -70,7 +70,6 @@ export default {
        * Variable to store an instance of the Placement class.
        */
       placement: null,
-      siteOperationSchedule: new SiteOperationSchedule(),
     }
   },
 
@@ -194,7 +193,7 @@ export default {
      * - 満たしていない場合 true を返します。
      */
     isLackedWorkers() {
-      const required = this.siteOperationSchedule.requiredWorkers || 0
+      const required = this.siteOperationSchedule?.requiredWorkers || 0
       return required > this.placedAmount
     },
 
@@ -204,6 +203,14 @@ export default {
      */
     placedAmount() {
       return this.employeeOrder.length + this.outsourcerOrder.length
+    },
+
+    siteOperationSchedule() {
+      return this.$store.getters['site-order/siteOperationSchedule']({
+        date: this.date,
+        siteId: this.siteId,
+        workShift: this.workShift,
+      })
     },
   },
 
@@ -249,7 +256,7 @@ export default {
         if (!date || !siteId || !workShift) return
         this.placement = new Placement({ date, siteId, workShift })
         this.placement.subscribe()
-        this.siteOperationSchedule.subscribe(`${siteId}-${date}-${workShift}`)
+        // this.siteOperationSchedule.subscribe(`${siteId}-${date}-${workShift}`)
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error(err)
@@ -265,7 +272,7 @@ export default {
       try {
         if (this.placement) this.placement.unsubscribe()
         this.placement = null
-        this.siteOperationSchedule.unsubscribe()
+        // this.siteOperationSchedule.unsubscribe()
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error(err)
@@ -465,7 +472,7 @@ export default {
      * - click:addOutsourcer イベント emit します。
      */
     onClickSchedule() {
-      const item = this.siteOperationSchedule.docId
+      const item = this.siteOperationSchedule
         ? this.siteOperationSchedule.toObject()
         : {
             dates: [this.date],
@@ -491,7 +498,7 @@ export default {
       <v-icon v-if="siteOperationSchedule?.qualification" small left>
         mdi-star
       </v-icon>
-      {{ placedAmount }}/{{ siteOperationSchedule.requiredWorkers || '-' }}
+      {{ placedAmount }}/{{ siteOperationSchedule?.requiredWorkers || '-' }}
     </v-chip>
     <v-speed-dial
       v-model="fab"

@@ -165,24 +165,64 @@ export default {
     },
 
     /**
+     * Vuex.site-order から siteOperationSchedules を取得して返します。
+     */
+    siteOperationSchedules() {
+      return this.$store.state['site-order'].siteOperationSchedules
+    },
+
+    /**
+     * Vuex.site-order から稼働予定の存在する現場のリストを生成して返します。
+     */
+    scheduledSites() {
+      return Array.from(
+        new Set(
+          this.siteOperationSchedules.map(
+            (schedule) => `${schedule.siteId}-${schedule.workShift}`
+          )
+        )
+      ).map((id) => {
+        const [siteId, workShift] = id.split('-')
+        return { id, siteId, workShift }
+      })
+    },
+
+    /**
+     * Vuex.assignments から配置が存在する現場のリストを生成して返します。
+     */
+    assignmentedSites() {
+      return Object.values(this.assignments.sites).flatMap((siteIds) =>
+        Object.entries(siteIds).flatMap(([siteId, workShifts]) =>
+          Object.keys(workShifts).map((workShift) => ({
+            id: `${siteId}-${workShift}`,
+            siteId,
+            workShift,
+          }))
+        )
+      )
+    },
+
+    /**
      * Retrieves an array of hidden site-workShift IDs.
      * - Flattens the assignments.sites object to extract all siteId-workShift combinations.
      * - Filters out site-workShift IDs that are not present in siteOrder.
      * - Returns an array of IDs for sites and work shifts that are considered "hidden."
      */
     hiddenSites() {
-      const assigned = Object.values(this.assignments.sites).flatMap(
-        (siteIds) =>
-          Object.entries(siteIds).flatMap(([siteId, workShifts]) =>
-            Object.keys(workShifts).map((workShift) => ({
-              id: `${siteId}-${workShift}`,
-              siteId,
-              workShift,
-            }))
+      const toBeDisplayed = Array.from(
+        new Set(
+          [...this.scheduledSites, ...this.assignmentedSites].map(
+            (site) => site.id
           )
-      )
-
-      return assigned.filter(
+        )
+      ).map((id) => {
+        // IDを使って元のオブジェクトを再構築
+        const site = [...this.scheduledSites, ...this.assignmentedSites].find(
+          (site) => site.id === id
+        )
+        return site
+      })
+      return toBeDisplayed.filter(
         ({ id }) => !this.siteOrder.some((order) => order.id === id)
       )
     },
@@ -199,8 +239,13 @@ export default {
      */
     currentDate: {
       handler() {
+        this.$store.dispatch('site-order/unsubscribe')
         this.$store.dispatch('assignments/unsubscribe')
         if (!this.from || !this.to) return
+        this.$store.dispatch('site-order/subscribe', {
+          from: this.from,
+          to: this.to,
+        })
         this.$store.dispatch('assignments/subscribe', {
           from: this.from,
           to: this.to,
@@ -208,14 +253,6 @@ export default {
       },
       immediate: true,
     },
-  },
-
-  /***************************************************************************
-   * MOUNTED
-   ***************************************************************************/
-  mounted() {
-    // Vuex.site-order への購読を開始します。
-    this.$store.dispatch('site-order/subscribe')
   },
 
   /***************************************************************************
