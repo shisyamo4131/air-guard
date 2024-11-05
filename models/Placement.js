@@ -494,8 +494,8 @@ class Placement {
         updates[this.getEmployeesPath(employeeId)] = newEmployee.toObject()
         updates[`${this.getAssignmentsEmployeesPath(employeeId)}/siteId`] =
           this.siteId
-        updates[`${this.getAssignmentsSitesPath(employeeId)}/employeeId`] =
-          employeeId
+        updates[`${this.getAssignmentsSitesPath(employeeId)}/id`] = employeeId
+        updates[`${this.getAssignmentsSitesPath(employeeId)}/isEmployee`] = true
       }
     })
 
@@ -571,6 +571,9 @@ class Placement {
         this.siteId
       updates[`${this.getAssignmentsSitesPath(outsourcerKey)}/id`] =
         outsourcerId
+      updates[
+        `${this.getAssignmentsSitesPath(outsourcerKey)}/isEmployee`
+      ] = false
     }
 
     // データベースをアトミックに更新
@@ -750,7 +753,7 @@ class Placement {
         [`${this.getEmployeeOrderPath()}`]: employeeOrder, // Update employee order without the removed employee
         [`${this.getEmployeesPath(employeeId)}`]: null, // Remove employee data from employees node
         [`${this.getAssignmentsEmployeesPath(employeeId)}/siteId`]: null, // Clear employee's site assignment
-        [`${this.getAssignmentsSitesPath(employeeId)}/employeeId`]: null, // Clear site assignment for the employee
+        [`${this.getAssignmentsSitesPath(employeeId)}`]: null, // Clear site assignment for the employee
       }
 
       // Perform atomic update in the database
@@ -784,7 +787,7 @@ class Placement {
         [`${this.getOutsourcerOrderPath()}`]: outsourcerOrder, // Update outsourcer order without the removed outsourcer
         [`${this.getOutsourcersPath(outsourcerKey)}`]: null, // Remove outsourcer data from outsourcers node
         [`${this.getAssignmentsOutsourcersPath(outsourcerKey)}/siteId`]: null, // Clear outsourcer's site assignment
-        [`${this.getAssignmentsSitesPath(outsourcerKey)}/id`]: null, // Clear site assignment for the outsourcer
+        [`${this.getAssignmentsSitesPath(outsourcerKey)}`]: null, // Clear site assignment for the outsourcer
       }
 
       // Perform atomic update in the database
