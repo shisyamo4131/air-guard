@@ -14,6 +14,7 @@ import User from '~/models/User'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GAutocompleteEmployee from '~/components/atoms/inputs/GAutocompleteEmployee.vue'
 import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
+import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 
 export default {
   /***************************************************************************
@@ -24,6 +25,7 @@ export default {
     GCardInputForm,
     GAutocompleteEmployee,
     GCheckboxDeleteData,
+    GCheckbox,
   },
   /***************************************************************************
    * MIXINS
@@ -72,6 +74,13 @@ export default {
       <g-text-field v-model="editModel.displayName" label="表示名" required />
       <g-text-field v-model="editModel.email" label="email" required />
       <g-autocomplete-employee v-model="editModel.employeeId" label="従業員" />
+      <g-checkbox
+        v-model="editModel.isAdmin"
+        class="mt-0"
+        label="管理者"
+        hide-details
+      />
+      <g-checkbox v-model="editModel.isDeveloper" label="開発者" hide-details />
     </v-form>
     <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
   </g-card-input-form>
