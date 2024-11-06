@@ -1,15 +1,11 @@
 <script>
 /**
- * GPlacementCell
+ * ## GPlacementDraggableCell
  *
- * A component for managing employee placement information for a specified date, site, and work shift.
- * Uses vue-draggable as the root component, allowing it to:
- * - Accept new employee placements from external components
- * - Reorder employees placed within this component
+ * 配置管理で、特定の日付、現場、勤務区分における従業員または外注先の配置情報を管理するためのコンポーネントです。
  *
- * Synchronizes with the Realtime Database using the Placement class.
- *
- * Provides a slot for displaying information about the placed employees.
+ * ### イベント
+ * - click:schedule イベントで当該コンポーネントが管理している SiteOperationSchedule インスタンスを emit します。
  *
  * ### draggingItemについて:
  * - draggingItem は draggable コンポーネントの start イベントで生成される、
@@ -21,6 +17,7 @@
  */
 import draggable from 'vuedraggable'
 import { Placement } from '~/models/Placement'
+import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 // import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
   /***************************************************************************
@@ -205,12 +202,32 @@ export default {
       return this.employeeOrder.length + this.outsourcerOrder.length
     },
 
+    /**
+     * siteId, workShift, date に一致する SiteOperationSchedule インスタンスを
+     * Vuex から取得して返します。
+     * 存在しない場合は新しい SiteOperationSchedule インスタンスを生成して返します。
+     * - インスタンス生成時、自身が管理する日付、現場ID、勤務区分を初期値として設定します。
+     * - computed.siteContract が存在する場合は開始時刻、終了時刻も初期値として設定します。
+     */
     siteOperationSchedule() {
-      return this.$store.getters['site-order/siteOperationSchedule']({
-        date: this.date,
-        siteId: this.siteId,
-        workShift: this.workShift,
+      // Vuex から SiteOperationSchedule を取得
+      const { date, siteId, workShift } = this.$props
+      const getterKey = 'site-order/siteOperationSchedule'
+      const instance = this.$store.getters[getterKey]({
+        date,
+        siteId,
+        workShift,
       })
+      return (
+        instance ||
+        new SiteOperationSchedule({
+          dates: [date],
+          siteId,
+          workShift,
+          startTime: this.siteContract?.startTime || '',
+          endTime: this.siteContract?.endTime || '',
+        })
+      )
     },
   },
 
@@ -465,24 +482,6 @@ export default {
         siteContract: this.siteContract,
       })
     },
-
-    /**
-     * 配置人員数の VChip がクリックされた時の処理です。
-     * - active-cell イベントで自身を特定するためのオブジェクトを emit します。
-     * - click:addOutsourcer イベント emit します。
-     */
-    onClickSchedule() {
-      const item = this.siteOperationSchedule
-        ? this.siteOperationSchedule.toObject()
-        : {
-            dates: [this.date],
-            siteId: this.siteId,
-            workShift: this.workShift,
-            startTime: this.siteContract?.startTime || '',
-            endTime: this.siteContract?.endTime || '',
-          }
-      this.$emit('click:schedule', item)
-    },
   },
 }
 </script>
@@ -493,7 +492,7 @@ export default {
       style="position: absolute; right: -12px; top: 4px; z-index: 1"
       :color="isLackedWorkers ? 'error' : 'info'"
       small
-      @click="onClickSchedule"
+      @click="$emit('click:schedule', siteOperationSchedule)"
     >
       <v-icon v-if="siteOperationSchedule?.qualification" small left>
         mdi-star
