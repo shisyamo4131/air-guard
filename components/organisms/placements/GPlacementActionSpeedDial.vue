@@ -11,6 +11,9 @@ export default {
      */
     direction: { type: String, default: 'left' },
 
+    disabledCopy: { type: Boolean, default: false },
+    disabledPaste: { type: Boolean, default: false },
+
     /**
      * 展開時のトランジション
      * @type {String}
@@ -43,6 +46,24 @@ export default {
     </v-btn>
     <v-btn color="secondary" fab x-small @click="$emit('click:add-outsourcer')">
       <v-icon>mdi-handshake</v-icon>
+    </v-btn>
+    <v-btn
+      color="info"
+      :disabled="disabledCopy"
+      fab
+      x-small
+      @click="$emit('click:copy')"
+    >
+      <v-icon>mdi-content-copy</v-icon>
+    </v-btn>
+    <v-btn
+      color="accent"
+      :disabled="disabledPaste"
+      fab
+      x-small
+      @click="$emit('click:paste')"
+    >
+      <v-icon>mdi-content-paste</v-icon>
     </v-btn>
   </v-speed-dial>
 </template>

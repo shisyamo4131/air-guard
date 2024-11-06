@@ -88,6 +88,8 @@ export default {
       },
       // ユーザーがアクションを行ったセルを特定するためのオブジェクト
       activeCell: null,
+
+      copiedContent: null,
     }
   },
 
@@ -314,6 +316,7 @@ export default {
         workShift: order.workShift,
         ellipsis: this.ellipsis,
         draggingItem: this.draggingItem,
+        copiedContent: this.copiedContent,
       }
       const on = {
         'active-cell': ($event) => (this.activeCell = $event),
@@ -322,6 +325,7 @@ export default {
         'click:edit-employee': this.openEmployeePlacementEditDialog,
         'click:edit-outsourcer': this.openOutsourcerPlacementEditDialog,
         'click:schedule': this.openScheduleDialog,
+        'update:copied-content': ($event) => (this.copiedContent = $event),
         'update:dragging-item': ($event) => (this.draggingItem = $event),
       }
       return { attrs, on }

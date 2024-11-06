@@ -61,6 +61,8 @@ export default {
      * Enables abbreviated display if set to true.
      */
     ellipsis: { type: Boolean, default: false },
+
+    copiedContent: { type: undefined, default: null },
   },
 
   /***************************************************************************
@@ -117,6 +119,12 @@ export default {
           endTime: this.siteContract?.endTime || '',
         })
       )
+    },
+
+    hasSomeOrder() {
+      const employees = this.placement?.data?.employeeOrder || []
+      const outsourcers = this.placement?.data?.outsourcerOrder || []
+      return employees.length + outsourcers.length > 0
     },
   },
 
@@ -235,6 +243,37 @@ export default {
         siteContract: this.siteContract,
       })
     },
+
+    contentCopy() {
+      const employeeIds = this.placement?.data?.employeeOrder || []
+      const outsourcerOrder = this.placement?.data?.outsourcerOrder || []
+      const outsourcers =
+        outsourcerOrder.length === 0
+          ? null
+          : outsourcerOrder.reduce((acc, i) => {
+              const [outsourcerId] = i.split('-')
+              if (!acc[outsourcerId]) acc[outsourcerId] = { length: 0 }
+              acc[outsourcerId].length += 1
+              return acc
+            }, {})
+      this.$emit('update:copied-content', { employeeIds, outsourcers })
+    },
+
+    async contentPaste() {
+      if (!this.copiedContent) return
+      if (this.copiedContent.employeeIds) {
+        await this.addBulkEmployees(this.copiedContent.employeeIds)
+      }
+      if (this.copiedContent.outsourcers) {
+        const outsourcerIds = Object.keys(this.copiedContent.outsourcers)
+        for (const outsourcerId of outsourcerIds) {
+          await this.addBulkOutsourcers(
+            outsourcerId,
+            this.copiedContent.outsourcers[outsourcerId].length
+          )
+        }
+      }
+    },
   },
 }
 </script>
@@ -253,8 +292,12 @@ export default {
     <!-- アクション スピードダイヤル -->
     <g-placement-action-speed-dial
       style="position: absolute; bottom: 2px; right: -12px"
+      :disabled-copy="!hasSomeOrder"
+      :disabled-paste="hasSomeOrder || !copiedContent"
       @click:add-employee="onClickAddEmployee"
       @click:add-outsourcer="onClickAddOutsourcer"
+      @click:copy="contentCopy"
+      @click:paste="contentPaste"
     />
 
     <!-- メインコンテナ -->
