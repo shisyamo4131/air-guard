@@ -420,13 +420,25 @@ export default {
     },
 
     /**
-     * Emits an event to initiate editing for the specified employee.
-     * - Retrieves the employee data path using the employeeId.
-     * - Passes a cloned object containing the data path and employee data to the parent component to avoid direct mutations.
+     * 従業員の編集ボタンがクリックされた時の処理です。
+     * - 編集対象の配置従業員のデータオブジェクトを受け取ります。
+     * - 編集対象の配置従業員データのパスを生成し、配置従業員データオブジェクトとともに
+     *   click:edit-employee イベントを emit します。
      */
-    onClickEdit(item) {
+    onClickEditEmployee(item) {
       const path = this.placement.getEmployeesPath(item.employeeId)
-      this.$emit('click:edit', structuredClone({ path, item }))
+      this.$emit('click:edit-employee', structuredClone({ item, path }))
+    },
+
+    /**
+     * 外注先の編集ボタンがクリックされた時の処理です。
+     * - 編集対象の配置外注先データオブジェクトを受け取ります。
+     * - 編集対象の配置外注先データのパスを生成し、配置外注先データオブジェクトとともに
+     *   click:edit-outsourcer イベントを emit します。
+     */
+    onClickEditOutsourcer(item) {
+      const path = this.placement.getOutsourcersPath(item.outsourcerKey)
+      this.$emit('click:edit-outsourcer', structuredClone({ item, path }))
     },
 
     /**
@@ -562,7 +574,7 @@ export default {
                 },
                 on: {
                   'click:edit': () =>
-                    onClickEdit(employees?.[employeeId] || null),
+                    onClickEditEmployee(employees?.[employeeId] || null),
                   'click:remove': () =>
                     handleRemoveEmployee({ element: employeeId }),
                 },
@@ -609,7 +621,7 @@ export default {
                 },
                 on: {
                   'click:edit': () =>
-                    onClickEdit(outsourcers?.[outsourcerKey] || null),
+                    onClickEditOutsourcer(outsourcers?.[outsourcerKey] || null),
                   'click:remove': () =>
                     handleRemoveOutsourcer({ element: outsourcerKey }),
                 },

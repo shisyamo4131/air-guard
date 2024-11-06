@@ -10,10 +10,13 @@ import dayjs from 'dayjs'
 import ja from 'dayjs/locale/ja'
 import GPlacementDraggableCell from './GPlacementDraggableCell.vue'
 import GPlacementSiteOperationScheduleEditDialog from './GPlacementSiteOperationScheduleEditDialog.vue'
+import GPlacementEmployeePlacementEditDialog from './GPlacementEmployeePlacementEditDialog.vue'
+import GPlacementOutsourcerPlacementEditDialog from './GPlacementOutsourcerPlacementEditDialog.vue'
 import GDialogEmployeeSelector from '~/components/molecules/dialogs/GDialogEmployeeSelector.vue'
 import GDialogOutsourcerSelector from '~/components/molecules/dialogs/GDialogOutsourcerSelector.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
+import { PlacedEmployee, PlacedOutsourcer } from '~/models/Placement'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -23,6 +26,8 @@ export default {
     GDialogEmployeeSelector,
     GDialogOutsourcerSelector,
     GPlacementSiteOperationScheduleEditDialog,
+    GPlacementEmployeePlacementEditDialog,
+    GPlacementOutsourcerPlacementEditDialog,
   },
 
   /***************************************************************************
@@ -68,12 +73,18 @@ export default {
       columns: [],
       dialog: {
         employeeSelector: false,
+        employeePlacement: false,
+        outsourcerPlacement: false,
         outsourcerSelector: false,
         schedule: false,
         siteDetail: false,
       },
       draggingItem: null,
       editModel: {
+        employeePlacement: new PlacedEmployee(),
+        employeePlacementPath: '',
+        outsourcerPlacement: new PlacedOutsourcer(),
+        outsourcerPlacementPath: '',
         schedule: new SiteOperationSchedule(),
       },
       item: {
@@ -259,6 +270,18 @@ export default {
       this.dialog.schedule = true
     },
 
+    openEmployeePlacementEditDialog({ item, path }) {
+      this.editModel.employeePlacement = item
+      this.editModel.employeePlacementPath = path
+      this.dialog.employeePlacement = true
+    },
+
+    openOutsourcerPlacementEditDialog({ item, path }) {
+      this.editModel.outsourcerPlacement = item
+      this.editModel.outsourcerPlacementPath = path
+      this.dialog.outsourcerPlacement = true
+    },
+
     /**
      * slots.site-row のスロットプロパティを生成して返します。
      * @param {Object} order siteOrder オブジェクト
@@ -301,6 +324,8 @@ export default {
         // 'click:addEmployee': this.openEmployeeSelector,
         'click:addEmployee': () => (this.dialog.employeeSelector = true),
         'click:addOutsourcer': () => (this.dialog.outsourcerSelector = true),
+        'click:edit-employee': this.openEmployeePlacementEditDialog,
+        'click:edit-outsourcer': this.openOutsourcerPlacementEditDialog,
         'click:schedule': this.openScheduleDialog,
         'update:dragging-item': ($event) => (this.draggingItem = $event),
       }
@@ -398,6 +423,20 @@ export default {
     <g-placement-site-operation-schedule-edit-dialog
       v-model="dialog.schedule"
       :instance="editModel.schedule"
+    />
+
+    <!-- employee placement dialog -->
+    <g-placement-employee-placement-edit-dialog
+      v-model="dialog.employeePlacement"
+      :item="editModel.employeePlacement"
+      :path="editModel.employeePlacementPath"
+    />
+
+    <!-- outsourcer placement dialog -->
+    <g-placement-outsourcer-placement-edit-dialog
+      v-model="dialog.outsourcerPlacement"
+      :item="editModel.outsourcerPlacement"
+      :path="editModel.outsourcerPlacementPath"
     />
   </v-simple-table>
 </template>
