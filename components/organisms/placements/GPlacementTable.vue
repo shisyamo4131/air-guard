@@ -9,10 +9,9 @@
 import dayjs from 'dayjs'
 import ja from 'dayjs/locale/ja'
 import GPlacementDraggableCell from './GPlacementDraggableCell.vue'
+import GPlacementSiteOperationScheduleEditDialog from './GPlacementSiteOperationScheduleEditDialog.vue'
 import GDialogEmployeeSelector from '~/components/molecules/dialogs/GDialogEmployeeSelector.vue'
 import GDialogOutsourcerSelector from '~/components/molecules/dialogs/GDialogOutsourcerSelector.vue'
-import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
-import GInputSiteOperationSchedule from '~/components/molecules/inputs/GInputSiteOperationSchedule.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
 export default {
@@ -23,8 +22,7 @@ export default {
     GPlacementDraggableCell,
     GDialogEmployeeSelector,
     GDialogOutsourcerSelector,
-    GDialogInput,
-    GInputSiteOperationSchedule,
+    GPlacementSiteOperationScheduleEditDialog,
   },
 
   /***************************************************************************
@@ -248,15 +246,24 @@ export default {
 
     /**
      * 現場の稼働予定を編集するためのダイアログを開きます。
-     * - GPlacementDraggableCell コンポーネントの click:schedule イベントを受けて実行される処理です。
-     * - 当該イベントが emit したデータがドキュメントとして存在すれば UPDATE, そうでなければ CREATE モードで開きます。
-     * - 日付、現場、勤務区分は emit されたデータが保持しています。
-     * - GPlacementDraggableCell コンポーネントが現場の取極め情報の取得に成功している場合、
-     *   CREATE モードでも開始時刻、終了時刻がそれぞれ初期値として設定されます。
+     * - GPlacementDraggableCell コンポーネントの click:schedule イベントを受けて実行されます。
+     * - 当該イベントから渡された SiteOperationSchedule インスタンスを引数として受け取ります。
+     * @param {SiteOperationSchedule} instance - 編集する SiteOperationSchedule インスタンス
      */
-    openScheduleEditor(item) {
-      this.editModel.schedule.initialize(item)
-      this.editMode = item?.docId ? this.UPDATE : this.CREATE
+    openScheduleDialog(instance) {
+      // インスタンスが存在しない、または正しい型でない場合の処理
+      if (!instance || !(instance instanceof SiteOperationSchedule)) {
+        const message =
+          'SiteOperationScheduleインスタンスが設定されていない、または不正なインスタンスが設定されました。'
+
+        // eslint-disable-next-line no-console
+        console.error(message, { instance })
+        alert(message)
+        return
+      }
+
+      // 編集対象のモデルにインスタンスを設定し、ダイアログを開く
+      this.editModel.schedule = instance
       this.dialog.schedule = true
     },
   },
@@ -307,7 +314,7 @@ export default {
               @active-cell="activeCell = $event"
               @click:addEmployee="openEmployeeSelector"
               @click:addOutsourcer="openOutsourcerSelector"
-              @click:schedule="openScheduleEditor"
+              @click:schedule="openScheduleDialog"
             >
               <template #employees="{ attrs, on }">
                 <slot name="employees-col" v-bind="{ attrs, on }" />
@@ -371,19 +378,10 @@ export default {
     </v-dialog>
 
     <!-- schedule dialog -->
-    <g-dialog-input v-model="dialog.schedule" max-width="360">
-      <template #default="{ attrs, on }">
-        <g-input-site-operation-schedule
-          v-bind="attrs"
-          :instance="editModel.schedule"
-          :edit-mode="editMode"
-          hide-date
-          hide-site
-          hide-work-shift
-          v-on="on"
-        />
-      </template>
-    </g-dialog-input>
+    <g-placement-site-operation-schedule-edit-dialog
+      v-model="dialog.schedule"
+      :instance="editModel.schedule"
+    />
   </v-simple-table>
 </template>
 
