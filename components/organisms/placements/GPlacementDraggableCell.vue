@@ -17,13 +17,14 @@
  *   item を受け取ることができないよう、computed.acceptable で監視しています。
  */
 import draggable from 'vuedraggable'
+import GPlacementActionSpeedDial from './GPlacementActionSpeedDial.vue'
 import { Placement } from '~/models/Placement'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { draggable },
+  components: { draggable, GPlacementActionSpeedDial },
 
   /***************************************************************************
    * PROPS
@@ -470,25 +471,14 @@ export default {
       </v-icon>
       {{ placedAmount }}/{{ siteOperationSchedule?.requiredWorkers || '-' }}
     </v-chip>
-    <v-speed-dial
-      v-model="fab"
+
+    <!-- アクション スピードダイヤル -->
+    <g-placement-action-speed-dial
       style="position: absolute; bottom: 2px; right: -12px"
-      direction="left"
-      transition="slide-x-reverse-transition"
-    >
-      <template #activator>
-        <v-btn v-model="fab" color="primary" fab x-small>
-          <v-icon v-if="fab">mdi-close</v-icon>
-          <v-icon v-else>mdi-plus</v-icon>
-        </v-btn>
-      </template>
-      <v-btn color="indigo" dark fab x-small @click="onClickAddEmployee">
-        <v-icon>mdi-account</v-icon>
-      </v-btn>
-      <v-btn color="secondary" fab x-small @click="onClickAddOutsourcer">
-        <v-icon>mdi-handshake</v-icon>
-      </v-btn>
-    </v-speed-dial>
+      @click:add-employee="onClickAddEmployee"
+      @click:add-outsourcer="onClickAddOutsourcer"
+    />
+
     <!-- メインコンテナ -->
     <div style="border: 1px solid lightgray" class="py-2 flex-grow-1">
       <!-- 従業員用 Draggable コンテナ -->
