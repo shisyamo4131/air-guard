@@ -77,10 +77,7 @@ export default {
         schedule: new SiteOperationSchedule(),
       },
       item: {
-        siteDetail: {
-          site: null,
-          customer: null,
-        },
+        siteDetail: null,
       },
       // ユーザーがアクションを行ったセルを特定するためのオブジェクト
       activeCell: null,
@@ -91,6 +88,61 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    /**
+     * data.activeCell に設定された値をもとに、GPlacementDraggableCell への参照を返します。
+     */
+    activeCellRef() {
+      if (!this.activeCell) return null
+      const { date, siteId, workShift } = this.activeCell
+      const cell = this.$refs?.[`cell-${date}-${siteId}-${workShift}`] || null
+      return cell
+    },
+
+    /**
+     * 従業員を配置するための GPlacementDraggableCell の addBulkEmployees メソッドを返します。
+     * - 該当メソッドは computed.activeCellRef 参照から取得します。
+     * @param {Array<Object>} employees 配置対象の従業員オブジェクト
+     * @param {Object} employee 従業員オブジェクト
+     * @param {string} employee.docId 従業員ID
+     */
+    addEmployeesInBulk() {
+      return async (employees) => {
+        if (!this.activeCellRef) {
+          const message = `activeCell の参照を取得できませんでした。`
+          // eslint-disable-next-line no-console
+          console.error(message, { activeCell: this.activeCell })
+          alert(message)
+          return
+        }
+        await this.activeCellRef.addBulkEmployees(
+          employees.map(({ docId }) => docId)
+        )
+      }
+    },
+
+    /**
+     * 外注先を配置するための GPlacementDraggableCell の addBulkOutsourcers メソッドを返します。
+     * - 該当メソッドは computed.activeCellRef 参照から取得します。
+     * - outsourcers は配列ですが、先頭の1件のみが使用されます。
+     * - addBulkOutsourcers メソッドは第2引数で追加の繰り返し回数を指定可能です。
+     *   -> 現在は 1 で固定しています。
+     * @param {Array<Object>} outsourcers 配置対象の外注先オブジェクト
+     * @param {Object} outsourcer 外注先オブジェクト
+     * @param {string} outsourcer.docId 外注先ID
+     */
+    addOutsourcersInBulk() {
+      return async (outsourcers) => {
+        if (!this.activeCellRef) {
+          const message = `activeCell の参照を取得できませんでした。`
+          // eslint-disable-next-line no-console
+          console.error(message, { activeCell: this.activeCell })
+          alert(message)
+          return
+        }
+        await this.activeCellRef.addBulkOutsourcers(outsourcers[0].docId, 1)
+      }
+    },
+
     /**
      * Generates an array of dates based on the current date and specified length.
      * - Creates an array of dates from currentDate, each formatted as 'YYYY-MM-DD'.
@@ -180,68 +232,8 @@ export default {
      * - Opens the site detail dialog by setting dialog.siteDetail to true.
      */
     onClickShowSiteDetail(siteId) {
-      this.item.siteDetail.site = this.$store.getters['site-order/site'](siteId)
+      this.item.siteDetail = this.$store.getters['site-order/site'](siteId)
       this.dialog.siteDetail = true
-    },
-
-    openEmployeeSelector() {
-      this.dialog.employeeSelector = true
-    },
-
-    openOutsourcerSelector() {
-      this.dialog.outsourcerSelector = true
-    },
-
-    /**
-     * 複数の従業員を一括で配置します。
-     * - 一括配置を行うためのメソッドは GPlacementDraggableCell が保有しています。
-     * - data.activeCell が ref 参照のための情報を保持しています。
-     */
-    async addEmployeesInBulk(employees) {
-      if (!this.activeCell) {
-        const message = `activeCell の参照が正しくありません。`
-        // eslint-disable-next-line no-console
-        console.error(message, { activeCell: this.activeCell })
-        alert(message)
-        return
-      }
-      const { date, siteId, workShift } = this.activeCell
-      const cell = this.$refs?.[`cell-${date}-${siteId}-${workShift}`] || null
-      if (!cell || !cell.length) {
-        const message = `activeCell の参照を取得できませんでした。`
-        // eslint-disable-next-line no-console
-        console.error(message, { activeCell: this.activeCell })
-        alert(message)
-        return
-      }
-      await cell[0].addBulkEmployees(employees.map(({ docId }) => docId))
-      this.dialog.employeeSelector = false
-    },
-
-    /**
-     * 複数の外注先を一括で配置します。
-     * - 一括配置を行うためのメソッドは GPlacementDraggableCell が保有しています。
-     * - data.activeCell が ref 参照のための情報を保持しています。
-     */
-    async addOutsourcersInBulk(outsourcers) {
-      if (!this.activeCell) {
-        const message = `activeCell の参照が正しくありません。`
-        // eslint-disable-next-line no-console
-        console.error(message, { activeCell: this.activeCell })
-        alert(message)
-        return
-      }
-      const { date, siteId, workShift } = this.activeCell
-      const cell = this.$refs?.[`cell-${date}-${siteId}-${workShift}`] || null
-      if (!cell || !cell.length) {
-        const message = `activeCell の参照を取得できませんでした。`
-        // eslint-disable-next-line no-console
-        console.error(message, { activeCell: this.activeCell })
-        alert(message)
-        return
-      }
-      await cell[0].addBulkOutsourcers(outsourcers[0].docId, 1)
-      this.dialog.outsourcerSelector = false
     },
 
     /**
@@ -266,6 +258,54 @@ export default {
       this.editModel.schedule = instance
       this.dialog.schedule = true
     },
+
+    /**
+     * slots.site-row のスロットプロパティを生成して返します。
+     * @param {Object} order siteOrder オブジェクト
+     * @param {string} order.siteId 現場ID
+     * @param {string} order.workShift 勤務区分
+     */
+    getSiteRowSlotProps(order) {
+      const attrs = {
+        siteId: order.siteId,
+        workShift: order.workShift,
+        ellipsis: this.ellipsis,
+      }
+      const on = {
+        'click:remove': () => this.onClickExcludeSite(order.id),
+        'click:show-detail': () => this.onClickShowSiteDetail(order.siteId),
+      }
+      return { attrs, on }
+    },
+
+    /**
+     * GPlacementDraggableCell コンポーネントに引き渡す各種プロパティを生成して返します。
+     * @param {Object} column 列生成用オブジェクト
+     * @param {string} column.date 日付（YYYY-MM-DD形式）
+     * @param {Object} order siteOrder オブジェクト
+     * @param {string} order.siteId 現場ID
+     * @param {string} order.workShift 勤務区分
+     */
+    getCellProps(column, order) {
+      const attrs = {
+        ref: `cell-${column.date}-${order.siteId}-${order.workShift}`,
+        date: column.date,
+        group: { name: column.date },
+        siteId: order.siteId,
+        workShift: order.workShift,
+        ellipsis: this.ellipsis,
+        draggingItem: this.draggingItem,
+      }
+      const on = {
+        'active-cell': ($event) => (this.activeCell = $event),
+        // 'click:addEmployee': this.openEmployeeSelector,
+        'click:addEmployee': () => (this.dialog.employeeSelector = true),
+        'click:addOutsourcer': () => (this.dialog.outsourcerSelector = true),
+        'click:schedule': this.openScheduleDialog,
+        'update:dragging-item': ($event) => (this.draggingItem = $event),
+      }
+      return { attrs, on }
+    },
   },
 }
 </script>
@@ -284,37 +324,14 @@ export default {
       <template v-for="(order, rowIndex) of siteOrder">
         <tr :key="`site-row-${rowIndex}`">
           <td colspan="7">
-            <slot
-              name="site-row"
-              v-bind="{
-                attrs: {
-                  siteId: order.siteId,
-                  workShift: order.workShift,
-                  ellipsis,
-                },
-                on: {
-                  'click:remove': () => onClickExcludeSite(order.id),
-                  'click:show-detail': () =>
-                    onClickShowSiteDetail(order.siteId),
-                },
-              }"
-            />
+            <slot name="site-row" v-bind="getSiteRowSlotProps(order)" />
           </td>
         </tr>
         <tr :key="`placement-row-${rowIndex}`">
           <td v-for="column of columns" :key="column.date">
             <g-placement-draggable-cell
-              :ref="`cell-${column.date}-${order.siteId}-${order.workShift}`"
-              :date="column.date"
-              :group="{ name: column.date }"
-              :site-id="order.siteId"
-              :work-shift="order.workShift"
-              :ellipsis="ellipsis"
-              :dragging-item.sync="draggingItem"
-              @active-cell="activeCell = $event"
-              @click:addEmployee="openEmployeeSelector"
-              @click:addOutsourcer="openOutsourcerSelector"
-              @click:schedule="openScheduleDialog"
+              v-bind="getCellProps(column, order)?.attrs || {}"
+              v-on="getCellProps(column, order)?.on || {}"
             >
               <template #employees="{ attrs, on }">
                 <slot name="employees-col" v-bind="{ attrs, on }" />
@@ -356,7 +373,7 @@ export default {
               <v-icon small>mdi-dump-truck</v-icon>
             </v-list-item-icon>
             <v-list-item-title style="white-space: normal; overflow: visible">
-              {{ item.siteDetail?.site?.name || 'undefined' }}
+              {{ item.siteDetail?.name || 'undefined' }}
             </v-list-item-title>
           </v-list-item>
           <v-list-item>
@@ -364,7 +381,7 @@ export default {
               <v-icon small>mdi-map-marker</v-icon>
             </v-list-item-icon>
             <v-list-item-title style="white-space: normal; overflow: visible">
-              {{ item.siteDetail?.site?.address || 'undefined' }}
+              {{ item.siteDetail?.address || 'undefined' }}
             </v-list-item-title>
           </v-list-item>
           <v-list-item>
