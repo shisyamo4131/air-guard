@@ -6,7 +6,6 @@
  *
  * @author shisyamo4131
  */
-import dayjs from 'dayjs'
 import ja from 'dayjs/locale/ja'
 import GPlacementDraggableCell from './GPlacementDraggableCell.vue'
 import GPlacementSiteOperationScheduleEditDialog from './GPlacementSiteOperationScheduleEditDialog.vue'
@@ -44,10 +43,7 @@ export default {
      * - Defaults to today's date in 'YYYY-MM-DD' format, using dayjs.
      * - Used as the base date in 'YYYY-MM-DD' format for the column generation process.
      */
-    currentDate: {
-      type: String,
-      default: () => dayjs().format('YYYY-MM-DD'),
-    },
+    currentDate: { type: String, required: true },
     /**
      * The number of days to generate columns for, starting from currentDate.
      * - Defines the length of the date range for column generation.
@@ -161,7 +157,7 @@ export default {
     dates() {
       if (!this.currentDate) return []
       return [...Array(this.length)].map((_, i) =>
-        dayjs(this.currentDate).add(i, 'day').format('YYYY-MM-DD')
+        this.$dayjs(this.currentDate).add(i, 'day').format('YYYY-MM-DD')
       )
     },
 
@@ -216,7 +212,7 @@ export default {
           return {
             date,
             index,
-            col: dayjs(date).locale(ja).format('MM/DD(ddd)'),
+            col: this.$dayjs(date).locale(ja).format('MM/DD(ddd)'),
             isHoliday, // 祝日情報を追加
           }
         })
