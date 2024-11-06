@@ -6,6 +6,7 @@
  *
  * ### イベント
  * - click:schedule イベントで当該コンポーネントが管理している SiteOperationSchedule インスタンスを emit します。
+ * - `update:dragging-item` : 親コンポーネントへ draggingItem を emit します。
  *
  * ### draggingItemについて:
  * - draggingItem は draggable コンポーネントの start イベントで生成される、
@@ -18,7 +19,6 @@
 import draggable from 'vuedraggable'
 import { Placement } from '~/models/Placement'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
-// import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -129,47 +129,6 @@ export default {
      */
     outsourcers() {
       return this.placement?.data?.outsourcers || null
-    },
-
-    /**
-     * 同一日、同一勤務区分で複数の現場に配置されている従業員IDの配列を返します。
-     * - 他現場の配置情報は Vuex の assignments を参照します。
-     */
-    employeeIdsWithMultipleSiteIds() {
-      const assignments =
-        this.$store.state.assignments.employees?.[this.date] || {}
-      const result = []
-
-      // Iterate over each employeeId and its assigned shifts
-      for (const [employeeId, shifts] of Object.entries(assignments)) {
-        // Check each work shift for multiple site IDs
-        const isMultipleSites = Object.values(shifts).some(
-          (siteId) => Object.keys(siteId).length > 1
-        )
-        if (isMultipleSites) result.push(employeeId)
-      }
-
-      return result
-    },
-
-    /**
-     * 同一日、異なる勤務区分で複数配置されている従業員IDの配列を返します。
-     * - 他現場の配置情報は Vuex の assignments を参照します。
-     */
-    employeeIdsWithDifferentWorkShifts() {
-      const assignments =
-        this.$store.state.assignments.employees?.[this.date] || {}
-      const result = []
-
-      // Iterate over each employeeId and its assigned shifts
-      for (const [employeeId, shifts] of Object.entries(assignments)) {
-        // Add to result if there are multiple work shifts
-        if (Object.keys(shifts).length > 1) {
-          result.push(employeeId)
-        }
-      }
-
-      return result
     },
 
     /**
@@ -301,7 +260,7 @@ export default {
      * Event handler for the start of a drag action.
      * - Emits an update:dragging-item event.
      */
-    createGraggingItem(event) {
+    createDraggingItem(event) {
       const index = event.oldIndex
       this.$emit('update:dragging-item', {
         employeeId: this.employeeOrder[index],
@@ -546,7 +505,7 @@ export default {
           :group="{ ...group, name: `employees-${group?.name || ''}` }"
           handle=".handle"
           v-bind="{ animation: 300 }"
-          @start="createGraggingItem"
+          @start="createDraggingItem"
           @end="deleteDraggingItem"
           @change="onChangeEmployee"
         >
@@ -562,15 +521,17 @@ export default {
                   ellipsis,
                   startTime: employees?.[employeeId]?.startTime || '',
                   endTime: employees?.[employeeId]?.endTime || '',
-                  showError:
-                    employeeIdsWithMultipleSiteIds.includes(employeeId),
+                  showError: $store.getters[
+                    'assignments/isEmployeeAssignedToMultipleSites'
+                  ](date, employeeId),
                   showExist:
                     employeeId === draggingItem?.employeeId &&
                     date === draggingItem?.date &&
                     (siteId !== draggingItem?.siteId ||
                       workShift !== draggingItem?.workShift),
-                  showContinuous:
-                    employeeIdsWithDifferentWorkShifts.includes(employeeId),
+                  showContinuous: $store.getters[
+                    'assignments/isEmployeeAssignedToDifferentShifts'
+                  ](date, employeeId),
                 },
                 on: {
                   'click:edit': () =>

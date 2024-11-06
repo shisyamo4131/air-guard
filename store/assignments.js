@@ -15,6 +15,65 @@ export const state = () => ({
   listeners: { employees: null, sites: null }, // リスナーの参照を保持
 })
 
+export const getters = {
+  /**
+   * 同一日、同一勤務区分で複数の現場に配置されている従業員IDの配列を返します。
+   * @param {string} date 日付（YYYY-MM-DD形式）
+   * @returns {Array} 配置されている従業員IDの配列
+   */
+  employeeIdsWithMultipleSiteIds: (state) => (date) => {
+    const assignments = state.employees?.[date] || {}
+    const result = []
+    for (const [employeeId, shifts] of Object.entries(assignments)) {
+      // 複数のsiteIdがある勤務シフトが存在するかチェック
+      const isMultipleSites = Object.values(shifts).some(
+        (siteId) => Object.keys(siteId).length > 1
+      )
+      if (isMultipleSites) result.push(employeeId)
+    }
+    return result
+  },
+
+  /**
+   * 同一日、異なる勤務区分で複数配置されている従業員IDの配列を返します。
+   * @param {string} date 日付（YYYY-MM-DD形式）
+   * @returns {Array} 配置されている従業員IDの配列
+   */
+  employeeIdsWithDifferentWorkShifts: (state) => (date) => {
+    const assignments = state.employees?.[date] || {}
+    const result = []
+    for (const [employeeId, shifts] of Object.entries(assignments)) {
+      if (Object.keys(shifts).length > 1) {
+        result.push(employeeId)
+      }
+    }
+    return result
+  },
+
+  /**
+   * 指定された従業員が異なる勤務区分で複数配置されているかを返します。
+   * @param {string} date 日付（YYYY-MM-DD形式）
+   * @param {string} employeeId 従業員ID
+   * @returns {boolean} 複数配置であればtrue、そうでなければfalse
+   */
+  isEmployeeAssignedToDifferentShifts:
+    (state, getters) => (date, employeeId) => {
+      const employeeIds = getters.employeeIdsWithDifferentWorkShifts(date)
+      return employeeIds.includes(employeeId)
+    },
+
+  /**
+   * 指定された日付で指定された従業員が同一勤務区分で複数の現場に配置されているかを返します。
+   * @param {string} date 日付（YYYY-MM-DD形式）
+   * @param {string} employeeId 従業員ID
+   * @returns {boolean} 複数配置であればtrue、そうでなければfalse
+   */
+  isEmployeeAssignedToMultipleSites: (state, getters) => (date, employeeId) => {
+    const employeeIds = getters.employeeIdsWithMultipleSiteIds(date)
+    return employeeIds.includes(employeeId)
+  },
+}
+
 export const mutations = {
   SET_EMPLOYEES(state, data) {
     state.employees = data
