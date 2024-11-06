@@ -95,8 +95,8 @@ class PlacedEmployee {
     arrivedAt,
     leavedAt,
     temperature,
-  }) {
-    this.employeeId = employeeId
+  } = {}) {
+    this.employeeId = employeeId || ''
     this.startTime = startTime || ''
     this.endTime = endTime || ''
     this.breakMinutes = breakMinutes || null
@@ -147,7 +147,7 @@ class PlacedOutsourcer extends PlacedEmployee {
     arrivedAt,
     leavedAt,
     temperature,
-  }) {
+  } = {}) {
     super({
       startTime,
       endTime,
@@ -157,7 +157,7 @@ class PlacedOutsourcer extends PlacedEmployee {
       temperature,
     })
     delete this.employeeId
-    this.outsourcerKey = outsourcerKey
+    this.outsourcerKey = outsourcerKey || ''
   }
 
   /**
@@ -1326,4 +1326,4 @@ class Placement {
   }
 }
 
-export { Placement }
+export { Placement, PlacedEmployee, PlacedOutsourcer }
