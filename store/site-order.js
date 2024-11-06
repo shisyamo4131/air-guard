@@ -34,8 +34,9 @@ export const getters = {
   /**
    * 指定された日付、現場、勤務区分の現場稼働予定を返します。
    * - 対象が存在しない場合は undefined を返します。
+   * - 存在する場合は SiteOperationSchedule クラスのインスタンスを返します。
    * @param {*} state
-   * @returns
+   * @returns {SiteOperationSchedule|undefined} 現場稼働予定のインスタンス、または undefined
    */
   siteOperationSchedule:
     (state) =>
