@@ -321,7 +321,6 @@ export default {
       }
       const on = {
         'active-cell': ($event) => (this.activeCell = $event),
-        // 'click:addEmployee': this.openEmployeeSelector,
         'click:addEmployee': () => (this.dialog.employeeSelector = true),
         'click:addOutsourcer': () => (this.dialog.outsourcerSelector = true),
         'click:edit-employee': this.openEmployeePlacementEditDialog,
