@@ -18,13 +18,14 @@
  */
 import draggable from 'vuedraggable'
 import GPlacementActionSpeedDial from './GPlacementActionSpeedDial.vue'
+import GPlacementScheduleChip from './GPlacementScheduleChip.vue'
 import { Placement } from '~/models/Placement'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { draggable, GPlacementActionSpeedDial },
+  components: { draggable, GPlacementActionSpeedDial, GPlacementScheduleChip },
 
   /***************************************************************************
    * PROPS
@@ -142,24 +143,6 @@ export default {
         siteId: this.siteId,
         workShift: this.workShift,
       })
-    },
-
-    /**
-     * 配置した従業員数が必要人員数を満たしているかどうかを返します。
-     * - 配置されている従業員数には外注先を含めます。
-     * - 満たしていない場合 true を返します。
-     */
-    isLackedWorkers() {
-      const required = this.siteOperationSchedule?.requiredWorkers || 0
-      return required > this.placedAmount
-    },
-
-    /**
-     * 配置されている人員数です。
-     * - 人員数は従業員数 + 外注先数です。
-     */
-    placedAmount() {
-      return this.employeeOrder.length + this.outsourcerOrder.length
     },
 
     /**
@@ -460,17 +443,14 @@ export default {
 
 <template>
   <div style="height: 100%; position: relative" class="py-2 d-flex flex-column">
-    <v-chip
+    <!-- 配置人数Chipコンポーネント -->
+    <g-placement-schedule-chip
       style="position: absolute; right: -12px; top: 4px; z-index: 1"
-      :color="isLackedWorkers ? 'error' : 'info'"
+      :placement="placement"
+      :site-operation-schedule="siteOperationSchedule"
       small
       @click="$emit('click:schedule', siteOperationSchedule)"
-    >
-      <v-icon v-if="siteOperationSchedule?.qualification" small left>
-        mdi-star
-      </v-icon>
-      {{ placedAmount }}/{{ siteOperationSchedule?.requiredWorkers || '-' }}
-    </v-chip>
+    />
 
     <!-- アクション スピードダイヤル -->
     <g-placement-action-speed-dial
