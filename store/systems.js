@@ -40,7 +40,7 @@ export const getters = {
    */
   isLatest(state) {
     const appVer = APP_VERSION.split('.')
-    const required = state.version.split('.')
+    const required = (state.version || '0.0.0').split('.')
     for (let i = 0; i < 3; i++) {
       if (parseInt(appVer[i]) > parseInt(required[i])) return true
       if (parseInt(appVer[i]) < parseInt(required[i])) return false
