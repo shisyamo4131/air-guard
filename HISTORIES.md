@@ -11,6 +11,52 @@
 
 - 2024-10-24 - ^v5.1.1 -> ^v6.1.0
 
+# 従業員稼働履歴の更新処理について
+
+ある従業員のある現場への初回稼働日および最終稼働日をデータとして保持する方法を以下のようにする。
+
+## データ構造
+
+```
+/EmployeeSiteHistory/
+  ${employeeId}/
+    ${siteId}/
+      firstDate: "YYYY-MM-DD"
+      firstOperationId: ${operationResultId}
+      lastDate: "YYYY-MM-DD"
+      lastOperationId: ${operationResultId}
+```
+
+従業員 ID ごとに Realtime Database で管理する。
+
+## データの更新
+
+### Pub/Sub による自動更新
+
+System に最後に更新処理を実行した日時をタイムスタンプで保有しておき、この日時以降に作成、または更新された稼働実績ドキュメントを対象として Cloud Functions の Pub/Sub を利用して定期的に更新する。
+
+- functions/models/System/updateEmployeeSiteHistory
+
+System クラスの updateEmployeeSiteHistory メソッドで更新する。
+
+- functions/modules/system/runDailyTask
+
+Pub/Sub を利用した日時処理を定義
+
+但し、この方法だけでは従業員稼働実績ドキュメントが削除された場合に対応しきれない。
+削除された場合、EmployeeWorkHistory クラスの updateForce メソッドを削除トリガーで実行する。
+updateForce メソッドについては下記を参照。
+
+### メンテナンスによる強制更新
+
+functions/modules/maintenance に updateEmployeeWorkHistoryForce を onCall で実装。
+request オブジェクトで employeeId を受け取り、指定された従業員の従業員稼働実績ドキュメント（OperationWorkResult）を対象に、強制的に稼働履歴を更新する。
+siteId をオプションで受け取ることができ、指定された場合は現場が固定される。
+
+- functions/models/EmployeeWorkHistory/updateForce
+
+EmployoeeWorkHistory クラスの updateForce メソッドで更新する。
+
 # 実装計画
 
 ## 従業員の交通費精算
