@@ -66,6 +66,18 @@ export default class System extends FireModel {
    ****************************************************************************/
   fromFirestore(snapshot) {
     const data = snapshot.data()
+
+    // calcAttendance の特殊処理
+    const calcAttendance = {
+      error: data?.calcAttendance?.error || null,
+      executeStatus: data?.calcAttendance?.executeStatus || null,
+      lastExecutedAt: data?.calcAttendance?.lastExecutedAt?.toDate
+        ? data.calcAttendance.lastExecutedAt.toDate()
+        : null,
+      status: data?.calcAttendance?.status || 'ready',
+    }
+
+    // calcMonthlySales の特殊処理
     const calcMonthlySales = {
       error: data?.calcMonthlySales?.error || null,
       executeStatus: data?.calcMonthlySales?.executeStatus || null,
@@ -74,9 +86,32 @@ export default class System extends FireModel {
         : null,
       status: data?.calcMonthlySales?.status || 'ready',
     }
+
+    // calcSiteBillings の特殊処理
+    const calcSiteBillings = {
+      error: data?.calcSiteBillings?.error || null,
+      executeStatus: data?.calcSiteBillings?.executeStatus || null,
+      lastExecutedAt: data?.calcSiteBillings?.lastExecutedAt?.toDate
+        ? data.calcSiteBillings.lastExecutedAt.toDate()
+        : null,
+      status: data?.calcSiteBillings?.status || 'ready',
+    }
+
+    // calcSiteBillings の特殊処理
+    const refreshEmployeeSiteHistory = {
+      error: data?.refreshEmployeeSiteHistory?.error || null,
+      executeStatus: data?.refreshEmployeeSiteHistory?.executeStatus || null,
+      lastExecutedAt: data?.refreshEmployeeSiteHistory?.lastExecutedAt?.toDate
+        ? data.refreshEmployeeSiteHistory.lastExecutedAt.toDate()
+        : null,
+      status: data?.refreshEmployeeSiteHistory?.status || 'ready',
+    }
     return {
       ...super.fromFirestore(snapshot),
+      calcAttendance,
       calcMonthlySales,
+      calcSiteBillings,
+      refreshEmployeeSiteHistory,
     }
   }
 }
