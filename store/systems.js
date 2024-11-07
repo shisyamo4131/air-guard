@@ -6,14 +6,16 @@
  * ### 注意事項
  *
  * @author shisyamo4131
- * @version 1.0.0
- *
- * @updates
- * - version 1.0.0 - 2024-10-15 - 初版作成
  */
 import { firestore } from 'air-firebase'
 import { doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore'
 import System from '~/models/System'
+
+/**
+ * アプリのバージョンです。
+ * Firestore のシステムバージョンとの比較に使用されます。
+ */
+const APP_VERSION = '0.0.0'
 
 /******************************************************************
  * STATE
@@ -30,19 +32,21 @@ export const state = () => ({
  * GETTERS
  ******************************************************************/
 export const getters = {
-  // get: (state) => (docId) => {
-  //   return state.items.find((item) => item.docId === docId)
-  // },
-  // /**
-  //  * 指定されたユーザーのドキュメントidから`displayName`を返します。
-  //  * ユーザーが見つからなかった場合はnullを返します。
-  //  * @param {string} docId ユーザーのドキュメントid
-  //  * @returns {string|null}
-  //  */
-  // name: (state, getters) => (docId) => {
-  //   const user = getters.get(docId)
-  //   return user ? user.displayName : null
-  // },
+  /**
+   * アプリのバージョンが最新であるかどうかを返します。
+   * 起動中のアプリのバージョン（APP_VERSION）を Firestore の Systems ドキュメントから
+   * 取得した要求バージョン（state.version）と比較し、古ければ false を返します。
+   * @returns
+   */
+  isLatest(state) {
+    const appVer = APP_VERSION.split('.')
+    const required = state.version.split('.')
+    for (let i = 0; i < 3; i++) {
+      if (parseInt(appVer[i]) > parseInt(required[i])) return true
+      if (parseInt(appVer[i]) < parseInt(required[i])) return false
+    }
+    return true
+  },
 }
 /******************************************************************
  * MUTATIONS
