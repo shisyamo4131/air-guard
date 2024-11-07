@@ -11,7 +11,7 @@
 export default {
   computed: {
     dialog() {
-      return this.$store.getters['systems/isLatest']
+      return !this.$store.getters['systems/isLatest']
     },
 
     message() {
