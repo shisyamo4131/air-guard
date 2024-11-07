@@ -214,43 +214,48 @@ export const refreshSiteBillings = onCall(async (request) => {
 })
 
 /****************************************************************************
- * 月次で実行される従業員の稼働履歴更新用 onCall 関数です。
+ * 指定された従業員の稼働履歴を強制更新します。
+ * - バグなどの理由で稼働履歴が正常に記録されていなかった場合の強制的な処理です。
+ * - 大量のデータ、ドキュメントを読み込む可能性があるため、必要な時にだけ実行してください。
+ * - 現場IDが指定された場合、対象の現場のみで強制更新します。
+ * - 稼働実績ドキュメントが削除された際の稼働履歴の更新には便利です。
  *
  * @param {Object} request - Cloud Functions の `onCall` から渡されるリクエストオブジェクト。
- * @param {string} request.month - 更新対象の年月（YYYY-MM形式）
+ * @param {string} request.employeeId - 更新対象の従業員ID
+ * @param {string} request.siteId - 更新対象の現場ID（オプション）
  * @returns {Promise<void>} - 更新処理が完了した場合に解決される Promise。
  * @throws {https.HttpsError} アプリ側とサーバーログの両方にエラーメッセージを出力。
  ****************************************************************************/
-export const refreshEmployeeSiteHistory = onCall(async (request) => {
-  const { month } = request.data
+export const updateEmployeeWorkHistoryForce = onCall(async (request) => {
+  const { employeeId, siteId } = request.data
 
   try {
     // 非同期処理の開始をログで通知
     logger.info(
-      `[refreshEmployeeSiteHistory] 従業員の稼働履歴月次更新処理を開始しました。期間: ${month}`
+      `[updateEmployeeWorkHistoryForce] 従業員の稼働履歴強制更新処理が呼び出されました。対象従業員: ${employeeId}`
     )
 
-    // EmployeeWorkHistory.updateMonthly を実行
-    await EmployeeWorkHistory.updateMonthly(month)
+    // EmployeeWorkHistory.updateForce を実行
+    await EmployeeWorkHistory.updateForce(employeeId, siteId)
 
     // 非同期処理の終了をログで通知
     logger.info(
-      `[refreshEmployeeSiteHistory] 従業員の稼働履歴月次更新処理が終了しました。。期間: ${month}`
+      `[updateEmployeeWorkHistoryForce] 従業員の稼働履歴強制更新処理が終了しました。対象従業員: ${employeeId}`
     )
 
     // 処理完了のメッセージを返す
     return {
-      message: `[refreshEmployeeSiteHistory] 従業員の稼働履歴月次更新処理が正常に完了しました。期間: ${month}`,
+      message: `[updateEmployeeWorkHistoryForce] 従業員の稼働履歴強制更新処理が正常に完了しました。対象従業員: ${employeeId}`,
     }
   } catch (error) {
     // サーバー側のエラーログ
     logger.error(
-      `[refreshEmployeeSiteHistory] 従業員の稼働履歴月次更新処理で不明なエラーが発生しました。期間: ${month}`,
+      `[updateEmployeeWorkHistoryForce] 従業員の稼働履歴強制更新処理で不明なエラーが発生しました。対象従業員: ${employeeId}`,
       { request }
     )
     throw new https.HttpsError(
       'unknown',
-      `[refreshEmployeeSiteHistory] 従業員の稼働履歴月次更新処理で不明なエラーが発生しました。`
+      `[updateEmployeeWorkHistoryForce] 従業員の稼働履歴強制更新処理で不明なエラーが発生しました。対象従業員: ${employeeId}`
     )
   }
 })
