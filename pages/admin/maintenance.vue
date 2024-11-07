@@ -48,15 +48,15 @@
               <tbody>
                 <tr>
                   <td>状態</td>
-                  <td>{{ calcAttendance.status }}</td>
+                  <td>{{ calcAttendance?.status || 'N/A' }}</td>
                 </tr>
                 <tr>
                   <td>最終実行日時</td>
-                  <td>{{ calcAttendance.lastExecutedAt }}</td>
+                  <td>{{ calcAttendance?.lastExecutedAt || 'N/A' }}</td>
                 </tr>
                 <tr>
                   <td>最終実行ステータス</td>
-                  <td>{{ calcAttendance.executeStatus }}</td>
+                  <td>{{ calcAttendance?.executeStatus || 'N/A' }}</td>
                 </tr>
               </tbody>
             </v-simple-table>
