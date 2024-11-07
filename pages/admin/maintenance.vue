@@ -3,6 +3,24 @@
     <v-row>
       <v-col>
         <v-card>
+          <v-card-title> 従業員稼働履歴の更新 </v-card-title>
+          <v-card-subtitle> 従業員の稼働履歴を更新します。 </v-card-subtitle>
+          <v-card-text class="red--text">
+            現在処理年月がオンコーディングになっています。
+          </v-card-text>
+          <v-card-actions class="justify-end">
+            <v-btn
+              color="primary"
+              :disabled="loading"
+              :loading="loading"
+              @click="refreshEmployeeSiteHistory"
+              >実行</v-btn
+            >
+          </v-card-actions>
+        </v-card>
+      </v-col>
+      <v-col>
+        <v-card>
           <v-card-title> インデックスの再構築 </v-card-title>
           <v-card-subtitle>
             Realtime
@@ -121,6 +139,30 @@ export default {
         console.error(`initCalcAttendanceStatus でエラーが発生しました。`, {
           err,
         })
+      } finally {
+        this.loading = false
+      }
+    },
+
+    /**
+     * maintenance-refreshEmployeeSiteHistory を実行します。
+     */
+    async refreshEmployeeSiteHistory() {
+      this.loading = true
+      try {
+        const firebaseApp = getApp()
+        const functions = getFunctions(firebaseApp, 'asia-northeast1')
+        if (process.env.NODE_ENV === 'local') {
+          connectFunctionsEmulator(functions, 'localhost', 5001)
+        }
+        const func = httpsCallable(
+          functions,
+          'maintenance-refreshEmployeeSiteHistory'
+        )
+        const result = await func({ month: '2024-09' })
+        console.info(result.data.message) // eslint-disable-line no-console
+      } catch (err) {
+        console.error('Error calling function:', err) // eslint-disable-line no-console
       } finally {
         this.loading = false
       }
