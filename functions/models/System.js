@@ -8,6 +8,8 @@ import DailyAttendance from './DailyAttendance.js'
 import MonthlyAttendance from './MonthlyAttendance.js'
 import DailySale from './DailySale.js'
 import SiteBilling from './SiteBilling.js'
+import OperationResult from './OperationResult.js'
+import { EmployeeWorkHistory } from './EmployeeWorkHistory.js'
 const firestore = getFirestore()
 dayjs.extend(updateLocale)
 dayjs.updateLocale('en', { weekStart: 1 })
@@ -18,10 +20,7 @@ dayjs.updateLocale('en', { weekStart: 1 })
  * - システムの状態を表す Firestore ドキュメントのデータモデルです。
  * - ドキュメントを削除することはないため、 delete メソッドは削除しています。
  *
- * @version 1.0.0
  * @author shisyamo4131
- * @updates
- * - version 1.0.0 - 2024-10-15 - 初版作成
  */
 export default class System extends FireModel {
   /****************************************************************************
@@ -36,6 +35,64 @@ export default class System extends FireModel {
   constructor(item = {}) {
     super(item)
     delete this.delete
+  }
+
+  /****************************************************************************
+   * super クラスの fromFirestore メソッドをオーバーライドします。
+   * - ネストされたオブジェクトプロパティについて特殊な処理を追加します。
+   *
+   * @param {Object} snapshot Firestore の snapshot オブジェクト
+   * @returns
+   ****************************************************************************/
+  fromFirestore(snapshot) {
+    const data = snapshot.data()
+
+    // calcAttendance の特殊処理
+    const calcAttendance = {
+      error: data?.calcAttendance?.error || null,
+      executeStatus: data?.calcAttendance?.executeStatus || null,
+      lastExecutedAt: data?.calcAttendance?.lastExecutedAt?.toDate
+        ? data.calcAttendance.lastExecutedAt.toDate()
+        : null,
+      status: data?.calcAttendance?.status || 'ready',
+    }
+
+    // calcMonthlySales の特殊処理
+    const calcMonthlySales = {
+      error: data?.calcMonthlySales?.error || null,
+      executeStatus: data?.calcMonthlySales?.executeStatus || null,
+      lastExecutedAt: data?.calcMonthlySales?.lastExecutedAt?.toDate
+        ? data.calcMonthlySales.lastExecutedAt.toDate()
+        : null,
+      status: data?.calcMonthlySales?.status || 'ready',
+    }
+
+    // calcSiteBillings の特殊処理
+    const calcSiteBillings = {
+      error: data?.calcSiteBillings?.error || null,
+      executeStatus: data?.calcSiteBillings?.executeStatus || null,
+      lastExecutedAt: data?.calcSiteBillings?.lastExecutedAt?.toDate
+        ? data.calcSiteBillings.lastExecutedAt.toDate()
+        : null,
+      status: data?.calcSiteBillings?.status || 'ready',
+    }
+
+    // calcSiteBillings の特殊処理
+    const refreshEmployeeSiteHistory = {
+      error: data?.refreshEmployeeSiteHistory?.error || null,
+      executeStatus: data?.refreshEmployeeSiteHistory?.executeStatus || null,
+      lastExecutedAt: data?.refreshEmployeeSiteHistory?.lastExecutedAt?.toDate
+        ? data.refreshEmployeeSiteHistory.lastExecutedAt.toDate()
+        : null,
+      status: data?.refreshEmployeeSiteHistory?.status || 'ready',
+    }
+    return {
+      ...super.fromFirestore(snapshot),
+      calcAttendance,
+      calcMonthlySales,
+      calcSiteBillings,
+      refreshEmployeeSiteHistory,
+    }
   }
 
   /****************************************************************************
@@ -378,6 +435,111 @@ export default class System extends FireModel {
       const message = `[calculateSiteBillings] 現場別月間請求額集計処理でエラーが発生しました。`
       logger.error(message, { month })
       throw error
+    }
+  }
+
+  /****************************************************************************
+   * 従業員の稼働履歴の更新を行います。
+   * - System ドキュメントの refreshEmployeeSiteHistory プロパティを参照し、
+   *   lastExecutedAt 以降に作成または更新された稼働実績ドキュメントを抽出します。
+   * - 抽出された稼働実績ドキュメントをもとに、従業員の稼働履歴の更新を行います。
+   ****************************************************************************/
+  static async updateEmployeeSiteHistory() {
+    // 処理の実行日時を取得しておく
+    const now = new Date() // 必要に応じて `dayjs()` に変更
+
+    // System ドキュメントを取得
+    const instance = new this()
+    const docRef = firestore
+      .collection('Systems')
+      .doc('System')
+      .withConverter(instance.converter())
+    try {
+      const docSnapshot = await docRef.get()
+      const systemData = docSnapshot.data()?.refreshEmployeeSiteHistory
+
+      // 処理前にstatusがreadyでなければ処理を終了
+      if (systemData.status && systemData?.status !== 'ready') {
+        logger.info('処理はすでに実行中または完了していません。終了します。')
+        return
+      }
+
+      // 処理のステータスをexecutingに更新
+      await docRef.update({ 'refreshEmployeeSiteHistory.status': 'executing' })
+
+      // 最終実行日時を取得 -> 存在しなければ現在日時
+      const lastExecutedAt = systemData?.lastExecutedAt || new Date()
+
+      // 処理実行ログを出力
+      const deadline = dayjs(lastExecutedAt)
+        .utcOffset(9)
+        .format('YYYY-MM-DD HH:mm:ss')
+      logger.info(
+        `${deadline} 以降に作成または更新された稼働実績ドキュメントを対象に従業員の稼働履歴の更新処理を行います。`
+      )
+
+      // 最終実行日時以降に作成または更新された稼働実績ドキュメントを取得
+      const operationResultInstance = new OperationResult()
+      const createdDocuments = await operationResultInstance.fetchDocs([
+        ['where', 'createAt', '>=', lastExecutedAt],
+      ])
+      const updatedDocuments = await operationResultInstance.fetchDocs([
+        ['where', 'updateAt', '>=', lastExecutedAt],
+      ])
+
+      // 作成または更新された稼働実績ドキュメントが存在しなければ終了
+      if (!createdDocuments.length && !updatedDocuments.length) {
+        logger.info(
+          `${deadline} 以降に作成または更新された稼働実績は存在しませんでした。処理を終了します。`
+        )
+        await docRef.update({
+          'refreshEmployeeSiteHistory.lastExecutedAt': now,
+          'refreshEmployeeSiteHistory.status': 'ready',
+          'refreshEmployeeSiteHistory.executeStatus': 'success',
+        })
+        return // 処理終了を明示
+      }
+
+      // 対象の稼働実績ドキュメントから重複を排除
+      const targetDocuments = createdDocuments
+        .concat(updatedDocuments)
+        .reduce((acc, doc) => {
+          // 重複ドキュメントを排除するロジックを補足
+          if (!acc.some(({ docId }) => docId === doc.docId)) acc.push(doc)
+          return acc
+        }, [])
+
+      // 対象のドキュメントが存在したことをログに出力
+      logger.info(
+        `${targetDocuments.length} 件の対象ドキュメントが見つかりました。`,
+        { operationResultIds: targetDocuments.map(({ docId }) => docId) }
+      )
+
+      // 対象の稼働実績ドキュメントを一つずつ処理
+      for (const doc of targetDocuments) {
+        for (const employeeId of doc.employeeIds) {
+          await EmployeeWorkHistory.update(employeeId, doc.date, doc.siteId)
+        }
+      }
+
+      // 対象のドキュメントが存在したことをログに出力
+      logger.info(`従業員の稼働履歴の更新処理が完了しました。`)
+
+      // システムの最終処理日時を更新
+      await docRef.update({
+        'refreshEmployeeSiteHistory.lastExecutedAt': now,
+        'refreshEmployeeSiteHistory.status': 'ready',
+        'refreshEmployeeSiteHistory.executeStatus': 'success',
+      })
+    } catch (error) {
+      // エラーハンドリングの追加
+      logger.error('updateEmployeeSiteHistory failed:', { error })
+      await docRef.update({
+        'refreshEmployeeSiteHistory.status': 'ready',
+        'refreshEmployeeSiteHistory.executeStatus': 'error',
+        'refreshEmployeeSiteHistory.error': error.message,
+      })
+      throw error // 必要に応じて再スロー
     }
   }
 }
