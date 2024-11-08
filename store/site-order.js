@@ -1,5 +1,5 @@
 import { database, firestore } from 'air-firebase' // Firebase 初期化と Firestore のインポート
-import { ref, onValue, set } from 'firebase/database' // Firebase Realtime Database
+import { ref, onValue, set, get } from 'firebase/database' // Firebase Realtime Database
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import Site from '~/models/Site'
 import SiteContract from '~/models/SiteContract'
@@ -13,6 +13,7 @@ export const state = () => ({
   sites: [], // Firestore の Sites コレクションのデータを配列で保持
   siteContracts: [], // Firestore の SiteContracts コレクションのデータを配列で保持
   siteOperationSchedules: [], // Firestore の SiteOperationSchedules コレクションのデータを配列で保持
+  siteEmployeeHistories: [], // Realtime Database の SiteEmployeeHistory データ
   listeners: {
     siteOrder: null,
     siteOperationSchedules: null,
@@ -68,6 +69,20 @@ export const getters = {
       const result = items.find((item) => item.docId === docId)
       return result
     },
+
+  /**
+   * 指定された現場に、指定された従業員が入場したことがあるかを返します。
+   * @param {string} siteId 現場ID
+   * @param {string} employeeId 従業員ID
+   * @returns
+   */
+  hasEmployeeEnteredSite:
+    (state) =>
+    ({ siteId, employeeId }) => {
+      return state.siteEmployeeHistories.some((history) => {
+        return history.siteId === siteId && history.employeeId === employeeId
+      })
+    },
 }
 
 /*****************************************************************************
@@ -114,6 +129,15 @@ export const mutations = {
         state.siteContracts.push(contract)
       }
     })
+  },
+
+  /**
+   * SiteEmployeeHistories の配列を受け取り、state.siteEmployeeHistories にセットします。
+   * @param {Object} state - Vuex の state オブジェクト
+   * @param {Array<Object>} histories - 追加する SiteEmployeeHistories 配列
+   */
+  ADD_SITE_EMPLOYEE_HISTORIES(state, histories) {
+    state.siteEmployeeHistories = state.siteEmployeeHistories.concat(histories)
   },
 
   /**
@@ -286,6 +310,9 @@ export const actions = {
         // Firestore から Sites と SiteContracts のドキュメントを取得
         dispatch('fetchSites', siteOrder)
         dispatch('fetchSiteContracts', siteOrder)
+
+        // Realtime Database から SiteEmployeeHistory データを取得
+        dispatch('fetchSiteEmployeeHistories', siteOrder)
       })
 
       // リスナーを Vuex ストアに登録
@@ -344,6 +371,44 @@ export const actions = {
         siteIdsToFetch
       )
       commit('ADD_SITE_CONTRACTS', newContracts) // 取得した SiteContracts を Vuex ストアに追加
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('Failed to fetch site contracts:', error)
+    }
+  },
+
+  /**
+   * Realtime Database から siteOrder 配列に含まれる未取得の SiteEmployeeHistory データを取得し、Vuex ストアにセットします。
+   * @param {Object} param0 - Vuex の state および commit メソッド
+   * @param {Array<Object>} siteOrder - 現場の siteId を含むオブジェクトの配列
+   * @returns {Promise<void>} - 非同期処理の結果を返す
+   */
+  async fetchSiteEmployeeHistories({ state, commit }, siteOrder) {
+    // siteOrder から未取得の siteId を抽出
+    const siteIdsToFetch = siteOrder
+      .map((item) => item.siteId)
+      .filter(
+        (siteId) =>
+          !state.siteEmployeeHistories.some(
+            (history) => history.siteId === siteId
+          )
+      ) // 既に取得済みの siteId を除外
+
+    if (siteIdsToFetch.length === 0) return // 新しい siteId がない場合は終了
+
+    try {
+      for (const siteId of siteIdsToFetch) {
+        const siteRef = ref(database, `SiteEmployeeHistory/${siteId}`)
+        const siteSnap = await get(siteRef)
+        if (siteSnap.exists()) {
+          const siteData = Object.entries(siteSnap.val()).map(
+            ([employeeId, data]) => {
+              return { siteId, employeeId, ...data }
+            }
+          )
+          commit('ADD_SITE_EMPLOYEE_HISTORIES', siteData)
+        }
+      }
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Failed to fetch site contracts:', error)
