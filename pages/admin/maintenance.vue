@@ -13,7 +13,7 @@
               color="primary"
               :disabled="loading"
               :loading="loading"
-              @click="updateEmployeeSiteHistoryForce"
+              @click="refreshEmployeeSiteHistoryByEmployeeId"
               >実行</v-btn
             >
           </v-card-actions>
@@ -145,11 +145,11 @@ export default {
     },
 
     /**
-     * maintenance-updateEmployeeSiteHistoryForce を実行します。
+     * maintenance-refreshEmployeeSiteHistoryByEmployeeId を実行します。
      * - バグなどの理由で稼働履歴が正常に記録されていなかった場合の強制的な処理です。
      * - 大量のデータ、ドキュメントを読み込む可能性があるため、必要な時にだけ実行してください。
      */
-    async updateEmployeeSiteHistoryForce() {
+    async refreshEmployeeSiteHistoryByEmployeeId() {
       this.loading = true
       try {
         const firebaseApp = getApp()
@@ -159,7 +159,7 @@ export default {
         }
         const func = httpsCallable(
           functions,
-          'maintenance-updateEmployeeSiteHistoryForce'
+          'maintenance-refreshEmployeeSiteHistoryByEmployeeId'
         )
         const result = await func({
           employeeId: '4CNZWnukF8GQuVQVqQ3n',

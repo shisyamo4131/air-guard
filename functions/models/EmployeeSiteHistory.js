@@ -143,14 +143,14 @@ export class EmployeeSiteHistory {
         const { firstDate, firstOperationId, lastDate, lastOperationId } = obj
         await EmployeeSiteHistory.update(
           employeeId,
-          siteId,
           firstDate,
+          siteId,
           firstOperationId
         )
         await EmployeeSiteHistory.update(
           employeeId,
-          siteId,
           lastDate,
+          siteId,
           lastOperationId
         )
       }
@@ -256,14 +256,14 @@ export class EmployeeSiteHistory {
           const { firstDate, firstOperationId, lastDate, lastOperationId } = obj
           await EmployeeSiteHistory.update(
             employeeId,
-            siteId,
             firstDate,
+            siteId,
             firstOperationId
           )
           await EmployeeSiteHistory.update(
             employeeId,
-            siteId,
             lastDate,
+            siteId,
             lastOperationId
           )
         }

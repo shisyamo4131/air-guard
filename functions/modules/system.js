@@ -1,7 +1,7 @@
 import { onSchedule } from 'firebase-functions/scheduler'
 import { logger } from 'firebase-functions/v2'
-import System from '../models/System'
-import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory'
+import System from '../models/System.js'
+import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory.js'
 
 /**
  * 2024-11-07 Pub/Sub のスケジュールタスクの実行を確認するためのテストモジュール
