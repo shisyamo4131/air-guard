@@ -46,7 +46,12 @@ export class EmployeeSiteHistory {
       // siteId 単位のデータが存在しなければ date を初回稼働日、最終稼働日として扱う
       const siteData = siteSnap.exists()
         ? siteSnap.val()
-        : { firstDate: date, lastDate: date }
+        : {
+            firstDate: date,
+            firstOperationId: operationResultId,
+            lastDate: date,
+            lastOperationId: operationResultId,
+          }
       if (!siteSnap.exists()) updates[sitePath] = siteData
 
       if (date < siteData.firstDate) {
