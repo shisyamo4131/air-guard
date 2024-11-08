@@ -2,59 +2,37 @@ import { generateVueProps, generateClassProps } from './propsUtil'
 
 const propsDefinition = {
   docId: { type: String, default: '', required: false, requiredByClass: false },
+
+  // 月次勤怠集計の実行記録
   calcAttendance: {
     type: Object,
-    default: () => {
-      return {
-        status: 'ready',
-        lastExecutedAt: null,
-        executeStatus: null,
-        error: null,
-      }
-    },
+    default: () => ({}),
     required: false,
-    requiredByClass: true,
+    requiredByClass: false,
   },
+
+  // 月次売上集計の実行記録
   calcMonthlySales: {
     type: Object,
-    default: () => {
-      return {
-        status: 'ready',
-        lastExecutedAt: null,
-        executeStatus: null,
-        error: null,
-      }
-    },
+    default: () => ({}),
     required: false,
-    requiredByClass: true,
+    requiredByClass: false,
   },
+
+  // 月次請求集計の実行記録
   calcSiteBillings: {
     type: Object,
-    default: () => {
-      return {
-        status: 'ready',
-        lastExecutedAt: null,
-        executeStatus: null,
-        error: null,
-      }
-    },
+    default: () => ({}),
     required: false,
-    requiredByClass: true,
+    requiredByClass: false,
   },
 
   // 従業員の稼働履歴更新処理の実行記録
-  refreshEmployeeSiteHistory: {
+  refreshEmployeeWorkHistory: {
     type: Object,
-    default: () => {
-      return {
-        status: 'ready',
-        lastExecutedAt: null,
-        executeStatus: null,
-        error: null,
-      }
-    },
+    default: () => ({}),
     required: false,
-    requiredByClass: true,
+    requiredByClass: false,
   },
 
   // true の場合はメンテナンス中

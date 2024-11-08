@@ -3,15 +3,30 @@ import { doc, updateDoc } from 'firebase/firestore'
 import { classProps } from './propsDefinition/System'
 
 /**
- * Systemsドキュメントデータモデル
+ * ## 各種実行記録のカスタムクラス
+ */
+class ExecuteStatus {
+  constructor(item = {}) {
+    this.status = item?.status || 'ready'
+    this.lastExecutedAt = item?.lastExecutedAt?.toDate
+      ? item.lastExecutedAt.toDate()
+      : item?.lastExecutedAt || null
+    this.executeStatus = item?.executeStatus || null
+    this.error = item?.error || null
+  }
+
+  toObject() {
+    return { ...this }
+  }
+}
+
+/**
+ * ## Systemsドキュメントデータモデル
  *
  * - システムの状態を表す Firestore ドキュメントのデータモデルです。
  * - アプリ側での操作を制限するため、CUD メソッドを削除しています。
  *
- * @version 1.0.0
  * @author shisyamo4131
- * @updates
- * - version 1.0.0 - 2024-10-15 - 初版作成
  */
 export default class System extends FireModel {
   /****************************************************************************
@@ -19,6 +34,16 @@ export default class System extends FireModel {
    ****************************************************************************/
   static collectionPath = 'Systems'
   static classProps = classProps
+
+  /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    calcAttendance: ExecuteStatus,
+    calcMonthlySales: ExecuteStatus,
+    calcSiteBillings: ExecuteStatus,
+    refreshEmployeeWorkHistory: ExecuteStatus,
+  }
 
   /****************************************************************************
    * CONSTRUCTOR
@@ -58,60 +83,6 @@ export default class System extends FireModel {
         { err }
       )
       throw err
-    }
-  }
-
-  /****************************************************************************
-   * 各種ステータスを編集
-   ****************************************************************************/
-  fromFirestore(snapshot) {
-    const data = snapshot.data()
-
-    // calcAttendance の特殊処理
-    const calcAttendance = {
-      error: data?.calcAttendance?.error || null,
-      executeStatus: data?.calcAttendance?.executeStatus || null,
-      lastExecutedAt: data?.calcAttendance?.lastExecutedAt?.toDate
-        ? data.calcAttendance.lastExecutedAt.toDate()
-        : null,
-      status: data?.calcAttendance?.status || 'ready',
-    }
-
-    // calcMonthlySales の特殊処理
-    const calcMonthlySales = {
-      error: data?.calcMonthlySales?.error || null,
-      executeStatus: data?.calcMonthlySales?.executeStatus || null,
-      lastExecutedAt: data?.calcMonthlySales?.lastExecutedAt?.toDate
-        ? data.calcMonthlySales.lastExecutedAt.toDate()
-        : null,
-      status: data?.calcMonthlySales?.status || 'ready',
-    }
-
-    // calcSiteBillings の特殊処理
-    const calcSiteBillings = {
-      error: data?.calcSiteBillings?.error || null,
-      executeStatus: data?.calcSiteBillings?.executeStatus || null,
-      lastExecutedAt: data?.calcSiteBillings?.lastExecutedAt?.toDate
-        ? data.calcSiteBillings.lastExecutedAt.toDate()
-        : null,
-      status: data?.calcSiteBillings?.status || 'ready',
-    }
-
-    // calcSiteBillings の特殊処理
-    const refreshEmployeeSiteHistory = {
-      error: data?.refreshEmployeeSiteHistory?.error || null,
-      executeStatus: data?.refreshEmployeeSiteHistory?.executeStatus || null,
-      lastExecutedAt: data?.refreshEmployeeSiteHistory?.lastExecutedAt?.toDate
-        ? data.refreshEmployeeSiteHistory.lastExecutedAt.toDate()
-        : null,
-      status: data?.refreshEmployeeSiteHistory?.status || 'ready',
-    }
-    return {
-      ...super.fromFirestore(snapshot),
-      calcAttendance,
-      calcMonthlySales,
-      calcSiteBillings,
-      refreshEmployeeSiteHistory,
     }
   }
 }
