@@ -189,6 +189,10 @@ export default {
             ellipsis,
             startTime: employees?.[employeeId]?.startTime || '',
             endTime: employees?.[employeeId]?.endTime || '',
+            isNewEntry: !$store.getters['site-order/hasEmployeeEnteredSite']({
+              siteId: placement.siteId,
+              employeeId,
+            }),
             showError: $store.getters[
               'assignments/isEmployeeAssignedToMultipleSites'
             ](placement.date, employeeId),
