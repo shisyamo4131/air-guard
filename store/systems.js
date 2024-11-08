@@ -55,6 +55,7 @@ export const mutations = {
     state.calcAttendance = item?.calcAttendance || null
     state.calcMonthlySales = item?.calcMonthlySales || null
     state.calcSiteBillings = item?.calcSiteBillings || null
+    state.refreshEmployeeSiteHistory = item?.refreshEmployeeSiteHistory || null
     state.maintenanceMode = item?.maintenanceMode ?? true
     state.version = item?.version || null
   },
@@ -88,7 +89,9 @@ export const actions = {
       // System ドキュメントへのリアルタイムリスナーをセット
       const listener = onSnapshot(docRef, (snapshot) => {
         if (snapshot.exists()) {
-          commit('setItem', snapshot.data())
+          // ドキュメントに存在しない、追加されたプロパティを含めるためにインスタンスを通す
+          instance.initialize(snapshot.data())
+          commit('setItem', instance.toObject())
         } else {
           // eslint-disable-next-line no-console
           console.warn('[subscribe] System ドキュメントが存在しません。')
