@@ -9,6 +9,7 @@
 import { onDocumentDeleted } from 'firebase-functions/v2/firestore'
 import { logger } from 'firebase-functions/v2'
 import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory'
+import { SiteEmployeeHistory } from '../models/SiteEmployeeHistory'
 
 /****************************************************************************
  * 削除トリガー
@@ -25,6 +26,8 @@ export const onDelete = onDocumentDeleted(
       )
       // 従業員現場履歴を更新
       await EmployeeSiteHistory.updateByEmployeeId(employeeId, siteId)
+      // 従業員入場履歴を更新
+      await SiteEmployeeHistory.updateBySiteId({ siteId, employeeId })
     } catch (err) {
       // エラーログを詳細化
       logger.error(
