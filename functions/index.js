@@ -17,6 +17,12 @@ import * as outsourcers from './triggers/outsourcers.js'
 import * as newUsers from './triggers/new-users.js'
 import * as users from './triggers/users.js'
 
+/**
+ * 2024-11-07
+ * Pub/Sub のテストを行うためのインポート
+ */
+import * as system from './modules/system.js'
+
 export {
   auth,
   role,
@@ -32,4 +38,5 @@ export {
   outsourcers,
   newUsers,
   users,
+  system,
 }
