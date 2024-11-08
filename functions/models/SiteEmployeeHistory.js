@@ -157,7 +157,7 @@ export class SiteEmployeeHistory {
           siteId,
           employeeId,
           date: lastDate,
-          operationREsultId: lastOperationId,
+          operationResultId: lastOperationId,
         })
       }
 
