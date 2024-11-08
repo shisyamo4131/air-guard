@@ -570,4 +570,86 @@ export default class System extends FireModel {
       throw error // 必要に応じて再スロー
     }
   }
+
+  /**
+   * 指定された ExecuteStatus の status を executing に更新します。
+   * - status は 'executing' に設定されます。
+   *
+   * @param {string} type 更新対象のキー（例: 'refreshEmployeeSiteHistory'）
+   * @throws {Error} 必要なプロパティが存在しない場合にエラーをスローします。
+   */
+  async updateToExecute(type) {
+    // 必要なプロパティがすべて存在するかチェック
+    const requiredProps = ['status']
+    if (!this[type] || !requiredProps.every((prop) => prop in this[type])) {
+      throw new Error(
+        `不正な type または必要なプロパティが存在しません。 type: ${type}`
+      )
+    }
+
+    // プロパティを更新
+    this[type].status = 'executing'
+
+    // データベースまたは外部ストレージに反映
+    await this.update()
+  }
+
+  /**
+   * 指定された ExecuteStatus を更新します。
+   * - status は 'ready' になります。
+   * - lastExecutedAt は指定された引数がセットされます。
+   * - executedStatus は 'success' になります。
+   *
+   * @param {string} type 更新対象のキー。例えば 'refreshEmployeeSiteHistory' など
+   * @param {Date} lastExecutedAt 最後に実行された日時
+   */
+  async updateToSuccess(type, lastExecutedAt) {
+    // 必要なプロパティがすべて存在するかチェック
+    const requiredProps = ['status', 'executedStatus', 'lastExecutedAt']
+    if (!this[type] || !requiredProps.every((prop) => prop in this[type])) {
+      throw new Error(
+        `不正な type または必要なプロパティが存在しません。 type: ${type}`
+      )
+    }
+
+    // プロパティを一括で更新
+    Object.assign(this[type], {
+      status: 'ready',
+      executedStatus: 'success',
+      lastExecutedAt,
+    })
+
+    // データベースまたは外部ストレージに反映
+    await this.update()
+  }
+
+  /**
+   * 指定された ExecuteStatus を更新します。
+   * - status は 'ready' になります。
+   * - executedStatus は 'error' になります。
+   * - error は指定された message がセットされます。
+   * - lastExecutedAt は更新されません。
+   *
+   * @param {string} type 更新対象のキー。例えば 'refreshEmployeeSiteHistory' など
+   * @param {string} message エラーの内容
+   */
+  async updateToError(type, message) {
+    // 必要なプロパティがすべて存在するかチェック
+    const requiredProps = ['status', 'executedStatus', 'error']
+    if (!this[type] || !requiredProps.every((prop) => prop in this[type])) {
+      throw new Error(
+        `不正な type または必要なプロパティが存在しません。 type: ${type}`
+      )
+    }
+
+    // プロパティを一括で更新
+    Object.assign(this[type], {
+      status: 'ready',
+      executedStatus: 'error',
+      error: message,
+    })
+
+    // データベースまたは外部ストレージに反映
+    await this.update()
+  }
 }
