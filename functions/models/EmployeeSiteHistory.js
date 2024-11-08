@@ -27,13 +27,14 @@ const database = getDatabase()
 export class EmployeeSiteHistory {
   /**
    * 指定された employeeId、siteId、date, operationResultId に基づいて最深部の firstDate や lastDate を更新します。
-   * @param {string} employeeId - 従業員の ID
-   * @param {string} date - 稼働日 (YYYY-MM-DD 形式)
-   * @param {string} siteId - 現場の ID
-   * @param {string} operationResultId - 稼働実績ドキュメントID
+   * @param {Object} params
+   * @param {string} params.employeeId - 従業員の ID
+   * @param {string} params.date - 稼働日 (YYYY-MM-DD 形式)
+   * @param {string} params.siteId - 現場の ID
+   * @param {string} params.operationResultId - 稼働実績ドキュメントID
    * @returns {Promise<void>} - 更新処理の結果を返す
    */
-  static async update(employeeId, date, siteId, operationResultId) {
+  static async update({ employeeId, date, siteId, operationResultId }) {
     try {
       // 更新用オブジェクト
       const updates = {}
@@ -93,7 +94,7 @@ export class EmployeeSiteHistory {
    * @param {string} employeeId 従業員ID
    * @param {string} siteId 現場ID（オプション）
    */
-  static async updateByEmployeeId(employeeId, siteId) {
+  static async updateByEmployeeId({ employeeId, siteId }) {
     try {
       // 処理開始ログを出力
       logger.info(`[updateByEmployeeId] 従業員の現場履歴を更新します。`, {
@@ -146,18 +147,18 @@ export class EmployeeSiteHistory {
       // 現場履歴を更新
       for (const [siteId, obj] of Object.entries(data)) {
         const { firstDate, firstOperationId, lastDate, lastOperationId } = obj
-        await EmployeeSiteHistory.update(
+        await EmployeeSiteHistory.update({
           employeeId,
-          firstDate,
           siteId,
-          firstOperationId
-        )
-        await EmployeeSiteHistory.update(
+          date: firstDate,
+          operationResultId: firstOperationId,
+        })
+        await EmployeeSiteHistory.update({
           employeeId,
-          lastDate,
           siteId,
-          lastOperationId
-        )
+          date: lastDate,
+          operationResultId: lastOperationId,
+        })
       }
 
       // 終了ログを出力
