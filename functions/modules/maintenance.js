@@ -262,16 +262,17 @@ export const refreshEmployeeSiteHistoryByEmployeeId = onCall(
 )
 
 /****************************************************************************
- * 指定された日時（タイムスタンプ）以降に作成または更新された従業員稼働実績をもとに従業員現場履歴を更新します。
- * - 日時（タイムスタンプ）の設定によっては大量のデータ、ドキュメントを読み込む可能性があります。
+ * 指定された日以降に作成または更新された従業員稼働実績をもとに従業員現場履歴を更新します。
+ * - 日の設定によっては大量のデータ、ドキュメントを読み込む可能性があります。
  *
  * @param {Object} request - Cloud Functions の `onCall` から渡されるリクエストオブジェクト。
- * @param {string} request.timestamp - 作成または更新の基準日時（タイムスタンプ）
+ * @param {string} request.date - 作成または更新の基準日（Dateオブジェクトの引数として有効な値）
  * @returns {Promise<void>} - 更新処理が完了した場合に解決される Promise。
  * @throws {https.HttpsError} アプリ側とサーバーログの両方にエラーメッセージを出力。
  ****************************************************************************/
 export const refreshEmployeeSiteHistoryByTimestamp = onCall(async (request) => {
-  const { timestamp } = request.data
+  const { date } = request.data
+  const timestamp = new Date(date)
 
   try {
     // 非同期処理の開始をログで通知
@@ -349,16 +350,17 @@ export const refreshSiteEmployeeHistoryBySiteId = onCall(async (request) => {
 })
 
 /****************************************************************************
- * 指定された日時（タイムスタンプ）以降に作成または更新された従業員稼働実績をもとに現場の従業員入場履歴を更新します。
- * - 日時（タイムスタンプ）の設定によっては大量のデータ、ドキュメントを読み込む可能性があります。
+ * 指定された日以降に作成または更新された従業員稼働実績をもとに現場の従業員入場履歴を更新します。
+ * - 日の設定によっては大量のデータ、ドキュメントを読み込む可能性があります。
  *
  * @param {Object} request - Cloud Functions の `onCall` から渡されるリクエストオブジェクト。
- * @param {string} request.timestamp - 作成または更新の基準日時（タイムスタンプ）
+ * @param {string} request.date - 作成または更新の基準日（Dateオブジェクトの引数として有効な値）
  * @returns {Promise<void>} - 更新処理が完了した場合に解決される Promise。
  * @throws {https.HttpsError} アプリ側とサーバーログの両方にエラーメッセージを出力。
  ****************************************************************************/
 export const refreshSiteEmployeeHistoryByTimestamp = onCall(async (request) => {
-  const { timestamp } = request.data
+  const { date } = request.data
+  const timestamp = new Date(date)
 
   try {
     // 非同期処理の開始をログで通知
