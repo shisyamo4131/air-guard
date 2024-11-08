@@ -4,11 +4,11 @@ import OperationWorkResult from './OperationWorkResult.js'
 const database = getDatabase()
 
 /**
- * EmployeeWorkHistory クラス
+ * EmployeeSiteHistory クラス
  *
  * - 従業員の稼働履歴を管理し、更新するためのクラス
  *
- * /EmployeeWorkHistory
+ * /EmployeeSiteHistory
  *   |- ${employeeId}                    // 従業員ごとのルートノード
  *     |- ${siteId}                      // employeeId の子として siteId 別に保持
  *       |- firstDate: 'YYYY-MM-DD'      // 最初の稼働日
@@ -17,7 +17,7 @@ const database = getDatabase()
  *       |- lastOperationId: ${docId}    // 対象となる稼働実績ドキュメントID
  *
  */
-export class EmployeeWorkHistory {
+export class EmployeeSiteHistory {
   /**
    * 指定された employeeId、siteId、date に基づいて最深部の firstDate や lastDate を更新します。
    * @param {string} employeeId - 従業員の ID
@@ -31,7 +31,7 @@ export class EmployeeWorkHistory {
       const updates = {}
 
       // employeeId 配下の siteId ノードの更新
-      const sitePath = `/EmployeeWorkHistory/${employeeId}/${siteId}`
+      const sitePath = `/EmployeeSiteHistory/${employeeId}/${siteId}`
       const siteRef = database.ref(sitePath)
       const siteSnap = await siteRef.get()
 
@@ -55,15 +55,15 @@ export class EmployeeWorkHistory {
 
         // 更新があった場合にのみ、完了ログを出力
         logger.info(
-          `EmployeeWorkHistory の更新が完了しました: employeeId=${employeeId}, date=${date}, siteId=${siteId}`
+          `EmployeeSiteHistory の更新が完了しました: employeeId=${employeeId}, date=${date}, siteId=${siteId}`
         )
       }
     } catch (error) {
       logger.error(
-        `EmployeeWorkHistory の更新中にエラーが発生しました: employeeId=${employeeId}, date=${date}, siteId=${siteId}`,
+        `EmployeeSiteHistory の更新中にエラーが発生しました: employeeId=${employeeId}, date=${date}, siteId=${siteId}`,
         error
       )
-      throw new Error(`Failed to update EmployeeWorkHistory: ${error.message}`)
+      throw new Error(`Failed to update EmployeeSiteHistory: ${error.message}`)
     }
   }
 
@@ -99,8 +99,8 @@ export class EmployeeWorkHistory {
           { employeeId, siteId }
         )
         const path = siteId
-          ? `EmployeeWorkHistory/${employeeId}/${siteId}`
-          : `EmployeeWorkHistory/${employeeId}`
+          ? `EmployeeSiteHistory/${employeeId}/${siteId}`
+          : `EmployeeSiteHistory/${employeeId}`
         await database.ref(path).remove()
         return
       }
@@ -129,8 +129,8 @@ export class EmployeeWorkHistory {
 
       // 稼働履歴を更新
       const path = siteId
-        ? `EmployeeWorkHistory/${employeeId}/${siteId}`
-        : `EmployeeWorkHistory/${employeeId}`
+        ? `EmployeeSiteHistory/${employeeId}/${siteId}`
+        : `EmployeeSiteHistory/${employeeId}`
       await database.ref(path).set(siteId ? data[siteId] : data)
 
       // 終了ログを出力

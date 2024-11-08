@@ -6,7 +6,7 @@ import EmployeeIndex from '../models/EmployeeIndex.js'
 import SiteIndex from '../models/SiteIndex.js'
 import CustomerIndex from '../models/CustomerIndex.js'
 import System from '../models/System.js'
-import { EmployeeWorkHistory } from '../models/EmployeeWorkHistory.js'
+import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory.js'
 
 const database = getDatabase()
 const firestore = getFirestore()
@@ -226,36 +226,36 @@ export const refreshSiteBillings = onCall(async (request) => {
  * @returns {Promise<void>} - 更新処理が完了した場合に解決される Promise。
  * @throws {https.HttpsError} アプリ側とサーバーログの両方にエラーメッセージを出力。
  ****************************************************************************/
-export const updateEmployeeWorkHistoryForce = onCall(async (request) => {
+export const updateEmployeeSiteHistoryForce = onCall(async (request) => {
   const { employeeId, siteId } = request.data
 
   try {
     // 非同期処理の開始をログで通知
     logger.info(
-      `[updateEmployeeWorkHistoryForce] 従業員の稼働履歴強制更新処理が呼び出されました。対象従業員: ${employeeId}`
+      `[updateEmployeeSiteHistoryForce] 従業員の稼働履歴強制更新処理が呼び出されました。対象従業員: ${employeeId}`
     )
 
-    // EmployeeWorkHistory.updateForce を実行
-    await EmployeeWorkHistory.updateForce(employeeId, siteId)
+    // EmployeeSiteHistory.updateForce を実行
+    await EmployeeSiteHistory.updateForce(employeeId, siteId)
 
     // 非同期処理の終了をログで通知
     logger.info(
-      `[updateEmployeeWorkHistoryForce] 従業員の稼働履歴強制更新処理が終了しました。対象従業員: ${employeeId}`
+      `[updateEmployeeSiteHistoryForce] 従業員の稼働履歴強制更新処理が終了しました。対象従業員: ${employeeId}`
     )
 
     // 処理完了のメッセージを返す
     return {
-      message: `[updateEmployeeWorkHistoryForce] 従業員の稼働履歴強制更新処理が正常に完了しました。対象従業員: ${employeeId}`,
+      message: `[updateEmployeeSiteHistoryForce] 従業員の稼働履歴強制更新処理が正常に完了しました。対象従業員: ${employeeId}`,
     }
   } catch (error) {
     // サーバー側のエラーログ
     logger.error(
-      `[updateEmployeeWorkHistoryForce] 従業員の稼働履歴強制更新処理で不明なエラーが発生しました。対象従業員: ${employeeId}`,
+      `[updateEmployeeSiteHistoryForce] 従業員の稼働履歴強制更新処理で不明なエラーが発生しました。対象従業員: ${employeeId}`,
       { request }
     )
     throw new https.HttpsError(
       'unknown',
-      `[updateEmployeeWorkHistoryForce] 従業員の稼働履歴強制更新処理で不明なエラーが発生しました。対象従業員: ${employeeId}`
+      `[updateEmployeeSiteHistoryForce] 従業員の稼働履歴強制更新処理で不明なエラーが発生しました。対象従業員: ${employeeId}`
     )
   }
 })

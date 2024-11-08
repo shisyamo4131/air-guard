@@ -44,16 +44,16 @@ System クラスの updateEmployeeSiteHistory メソッドで更新する。
 Pub/Sub を利用した日時処理を定義
 
 但し、この方法だけでは従業員稼働実績ドキュメントが削除された場合に対応しきれない。
-削除された場合、EmployeeWorkHistory クラスの updateForce メソッドを削除トリガーで実行する。
+削除された場合、EmployeeSiteHistory クラスの updateForce メソッドを削除トリガーで実行する。
 updateForce メソッドについては下記を参照。
 
 ### メンテナンスによる強制更新
 
-functions/modules/maintenance に updateEmployeeWorkHistoryForce を onCall で実装。
+functions/modules/maintenance に updateEmployeeSiteHistoryForce を onCall で実装。
 request オブジェクトで employeeId を受け取り、指定された従業員の従業員稼働実績ドキュメント（OperationWorkResult）を対象に、強制的に稼働履歴を更新する。
 siteId をオプションで受け取ることができ、指定された場合は現場が固定される。
 
-- functions/models/EmployeeWorkHistory/updateForce
+- functions/models/EmployeeSiteHistory/updateForce
 
 EmployoeeWorkHistory クラスの updateForce メソッドで更新する。
 

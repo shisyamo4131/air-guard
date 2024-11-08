@@ -42,7 +42,7 @@ export default class System extends FireModel {
     calcAttendance: ExecuteStatus,
     calcMonthlySales: ExecuteStatus,
     calcSiteBillings: ExecuteStatus,
-    refreshEmployeeWorkHistory: ExecuteStatus,
+    refreshEmployeeSiteHistory: ExecuteStatus,
   }
 
   /****************************************************************************

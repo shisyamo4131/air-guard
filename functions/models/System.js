@@ -9,7 +9,7 @@ import MonthlyAttendance from './MonthlyAttendance.js'
 import DailySale from './DailySale.js'
 import SiteBilling from './SiteBilling.js'
 import OperationResult from './OperationResult.js'
-import { EmployeeWorkHistory } from './EmployeeWorkHistory.js'
+import { EmployeeSiteHistory } from './EmployeeSiteHistory.js'
 const firestore = getFirestore()
 dayjs.extend(updateLocale)
 dayjs.updateLocale('en', { weekStart: 1 })
@@ -518,7 +518,7 @@ export default class System extends FireModel {
       // 対象の稼働実績ドキュメントを一つずつ処理
       for (const doc of targetDocuments) {
         for (const employeeId of doc.employeeIds) {
-          await EmployeeWorkHistory.update(employeeId, doc.date, doc.siteId)
+          await EmployeeSiteHistory.update(employeeId, doc.date, doc.siteId)
         }
       }
 

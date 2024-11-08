@@ -28,7 +28,7 @@ const propsDefinition = {
   },
 
   // 従業員の稼働履歴更新処理の実行記録
-  refreshEmployeeWorkHistory: {
+  refreshEmployeeSiteHistory: {
     type: Object,
     default: () => ({}),
     required: false,

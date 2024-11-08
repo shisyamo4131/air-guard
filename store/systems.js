@@ -3,8 +3,6 @@
  *
  * システム情報の Vuex です。
  *
- * ### 注意事項
- *
  * @author shisyamo4131
  */
 import { firestore } from 'air-firebase'
@@ -24,6 +22,7 @@ export const state = () => ({
   calcAttendance: null,
   calcMonthlySales: null,
   calcSiteBillings: null,
+  refreshEmployeeSiteHistory: null,
   maintenanceMode: false,
   version: null,
   listener: null,
