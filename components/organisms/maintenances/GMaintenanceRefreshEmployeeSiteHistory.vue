@@ -11,17 +11,18 @@ import {
   httpsCallable,
 } from 'firebase/functions'
 import GAutocompleteEmployee from '~/components/atoms/inputs/GAutocompleteEmployee.vue'
+import GTextField from '~/components/atoms/inputs/GTextField.vue'
 
 const firebaseApp = getApp()
 const functions = getFunctions(firebaseApp, 'asia-northeast1')
 
 export default {
-  components: { GAutocompleteEmployee },
+  components: { GAutocompleteEmployee, GTextField },
   data() {
     return {
       employeeId: null,
+      date: null,
       loading: false,
-      funcName: 'maintenance-refreshEmployeeSiteHistoryByEmployeeId',
     }
   },
 
@@ -41,14 +42,35 @@ export default {
   },
 
   methods: {
-    async submit() {
+    async submitByEmployeeId() {
       this.loading = true
       try {
         if (process.env.NODE_ENV === 'local') {
           connectFunctionsEmulator(functions, 'localhost', 5001)
         }
-        const func = httpsCallable(functions, this.funcName)
+        const func = httpsCallable(
+          functions,
+          'maintenance-refreshEmployeeSiteHistoryByEmployeeId'
+        )
         const result = await func({ employeeId: this.employeeId })
+        console.info(result.data.message) // eslint-disable-line no-console
+      } catch (err) {
+        console.error('Error calling function:', err) // eslint-disable-line no-console
+      } finally {
+        this.loading = false
+      }
+    },
+    async submitByTimestamp() {
+      this.loading = true
+      try {
+        if (process.env.NODE_ENV === 'local') {
+          connectFunctionsEmulator(functions, 'localhost', 5001)
+        }
+        const func = httpsCallable(
+          functions,
+          'maintenance-refreshEmployeeSiteHistoryByTimestamp'
+        )
+        const result = await func({ date: new Date(this.date).getTime() })
         console.info(result.data.message) // eslint-disable-line no-console
       } catch (err) {
         console.error('Error calling function:', err) // eslint-disable-line no-console
@@ -97,18 +119,49 @@ export default {
       </v-simple-table>
     </v-card-text>
     <v-divider />
-    <v-card-text>
-      <g-autocomplete-employee v-model="employeeId" label="対象従業員" />
-    </v-card-text>
-    <v-card-actions class="justify-end">
-      <v-btn
-        color="primary"
-        :disabled="loading || !employeeId"
-        :loading="loading"
-        @click="submit"
-        >実行</v-btn
-      >
-    </v-card-actions>
+    <v-row>
+      <v-col cols="12" md="6">
+        <v-container>
+          <v-card>
+            <v-card-title>従業員単位</v-card-title>
+            <v-card-text>
+              <g-autocomplete-employee
+                v-model="employeeId"
+                label="対象従業員"
+              />
+            </v-card-text>
+            <v-card-actions class="justify-end">
+              <v-btn
+                color="primary"
+                :disabled="loading || !employeeId"
+                :loading="loading"
+                @click="submitByEmployeeId"
+                >実行</v-btn
+              >
+            </v-card-actions>
+          </v-card>
+        </v-container>
+      </v-col>
+      <v-col cols="12" md="6">
+        <v-container>
+          <v-card>
+            <v-card-title>日時単位</v-card-title>
+            <v-card-text>
+              <g-text-field v-model="date" label="基準日" input-type="date" />
+            </v-card-text>
+            <v-card-actions class="justify-end">
+              <v-btn
+                color="primary"
+                :disabled="loading || !date"
+                :loading="loading"
+                @click="submitByTimestamp"
+                >実行</v-btn
+              >
+            </v-card-actions>
+          </v-card>
+        </v-container>
+      </v-col>
+    </v-row>
   </v-card>
 </template>
 
