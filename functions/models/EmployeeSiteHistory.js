@@ -68,11 +68,6 @@ export class EmployeeSiteHistory {
       // Firebase Realtime Database に更新を適用
       if (Object.keys(updates).length) {
         await database.ref().update(updates)
-
-        // 更新があった場合にのみ、完了ログを出力
-        logger.info(
-          `EmployeeSiteHistory の更新が完了しました: employeeId=${employeeId}, date=${date}, siteId=${siteId}`
-        )
       }
     } catch (error) {
       logger.error(
@@ -223,10 +218,7 @@ export class EmployeeSiteHistory {
       }, [])
 
       // 対象の従業員稼働実績ドキュメントが存在したことをログに出力
-      logger.info(
-        `${targetDocs.length} 件の対象ドキュメントが見つかりました。`,
-        { operationResultIds: targetDocs.map(({ docId }) => docId) }
-      )
+      logger.info(`${targetDocs.length} 件の対象ドキュメントが見つかりました。`)
 
       // 対象の従業員稼働実績ドキュメントから、現場履歴の元データを作成
       const data = targetDocs.reduce((result, doc) => {
@@ -260,18 +252,18 @@ export class EmployeeSiteHistory {
       for (const [employeeId, sites] of Object.entries(data)) {
         for (const [siteId, obj] of Object.entries(sites)) {
           const { firstDate, firstOperationId, lastDate, lastOperationId } = obj
-          await EmployeeSiteHistory.update(
+          await EmployeeSiteHistory.update({
             employeeId,
-            firstDate,
             siteId,
-            firstOperationId
-          )
-          await EmployeeSiteHistory.update(
+            date: firstDate,
+            operationResultId: firstOperationId,
+          })
+          await EmployeeSiteHistory.update({
             employeeId,
-            lastDate,
             siteId,
-            lastOperationId
-          )
+            date: lastDate,
+            operationResultId: lastOperationId,
+          })
         }
       }
 
