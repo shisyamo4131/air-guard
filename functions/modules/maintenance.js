@@ -218,7 +218,6 @@ export const refreshSiteBillings = onCall(async (request) => {
  * - バグなどの理由で稼働履歴が正常に記録されていなかった場合の強制的な処理です。
  * - 大量のデータ、ドキュメントを読み込む可能性があるため、必要な時にだけ実行してください。
  * - 現場IDが指定された場合、対象の現場のみで強制更新します。
- * - 稼働実績ドキュメントが削除された際の稼働履歴の更新には便利です。
  *
  * @param {Object} request - Cloud Functions の `onCall` から渡されるリクエストオブジェクト。
  * @param {string} request.employeeId - 更新対象の従業員ID
@@ -226,36 +225,80 @@ export const refreshSiteBillings = onCall(async (request) => {
  * @returns {Promise<void>} - 更新処理が完了した場合に解決される Promise。
  * @throws {https.HttpsError} アプリ側とサーバーログの両方にエラーメッセージを出力。
  ****************************************************************************/
-export const updateEmployeeSiteHistoryForce = onCall(async (request) => {
-  const { employeeId, siteId } = request.data
+export const refreshEmployeeSiteHistoryByEmployeeId = onCall(
+  async (request) => {
+    const { employeeId, siteId } = request.data
+
+    try {
+      // 非同期処理の開始をログで通知
+      logger.info(
+        `[refreshEmployeeSiteHistoryByEmployeeId] 従業員現場履歴更新処理が呼び出されました。`,
+        { employeeId, siteId }
+      )
+
+      // EmployeeSiteHistory.updateByEmployeeId を実行
+      await EmployeeSiteHistory.updateByEmployeeId(employeeId, siteId)
+
+      // 非同期処理の終了をログで通知
+      logger.info(
+        `[refreshEmployeeSiteHistoryByEmployeeId] 従業員現場履歴更新処理が終了しました。`,
+        { employeeId, siteId }
+      )
+
+      // 処理完了のメッセージを返す
+      return {
+        message: `従業員現場履歴更新処理が正常に完了しました。対象従業員: ${employeeId}, 対象現場: ${
+          siteId || '指定されていません。'
+        }`,
+      }
+    } catch (error) {
+      const message = `[refreshEmployeeSiteHistoryByEmployeeId] 従業員現場履歴更新処理で不明なエラーが発生しました。`
+      // サーバー側のエラーログ
+      logger.error(message, { request })
+      throw new https.HttpsError('unknown', message)
+    }
+  }
+)
+
+/****************************************************************************
+ * 指定された日時（タイムスタンプ）以降に作成または更新された従業員稼働実績をもとに従業員現場履歴を更新します。
+ * - 日時（タイムスタンプ）の設定によっては大量のデータ、ドキュメントを読み込む可能性があります。
+ *
+ * @param {Object} request - Cloud Functions の `onCall` から渡されるリクエストオブジェクト。
+ * @param {string} request.timestamp - 作成または更新の基準日時（タイムスタンプ）
+ * @returns {Promise<void>} - 更新処理が完了した場合に解決される Promise。
+ * @throws {https.HttpsError} アプリ側とサーバーログの両方にエラーメッセージを出力。
+ ****************************************************************************/
+export const refreshEmployeeSiteHistoryByTimestamp = onCall(async (request) => {
+  const { timestamp } = request.data
 
   try {
     // 非同期処理の開始をログで通知
     logger.info(
-      `[updateEmployeeSiteHistoryForce] 従業員の稼働履歴強制更新処理が呼び出されました。対象従業員: ${employeeId}`
+      `[refreshEmployeeSiteHistoryByTimestamp] 従業員現場履歴更新処理が呼び出されました。締め切り日時: ${timestamp}`
     )
 
-    // EmployeeSiteHistory.updateForce を実行
-    await EmployeeSiteHistory.updateForce(employeeId, siteId)
+    // EmployeeSiteHistory.updateByTimestamp を実行
+    await EmployeeSiteHistory.updateByTimestamp(timestamp)
 
     // 非同期処理の終了をログで通知
     logger.info(
-      `[updateEmployeeSiteHistoryForce] 従業員の稼働履歴強制更新処理が終了しました。対象従業員: ${employeeId}`
+      `[refreshEmployeeSiteHistoryByTimestamp] 従業員現場履歴更新処理が終了しました。締め切り日時: ${timestamp}`
     )
 
     // 処理完了のメッセージを返す
     return {
-      message: `[updateEmployeeSiteHistoryForce] 従業員の稼働履歴強制更新処理が正常に完了しました。対象従業員: ${employeeId}`,
+      message: `[refreshEmployeeSiteHistoryByTimestamp] 従業員現場履歴更新処理が正常に完了しました。締め切り日時: ${timestamp}`,
     }
   } catch (error) {
     // サーバー側のエラーログ
     logger.error(
-      `[updateEmployeeSiteHistoryForce] 従業員の稼働履歴強制更新処理で不明なエラーが発生しました。対象従業員: ${employeeId}`,
+      `[refreshEmployeeSiteHistoryByTimestamp] 従業員現場履歴更新処理で不明なエラーが発生しました。締め切り日時: ${timestamp}`,
       { request }
     )
     throw new https.HttpsError(
       'unknown',
-      `[updateEmployeeSiteHistoryForce] 従業員の稼働履歴強制更新処理で不明なエラーが発生しました。対象従業員: ${employeeId}`
+      `[refreshEmployeeSiteHistoryByTimestamp] 従業員現場履歴更新処理で不明なエラーが発生しました。締め切り日時: ${timestamp}`
     )
   }
 })
