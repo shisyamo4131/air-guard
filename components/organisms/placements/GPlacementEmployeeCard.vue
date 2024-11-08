@@ -27,6 +27,8 @@ export default {
     showExist: { type: Boolean, default: false },
     // Start time in HH:MM format
     startTime: { type: String, default: '' },
+    // 新規入場かどうか
+    isNewEntry: { type: Boolean, default: false },
   },
 
   /***************************************************************************
@@ -59,9 +61,9 @@ export default {
               <v-icon small>mdi-close</v-icon>
             </v-btn>
             <!--
-          Error icon
-          - It takes priority over the continuous icon when displayed.
-        -->
+              Error icon
+              - It takes priority over the continuous icon when displayed.
+            -->
             <v-icon v-if="showError" left small color="error">
               mdi-alert-circle
             </v-icon>
@@ -70,6 +72,11 @@ export default {
               mdi-star
             </v-icon>
             <h4>{{ employee?.abbr || 'N/A' }}</h4>
+
+            <!-- New entry icon -->
+            <v-icon v-if="isNewEntry" right small color="error"
+              >mdi-new-box</v-icon
+            >
           </div>
           <!--
             Start and end time
