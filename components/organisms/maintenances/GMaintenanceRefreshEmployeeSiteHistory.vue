@@ -70,7 +70,7 @@ export default {
           functions,
           'maintenance-refreshEmployeeSiteHistoryByTimestamp'
         )
-        const result = await func({ date: new Date(this.date).getTime() })
+        const result = await func({ date: this.date })
         console.info(result.data.message) // eslint-disable-line no-console
       } catch (err) {
         console.error('Error calling function:', err) // eslint-disable-line no-console
@@ -145,7 +145,7 @@ export default {
       <v-col cols="12" md="6">
         <v-container>
           <v-card>
-            <v-card-title>日時単位</v-card-title>
+            <v-card-title>基準日</v-card-title>
             <v-card-text>
               <g-text-field v-model="date" label="基準日" input-type="date" />
             </v-card-text>
