@@ -25,7 +25,7 @@ export const onDelete = onDocumentDeleted(
         `従業員稼働実績 (OperationWorkResults ドキュメント) が削除されました。従業員ID: ${employeeId}, 現場ID: ${siteId}, OperationResultID: ${operationResultId}`
       )
       // 従業員現場履歴を更新
-      await EmployeeSiteHistory.updateByEmployeeId(employeeId, siteId)
+      await EmployeeSiteHistory.updateByEmployeeId({ employeeId, siteId })
       // 従業員入場履歴を更新
       await SiteEmployeeHistory.updateBySiteId({ siteId, employeeId })
     } catch (err) {
