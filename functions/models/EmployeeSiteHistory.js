@@ -1,12 +1,13 @@
 import { getDatabase } from 'firebase-admin/database'
 import * as logger from 'firebase-functions/logger'
+import dayjs from 'dayjs'
 import OperationWorkResult from './OperationWorkResult.js'
 const database = getDatabase()
 
 /**
  * EmployeeSiteHistory クラス
  *
- * - 従業員の稼働履歴を管理し、更新するためのクラス
+ * - 従業員の現場履歴を管理し、更新するためのクラス
  *
  * /EmployeeSiteHistory
  *   |- ${employeeId}                    // 従業員ごとのルートノード
@@ -19,13 +20,14 @@ const database = getDatabase()
  */
 export class EmployeeSiteHistory {
   /**
-   * 指定された employeeId、siteId、date に基づいて最深部の firstDate や lastDate を更新します。
+   * 指定された employeeId、siteId、date, operationResultId に基づいて最深部の firstDate や lastDate を更新します。
    * @param {string} employeeId - 従業員の ID
    * @param {string} date - 稼働日 (YYYY-MM-DD 形式)
    * @param {string} siteId - 現場の ID
+   * @param {string} operationResultId - 稼働実績ドキュメントID
    * @returns {Promise<void>} - 更新処理の結果を返す
    */
-  static async update(employeeId, date, siteId) {
+  static async update(employeeId, date, siteId, operationResultId) {
     try {
       // 更新用オブジェクト
       const updates = {}
@@ -43,10 +45,12 @@ export class EmployeeSiteHistory {
 
       if (date < siteData.firstDate) {
         updates[`${sitePath}/firstDate`] = date
+        updates[`${sitePath}/firstOperationId`] = operationResultId
       }
 
       if (date > siteData.lastDate) {
         updates[`${sitePath}/lastDate`] = date
+        updates[`${sitePath}/lastOperationId`] = operationResultId
       }
 
       // Firebase Realtime Database に更新を適用
@@ -149,13 +153,11 @@ export class EmployeeSiteHistory {
 
   /**
    * 指定された従業員の現場履歴を強制的に更新します。
-   * - 勤務実績ドキュメント（OperationWorkResults）を使用します。
+   * - 従業員稼働実績ドキュメント（OperationWorkResults）を使用します。
    * - バグなどの理由で現場履歴が正常に記録されていなかった場合の強制的な処理です。
    * - 大量のデータ、ドキュメントを読み込む可能性があるため、必要な時にだけ実行してください。
    * - 現場IDが指定された場合、対象の現場のみで強制更新します。
-   *
-   * NOTE:
-   * - 稼働実績ドキュメントが削除された際の現場履歴の更新には便利です。
+   * - 稼働実績ドキュメントが削除された際の稼働履歴の更新には便利です。
    *
    * @param {string} employeeId 従業員ID
    * @param {string} siteId 現場ID（オプション）
@@ -163,7 +165,7 @@ export class EmployeeSiteHistory {
   static async updateByEmployeeId(employeeId, siteId) {
     try {
       // 処理開始ログを出力
-      logger.info(`[updateByEmployeeId] 従業員の現場履歴を強制更新します。`, {
+      logger.info(`[updateByEmployeeId] 従業員の現場履歴を更新します。`, {
         employeeId,
         siteId,
       })
@@ -178,7 +180,7 @@ export class EmployeeSiteHistory {
       // 従業員稼働実績ドキュメントが存在しなければ稼働履歴を削除
       if (!workResultDocs.length) {
         logger.info(
-          `稼働実績が存在しませんでした。稼働履歴を初期化して終了します。`,
+          `従業員稼働実績が存在しませんでした。現場履歴を初期化して終了します。`,
           { employeeId, siteId }
         )
         const path = siteId
@@ -210,20 +212,144 @@ export class EmployeeSiteHistory {
         return sum
       }, {})
 
-      // 稼働履歴を更新
-      const path = siteId
-        ? `EmployeeSiteHistory/${employeeId}/${siteId}`
-        : `EmployeeSiteHistory/${employeeId}`
-      await database.ref(path).set(siteId ? data[siteId] : data)
+      // 現場履歴を更新
+      for (const [siteId, obj] of Object.entries(data)) {
+        const { firstDate, firstOperationId, lastDate, lastOperationId } = obj
+        await EmployeeSiteHistory.update(
+          employeeId,
+          siteId,
+          firstDate,
+          firstOperationId
+        )
+        await EmployeeSiteHistory.update(
+          employeeId,
+          siteId,
+          lastDate,
+          lastOperationId
+        )
+      }
 
       // 終了ログを出力
-      logger.info(`従業員の稼働履歴を強制更新しました。`, {
+      logger.info(`従業員の現場履歴を更新しました。`, {
         employeeId,
         siteId,
       })
     } catch (error) {
-      const message = `[updateByEmployeeId] 従業員の現場履歴強制更新処理でエラーが発生しました。`
+      const message = `[updateByEmployeeId] 従業員の現場履歴更新処理でエラーが発生しました。`
       logger.error(message, { employeeId, siteId, error })
+      throw error
+    }
+  }
+
+  /**
+   * 引数で与えられた日時以降に作成または更新された従業員稼働実績ドキュメントを
+   * もとに、従業員の現場履歴を更新します。
+   * @param {Date} timestamp 基準とする日時（Dateオブジェクト）
+   * @returns
+   */
+  static async updateByTimestamp(timestamp) {
+    // 引数のチェック
+    if (!timestamp || !(timestamp instanceof Date)) {
+      logger.error(`[updateByTimestamp] timestampがDate型ではありません。`, {
+        timestamp,
+      })
+      throw new Error(
+        `[updateByTimestamp] timestampは有効なDate型インスタンスである必要があります。`
+      )
+    }
+
+    // 締め切り日時をフォーマットしておく
+    const deadline = dayjs(timestamp).utcOffset(9).format('YYYY-MM-DD HH:mm:ss')
+
+    try {
+      // 処理開始ログを出力
+      logger.info(
+        `[updateByTimestamp] ${deadline} 以降に作成または更新された従業員稼働実績ドキュメントを対象に従業員の現場履歴を更新します。`
+      )
+
+      // 指定された timestamp 以降に作成または更新された従業員稼働実績ドキュメントを取得
+      const resultInstance = new OperationWorkResult()
+      const createdDocs = await resultInstance.fetchDocs([
+        ['where', 'createAt', '>=', timestamp],
+      ])
+      const updatedDocs = await resultInstance.fetchDocs([
+        ['where', 'updated', '>=', timestamp],
+      ])
+
+      // 対象の従業員稼働実績ドキュメントが存在しなければ終了
+      if (!createdDocs.length && !updatedDocs.length) {
+        logger.info(
+          `[updateByTimestamp] ${deadline} 以降に作成または更新された従業員稼働実績ドキュメントは存在しませんでした。処理を終了します。`
+        )
+        return
+      }
+
+      // 対象の従業員稼働実績ドキュメントから重複を排除
+      const targetDocs = createdDocs.concat(updatedDocs).reduce((acc, doc) => {
+        if (!acc.some(({ docId }) => docId === doc.docId)) acc.push(doc)
+        return acc
+      }, [])
+
+      // 対象の従業員稼働実績ドキュメントが存在したことをログに出力
+      logger.info(
+        `${targetDocs.length} 件の対象ドキュメントが見つかりました。`,
+        { operationResultIds: targetDocs.map(({ docId }) => docId) }
+      )
+
+      // 対象の従業員稼働実績ドキュメントから、現場履歴の元データを作成
+      const data = targetDocs.reduce((result, doc) => {
+        const { employeeId, siteId, date, operationResultId } = doc
+
+        if (!result[employeeId]) result[employeeId] = {}
+
+        if (!result[employeeId][siteId]) {
+          result[employeeId][siteId] = {
+            firstDate: date,
+            firstOperationId: operationResultId,
+            lastDate: date,
+            lastOperationId: operationResultId,
+          }
+        } else {
+          const siteEntry = result[employeeId][siteId]
+          if (date < siteEntry.firstDate) {
+            siteEntry.firstDate = date
+            siteEntry.firstOperationId = operationResultId
+          }
+          if (date > siteEntry.lastDate) {
+            siteEntry.lastDate = date
+            siteEntry.lastOperationId = operationResultId
+          }
+        }
+
+        return result
+      }, {})
+
+      // 生成した元データを一つずつ処理していく
+      for (const [employeeId, sites] of Object.entries(data)) {
+        for (const [siteId, obj] of Object.entries(sites)) {
+          const { firstDate, firstOperationId, lastDate, lastOperationId } = obj
+          await EmployeeSiteHistory.update(
+            employeeId,
+            siteId,
+            firstDate,
+            firstOperationId
+          )
+          await EmployeeSiteHistory.update(
+            employeeId,
+            siteId,
+            lastDate,
+            lastOperationId
+          )
+        }
+      }
+
+      // 処理完了ログを出力
+      logger.info(
+        `[updateByTimestamp] 従業員の現場履歴の更新処理が完了しました。`
+      )
+    } catch (error) {
+      const message = `[updateByTimestamp] 従業員の現場履歴更新処理でエラーが発生しました。`
+      logger.error(message, { timestamp: deadline, error })
       throw error
     }
   }
