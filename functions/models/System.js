@@ -15,6 +15,24 @@ dayjs.extend(updateLocale)
 dayjs.updateLocale('en', { weekStart: 1 })
 
 /**
+ * ## 各種実行記録のカスタムクラス
+ */
+class ExecuteStatus {
+  constructor(item = {}) {
+    this.status = item?.status || 'ready'
+    this.lastExecutedAt = item?.lastExecutedAt?.toDate
+      ? item.lastExecutedAt.toDate()
+      : item?.lastExecutedAt || null
+    this.executeStatus = item?.executeStatus || null
+    this.error = item?.error || null
+  }
+
+  toObject() {
+    return { ...this }
+  }
+}
+
+/**
  * ## Systems ドキュメントデータモデル
  *
  * - システムの状態を表す Firestore ドキュメントのデータモデルです。
@@ -28,6 +46,16 @@ export default class System extends FireModel {
    ****************************************************************************/
   static collectionPath = 'Systems'
   static classProps = classProps
+
+  /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    calcAttendance: ExecuteStatus,
+    calcMonthlySales: ExecuteStatus,
+    calcSiteBillings: ExecuteStatus,
+    refreshEmployeeSiteHistory: ExecuteStatus,
+  }
 
   /****************************************************************************
    * CONSTRUCTOR
@@ -44,56 +72,56 @@ export default class System extends FireModel {
    * @param {Object} snapshot Firestore の snapshot オブジェクト
    * @returns
    ****************************************************************************/
-  fromFirestore(snapshot) {
-    const data = snapshot.data()
+  // fromFirestore(snapshot) {
+  //   const data = snapshot.data()
 
-    // calcAttendance の特殊処理
-    const calcAttendance = {
-      error: data?.calcAttendance?.error || null,
-      executeStatus: data?.calcAttendance?.executeStatus || null,
-      lastExecutedAt: data?.calcAttendance?.lastExecutedAt?.toDate
-        ? data.calcAttendance.lastExecutedAt.toDate()
-        : null,
-      status: data?.calcAttendance?.status || 'ready',
-    }
+  //   // calcAttendance の特殊処理
+  //   const calcAttendance = {
+  //     error: data?.calcAttendance?.error || null,
+  //     executeStatus: data?.calcAttendance?.executeStatus || null,
+  //     lastExecutedAt: data?.calcAttendance?.lastExecutedAt?.toDate
+  //       ? data.calcAttendance.lastExecutedAt.toDate()
+  //       : null,
+  //     status: data?.calcAttendance?.status || 'ready',
+  //   }
 
-    // calcMonthlySales の特殊処理
-    const calcMonthlySales = {
-      error: data?.calcMonthlySales?.error || null,
-      executeStatus: data?.calcMonthlySales?.executeStatus || null,
-      lastExecutedAt: data?.calcMonthlySales?.lastExecutedAt?.toDate
-        ? data.calcMonthlySales.lastExecutedAt.toDate()
-        : null,
-      status: data?.calcMonthlySales?.status || 'ready',
-    }
+  //   // calcMonthlySales の特殊処理
+  //   const calcMonthlySales = {
+  //     error: data?.calcMonthlySales?.error || null,
+  //     executeStatus: data?.calcMonthlySales?.executeStatus || null,
+  //     lastExecutedAt: data?.calcMonthlySales?.lastExecutedAt?.toDate
+  //       ? data.calcMonthlySales.lastExecutedAt.toDate()
+  //       : null,
+  //     status: data?.calcMonthlySales?.status || 'ready',
+  //   }
 
-    // calcSiteBillings の特殊処理
-    const calcSiteBillings = {
-      error: data?.calcSiteBillings?.error || null,
-      executeStatus: data?.calcSiteBillings?.executeStatus || null,
-      lastExecutedAt: data?.calcSiteBillings?.lastExecutedAt?.toDate
-        ? data.calcSiteBillings.lastExecutedAt.toDate()
-        : null,
-      status: data?.calcSiteBillings?.status || 'ready',
-    }
+  //   // calcSiteBillings の特殊処理
+  //   const calcSiteBillings = {
+  //     error: data?.calcSiteBillings?.error || null,
+  //     executeStatus: data?.calcSiteBillings?.executeStatus || null,
+  //     lastExecutedAt: data?.calcSiteBillings?.lastExecutedAt?.toDate
+  //       ? data.calcSiteBillings.lastExecutedAt.toDate()
+  //       : null,
+  //     status: data?.calcSiteBillings?.status || 'ready',
+  //   }
 
-    // calcSiteBillings の特殊処理
-    const refreshEmployeeSiteHistory = {
-      error: data?.refreshEmployeeSiteHistory?.error || null,
-      executeStatus: data?.refreshEmployeeSiteHistory?.executeStatus || null,
-      lastExecutedAt: data?.refreshEmployeeSiteHistory?.lastExecutedAt?.toDate
-        ? data.refreshEmployeeSiteHistory.lastExecutedAt.toDate()
-        : null,
-      status: data?.refreshEmployeeSiteHistory?.status || 'ready',
-    }
-    return {
-      ...super.fromFirestore(snapshot),
-      calcAttendance,
-      calcMonthlySales,
-      calcSiteBillings,
-      refreshEmployeeSiteHistory,
-    }
-  }
+  //   // calcSiteBillings の特殊処理
+  //   const refreshEmployeeSiteHistory = {
+  //     error: data?.refreshEmployeeSiteHistory?.error || null,
+  //     executeStatus: data?.refreshEmployeeSiteHistory?.executeStatus || null,
+  //     lastExecutedAt: data?.refreshEmployeeSiteHistory?.lastExecutedAt?.toDate
+  //       ? data.refreshEmployeeSiteHistory.lastExecutedAt.toDate()
+  //       : null,
+  //     status: data?.refreshEmployeeSiteHistory?.status || 'ready',
+  //   }
+  //   return {
+  //     ...super.fromFirestore(snapshot),
+  //     calcAttendance,
+  //     calcMonthlySales,
+  //     calcSiteBillings,
+  //     refreshEmployeeSiteHistory,
+  //   }
+  // }
 
   /****************************************************************************
    * 引数 month で指定された年月の出勤簿を更新作成します。
