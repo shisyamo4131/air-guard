@@ -68,11 +68,6 @@ export class SiteEmployeeHistory {
       // Firebase Realtime Database に更新を適用
       if (Object.keys(updates).length) {
         await database.ref().update(updates)
-
-        // 更新があった場合にのみ、完了ログを出力
-        logger.info(
-          `SiteEmployeeHistory の更新が完了しました: siteId=${siteId}, employeeId=${employeeId}, date=${date}`
-        )
       }
     } catch (error) {
       logger.error(
