@@ -43,10 +43,10 @@ export const onDelete = onDocumentDeleted(
       // 従属する OperationWorkResults ドキュメントを削除
       await deleteOperationWorkResults(docId)
 
-      // すべての従業員の稼働履歴を強制更新
+      // 対象従業員の現場履歴を強制更新
       await Promise.all(
         data.employeeIds.map((employeeId) => {
-          return EmployeeSiteHistory.updateForce(employeeId, data.siteId)
+          return EmployeeSiteHistory.updateByEmployeeId(employeeId, data.siteId)
         })
       )
     } catch (err) {
