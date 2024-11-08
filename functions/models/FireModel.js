@@ -913,7 +913,7 @@ export default class FireModel {
 
     try {
       const colRef = firestore.collection(this.#collectionPath)
-      const docRef = colRef.doc(docId)
+      const docRef = colRef.doc(docId).withConverter(this.converter())
       const docSnapshot = await docRef.get()
       if (!docSnapshot.exists) {
         // eslint-disable-next-line no-console
