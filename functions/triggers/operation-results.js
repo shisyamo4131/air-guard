@@ -11,7 +11,6 @@
 import { onDocumentDeleted } from 'firebase-functions/v2/firestore'
 import { info, error } from 'firebase-functions/logger'
 import { getFirestore } from 'firebase-admin/firestore'
-import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory.js'
 const firestore = getFirestore()
 
 /****************************************************************************
@@ -34,7 +33,6 @@ export const onDelete = onDocumentDeleted(
   'OperationResults/{docId}',
   async (event) => {
     const docId = event.params.docId
-    const data = event.data.data()
 
     info(
       `[operationResults.onDelete] OperationResults document deleted. docId: ${docId}`
@@ -42,13 +40,6 @@ export const onDelete = onDocumentDeleted(
     try {
       // 従属する OperationWorkResults ドキュメントを削除
       await deleteOperationWorkResults(docId)
-
-      // 対象従業員の現場履歴を強制更新
-      await Promise.all(
-        data.employeeIds.map((employeeId) => {
-          return EmployeeSiteHistory.updateByEmployeeId(employeeId, data.siteId)
-        })
-      )
     } catch (err) {
       error(
         `[operationResults.onDelete] Error deleting related OperationWorkResults for docId: ${docId}`,
