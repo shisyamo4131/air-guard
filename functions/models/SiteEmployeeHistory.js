@@ -230,10 +230,7 @@ export class SiteEmployeeHistory {
       }, [])
 
       // 対象の従業員稼働実績ドキュメントが存在したことをログに出力
-      logger.info(
-        `${targetDocs.length} 件の対象ドキュメントが見つかりました。`,
-        { operationResultIds: targetDocs.map(({ docId }) => docId) }
-      )
+      logger.info(`${targetDocs.length} 件の対象ドキュメントが見つかりました。`)
 
       // 対象の従業員稼働実績ドキュメントから、従業員入場履歴の元データを作成
       const data = targetDocs.reduce((result, doc) => {
