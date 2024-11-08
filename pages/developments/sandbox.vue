@@ -1,22 +1,9 @@
 <template>
-  <div><v-btn @click="test">test</v-btn></div>
+  <v-container></v-container>
 </template>
 
 <script>
-import System from '~/models/System'
-export default {
-  data() {
-    return {
-      instance: new System(),
-    }
-  },
-  methods: {
-    async test() {
-      await this.instance.fetch('System')
-      console.log(this.instance.toObject())
-    },
-  },
-}
+export default {}
 </script>
 
 <style></style>
