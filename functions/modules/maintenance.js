@@ -238,7 +238,7 @@ export const refreshEmployeeSiteHistoryByEmployeeId = onCall(
       )
 
       // EmployeeSiteHistory.updateByEmployeeId を実行
-      await EmployeeSiteHistory.updateByEmployeeId(employeeId, siteId)
+      await EmployeeSiteHistory.updateByEmployeeId({ employeeId, siteId })
 
       // 非同期処理の終了をログで通知
       logger.info(
