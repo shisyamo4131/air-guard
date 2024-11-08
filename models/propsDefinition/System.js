@@ -27,8 +27,16 @@ const propsDefinition = {
     requiredByClass: false,
   },
 
-  // 従業員の稼働履歴更新処理の実行記録
+  // 従業員の現場履歴更新処理の実行記録
   refreshEmployeeSiteHistory: {
+    type: Object,
+    default: () => ({}),
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 現場の従業員入場履歴更新処理の実行記録
+  refreshSiteEmployeeHistory: {
     type: Object,
     default: () => ({}),
     required: false,

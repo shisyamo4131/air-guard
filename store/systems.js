@@ -23,6 +23,7 @@ export const state = () => ({
   calcMonthlySales: null,
   calcSiteBillings: null,
   refreshEmployeeSiteHistory: null,
+  refreshSiteEmployeeHistory: null,
   maintenanceMode: false,
   version: null,
   listener: null,
@@ -56,6 +57,7 @@ export const mutations = {
     state.calcMonthlySales = item?.calcMonthlySales || null
     state.calcSiteBillings = item?.calcSiteBillings || null
     state.refreshEmployeeSiteHistory = item?.refreshEmployeeSiteHistory || null
+    state.refreshSiteEmployeeHistory = item?.refreshSiteEmployeeHistory || null
     state.maintenanceMode = item?.maintenanceMode ?? true
     state.version = item?.version || null
   },
