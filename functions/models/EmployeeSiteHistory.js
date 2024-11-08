@@ -139,22 +139,34 @@ export class EmployeeSiteHistory {
         return sum
       }, {})
 
-      // 現場履歴を更新
+      // 現場入場履歴を更新（first -> last）
+      const promises = []
       for (const [siteId, obj] of Object.entries(data)) {
-        const { firstDate, firstOperationId, lastDate, lastOperationId } = obj
-        await EmployeeSiteHistory.update({
-          employeeId,
-          siteId,
-          date: firstDate,
-          operationResultId: firstOperationId,
-        })
-        await EmployeeSiteHistory.update({
-          employeeId,
-          siteId,
-          date: lastDate,
-          operationResultId: lastOperationId,
-        })
+        const { firstDate, firstOperationId } = obj
+        promises.push(
+          EmployeeSiteHistory.update({
+            employeeId,
+            siteId,
+            date: firstDate,
+            operationResultId: firstOperationId,
+          })
+        )
       }
+      await Promise.all(promises)
+
+      promises.splice(0)
+      for (const [siteId, obj] of Object.entries(data)) {
+        const { lastDate, lastOperationId } = obj
+        promises.push(
+          EmployeeSiteHistory.update({
+            employeeId,
+            siteId,
+            date: lastDate,
+            operationResultId: lastOperationId,
+          })
+        )
+      }
+      await Promise.all(promises)
 
       // 終了ログを出力
       logger.info(`従業員の現場履歴を更新しました。`, {
@@ -248,24 +260,39 @@ export class EmployeeSiteHistory {
         return result
       }, {})
 
-      // 生成した元データを一つずつ処理していく
+      // firstDate について処理
+      const promises = []
       for (const [employeeId, sites] of Object.entries(data)) {
         for (const [siteId, obj] of Object.entries(sites)) {
-          const { firstDate, firstOperationId, lastDate, lastOperationId } = obj
-          await EmployeeSiteHistory.update({
-            employeeId,
-            siteId,
-            date: firstDate,
-            operationResultId: firstOperationId,
-          })
-          await EmployeeSiteHistory.update({
-            employeeId,
-            siteId,
-            date: lastDate,
-            operationResultId: lastOperationId,
-          })
+          const { firstDate, firstOperationId } = obj
+          promises.push(
+            EmployeeSiteHistory.update({
+              employeeId,
+              siteId,
+              date: firstDate,
+              operationResultId: firstOperationId,
+            })
+          )
         }
       }
+      await Promise.all(promises)
+
+      // lastDate について処理
+      promises.splice(0)
+      for (const [employeeId, sites] of Object.entries(data)) {
+        for (const [siteId, obj] of Object.entries(sites)) {
+          const { lastDate, lastOperationId } = obj
+          promises.push(
+            EmployeeSiteHistory.update({
+              employeeId,
+              siteId,
+              date: lastDate,
+              operationResultId: lastOperationId,
+            })
+          )
+        }
+      }
+      await Promise.all(promises)
 
       // 処理完了ログを出力
       logger.info(
