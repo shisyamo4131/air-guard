@@ -47,14 +47,35 @@ export default class System extends FireModel {
   }
 
   /****************************************************************************
-   * CONSTRUCTOR
+   * System ドキュメントを作成します。
+   * - 唯一のドキュメントであり、ドキュメントIDは `System` に固定されます。
+   *
+   * @returns {Promise<DocumenntReference>} - 作成された System ドキュメントへの参照
    ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
+  async create() {
+    try {
+      return await super.create({ docId: 'System' })
+    } catch (err) {
+      const message = `[create] System ドキュメントの作成に失敗しました。`
+      // eslint-disable-next-line no-console
+      console.error(message, err)
+      throw err
+    }
+  }
 
-    delete this.create
-    delete this.update
-    delete this.delete
+  /****************************************************************************
+   * System ドキュメントを自身のインスタンスに読み込みます。
+   * @returns {Promise<boolean>} - 読み込みに成功すると true を、失敗すると false を返します。
+   ****************************************************************************/
+  async fetch() {
+    try {
+      return await super.fetch(`System`)
+    } catch (err) {
+      const message = `[fetch] System ドキュメントの読み込みに失敗しました。`
+      // eslint-disable-next-line no-console
+      console.error(message, err)
+      throw err
+    }
   }
 
   /****************************************************************************
