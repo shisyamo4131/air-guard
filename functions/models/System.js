@@ -525,14 +525,14 @@ export default class System extends FireModel {
    * 指定された ExecuteStatus を更新します。
    * - status は 'ready' になります。
    * - lastExecutedAt は指定された引数がセットされます。
-   * - executedStatus は 'success' になります。
+   * - executeStatus は 'success' になります。
    *
    * @param {string} type 更新対象のキー。例えば 'refreshEmployeeSiteHistory' など
    * @param {Date} lastExecutedAt 最後に実行された日時
    */
   async updateToSuccess(type, lastExecutedAt) {
     // 必要なプロパティがすべて存在するかチェック
-    const requiredProps = ['status', 'executedStatus', 'lastExecutedAt']
+    const requiredProps = ['status', 'executeStatus', 'lastExecutedAt']
     if (!this[type] || !requiredProps.every((prop) => prop in this[type])) {
       throw new Error(
         `不正な type または必要なプロパティが存在しません。 type: ${type}`
@@ -542,7 +542,7 @@ export default class System extends FireModel {
     // プロパティを一括で更新
     Object.assign(this[type], {
       status: 'ready',
-      executedStatus: 'success',
+      executeStatus: 'success',
       lastExecutedAt,
     })
 
@@ -553,7 +553,7 @@ export default class System extends FireModel {
   /**
    * 指定された ExecuteStatus を更新します。
    * - status は 'ready' になります。
-   * - executedStatus は 'error' になります。
+   * - executeStatus は 'error' になります。
    * - error は指定された message がセットされます。
    * - lastExecutedAt は更新されません。
    *
@@ -562,7 +562,7 @@ export default class System extends FireModel {
    */
   async updateToError(type, message) {
     // 必要なプロパティがすべて存在するかチェック
-    const requiredProps = ['status', 'executedStatus', 'error']
+    const requiredProps = ['status', 'executeStatus', 'error']
     if (!this[type] || !requiredProps.every((prop) => prop in this[type])) {
       throw new Error(
         `不正な type または必要なプロパティが存在しません。 type: ${type}`
@@ -572,7 +572,7 @@ export default class System extends FireModel {
     // プロパティを一括で更新
     Object.assign(this[type], {
       status: 'ready',
-      executedStatus: 'error',
+      executeStatus: 'error',
       error: message,
     })
 
