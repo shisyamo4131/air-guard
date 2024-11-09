@@ -164,7 +164,7 @@ export default {
   <div class="d-flex" style="height: 596px">
     <div class="flex-grow-1">
       <div>
-        <div class="pb-2 d-flex">
+        <v-toolbar dense flat>
           <g-div-month-chooser
             v-model="currentDate"
             @click:prev="$refs.calendar.prev()"
@@ -185,7 +185,7 @@ export default {
               />
             </template>
           </g-dialog-input>
-        </div>
+        </v-toolbar>
         <g-calendar-site-operation-schedules
           ref="calendar"
           v-model="currentDate"
