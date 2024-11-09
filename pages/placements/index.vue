@@ -11,25 +11,7 @@
             <g-checkbox v-model="ellipsis" hide-details label="省略表示" />
           </v-toolbar>
           <!-- 非表示現場存在アラート -->
-          <v-expand-transition>
-            <v-alert
-              v-show="hiddenSites.length"
-              class="ma-2"
-              dense
-              type="error"
-              outlined
-              text
-            >
-              <v-row align="center">
-                <v-col class="grow"> 非表示現場があります。 </v-col>
-                <v-col class="shrink">
-                  <v-btn color="error" small @click="onClickShowHiddenSites"
-                    >表示する</v-btn
-                  >
-                </v-col>
-              </v-row>
-            </v-alert>
-          </v-expand-transition>
+          <g-placement-alert-hidden-sites />
           <v-divider />
           <!-- 配置表コンテナ -->
           <div class="overflow-hidden d-flex flex-grow-1">
@@ -71,6 +53,7 @@ import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GPlacementSiteWorkShiftRow from '~/components/organisms/placements/GPlacementSiteWorkShiftRow.vue'
 import GPlacementToolbar from '~/components/organisms/placements/GPlacementToolbar.vue'
 import GPlacementOutsourcerCard from '~/components/organisms/placements/GPlacementOutsourcerCard.vue'
+import GPlacementAlertHiddenSites from '~/components/organisms/placements/GPlacementAlertHiddenSites.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -88,6 +71,7 @@ export default {
     GPlacementSiteWorkShiftRow,
     GPlacementToolbar,
     GPlacementOutsourcerCard,
+    GPlacementAlertHiddenSites,
   },
 
   /***************************************************************************
@@ -152,22 +136,6 @@ export default {
         this.$store.dispatch('site-order/update', v)
       },
     },
-
-    /**
-     * 稼働予定または配置割り当てがあるにも関わらず、表示されていない現場-勤務区分の配列を返します。
-     * @returns {Array<id:string, siteId:string, workShift:string>} - 現場-勤務区分の配列
-     */
-    hiddenSites() {
-      const assigned = this.$store.getters['assignments/siteWorkShifts']
-      const scheduled =
-        this.$store.getters['site-order/scheduledSiteWorkShifts']
-      return [...new Set([...scheduled, ...assigned].map((site) => site.id))]
-        .map((id) => {
-          const [siteId, workShift] = id.split('-')
-          return { id, siteId, workShift }
-        })
-        .filter(({ id }) => !this.siteOrder.some((order) => order.id === id))
-    },
   },
 
   /***************************************************************************
@@ -209,19 +177,7 @@ export default {
   /***************************************************************************
    * METHODS
    ***************************************************************************/
-  methods: {
-    /**
-     * computed.hiddenSites を参照し、対象の現場-勤務区分を site-order に追加します。
-     */
-    async onClickShowHiddenSites() {
-      if (!this.hiddenSites.length) return
-      await Promise.all(
-        this.hiddenSites.map(({ siteId, workShift }) =>
-          this.$store.dispatch('site-order/add', { siteId, workShift })
-        )
-      )
-    },
-  },
+  methods: {},
 }
 </script>
 
