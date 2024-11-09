@@ -207,15 +207,19 @@ export default {
    ***************************************************************************/
   methods: {
     async updateColumns() {
+      const today = this.$dayjs().format('YYYY-MM-DD')
       const columns = await Promise.all(
         this.dates.map(async (date, index) => {
           const isHoliday =
             this.$dayjs(date).day() && (await this.$holiday.isHoliday(date))
+          const dayOfWeek = this.$dayjs(date).format('ddd').toLowerCase()
           return {
             date,
             index,
             col: this.$dayjs(date).locale(ja).format('MM/DD(ddd)'),
             isHoliday, // 祝日情報を追加
+            isToday: date === today,
+            dayOfWeek: isHoliday ? 'holi' : dayOfWeek,
           }
         })
       )
@@ -338,7 +342,11 @@ export default {
   <v-simple-table id="placement-table" fixed-header>
     <thead>
       <tr>
-        <th v-for="column of columns" :key="column.date">
+        <th
+          v-for="column of columns"
+          :key="column.date"
+          :class="`th-${column.dayOfWeek}`"
+        >
           <v-icon v-if="column.isHoliday" color="red">mdi-flag-variant</v-icon>
           {{ column.col }}
         </th>
@@ -352,7 +360,11 @@ export default {
           </td>
         </tr>
         <tr :key="`placement-row-${rowIndex}`">
-          <td v-for="column of columns" :key="column.date">
+          <td
+            v-for="column of columns"
+            :key="column.date"
+            :class="`col-${column.dayOfWeek}`"
+          >
             <g-placement-draggable-cell
               v-bind="getCellProps(column, order)?.attrs || {}"
               v-on="getCellProps(column, order)?.on || {}"

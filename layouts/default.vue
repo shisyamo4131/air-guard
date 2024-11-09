@@ -228,6 +228,35 @@ export default {
   /* box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1); */ /* 境界線を強調するための影 */
 }
 
+#placement-table tr:hover {
+  background-color: transparent !important;
+}
+
+#placement-table td:hover {
+  background-color: #e0e0e0;
+}
+
+#placement-table .th-sun,
+#placement-table .th-holi,
+#placement-table .col-sun,
+#placement-table .col-holy {
+  background-color: #ffebee;
+}
+
+#placement-table .col-sun:hover,
+#placement-table .col-holy:hover {
+  background-color: #ffcdd2;
+}
+
+#placement-table .th-sat,
+#placement-table .col-sat {
+  background-color: #e3f2fd;
+}
+
+#placement-table .col-sat:hover {
+  background-color: #bbdefb;
+}
+
 /*****************************************************************************
  * vue-draggable で ドラッグ用アイコンのポインターを指定
  *****************************************************************************/
