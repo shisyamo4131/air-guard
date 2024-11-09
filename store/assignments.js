@@ -1,3 +1,10 @@
+/**
+ * 一定期間内の配置割り当てを管理するための Vuex です。
+ *
+ * [使い方]
+ * Actions.subscribe で /Placements/assignments に対してリアルタイムリスナーを設定します。
+ * - from, to の指定が必要です
+ */
 import {
   ref,
   onValue,
@@ -16,6 +23,22 @@ export const state = () => ({
 })
 
 export const getters = {
+  /**
+   * 現場の配置割り当てデータを { id, siteId, workShift } の配列に変換して返します。
+   * @returns {Array<{id:string, siteId:string, workShift:string}>} - 変換後の配列
+   */
+  siteWorkShifts(state) {
+    return Object.values(state.sites).flatMap((siteIds) =>
+      Object.entries(siteIds).flatMap(([siteId, workShifts]) =>
+        Object.keys(workShifts).map((workShift) => ({
+          id: `${siteId}-${workShift}`,
+          siteId,
+          workShift,
+        }))
+      )
+    )
+  },
+
   /**
    * 同一日、同一勤務区分で複数の現場に配置されている従業員IDの配列を返します。
    * @param {string} date 日付（YYYY-MM-DD形式）
