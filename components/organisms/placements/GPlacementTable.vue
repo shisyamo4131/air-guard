@@ -232,7 +232,7 @@ export default {
       if (index !== -1) {
         const updatedSiteIndex = [...this.siteOrder]
         updatedSiteIndex.splice(index, 1)
-        this.$emit('update:site-order', updatedSiteIndex)
+        this.$store.dispatch('site-order/update', updatedSiteIndex)
       }
     },
     /**
