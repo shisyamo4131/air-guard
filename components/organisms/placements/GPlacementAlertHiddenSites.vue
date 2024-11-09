@@ -59,18 +59,20 @@ export default {
 </script>
 
 <template>
-  <div class="pa-2">
+  <div>
     <v-expand-transition>
-      <v-alert v-show="hiddenSites.length" v-bind="{ ...$props, ...$attrs }">
-        <v-row align="center">
-          <v-col class="grow"> 非表示現場があります。 </v-col>
-          <v-col class="shrink">
-            <v-btn color="error" small @click="addHiddenSitesToSiteOrder"
-              >表示する</v-btn
-            >
-          </v-col>
-        </v-row>
-      </v-alert>
+      <div v-show="hiddenSites.length" class="pa-2">
+        <v-alert v-bind="{ ...$props, ...$attrs }">
+          <v-row align="center">
+            <v-col class="grow"> 非表示現場があります。 </v-col>
+            <v-col class="shrink">
+              <v-btn color="error" small @click="addHiddenSitesToSiteOrder"
+                >表示する</v-btn
+              >
+            </v-col>
+          </v-row>
+        </v-alert>
+      </div>
     </v-expand-transition>
   </div>
 </template>
