@@ -188,36 +188,23 @@ export default {
     },
 
     /**
-     * Vuex.assignments から配置が存在する現場のリストを生成して返します。
-     */
-    assignmentedSites() {
-      return Object.values(this.assignments.sites).flatMap((siteIds) =>
-        Object.entries(siteIds).flatMap(([siteId, workShifts]) =>
-          Object.keys(workShifts).map((workShift) => ({
-            id: `${siteId}-${workShift}`,
-            siteId,
-            workShift,
-          }))
-        )
-      )
-    },
-
-    /**
      * Retrieves an array of hidden site-workShift IDs.
      * - Flattens the assignments.sites object to extract all siteId-workShift combinations.
      * - Filters out site-workShift IDs that are not present in siteOrder.
      * - Returns an array of IDs for sites and work shifts that are considered "hidden."
      */
     hiddenSites() {
+      const assignedSiteWorkShifts =
+        this.$store.getters['assignments/siteWorkShifts']
       const toBeDisplayed = Array.from(
         new Set(
-          [...this.scheduledSites, ...this.assignmentedSites].map(
+          [...this.scheduledSites, ...assignedSiteWorkShifts].map(
             (site) => site.id
           )
         )
       ).map((id) => {
         // IDを使って元のオブジェクトを再構築
-        const site = [...this.scheduledSites, ...this.assignmentedSites].find(
+        const site = [...this.scheduledSites, ...assignedSiteWorkShifts].find(
           (site) => site.id === id
         )
         return site
