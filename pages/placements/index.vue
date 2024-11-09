@@ -158,27 +158,15 @@ export default {
      * @returns {Array<id:string, siteId:string, workShift:string>} - 現場-勤務区分の配列
      */
     hiddenSites() {
-      const assignedSiteWorkShifts =
-        this.$store.getters['assignments/siteWorkShifts']
-      const scheduledSiteWorkShifts =
+      const assigned = this.$store.getters['assignments/siteWorkShifts']
+      const scheduled =
         this.$store.getters['site-order/scheduledSiteWorkShifts']
-      const toBeDisplayed = Array.from(
-        new Set(
-          [...scheduledSiteWorkShifts, ...assignedSiteWorkShifts].map(
-            (site) => site.id
-          )
-        )
-      ).map((id) => {
-        // IDを使って元のオブジェクトを再構築
-        const site = [
-          ...scheduledSiteWorkShifts,
-          ...assignedSiteWorkShifts,
-        ].find((site) => site.id === id)
-        return site
-      })
-      return toBeDisplayed.filter(
-        ({ id }) => !this.siteOrder.some((order) => order.id === id)
-      )
+      return [...new Set([...scheduled, ...assigned].map((site) => site.id))]
+        .map((id) => {
+          const [siteId, workShift] = id.split('-')
+          return { id, siteId, workShift }
+        })
+        .filter(({ id }) => !this.siteOrder.some((order) => order.id === id))
     },
   },
 
