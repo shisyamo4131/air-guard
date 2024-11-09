@@ -3,7 +3,7 @@ import { logger } from 'firebase-functions/v2'
 import dayjs from 'dayjs'
 import updateLocale from 'dayjs/plugin/updateLocale.js'
 import FireModel from './FireModel.js'
-import { classProps } from './propsDefinition/System.js'
+import { classProps, ExecuteStatus } from './propsDefinition/System.js'
 import DailyAttendance from './DailyAttendance.js'
 import MonthlyAttendance from './MonthlyAttendance.js'
 import DailySale from './DailySale.js'
@@ -13,24 +13,6 @@ import { EmployeeSiteHistory } from './EmployeeSiteHistory.js'
 const firestore = getFirestore()
 dayjs.extend(updateLocale)
 dayjs.updateLocale('en', { weekStart: 1 })
-
-/**
- * ## 各種実行記録のカスタムクラス
- */
-class ExecuteStatus {
-  constructor(item = {}) {
-    this.status = item?.status || 'ready'
-    this.lastExecutedAt = item?.lastExecutedAt?.toDate
-      ? item.lastExecutedAt.toDate()
-      : item?.lastExecutedAt || null
-    this.executeStatus = item?.executeStatus || null
-    this.error = item?.error || null
-  }
-
-  toObject() {
-    return { ...this }
-  }
-}
 
 /**
  * ## Systems ドキュメントデータモデル
@@ -63,6 +45,8 @@ export default class System extends FireModel {
    ****************************************************************************/
   constructor(item = {}) {
     super(item)
+
+    delete this.tokenMap
     delete this.delete
   }
 
