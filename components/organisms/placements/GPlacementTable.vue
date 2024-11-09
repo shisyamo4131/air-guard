@@ -11,6 +11,7 @@ import GPlacementDraggableCell from './GPlacementDraggableCell.vue'
 import GPlacementSiteOperationScheduleEditDialog from './GPlacementSiteOperationScheduleEditDialog.vue'
 import GPlacementEmployeePlacementEditDialog from './GPlacementEmployeePlacementEditDialog.vue'
 import GPlacementOutsourcerPlacementEditDialog from './GPlacementOutsourcerPlacementEditDialog.vue'
+import GPlacementSiteOperationSchedulesDialog from './GPlacementSiteOperationSchedulesDialog.vue'
 import GDialogEmployeeSelector from '~/components/molecules/dialogs/GDialogEmployeeSelector.vue'
 import GDialogOutsourcerSelector from '~/components/molecules/dialogs/GDialogOutsourcerSelector.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
@@ -27,6 +28,7 @@ export default {
     GPlacementSiteOperationScheduleEditDialog,
     GPlacementEmployeePlacementEditDialog,
     GPlacementOutsourcerPlacementEditDialog,
+    GPlacementSiteOperationSchedulesDialog,
   },
 
   /***************************************************************************
@@ -382,7 +384,7 @@ export default {
     />
 
     <!-- detail dialog -->
-    <v-dialog v-model="dialog.siteDetail" max-width="480">
+    <!-- <v-dialog v-model="dialog.siteDetail" max-width="480">
       <v-card>
         <v-toolbar color="primary" dark dense flat>
           <v-toolbar-title class="text-body-1"> 現場情報詳細 </v-toolbar-title>
@@ -414,7 +416,11 @@ export default {
           </v-list-item>
         </v-list>
       </v-card>
-    </v-dialog>
+    </v-dialog> -->
+    <g-placement-site-operation-schedules-dialog
+      v-model="dialog.siteDetail"
+      :site-id="item.siteDetail?.docId || ''"
+    />
 
     <!-- schedule dialog -->
     <g-placement-site-operation-schedule-edit-dialog
