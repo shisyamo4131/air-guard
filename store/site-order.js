@@ -83,6 +83,26 @@ export const getters = {
         return history.siteId === siteId && history.employeeId === employeeId
       })
     },
+
+  /**
+   * 稼働予定が登録されている現場-勤務区分のリストを配列で返します。
+   * - 読み込んだ稼働予定ドキュメントを基に { id, siteId, workShift } の配列を返します。
+   * @returns {Array<{id:string, siteId:string, workShift:string}>} - 変換後の配列
+   */
+  scheduledSiteWorkShifts(state) {
+    if (!state.siteOperationSchedules) {
+      return []
+    }
+    const schedules = state.siteOperationSchedules
+    const ids = schedules.map(({ siteId, workShift }) => {
+      return `${siteId}-${workShift}`
+    })
+    const uniques = [...new Set(ids)]
+    return uniques.map((id) => {
+      const [siteId, workShift] = id.split('-')
+      return { id, siteId, workShift }
+    })
+  },
 }
 
 /*****************************************************************************
