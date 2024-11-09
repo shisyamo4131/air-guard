@@ -6,7 +6,7 @@
  * @author shisyamo4131
  */
 import { firestore } from 'air-firebase'
-import { doc, getDoc, onSnapshot, setDoc } from 'firebase/firestore'
+import { doc, onSnapshot } from 'firebase/firestore'
 import System from '~/models/System'
 
 /**
@@ -52,7 +52,7 @@ export const getters = {
  * MUTATIONS
  ******************************************************************/
 export const mutations = {
-  setItem(state, item) {
+  SET_ITEM(state, item) {
     state.calcAttendance = item?.calcAttendance || null
     state.calcMonthlySales = item?.calcMonthlySales || null
     state.calcSiteBillings = item?.calcSiteBillings || null
@@ -61,10 +61,10 @@ export const mutations = {
     state.maintenanceMode = item?.maintenanceMode ?? true
     state.version = item?.version || null
   },
-  setListener(state, listener) {
+  SET_LISTENER(state, listener) {
     state.listener = listener
   },
-  removeListener(state) {
+  REMOVE_LISTENER(state) {
     if (state.listener) state.listener()
     state.listener = null
   },
@@ -73,44 +73,69 @@ export const mutations = {
  * ACTIONS
  ******************************************************************/
 export const actions = {
+  /**
+   * System ドキュメントへのリアルタイムリスナーをセットします。
+   * - 呼び出されると、既存のリスナーが存在すれば購読を解除します。
+   * - リアルタイムリスナーをセットする前に、System ドキュメントの存在確認を行います。
+   * - System ドキュメントが存在しない場合は作成します。
+   * - onSnapshot による購読で取得したデータは System クラスインスタンスの initialize を介して state に保存されます。
+   *   -> 仕様変更などで既存の System ドキュメントに存在しないプロパティがあった場合に対応するため。
+   *
+   * NOTE:
+   * System クラスは FireModel を継承したクラスなので subscribe メソッドを保有していますが、
+   * Vuex 内で使用すると自身のプロパティを mutation の外で更新してしまうためエラーになります。
+   */
   async subscribe({ commit }) {
-    // System ドキュメントへの参照を取得
+    commit('REMOVE_LISTENER')
     const instance = new System()
-    const docRef = doc(firestore, 'Systems', 'System').withConverter(
-      instance.converter()
-    )
 
     try {
-      // 一旦 System ドキュメントを取得し、存在しなければ作成
-      const docSnapshot = await getDoc(docRef)
-      if (!docSnapshot.exists()) {
-        instance.createAt = new Date() // "createAt" を正しく設定
-        await setDoc(docRef, instance)
-      }
+      const isSystemDocExist = await instance.fetch()
+      if (!isSystemDocExist) await instance.create()
+    } catch (err) {
+      const message = `[Vuex.systems - subscribe] System ドキュメントの存在確認および作成処理でエラーが発生しました。`
+      // eslint-disable-next-line no-console
+      console.error(message, err)
+      throw err
+    }
 
-      // System ドキュメントへのリアルタイムリスナーをセット
+    try {
+      const docRef = doc(firestore, `Systems/System`).withConverter(
+        instance.converter()
+      )
+
       const listener = onSnapshot(docRef, (snapshot) => {
-        if (snapshot.exists()) {
-          // ドキュメントに存在しない、追加されたプロパティを含めるためにインスタンスを通す
-          instance.initialize(snapshot.data())
-          commit('setItem', instance.toObject())
+        const data = snapshot.data()
+        if (data) {
+          instance.initialize(data)
+          commit('SET_ITEM', instance.toObject())
         } else {
           // eslint-disable-next-line no-console
-          console.warn('[subscribe] System ドキュメントが存在しません。')
+          console.warn(
+            '[Vuex.systems - subscribe] 取得したデータが null です。'
+          )
         }
       })
 
-      // リスナーをストアに保存
-      commit('setListener', listener)
+      commit('SET_LISTENER', listener)
+
+      // eslint-disable-next-line no-console
+      console.log(
+        `[Vuex.systems - subscribe] System へのリアルタイムリスナーがセットされました。`
+      )
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(
-        '[subscribe] System ドキュメントの取得中にエラーが発生しました:',
+        '[Vuex.systems - subscribe] System へのリアルタイムリスナーのセットでエラーが発生しました。',
         error
       )
     }
   },
+
+  /**
+   * System ドキュメントへのリアルタイムリスナーによる購読を解除します。
+   */
   unsubscribe({ commit }) {
-    commit('removeListener')
+    commit('REMOVE_LISTENER')
   },
 }
