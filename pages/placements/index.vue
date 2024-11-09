@@ -89,12 +89,6 @@ export default {
       ellipsis: false,
       includesExpiredEmployee: false,
       length: 7,
-
-      /***********************************************************************
-       * An object which is now dragging.
-       * - Provided from GArrangementCell.
-       ***********************************************************************/
-      draggingItem: null,
     }
   },
 
