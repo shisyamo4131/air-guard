@@ -53,12 +53,6 @@ export default {
      * Enables abbreviated display if set to true.
      */
     ellipsis: { type: Boolean, default: false },
-    /**
-     * Array representing the order of sites.
-     * - Defines the sequence in which sites are arranged or processed.
-     * - Defaults to an empty array if no site order is provided.
-     */
-    siteOrder: { type: Array, default: () => [] },
   },
 
   /***************************************************************************
@@ -187,6 +181,10 @@ export default {
 
     selectableOutsourcers() {
       return this.$store.getters['outsourcers/items']
+    },
+
+    siteOrder() {
+      return this.$store.state['site-order'].data
     },
   },
 

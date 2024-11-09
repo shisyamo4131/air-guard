@@ -21,7 +21,6 @@
               :current-date="currentDate"
               :ellipsis="ellipsis"
               :length="length"
-              :site-order.sync="siteOrder"
             >
               <template #site-row="{ attrs, on }">
                 <g-placement-site-work-shift-row v-bind="attrs" v-on="on" />
@@ -122,19 +121,6 @@ export default {
       return dayjs(this.currentDate)
         .add(this.length - 1, 'day')
         .format('YYYY-MM-DD')
-    },
-
-    /**
-     * getter: Vuex.site-order の内容を返します。
-     * setter: Vuex.site-order.dispatch.update を実行します。
-     */
-    siteOrder: {
-      get() {
-        return this.$store.state['site-order'].data
-      },
-      set(v) {
-        this.$store.dispatch('site-order/update', v)
-      },
     },
   },
 
