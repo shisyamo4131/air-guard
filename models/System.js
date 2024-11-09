@@ -1,24 +1,6 @@
 import { FireModel, firestore } from 'air-firebase'
 import { doc, updateDoc } from 'firebase/firestore'
-import { classProps } from './propsDefinition/System'
-
-/**
- * ## 各種実行記録のカスタムクラス
- */
-class ExecuteStatus {
-  constructor(item = {}) {
-    this.status = item?.status || 'ready'
-    this.lastExecutedAt = item?.lastExecutedAt?.toDate
-      ? item.lastExecutedAt.toDate()
-      : item?.lastExecutedAt || null
-    this.executeStatus = item?.executeStatus || null
-    this.error = item?.error || null
-  }
-
-  toObject() {
-    return { ...this }
-  }
-}
+import { classProps, ExecuteStatus } from './propsDefinition/System'
 
 /**
  * ## Systemsドキュメントデータモデル
@@ -44,6 +26,15 @@ export default class System extends FireModel {
     calcSiteBillings: ExecuteStatus,
     refreshEmployeeSiteHistory: ExecuteStatus,
     refreshSiteEmployeeHistory: ExecuteStatus,
+  }
+
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item)
+
+    delete this.tokenMap
   }
 
   /****************************************************************************
