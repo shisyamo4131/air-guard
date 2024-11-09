@@ -47,11 +47,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
-    instance: {
-      type: Object,
-      required: true,
-      validator: (instance) => instance instanceof Site,
-    },
+    siteId: { type: String, required: true },
   },
   /***************************************************************************
    * DATA
@@ -61,6 +57,7 @@ export default {
       currentDate: this.$dayjs().format('YYYY-MM-DD'),
       dialog: false,
       editModel: new SiteOperationSchedule(),
+      instance: new Site(),
       items: {
         schedules: [],
         histories: [],
@@ -104,14 +101,14 @@ export default {
       this.subscribeSchedules()
       this.subscribeHistories()
     },
-    instance: {
-      handler(v) {
-        if (!v.docId) return
+    siteId: {
+      async handler(v) {
+        if (!v) return
+        await this.instance.fetch(v)
         this.subscribeSchedules()
         this.subscribeHistories()
       },
       immediate: true,
-      deep: true,
     },
   },
   /***************************************************************************

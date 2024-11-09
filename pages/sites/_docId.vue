@@ -132,7 +132,10 @@ export default {
             <v-row no-gutters>
               <v-col cols="12">
                 <v-container fluid>
-                  <g-site-operation-schedule-manager :instance="listener" />
+                  <!-- <g-site-operation-schedule-manager :instance="listener" /> -->
+                  <g-site-operation-schedule-manager
+                    :site-id="listener.docId"
+                  />
                 </v-container>
               </v-col>
             </v-row>
