@@ -141,17 +141,6 @@ export default {
     },
 
     /**
-     * Vuex.assginments の内容を返します。
-     */
-    assignments() {
-      const result = {
-        employees: this.$store.state.assignments.employees,
-        sites: this.$store.state.assignments.sites,
-      }
-      return result
-    },
-
-    /**
      * getter: Vuex.site-order の内容を返します。
      * setter: Vuex.site-order.dispatch.update を実行します。
      */
@@ -165,48 +154,26 @@ export default {
     },
 
     /**
-     * Vuex.site-order から siteOperationSchedules を取得して返します。
-     */
-    siteOperationSchedules() {
-      return this.$store.state['site-order'].siteOperationSchedules
-    },
-
-    /**
-     * Vuex.site-order から稼働予定の存在する現場のリストを生成して返します。
-     */
-    scheduledSites() {
-      return Array.from(
-        new Set(
-          this.siteOperationSchedules.map(
-            (schedule) => `${schedule.siteId}-${schedule.workShift}`
-          )
-        )
-      ).map((id) => {
-        const [siteId, workShift] = id.split('-')
-        return { id, siteId, workShift }
-      })
-    },
-
-    /**
-     * Retrieves an array of hidden site-workShift IDs.
-     * - Flattens the assignments.sites object to extract all siteId-workShift combinations.
-     * - Filters out site-workShift IDs that are not present in siteOrder.
-     * - Returns an array of IDs for sites and work shifts that are considered "hidden."
+     * 稼働予定または配置割り当てがあるにも関わらず、表示されていない現場-勤務区分の配列を返します。
+     * @returns {Array<id:string, siteId:string, workShift:string>} - 現場-勤務区分の配列
      */
     hiddenSites() {
       const assignedSiteWorkShifts =
         this.$store.getters['assignments/siteWorkShifts']
+      const scheduledSiteWorkShifts =
+        this.$store.getters['site-order/scheduledSiteWorkShifts']
       const toBeDisplayed = Array.from(
         new Set(
-          [...this.scheduledSites, ...assignedSiteWorkShifts].map(
+          [...scheduledSiteWorkShifts, ...assignedSiteWorkShifts].map(
             (site) => site.id
           )
         )
       ).map((id) => {
         // IDを使って元のオブジェクトを再構築
-        const site = [...this.scheduledSites, ...assignedSiteWorkShifts].find(
-          (site) => site.id === id
-        )
+        const site = [
+          ...scheduledSiteWorkShifts,
+          ...assignedSiteWorkShifts,
+        ].find((site) => site.id === id)
         return site
       })
       return toBeDisplayed.filter(
