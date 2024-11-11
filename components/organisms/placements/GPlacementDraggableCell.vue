@@ -221,13 +221,16 @@ export default {
     },
 
     /**
-     * 複数の従業員を一括で配置します。
-     * - 当該コンポーネントでは使用していません。
-     * - 親コンポーネントから実行されます。
+     * 引数で従業員IDの配列を受け取り、従業員を配置します。
+     * - 現場の取極めが存在する場合、取極めの開始時刻・終了時刻・休憩時間が適用されます。
+     * NOTE:
+     * - 当該コンポーネントでは使用されず、親コンポーネントから実行されます。
+     * @param {Array<string>} - 従業員IDの配列
      */
     async addBulkEmployees(employeeIds) {
       const func = this.placement.employee.addBulk
-      await func({ employeeIds, siteContract: this.siteContract })
+      const { startTime, endTime, breakMinutes } = this.siteContract || {}
+      await func({ employeeIds, startTime, endTime, breakMinutes })
     },
 
     /**
