@@ -191,15 +191,25 @@ export default {
   },
 
   /***************************************************************************
-   * WATCH
+   * CREATED
    ***************************************************************************/
-  watch: {
-    currentDate: {
-      handler() {
+  created() {
+    this.$watch(
+      () => [this.$props.currentDate, this.$props.length],
+      (newVal, oldVal) => {
+        const after = {
+          currentDate: newVal?.[0] || undefined,
+          length: newVal?.[1] || undefined,
+        }
+        const before = {
+          currentDate: oldVal?.[0] || undefined,
+          length: oldVal?.[1] || undefined,
+        }
+        if (JSON.stringify(after) === JSON.stringify(before)) return
         this.updateColumns()
       },
-      immediate: true,
-    },
+      { immediate: true }
+    )
   },
 
   /***************************************************************************
@@ -355,7 +365,7 @@ export default {
     <tbody>
       <template v-for="(order, rowIndex) of siteOrder">
         <tr :key="`site-row-${rowIndex}`">
-          <td colspan="7">
+          <td class="site-row" :colspan="length">
             <slot name="site-row" v-bind="getSiteRowSlotProps(order)" />
           </td>
         </tr>
