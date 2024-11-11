@@ -396,41 +396,9 @@ export default {
     />
 
     <!-- detail dialog -->
-    <!-- <v-dialog v-model="dialog.siteDetail" max-width="480">
-      <v-card>
-        <v-toolbar color="primary" dark dense flat>
-          <v-toolbar-title class="text-body-1"> 現場情報詳細 </v-toolbar-title>
-          <v-spacer />
-          <v-icon @click="dialog.siteDetail = false">mdi-close</v-icon>
-        </v-toolbar>
-        <v-list class="px-0 py-2" :dense="$vuetify.breakpoint.mobile">
-          <v-list-item>
-            <v-list-item-icon class="mr-2">
-              <v-icon small>mdi-dump-truck</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title style="white-space: normal; overflow: visible">
-              {{ item.siteDetail?.name || 'undefined' }}
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item>
-            <v-list-item-icon class="mr-2">
-              <v-icon small>mdi-map-marker</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title style="white-space: normal; overflow: visible">
-              {{ item.siteDetail?.address || 'undefined' }}
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item>
-            <v-list-item-icon class="mr-2">
-              <v-icon left small>mdi-card-account-details</v-icon>
-            </v-list-item-icon>
-            <v-list-item-title> 実装されていません。 </v-list-item-title>
-          </v-list-item>
-        </v-list>
-      </v-card>
-    </v-dialog> -->
     <g-placement-site-operation-schedules-dialog
       v-model="dialog.siteDetail"
+      max-width="840"
       :site-id="item.siteDetail?.docId || ''"
     />
 
