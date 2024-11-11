@@ -8,7 +8,23 @@
         <v-sheet class="overflow-x-auto flex-grow-1 d-flex flex-column">
           <!-- サブメニュー -->
           <v-toolbar dense flat class="flex-grow-0">
-            <g-checkbox v-model="ellipsis" hide-details label="省略表示" />
+            <div class="d-flex align-center" style="gap: 16px">
+              <v-select
+                v-model="length"
+                :items="[
+                  { text: '3日', value: 3 },
+                  { text: '7日', value: 7 },
+                  { text: '14日', value: 14 },
+                ]"
+                style="max-width: 96px"
+                label="表示日数"
+                hide-details
+                solo
+                dense
+                :menu-props="{ offsetY: true }"
+              />
+              <g-checkbox v-model="ellipsis" hide-details label="省略表示" />
+            </div>
           </v-toolbar>
           <!-- 非表示現場存在アラート -->
           <g-placement-alert-hidden-sites />
