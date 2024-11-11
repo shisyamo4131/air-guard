@@ -491,10 +491,18 @@ class Placement {
    * @param {Object} options - Outsourcer追加のオプション。
    * @param {string} options.outsourcerId - 追加する単一のoutsourcer ID。
    * @param {number} options.length - 追加するoutsourcerの数。
-   * @param {Object|null} options.siteContract - サイト契約の詳細情報（startTime, endTime, breakMinutesを含む）。
+   * @param {string|null} [options.startTime=null] - 開始時刻
+   * @param {string|null} [options.endTime=null] - 終了時刻
+   * @param {number|null} [options.breakMinutes=null] - 休憩時間
    * @throws {TypeError} `outsourcerId`が文字列でない場合、または`length`が1未満の場合にエラーを投げます。
    */
-  async addOutsourcers({ outsourcerId, length, siteContract = null } = {}) {
+  async addOutsourcers({
+    outsourcerId,
+    length,
+    startTime = null,
+    endTime = null,
+    breakMinutes = null,
+  } = {}) {
     // outsourcerIdが文字列かどうかを確認
     if (typeof outsourcerId !== 'string') {
       const message = `[addOutsourcers] "outsourcerId" must be a string. Provided: ${outsourcerId}`
@@ -528,9 +536,9 @@ class Placement {
       // 新しいPlacedOutsourcerインスタンスを作成
       const newOutsourcer = new PlacedOutsourcer({
         outsourcerKey,
-        startTime: siteContract?.startTime || null,
-        endTime: siteContract?.endTime || null,
-        breakMinutes: siteContract?.breakMinutes || null,
+        startTime,
+        endTime,
+        breakMinutes,
       })
 
       outsourcerOrder.push(outsourcerKey)
