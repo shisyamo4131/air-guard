@@ -13,23 +13,16 @@ export default {
   data() {
     return {
       dialog: false,
-      internalOrder: [],
       loading: false,
+      siteOrder: [],
     }
   },
   watch: {
-    siteOrder: {
-      // siteOrderが更新されたらinternalOrderも更新する
-      handler(v) {
-        this.internalOrder = structuredClone(v)
-      },
-      immediate: true,
-    },
     dialog: {
-      // ダイアログが開くときにinternalOrderを初期化
+      // ダイアログが開くときにsiteOrderを初期化
       handler(v) {
         if (v) {
-          this.internalOrder = structuredClone(
+          this.siteOrder = structuredClone(
             this.$store.state['site-order']?.data || []
           )
         }
@@ -38,7 +31,6 @@ export default {
       immediate: true,
     },
     value: {
-      // 外部からの値変更に応じてdialogを制御
       handler(v) {
         this.dialog = v
       },
@@ -50,7 +42,7 @@ export default {
     async onClickSubmit() {
       this.loading = true
       try {
-        await this.$store.dispatch('site-order/update', this.internalOrder)
+        await this.$store.dispatch('site-order/update', this.siteOrder)
         this.dialog = false
       } catch (err) {
         // eslint-disable-next-line
@@ -69,6 +61,7 @@ export default {
     v-model="dialog"
     max-width="600"
     :fullscreen="$vuetify.breakpoint.mobile"
+    scrollable
   >
     <template #activator="props">
       <slot name="activator" v-bind="props" />
@@ -80,22 +73,22 @@ export default {
         <v-spacer />
         <g-btn-cancel-icon :disabled="loading" @click="dialog = false" />
       </v-toolbar>
-      <v-card-text class="flex-grow-1" style="height: 540px">
+      <v-card-text class="px-0 px-md-6">
         <draggable
-          v-model="internalOrder"
+          v-model="siteOrder"
           tag="v-list"
           handle=".handle"
           :disabled="loading"
           v-bind="{ animation: 300 }"
         >
-          <div v-for="(order, index) in internalOrder" :key="index">
+          <div v-for="(order, index) in siteOrder" :key="index">
             <v-list-item>
               <v-list-item-content>
                 <v-list-item-title>
                   <g-chip-work-shift :value="order.workShift" small />
                   {{
                     $store.getters['site-order/site'](order.siteId)?.name ||
-                    'loading'
+                    'N/A'
                   }}
                 </v-list-item-title>
               </v-list-item-content>
