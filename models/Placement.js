@@ -447,68 +447,38 @@ class Placement {
   }
 
   /**
-   * Adds multiple employees to the site in bulk.
-   * - New employees are added to the end of `employeeOrder`.
-   * @param {Object} options - Options for bulk employee addition.
-   * @param {Array<string>} options.employeeIds - Array of employee IDs to add.
-   * @param {Object|null} options.siteContract - Contract details for the site, including startTime, endTime, and breakMinutes.
-   * @throws {TypeError} Throws if `employeeIds` is not an array or contains non-string elements.
+   * 引数で従業員IDの配列を受け取り、一括で配置情報を登録します。
+   * @param {Object} options
+   * @param {Array<string>} options.employeeIds - 従業員IDの配列です。
+   * @param {string|null} [options.startTime=null] - 開始時刻です。
+   * @param {string|null} [options.endTime=null] - 終了時刻です。
+   * @param {number|null} [options.breakMinutes=null] - 休憩時間です。
+   * @throws {TypeError} employeeIds が配列でない場合、エラーをスローします。
    */
-  async addEmployees({ employeeIds = [], siteContract = null } = {}) {
-    // Validate that employeeIds is an array
-    if (!Array.isArray(employeeIds)) {
-      const message = `[addBulk] "employeeIds" must be an array. Provided: ${employeeIds}`
+  async addEmployees({
+    employeeIds = [],
+    startTime = null,
+    endTime = null,
+    breakMinutes = null,
+  } = {}) {
+    if (!Array.isArray(employeeIds) || employeeIds.length === 0) {
+      const message = `[addEmployees] "employeeIds" が配列でない、または長さが0です。 employeeIds: ${employeeIds}`
       throw new TypeError(message)
     }
 
-    // Check if employeeIds array is empty
-    if (employeeIds.length === 0) {
-      // eslint-disable-next-line no-console
-      console.warn(`[addBulk] "employeeIds" array is empty.`)
-      return
-    }
-
-    // Validate that each element in employeeIds is a string
     for (const employeeId of employeeIds) {
       if (typeof employeeId !== 'string') {
-        const message = `[addBulk] "employeeIds" contains non-string values. Provided: ${employeeIds}`
+        const message = `[addEmployees] "employeeIds"配列の要素に文字列以外が含まれています。 employeeIds: ${employeeIds}`
         throw new TypeError(message)
       }
     }
 
-    const employeeOrder = this.data?.employeeOrder || []
-    const updates = {}
-
-    employeeIds.forEach((employeeId) => {
-      if (!employeeOrder.includes(employeeId)) {
-        // Create a new PlacedEmployee instance with provided contract details
-        const newEmployee = new PlacedEmployee({
-          employeeId,
-          startTime: siteContract?.startTime || null,
-          endTime: siteContract?.endTime || null,
-          breakMinutes: siteContract?.breakMinutes || null,
-        })
-        employeeOrder.push(employeeId)
-
-        // Populate the updates object with the new employee's data
-        updates[this.getEmployeesPath(employeeId)] = newEmployee.toObject()
-        updates[`${this.getAssignmentsEmployeesPath(employeeId)}/siteId`] =
-          this.siteId
-        updates[`${this.getAssignmentsSitesPath(employeeId)}/id`] = employeeId
-        updates[`${this.getAssignmentsSitesPath(employeeId)}/isEmployee`] = true
-      }
-    })
-
-    // Update employee order in the database
-    updates[this.getEmployeeOrderPath()] = employeeOrder
-
-    // Perform an atomic update in the database with error handling
     try {
-      await update(ref(database), updates)
-      // eslint-disable-next-line no-console
-      console.info(`[addBulk] Successfully added bulk employees.`)
+      for (const employeeId of employeeIds) {
+        await this.addEmployee({ employeeId, startTime, endTime, breakMinutes })
+      }
     } catch (error) {
-      const message = `[addBulk] Failed to update the database with new placement entries.`
+      const message = `[addEmployees] 従業員の一括登録に失敗しました。`
       console.error(message, error) // eslint-disable-line no-console
       throw new Error(`${message} ${error.message}`)
     }
@@ -591,22 +561,24 @@ class Placement {
   }
 
   /**
-   * Adds a new placement entry to the Realtime Database.
-   * - Adds the employee ID to `employeeOrder`.
-   * - Adds placement details to `employees`.
-   * - Registers employee assignment in `assignmentsEmployeesPath`.
-   * - Registers site assignment in `assignmentsSitesPath`.
-   *
-   * @param {Object} args - The placement arguments.
-   * @param {string} args.employeeId - The employee's ID.
-   * @param {number|null} [args.index=null] - The position in `employeeOrder` where the employee ID should be added.
-   * @param {Object} [args.siteContract=null] - Details of the employee's shift (startTime, endTime, breakMinutes).
-   * @throws Will throw an error if `employeeId` is not provided or is not a string, or if the employee already exists in `employeeOrder`.
+   * 従業員を配置に登録します。
+   * @param {Object} options
+   * @param {string} options.employeeId - 従業員IDです。
+   * @param {string|null} [options.startTime=null] - 開始時刻です。
+   * @param {string|null} [options.endTime=null] - 終了時刻です。
+   * @param {number|null} [options.breakMinutes=null] - 休憩時間です。
+   * @throws 従業員IDが指定されていない、文字列ではない、または employeeOrder に既に存在している場合、エラーをスローします。
    */
-  async addEmployee({ employeeId, index = null, siteContract = null } = {}) {
+  async addEmployee({
+    employeeId,
+    index = null,
+    startTime = null,
+    endTime = null,
+    breakMinutes = null,
+  } = {}) {
     // Validate employeeId
     if (!employeeId || typeof employeeId !== 'string') {
-      const message = `employeeId must be specified as a string. Received ${employeeId}`
+      const message = `[addEmployee] "employeeId"は文字列で指定する必要があります。 employeeId: ${employeeId}`
       console.error(message) // eslint-disable-line no-console
       throw new Error(message)
     }
@@ -615,7 +587,7 @@ class Placement {
 
     // Check if the employee is already in employeeOrder
     if (employeeOrder.includes(employeeId)) {
-      const message = `Specified employee already exists. employeeId: ${employeeId}`
+      const message = `[addEmployee] 指定された従業員は既に登録されています。 employeeId: ${employeeId}`
       console.error(message) // eslint-disable-line no-console
       throw new Error(message)
     }
@@ -634,9 +606,9 @@ class Placement {
     // Create a new PlacedEmployee instance with siteContract details
     const newEmployee = new PlacedEmployee({
       employeeId,
-      startTime: siteContract?.startTime || null,
-      endTime: siteContract?.endTime || null,
-      breakMinutes: siteContract?.breakMinutes || null,
+      startTime,
+      endTime,
+      breakMinutes,
     })
 
     // Prepare an atomic update object for the database
