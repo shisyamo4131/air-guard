@@ -229,7 +229,10 @@ export default {
      */
     async addBulkEmployees(employeeIds) {
       const func = this.placement.employee.addBulk
-      const { startTime, endTime, breakMinutes } = this.siteContract || {}
+      const { startTime, endTime } = this.siteOperationSchedule.docId
+        ? this.siteOperationSchedule
+        : this.siteContract || {}
+      const { breakMinutes } = this.siteContract || {}
       await func({ employeeIds, startTime, endTime, breakMinutes })
     },
 
@@ -242,7 +245,10 @@ export default {
      */
     async addBulkOutsourcers(outsourcerId, length) {
       const func = this.placement.outsourcer.addBulk
-      const { startTime, endTime, breakMinutes } = this.siteContract || {}
+      const { startTime, endTime } = this.siteOperationSchedule.docId
+        ? this.siteOperationSchedule
+        : this.siteContract || {}
+      const { breakMinutes } = this.siteContract || {}
       await func({ outsourcerId, length, startTime, endTime, breakMinutes })
     },
 

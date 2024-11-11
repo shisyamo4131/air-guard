@@ -33,6 +33,7 @@
  */
 import draggable from 'vuedraggable'
 import { Placement } from '~/models/Placement'
+import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
   components: { draggable },
 
@@ -86,6 +87,34 @@ export default {
         workShift: this.placement.workShift,
       })
     },
+
+    /**
+     * siteId, workShift, date に一致する SiteOperationSchedule インスタンスを
+     * Vuex から取得して返します。
+     * 存在しない場合は新しい SiteOperationSchedule インスタンスを生成して返します。
+     * - インスタンス生成時、自身が管理する日付、現場ID、勤務区分を初期値として設定します。
+     * - computed.siteContract が存在する場合は開始時刻、終了時刻も初期値として設定します。
+     */
+    siteOperationSchedule() {
+      // Vuex から SiteOperationSchedule を取得
+      const { date, siteId, workShift } = this.placement
+      const getterKey = 'site-order/siteOperationSchedule'
+      const instance = this.$store.getters[getterKey]({
+        date,
+        siteId,
+        workShift,
+      })
+      return (
+        instance ||
+        new SiteOperationSchedule({
+          dates: [date],
+          siteId,
+          workShift,
+          startTime: this.siteContract?.startTime || '',
+          endTime: this.siteContract?.endTime || '',
+        })
+      )
+    },
   },
   methods: {
     /**
@@ -127,7 +156,10 @@ export default {
      * - Placement インスタンスの employee.add メソッドを実行します。
      */
     async handleAdd({ element, newIndex }) {
-      const { startTime, endTime, breakMinutes } = this.siteContract || {}
+      const { startTime, endTime } = this.siteOperationSchedule.docId
+        ? this.siteOperationSchedule
+        : this.siteContract || {}
+      const { breakMinutes } = this.siteContract || {}
       await this.placement.employee.add({
         employeeId: element,
         index: newIndex,
