@@ -4,7 +4,7 @@
       <!-- ツールバーの表示 -->
       <g-placement-toolbar />
       <!-- メインコンテナ -->
-      <div class="d-flex flex-grow-1 overflow-y-hidden pb-6">
+      <div class="d-flex flex-grow-1 overflow-y-hidden pb-12 pb-sm-0">
         <v-sheet class="overflow-x-auto flex-grow-1 d-flex flex-column">
           <!-- サブメニュー -->
           <v-toolbar dense flat class="flex-grow-0">
