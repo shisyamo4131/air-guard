@@ -63,7 +63,7 @@ export default {
      * - 従業員を選択するコンポーネントであるため、カラムは従業員名（略称）に固定されます。
      */
     headers() {
-      return [{ text: '従業員名', value: 'abbr' }]
+      return [{ text: '従業員名', value: 'fullName' }]
     },
     /**
      * GDataTableEmployees の items プロパティにバインドされる配列を返します。
@@ -72,8 +72,11 @@ export default {
      */
     filteredItems() {
       return structuredClone(this.items)
-        .filter(({ fullNameKana, status }) => {
-          const regexMatch = !this.regex || this.regex.test(fullNameKana)
+        .filter(({ abbr, fullNameKana, status }) => {
+          const regexMatch =
+            !this.regex ||
+            this.regex.test(fullNameKana) ||
+            this.regex.test(abbr)
           const statusMatch = this.includeExpired || status === 'active'
           return regexMatch && statusMatch
         })
@@ -184,14 +187,19 @@ export default {
           :mobile-breakpoint="0"
           show-select
         >
-          <template #[`item.abbr`]="{ item }">
-            {{ item.fullName }}
-            <g-chip-employee-status
-              v-if="item.status === 'expired'"
-              class="ml-2"
-              :value="item.status"
-              x-small
-            />
+          <template #[`item.fullName`]="{ item }">
+            <div class="text-caption grey--text">
+              {{ item.abbr }}
+            </div>
+            <div>
+              {{ item.fullName }}
+              <g-chip-employee-status
+                v-if="item.status === 'expired'"
+                class="ml-2"
+                :value="item.status"
+                x-small
+              />
+            </div>
           </template>
         </g-data-table>
         <div class="filter-container py-1 px-3" style="width: 60px">
