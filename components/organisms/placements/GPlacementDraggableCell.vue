@@ -234,17 +234,16 @@ export default {
     },
 
     /**
-     * 複数の外注先を一括で配置します。
-     * - 当該コンポーネントでは使用していません。
-     * - 親コンポーネントから実行されます。
+     * 外注先を一括で配置します。
+     * - 現場の取極めが存在する場合、取極めの開始時刻・終了時刻・休憩時間が適用されます。
+     * NOTE:
+     * - 当該コンポーネントでは使用されず、親コンポーネントから実行されます。
      * - 単一の外注先を複数登録するメソッドです。
      */
     async addBulkOutsourcers(outsourcerId, length) {
-      await this.placement.outsourcer.addBulk({
-        outsourcerId,
-        length,
-        siteContract: this.siteContract,
-      })
+      const func = this.placement.outsourcer.addBulk
+      const { startTime, endTime, breakMinutes } = this.siteContract || {}
+      await func({ outsourcerId, length, startTime, endTime, breakMinutes })
     },
 
     contentCopy() {
