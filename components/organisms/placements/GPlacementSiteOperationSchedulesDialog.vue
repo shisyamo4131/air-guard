@@ -43,6 +43,7 @@ export default {
     v-bind="$attrs"
     v-model="dialog"
     :fullscreen="$vuetify.breakpoint.mobile"
+    scrollable
     v-on="$listeners"
   >
     <template #activator="{ attrs, on }">
@@ -54,7 +55,7 @@ export default {
         <v-spacer />
         <g-btn-cancel-icon @click="dialog = false" />
       </v-toolbar>
-      <v-card-text class="py-0 px-0 px-md-4">
+      <v-card-text class="flex-grow-1 py-0 px-0 px-md-4">
         <g-site-operation-schedule-manager :site-id="siteId" />
       </v-card-text>
     </v-card>
