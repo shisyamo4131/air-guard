@@ -216,11 +216,11 @@ export default {
   max-width: 240px;
 }
 
-#placement-table > div > table > tbody > tr:nth-child(odd) td[colspan] {
+#placement-table > div > table > tbody > tr:nth-child(odd) .site-row {
   background-color: beige;
 }
 
-#placement-table > div > table > tbody > tr:nth-child(odd) td[colspan] div {
+#placement-table > div > table > tbody > tr:nth-child(odd) .site-row div {
   display: inline-block;
   position: sticky;
   left: 16px;
@@ -239,12 +239,12 @@ export default {
 #placement-table .th-sun,
 #placement-table .th-holi,
 #placement-table .col-sun,
-#placement-table .col-holy {
+#placement-table .col-holi {
   background-color: #ffebee;
 }
 
 #placement-table .col-sun:hover,
-#placement-table .col-holy:hover {
+#placement-table .col-holi:hover {
   background-color: #ffcdd2;
 }
 
