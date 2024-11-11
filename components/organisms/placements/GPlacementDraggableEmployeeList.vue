@@ -127,10 +127,13 @@ export default {
      * - Placement インスタンスの employee.add メソッドを実行します。
      */
     async handleAdd({ element, newIndex }) {
+      const { startTime, endTime, breakMinutes } = this.siteContract || {}
       await this.placement.employee.add({
         employeeId: element,
         index: newIndex,
-        siteContract: this.siteContract,
+        startTime,
+        endTime,
+        breakMinutes,
       })
     },
 
