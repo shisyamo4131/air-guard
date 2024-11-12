@@ -83,6 +83,7 @@ export default {
           {
             title: '勤務指示',
             icon: 'mdi-message-bulleted',
+            disabled: this.$vuetify.breakpoint.mobile,
             click: (date) => this.createCommandText(date),
           },
         ],
@@ -397,9 +398,13 @@ export default {
         const placements = await this.getPlacements(date)
         let outputText = ''
 
-        // 各現場ID（siteId）ごとにループ
-        for (const siteId in placements) {
+        // siteOrderをループして出力順を制御
+        for (const { siteId, workShift } of this.siteOrder) {
           const siteData = placements[siteId]
+          if (!siteData) continue // siteDataがない場合はスキップ
+
+          const shiftData = siteData[workShift]
+          if (!shiftData) continue // 指定のworkShiftがない場合はスキップ
 
           // 現場オブジェクトの取得
           const site = this.$store.getters['sites/get'](siteId)
@@ -413,60 +418,54 @@ export default {
             : null
           const customerAbbr = customer ? customer.abbr : 'N/A'
 
-          // 各勤務区分（day/night）ごとにループ
-          for (const workShift in siteData) {
-            const shiftData = siteData[workShift]
+          // 勤務区分のシンボルを設定
+          const workShiftSymbol = workShift === 'day' ? '○' : '●'
 
-            // 勤務区分のシンボルを設定
-            const workShiftSymbol = workShift === 'day' ? '○' : '●'
+          // 稼働予定オブジェクトの取得
+          const operationSchedule = this.$store.getters[
+            'site-order/siteOperationSchedule'
+          ]({ date, siteId, workShift })
+          const scheduleText = operationSchedule
+            ? `${operationSchedule.startTime} ～ ${operationSchedule.endTime}`
+            : 'N/A'
 
-            // 稼働予定オブジェクトの取得
-            const operationSchedule = this.$store.getters[
-              'site-order/siteOperationSchedule'
-            ]({ date, siteId, workShift })
-            const scheduleText = operationSchedule
-              ? `${operationSchedule.startTime} ～ ${operationSchedule.endTime}`
-              : 'N/A'
+          // 取引先名、現場名、住所、稼働時間を出力
+          outputText += `${customerAbbr}\n`
+          outputText += `${siteName}\n`
+          outputText += `${siteAddress}\n`
+          outputText += `${scheduleText}\n`
 
-            // 取引先名、現場名、住所、稼働時間を出力
-            outputText += `${customerAbbr}\n`
-            outputText += `${siteName}\n`
-            outputText += `${siteAddress}\n`
-            outputText += `${scheduleText}\n`
+          // 配置された従業員をループ
+          if (shiftData.employees) {
+            for (const employeeId in shiftData.employees) {
+              const employee = this.$store.getters['employees/get'](employeeId)
+              const employeeName = employee ? employee.abbr : 'N/A'
 
-            // 配置された従業員をループ
-            if (shiftData.employees) {
-              for (const employeeId in shiftData.employees) {
-                const employee =
-                  this.$store.getters['employees/get'](employeeId)
-                const employeeName = employee ? employee.fullName : 'N/A'
+              // 異なる勤務区分での複数配置をチェック
+              const isAssignedToDifferentShifts = this.$store.getters[
+                'assignments/isEmployeeAssignedToDifferentShifts'
+              ](date, employeeId)
+              const displayEmployeeName = isAssignedToDifferentShifts
+                ? `${employeeName}★`
+                : employeeName
 
-                // 異なる勤務区分での複数配置をチェック
-                const isAssignedToDifferentShifts = this.$store.getters[
-                  'assignments/isEmployeeAssignedToDifferentShifts'
-                ](date, employeeId)
-                const displayEmployeeName = isAssignedToDifferentShifts
-                  ? `${employeeName}★`
-                  : employeeName
-
-                outputText += `${workShiftSymbol} ${displayEmployeeName}\n`
-              }
+              outputText += `${workShiftSymbol} ${displayEmployeeName}\n`
             }
-
-            // 配置された外注先をループ
-            if (shiftData.outsourcers) {
-              for (const outsourcerKey in shiftData.outsourcers) {
-                const [outsourcerId] = outsourcerKey.split('-') // outsourcerKeyからoutsourcerIdを抽出
-                const outsourcer =
-                  this.$store.getters['outsourcers/get'](outsourcerId)
-                const outsourcerName = outsourcer ? outsourcer.name : 'N/A'
-                outputText += `${workShiftSymbol} ${outsourcerName}\n`
-              }
-            }
-
-            // 区切りの改行
-            outputText += '\n'
           }
+
+          // 配置された外注先をループ
+          if (shiftData.outsourcers) {
+            for (const outsourcerKey in shiftData.outsourcers) {
+              const [outsourcerId] = outsourcerKey.split('-') // outsourcerKeyからoutsourcerIdを抽出
+              const outsourcer =
+                this.$store.getters['outsourcers/get'](outsourcerId)
+              const outsourcerName = outsourcer ? outsourcer.name : 'N/A'
+              outputText += `${workShiftSymbol} ${outsourcerName}\n`
+            }
+          }
+
+          // 区切りの改行
+          outputText += '\n'
         }
 
         // 生成されたテキストをクリップボードにコピー
@@ -476,7 +475,7 @@ export default {
         this.snackbar.show = true
         return outputText
       } catch (error) {
-        console.error(`配置レポートの生成に失敗しました: ${error.message}`) // eslint-disable-line
+        console.error(`配置レポートの生成に失敗しました: ${error.message}`) // eslint-disable-line no-console
       }
     },
   },
