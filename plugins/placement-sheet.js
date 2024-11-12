@@ -1,6 +1,5 @@
-import { database, firestore } from 'air-firebase'
+import { database } from 'air-firebase'
 import { get, ref } from 'firebase/database'
-import { collection, getDocs, query, where } from 'firebase/firestore'
 import ja from 'dayjs/locale/ja'
 import dayjs from 'dayjs'
 
@@ -59,25 +58,6 @@ const truncateText = (text, maxLength) => {
 }
 
 /*****************************************************************************
- * Realtime Database から Placements/siteOrder のデータを取得して返します。
- * @returns {Promise<Array<SiteOrder>>} - 取得したデータ
- * @typedef {Object} SiteOrder
- * @property {string} id - 現場IDと勤務区分を組み合わせたキー
- * @property {string} siteId - 現場ID
- * @property {string} workShift - 勤務区分（`day` または `night`）
- ******************************************************************************/
-const getSiteOrder = async () => {
-  try {
-    const dbRef = ref(database, `Placements/siteOrder`)
-    const snapshot = await get(dbRef)
-    return snapshot.val()
-  } catch (err) {
-    console.error(`siteOrderの取得に失敗しました。`, err) // eslint-disable-line
-    throw err
-  }
-}
-
-/*****************************************************************************
  * Realtime Database から Placements/${date} のデータを取得して返します。
  * @param {string} date - 取得対象の日（YYYY-MM-DD形式）
  * @returns {Promise<Object>} - 取得したデータ
@@ -89,23 +69,6 @@ const getPlacements = async (date) => {
     return snapshot.val()
   } catch (err) {
     console.error(`placementsの取得に失敗しました。`, err) // eslint-disable-line
-    throw err
-  }
-}
-
-/*****************************************************************************
- * Firestore から SiteOperationSchedules ドキュメントを取得して返します。
- * @param {string} date - 取得対象の日（YYYY-MM-DD形式）
- * @returns
- ******************************************************************************/
-const getSiteOperationSchedules = async (date) => {
-  try {
-    const colRef = collection(firestore, `SiteOperationSchedules`)
-    const queryRef = query(colRef, where('date', '==', date))
-    const querySnapshot = await getDocs(queryRef)
-    return querySnapshot.docs.map((doc) => doc.data())
-  } catch (err) {
-    console.error(`siteOperationSchedulesの取得に失敗しました。`, err) // eslint-disable-line
     throw err
   }
 }
@@ -189,9 +152,10 @@ export default (context, inject) => {
         .map((worker) => {
           if (!worker) return ''
           if (worker.isEmployee) {
-            return (
+            const name =
               context.store.getters[`employees/get`](worker.id)?.abbr || 'N/A'
-            )
+            const isContinuous = worker.isContinuous ? '★' : ''
+            return `${name} ${isContinuous}`
           } else {
             return (
               context.store.getters['outsourcers/get'](worker.id)?.abbr || 'N/A'
@@ -310,10 +274,14 @@ export default (context, inject) => {
     }
 
     const getPlacementTableRows = async (date) => {
-      // siteOrder, placements, siteOperationSchedules を取得
-      const [siteOrder, placements, siteOperationSchedules] = await Promise.all(
-        [getSiteOrder(), getPlacements(date), getSiteOperationSchedules(date)]
-      )
+      // Vuex から siteOrder, siteOperationSchedules を取得
+      const siteOrder = context.store.state['site-order'].data
+      const siteOperationSchedules = context.store.state[
+        'site-order'
+      ].siteOperationSchedules.filter((schedule) => schedule.date === date)
+
+      // placements を取得
+      const [placements] = await Promise.all([getPlacements(date)])
 
       const siteWorkShifts = siteOrder.map(({ siteId, workShift }) => {
         return { siteId, workShift }
@@ -327,14 +295,19 @@ export default (context, inject) => {
         )
 
         const employees = (placement?.employeeOrder || []).map((employeeId) => {
-          return { id: employeeId, isEmployee: true }
+          const isContinuous = context.store.getters[
+            'assignments/isEmployeeAssignedToDifferentShifts'
+          ](date, employeeId)
+          return { id: employeeId, isEmployee: true, isContinuous }
         })
+
         const outsourcers = (placement?.outsourcerOrder || []).map(
           (outsourcerKey) => {
             const [outsourcerId] = outsourcerKey.split('-')
-            return { id: outsourcerId, isEmployee: false }
+            return { id: outsourcerId, isEmployee: false, isContinuous: false }
           }
         )
+
         const workers = employees.concat(outsourcers)
         const chunkedWorkers = workers.flatMap((_, i, a) =>
           i % COLUMNS ? [] : [a.slice(i, i + COLUMNS)]
