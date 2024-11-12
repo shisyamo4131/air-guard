@@ -130,6 +130,18 @@ export const getters = {
       total: employeeShifts + outsourcerShifts,
     }
   },
+
+  /**
+   * 指定日付に既に配置されている従業員IDのリストを返します。
+   * @param {string} date - 配置されている従業員IDを取得する日付 (YYYY-MM-DD形式)。
+   * @returns {Array} 配置されている従業員IDの配列
+   */
+  employeeIdsByDate: (state) => (date) => {
+    const employeesOnDate = state.employees[date] || {}
+    const employeeIds = Object.keys(employeesOnDate)
+
+    return employeeIds
+  },
 }
 
 export const mutations = {
