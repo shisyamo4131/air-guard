@@ -233,7 +233,9 @@ export default (context, inject) => {
      * 現場-勤務区分単位の5行目を返します。
      * @returns {Array<Object>}
      */
-    const get5thRow = () => {
+    const get5thRow = ({ startTime = null, endTime = null } = {}) => {
+      const times =
+        startTime && endTime ? `${startTime} ～ ${endTime}` : `未設定`
       return [
         {
           text: `基本定時時間`,
@@ -242,7 +244,7 @@ export default (context, inject) => {
           border: [true, true, false, true],
         },
         {
-          text: '後で修正',
+          text: times,
           colSpan: 2,
           rowSpan: 2,
           border: [false, true, true, true],
@@ -278,6 +280,8 @@ export default (context, inject) => {
      * @param {string} args.workShift - 勤務区分
      * @param {Array<string>} args.employeeIds - 従業員IDの配列
      * @param {number} args.requiredWorkers - 必要人数
+     * @param {string} args.startTime - 開始時刻
+     * @param {string} args.endTime - 終了時刻
      * @returns {Array} 現場-勤務区分単位の行を返します。
      */
     const getSiteWorkShiftRows = ({
@@ -285,6 +289,8 @@ export default (context, inject) => {
       workShift,
       employeeIds,
       requiredWorkers,
+      startTime,
+      endTime,
     }) => {
       const row1 = getFirstRow()
       const row2 = getSecondRow()
@@ -295,7 +301,7 @@ export default (context, inject) => {
         requiredWorkers,
       })
       const row4 = get4thRow(siteId, workShift)
-      const row5 = get5thRow()
+      const row5 = get5thRow({ startTime, endTime })
       const row6 = get6thRow()
       return [row1, row2, row3, row4, row5, row6]
     }
@@ -329,6 +335,8 @@ export default (context, inject) => {
               workShift,
               employeeIds,
               requiredWorkers: siteOperationSchedule?.requiredWorkers || 0,
+              startTime: siteOperationSchedule?.startTime || null,
+              endTime: siteOperationSchedule?.endTime || null,
             })
           })
           .flat()
