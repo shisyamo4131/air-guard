@@ -38,6 +38,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    customFilter: { type: Function, default: undefined, required: false },
     includeExpired: { type: Boolean, default: false, required: false },
     items: { type: Array, default: () => [], required: false },
     maxWidth: { type: [String, Number], default: 360, required: false },
@@ -74,16 +75,21 @@ export default {
      * - data.internalIncludeExpired が false の場合、status が active であるものを抽出します。
      */
     filteredItems() {
-      return structuredClone(this.items)
-        .filter(({ abbr, fullNameKana, status }) => {
-          const regexMatch =
-            !this.regex ||
-            this.regex.test(fullNameKana) ||
-            this.regex.test(abbr)
-          const statusMatch = this.internalIncludeExpired || status === 'active'
-          return regexMatch && statusMatch
-        })
-        .sort((a, b) => a.fullNameKana.localeCompare(b.fullNameKana))
+      if (this.customFilter) {
+        return this.customFilter(this.items)
+      } else {
+        return this.items
+          .filter(({ abbr, fullNameKana, status }) => {
+            const regexMatch =
+              !this.regex ||
+              this.regex.test(fullNameKana) ||
+              this.regex.test(abbr)
+            const statusMatch =
+              this.internalIncludeExpired || status === 'active'
+            return regexMatch && statusMatch
+          })
+          .sort((a, b) => a.fullNameKana.localeCompare(b.fullNameKana))
+      }
     },
   },
 
@@ -201,8 +207,9 @@ export default {
         >
       </v-toolbar>
       <v-divider />
-      <v-container class="d-flex justify-end" style="height: 52px">
+      <v-toolbar dense flat class="flex-grow-0">
         <slot name="filter" v-bind="{ includeExpired: internalIncludeExpired }">
+          <v-spacer />
           <g-switch
             v-model="internalIncludeExpired"
             class="mt-0"
@@ -210,7 +217,7 @@ export default {
             hide-details
           />
         </slot>
-      </v-container>
+      </v-toolbar>
       <v-divider />
       <v-card-text class="d-flex pa-0" style="height: 368px">
         <v-data-iterator

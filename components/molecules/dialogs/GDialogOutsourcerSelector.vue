@@ -182,14 +182,17 @@ export default {
         >
       </v-toolbar>
       <v-divider />
-      <v-container class="d-flex justify-end">
-        <g-switch
-          v-model="internalIncludeExpired"
-          class="mt-0"
-          label="取引終了を含める"
-          hide-details
-        />
-      </v-container>
+      <v-toolbar dense flat class="flex-grow-0">
+        <slot name="filter" v-bind="{ includeExpired: internalIncludeExpired }">
+          <v-spacer />
+          <g-switch
+            v-model="internalIncludeExpired"
+            class="mt-0"
+            label="取引終了を含める"
+            hide-details
+          />
+        </slot>
+      </v-toolbar>
       <v-divider />
       <v-card-text class="d-flex pa-0" style="height: 368px">
         <v-data-iterator
