@@ -45,6 +45,7 @@ export default {
     './plugins/vue-papa-parse.js',
     './plugins/generate-pdf.js',
     './plugins/holiday.js',
+    './plugins/placement-sheet.js',
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
