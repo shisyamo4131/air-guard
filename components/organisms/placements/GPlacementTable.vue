@@ -19,6 +19,7 @@ import GDialogOutsourcerSelector from '~/components/molecules/dialogs/GDialogOut
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
 import { PlacedEmployee, PlacedOutsourcer } from '~/models/Placement'
+import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 
 export default {
   /***************************************************************************
@@ -32,6 +33,7 @@ export default {
     GPlacementEmployeePlacementEditDialog,
     GPlacementOutsourcerPlacementEditDialog,
     GPlacementSiteOperationSchedulesDialog,
+    GSwitch,
   },
 
   /***************************************************************************
@@ -194,26 +196,15 @@ export default {
       // activeCellが存在しない場合は空の配列を返す
       if (!this.activeCell) return []
 
-      // 現在のactiveCellの日付に関連する従業員の割り当てを取得
-      const assignments =
-        this.$store.state.assignments.sites?.[this.activeCell.date]?.[
-          this.activeCell.siteId
-        ]?.[this.activeCell.workShift] || {}
+      // activeCell の date 限定で配置されている従業員のIDを取得
+      const assignedEmployeeIds = this.$store.getters[
+        'assignments/employeeIdsByDate'
+      ](this.activeCell.date)
 
-      // activeCell に配置されている従業員のIDを収集
-      const placementedIds = Object.entries(assignments).map(([key]) => key)
-
-      // // 全従業員を Vuex から取得
-      // const allEmployees = this.$store.getters['employees/items']
-
-      // // 配置されていない従業員をフィルタリングして返す
-      // return allEmployees.filter(
-      //   (employee) => !placementedIds.includes(employee.docId)
-      // )
-      const result = this.$store.getters['employees/items'].map((employee) => {
+      const result = this.$store.getters['employees/active'].map((employee) => {
         return {
           ...employee,
-          isPlaced: placementedIds.includes(employee.docId),
+          isPlaced: assignedEmployeeIds.includes(employee.docId),
         }
       })
       return result
@@ -614,13 +605,15 @@ export default {
       @click:submit="addEmployeesInBulk"
     >
       <template #filter>
-        <div class="align-self-center text-subtitle-2">
+        <div class="text-subtitle-2 grey--text text--darken-2">
           {{
             `未配置: ${
               selectableEmployees.filter(({ isPlaced }) => !isPlaced).length
             } / ${selectableEmployees.length}`
           }}
         </div>
+        <v-spacer />
+        <g-switch class="mt-0 pt-0" label="未配置のみ表示" hide-details />
       </template>
       <template #third-line="props">
         <v-list-item-subtitle
