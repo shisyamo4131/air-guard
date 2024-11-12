@@ -7,6 +7,8 @@
  * @author shisyamo4131
  */
 import ja from 'dayjs/locale/ja'
+import { get, ref } from 'firebase/database'
+import { database } from 'air-firebase'
 import GPlacementDraggableCell from './GPlacementDraggableCell.vue'
 import GPlacementSiteOperationScheduleEditDialog from './GPlacementSiteOperationScheduleEditDialog.vue'
 import GPlacementEmployeePlacementEditDialog from './GPlacementEmployeePlacementEditDialog.vue'
@@ -63,6 +65,9 @@ export default {
   data() {
     return {
       columns: [],
+      command: {
+        text: '',
+      },
       dayMenu: {
         date: '',
         display: false,
@@ -72,12 +77,17 @@ export default {
           {
             title: '配置表印刷',
             icon: 'mdi-printer',
+            disabled: !this.$store.getters['auth/roles'].includes('developer'),
             click: (date) => this.$GENERATE_PLACEMENT_SHEET(date),
+          },
+          {
+            title: '勤務指示',
+            icon: 'mdi-message-bulleted',
+            click: (date) => this.createCommandText(date),
           },
         ],
       },
       dialog: {
-        dayMenu: false,
         employeeSelector: false,
         employeePlacement: false,
         outsourcerPlacement: false,
@@ -101,7 +111,10 @@ export default {
 
       copiedContent: null,
 
-      position: { x: 0, y: 0 },
+      snackbar: {
+        show: false,
+        text: '',
+      },
     }
   },
 
@@ -371,6 +384,101 @@ export default {
         this.dayMenu.display = true
       })
     },
+
+    async getPlacements(date) {
+      const dbRef = ref(database, `Placements/${date}`)
+      const snapshot = await get(dbRef)
+      return snapshot.val()
+    },
+
+    async createCommandText(date) {
+      try {
+        // `Placements/${date}` のデータを取得
+        const placements = await this.getPlacements(date)
+        let outputText = ''
+
+        // 各現場ID（siteId）ごとにループ
+        for (const siteId in placements) {
+          const siteData = placements[siteId]
+
+          // 現場オブジェクトの取得
+          const site = this.$store.getters['sites/get'](siteId)
+          const siteName = site ? site.name : 'N/A' // site.nameが存在しない場合はN/Aと表示
+          const siteAddress = site ? site.address : 'N/A' // site.addressが存在しない場合はN/Aと表示
+
+          // 取引先オブジェクトの取得
+          const customerId = site ? site.customerId : null
+          const customer = customerId
+            ? this.$store.getters['customers/get'](customerId)
+            : null
+          const customerAbbr = customer ? customer.abbr : 'N/A'
+
+          // 各勤務区分（day/night）ごとにループ
+          for (const workShift in siteData) {
+            const shiftData = siteData[workShift]
+
+            // 勤務区分のシンボルを設定
+            const workShiftSymbol = workShift === 'day' ? '○' : '●'
+
+            // 稼働予定オブジェクトの取得
+            const operationSchedule = this.$store.getters[
+              'site-order/siteOperationSchedule'
+            ]({ date, siteId, workShift })
+            const scheduleText = operationSchedule
+              ? `${operationSchedule.startTime} ～ ${operationSchedule.endTime}`
+              : 'N/A'
+
+            // 取引先名、現場名、住所、稼働時間を出力
+            outputText += `${customerAbbr}\n`
+            outputText += `${siteName}\n`
+            outputText += `${siteAddress}\n`
+            outputText += `${scheduleText}\n`
+
+            // 配置された従業員をループ
+            if (shiftData.employees) {
+              for (const employeeId in shiftData.employees) {
+                const employee =
+                  this.$store.getters['employees/get'](employeeId)
+                const employeeName = employee ? employee.fullName : 'N/A'
+
+                // 異なる勤務区分での複数配置をチェック
+                const isAssignedToDifferentShifts = this.$store.getters[
+                  'assignments/isEmployeeAssignedToDifferentShifts'
+                ](date, employeeId)
+                const displayEmployeeName = isAssignedToDifferentShifts
+                  ? `${employeeName}★`
+                  : employeeName
+
+                outputText += `${workShiftSymbol} ${displayEmployeeName}\n`
+              }
+            }
+
+            // 配置された外注先をループ
+            if (shiftData.outsourcers) {
+              for (const outsourcerKey in shiftData.outsourcers) {
+                const [outsourcerId] = outsourcerKey.split('-') // outsourcerKeyからoutsourcerIdを抽出
+                const outsourcer =
+                  this.$store.getters['outsourcers/get'](outsourcerId)
+                const outsourcerName = outsourcer ? outsourcer.name : 'N/A'
+                outputText += `${workShiftSymbol} ${outsourcerName}\n`
+              }
+            }
+
+            // 区切りの改行
+            outputText += '\n'
+          }
+        }
+
+        // 生成されたテキストをクリップボードにコピー
+        await navigator.clipboard.writeText(outputText)
+
+        this.snackbar.text = 'クリップボードにコピーしました。'
+        this.snackbar.show = true
+        return outputText
+      } catch (error) {
+        console.error(`配置レポートの生成に失敗しました: ${error.message}`) // eslint-disable-line
+      }
+    },
   },
 }
 </script>
@@ -426,6 +534,7 @@ export default {
       </template>
     </tbody>
 
+    <!-- dayMenu -->
     <v-menu
       v-model="dayMenu.display"
       :position-x="dayMenu.positionX"
@@ -437,6 +546,7 @@ export default {
         <v-list-item
           v-for="(menu, index) of dayMenu.items"
           :key="index"
+          :disabled="menu?.disabled || false"
           @click="menu.click(dayMenu.date)"
         >
           <v-list-item-title>
@@ -448,6 +558,16 @@ export default {
         </v-list-item>
       </v-list>
     </v-menu>
+
+    <v-snackbar v-model="snackbar.show" centered color="primary" text>
+      {{ snackbar.text }}
+
+      <template #action="{ attrs }">
+        <v-btn color="primary" v-bind="attrs" @click="snackbar.show = false">
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
 
     <!-- employee selector -->
     <g-dialog-employee-selector
