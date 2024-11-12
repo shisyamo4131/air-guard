@@ -56,6 +56,13 @@ export const state = () => ({
  * GETTERS
  ******************************************************************/
 export const getters = {
+  /**
+   * 在職中の従業員のリストを配列で返します。
+   * @returns
+   */
+  active(state, getters) {
+    return getters.items.filter(({ status }) => status === 'active')
+  },
   get: (state) => (docId) => {
     return state.items
       .concat(state.current)
