@@ -1,11 +1,4 @@
 <script>
-import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
-import GChipOutsourcerStatus from '~/components/atoms/chips/GChipOutsourcerStatus.vue'
-import GChipGroupKanaFilter from '~/components/atoms/chips/GChipGroupKanaFilter.vue'
-import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
-import GDataTable from '~/components/atoms/tables/GDataTable.vue'
-
 /**
  * ## GDialogOutsourcerSelector
  *
@@ -17,12 +10,17 @@ import GDataTable from '~/components/atoms/tables/GDataTable.vue'
  * @author shisyamo4131
  */
 
+import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
+import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
+import GChipOutsourcerStatus from '~/components/atoms/chips/GChipOutsourcerStatus.vue'
+import GChipGroupKanaFilter from '~/components/atoms/chips/GChipGroupKanaFilter.vue'
+import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
+
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GDataTable,
     GBtnCancelIcon,
     GBtnSubmitIcon,
     GChipGroupKanaFilter,
@@ -34,6 +32,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    includeExpired: { type: Boolean, default: false, required: false },
     items: { type: Array, default: () => [], required: false },
     maxWidth: { type: [String, Number], default: 360, required: false },
     value: { type: Boolean, default: false, required: false },
@@ -45,7 +44,7 @@ export default {
   data() {
     return {
       dialog: false,
-      includeExpired: false,
+      internalIncludeExpired: false,
       regex: null,
       selectedItems: [],
     }
@@ -62,7 +61,7 @@ export default {
       return structuredClone(this.items)
         .filter(({ abbrKana, status }) => {
           const regexMatch = !this.regex || this.regex.test(abbrKana)
-          const statusMatch = this.includeExpired || status === 'active'
+          const statusMatch = this.internalIncludeExpired || status === 'active'
           return regexMatch && statusMatch
         })
         .sort((a, b) => a.abbrKana.localeCompare(b.abbrKana))
@@ -77,21 +76,43 @@ export default {
      * data.dialog を監視します。
      * - 値が false に更新されたら data.selectedItems を初期化します。
      * - 値が false に更新されたら GChipGroupKanaFileter の initialize() を実行します。
+     * - 値が false に更新されたら VDataIterator のスクロールポジションを top に戻します。
+     * - 値が false に更新されたら data.internalIncludeExpired を false にします。
      * - 値を input イベントで emit します。
      */
     dialog(v) {
       if (!v) {
         this.selectedItems.splice(0)
         this.$refs.filter.initialize()
+        this.scrollTo()
+        this.internalIncludeExpired = false
       }
       this.$emit('input', v)
     },
-    includeExpired(newVal) {
-      if (newVal) return
+
+    /**
+     * props.includeExpired を data.internalIncludeExpired と同期させます。
+     */
+    includeExpired: {
+      handler(v) {
+        this.internalIncludeExpired = v
+      },
+      immediate: true,
+    },
+
+    /**
+     * data.internalIncludeExpired を監視します。
+     * - update:includeExpired イベントを emit します。
+     * - false に更新された場合、選択されたアイテムから status が 'active' でないものを除外します。
+     */
+    internalIncludeExpired(v) {
+      this.$emit('update:includeExpired', v)
+      if (v) return
       this.selectedItems = this.selectedItems.filter(
         ({ status }) => status === 'active'
       )
     },
+
     /**
      * props.value を監視します。
      * - 値を data.dialog に同期します。
@@ -128,6 +149,16 @@ export default {
     onClickChipClose(index) {
       this.selectedItems.splice(index, 1)
     },
+
+    /**
+     * VDataIterator のスクロールを初期化
+     */
+    scrollTo(position = 0) {
+      if (this.scrollTargetRef && this.scrollTargetRef.$el) {
+        // positionで指定された位置までスクロール
+        this.scrollTargetRef.$el.scrollTop = position
+      }
+    },
   },
 }
 </script>
@@ -153,7 +184,7 @@ export default {
       <v-divider />
       <v-container class="d-flex justify-end">
         <g-switch
-          v-model="includeExpired"
+          v-model="internalIncludeExpired"
           class="mt-0"
           label="取引終了を含める"
           hide-details
@@ -161,28 +192,48 @@ export default {
       </v-container>
       <v-divider />
       <v-card-text class="d-flex pa-0" style="height: 368px">
-        <g-data-table
+        <v-data-iterator
+          :ref="(el) => (scrollTargetRef = el)"
           v-model="selectedItems"
-          class="flex-table"
-          checkbox-color="primary"
-          disable-sort
-          :headers="headers"
+          class="flex-grow-1 overflow-y-auto"
           :items="filteredItems"
           :items-per-page="-1"
+          item-key="docId"
           :mobile-breakpoint="0"
-          show-select
+          hide-default-footer
           single-select
         >
-          <template #[`item.abbr`]="{ item }">
-            {{ item.abbr }}
-            <g-chip-outsourcer-status
-              v-if="item.status === 'expired'"
-              class="ml-2"
-              :value="item.status"
-              x-small
-            />
+          <template #default="props">
+            <template v-for="(item, index) of props.items">
+              <v-list-item
+                :key="`item-${index}`"
+                @click="props.select(item, !props.isSelected(item))"
+              >
+                <v-list-item-action>
+                  <v-checkbox
+                    :input-value="props.isSelected(item)"
+                    color="primary"
+                  ></v-checkbox>
+                </v-list-item-action>
+                <v-list-item-content>
+                  <v-list-item-title>
+                    {{ item.abbr }}
+                    <g-chip-outsourcer-status
+                      v-if="item.status === 'expired'"
+                      class="ml-2"
+                      :value="item.status"
+                      x-small
+                    />
+                  </v-list-item-title>
+                  <v-list-item-subtitle>
+                    {{ item.abbrKana }}
+                  </v-list-item-subtitle>
+                </v-list-item-content>
+              </v-list-item>
+              <v-divider :key="`div-${index}`" />
+            </template>
           </template>
-        </g-data-table>
+        </v-data-iterator>
         <div class="filter-container py-1 px-3" style="width: 60px">
           <g-chip-group-kana-filter
             ref="filter"
