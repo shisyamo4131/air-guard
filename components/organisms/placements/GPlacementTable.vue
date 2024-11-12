@@ -19,6 +19,7 @@ import GDialogOutsourcerSelector from '~/components/molecules/dialogs/GDialogOut
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
 import { PlacedEmployee, PlacedOutsourcer } from '~/models/Placement'
+
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -398,6 +399,10 @@ export default {
         const placements = await this.getPlacements(date)
         let outputText = ''
 
+        // 日付のフォーマット（先頭に追加）
+        const formattedDate = this.$dayjs(date).locale(ja).format('MM/DD (ddd)')
+        outputText += `${formattedDate} 配置\n\n`
+
         // siteOrderをループして出力順を制御
         for (const { siteId, workShift } of this.siteOrder) {
           const siteData = placements[siteId]
@@ -429,9 +434,15 @@ export default {
             ? `${operationSchedule.startTime} ～ ${operationSchedule.endTime}`
             : 'N/A'
 
+          // 検定配置路線の表示を追加
+          const qualificationText =
+            operationSchedule && operationSchedule.qualification
+              ? '《検定配置路線》'
+              : ''
+
           // 取引先名、現場名、住所、稼働時間を出力
           outputText += `${customerAbbr}\n`
-          outputText += `${siteName}\n`
+          outputText += `${siteName} ${qualificationText}\n` // 現場名の後に資格判定を追加
           outputText += `${siteAddress}\n`
           outputText += `${scheduleText}\n`
 
