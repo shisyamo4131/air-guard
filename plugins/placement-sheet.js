@@ -172,16 +172,11 @@ export default (context, inject) => {
      * @param {Object} args
      * @param {string} args.siteId - 現場ID
      * @param {string} args.workShift - 勤務区分
-     * @param {Array<string>} args.employeeIds - 出力対象の従業員IDの配列
+     * @param {Array<string>} args.workers - 出力対象の従業員ID（または外注先ID）の配列
      * @param {Array<number>} args.requiredWorkers - 必要人数
      * @returns
      */
-    const getThirdRow = ({
-      siteId,
-      workShift,
-      employeeIds,
-      requiredWorkers,
-    }) => {
+    const getThirdRow = ({ siteId, workShift, workers, requiredWorkers }) => {
       const site = context.store.getters['sites/get'](siteId)
       const customerId = site ? site.customerId : null
       const customer = customerId
@@ -189,21 +184,27 @@ export default (context, inject) => {
         : null
       const customerName = customer ? customer.abbr : 'N/A'
       const siteAddress = site ? site.address : 'N/A'
-      const filledEmployees = employeeIds
-        .concat(new Array(Math.max(0, COLUMNS - employeeIds.length)).fill(''))
-        .map((employeeId) => {
-          if (!employeeId) return employeeId
-          return (
-            context.store.getters[`employees/get`](employeeId)?.abbr || 'N/A'
-          )
+      const filledWorkers = workers
+        .concat(new Array(Math.max(0, COLUMNS - workers.length)).fill(''))
+        .map((worker) => {
+          if (!worker) return ''
+          if (worker.isEmployee) {
+            return (
+              context.store.getters[`employees/get`](worker.id)?.abbr || 'N/A'
+            )
+          } else {
+            return (
+              context.store.getters['outsourcers/get'](worker.id)?.abbr || 'N/A'
+            )
+          }
         })
       return [
         { text: truncateText(customerName, 12) },
         { text: siteAddress, rowSpan: 2 },
         { text: workShift === 'day' ? '○' : '', alignment: 'center' },
         { text: requiredWorkers, rowSpan: 4, alignment: 'center' },
-        ...filledEmployees.flatMap((employee) => [
-          { text: employee, colSpan: 3, alignment: 'center' },
+        ...filledWorkers.flatMap((worker) => [
+          { text: worker, colSpan: 3, alignment: 'center' },
           {},
           {},
         ]),
@@ -242,12 +243,14 @@ export default (context, inject) => {
           rowSpan: 2,
           alignment: 'center',
           border: [true, true, false, true],
+          fillColor: '#F5F5F5',
         },
         {
           text: times,
           colSpan: 2,
           rowSpan: 2,
           border: [false, true, true, true],
+          fillColor: '#F5F5F5',
         },
         {},
         {},
@@ -278,7 +281,7 @@ export default (context, inject) => {
      * @param {Object} args
      * @param {string} args.siteId - 現場ID
      * @param {string} args.workShift - 勤務区分
-     * @param {Array<string>} args.employeeIds - 従業員IDの配列
+     * @param {Array<string>} args.workers - 従業員ID（または外注先ID）の配列
      * @param {number} args.requiredWorkers - 必要人数
      * @param {string} args.startTime - 開始時刻
      * @param {string} args.endTime - 終了時刻
@@ -287,7 +290,7 @@ export default (context, inject) => {
     const getSiteWorkShiftRows = ({
       siteId,
       workShift,
-      employeeIds,
+      workers,
       requiredWorkers,
       startTime,
       endTime,
@@ -297,7 +300,7 @@ export default (context, inject) => {
       const row3 = getThirdRow({
         siteId,
         workShift,
-        employeeIds,
+        workers,
         requiredWorkers,
       })
       const row4 = get4thRow(siteId, workShift)
@@ -323,17 +326,26 @@ export default (context, inject) => {
             schedule.siteId === siteId && schedule.workShift === workShift
         )
 
-        const employeeIds = placement?.employeeOrder || []
-        const chunkedEmployeeIds = employeeIds.flatMap((_, i, a) =>
+        const employees = (placement?.employeeOrder || []).map((employeeId) => {
+          return { id: employeeId, isEmployee: true }
+        })
+        const outsourcers = (placement?.outsourcerOrder || []).map(
+          (outsourcerKey) => {
+            const [outsourcerId] = outsourcerKey.split('-')
+            return { id: outsourcerId, isEmployee: false }
+          }
+        )
+        const workers = employees.concat(outsourcers)
+        const chunkedWorkers = workers.flatMap((_, i, a) =>
           i % COLUMNS ? [] : [a.slice(i, i + COLUMNS)]
         )
 
-        return chunkedEmployeeIds
-          .map((employeeIds) => {
+        return chunkedWorkers
+          .map((ids) => {
             return getSiteWorkShiftRows({
               siteId,
               workShift,
-              employeeIds,
+              workers,
               requiredWorkers: siteOperationSchedule?.requiredWorkers || 0,
               startTime: siteOperationSchedule?.startTime || null,
               endTime: siteOperationSchedule?.endTime || null,
