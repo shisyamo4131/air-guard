@@ -63,7 +63,21 @@ export default {
   data() {
     return {
       columns: [],
+      dayMenu: {
+        date: '',
+        display: false,
+        positionX: 0,
+        positionY: 0,
+        items: [
+          {
+            title: '配置表印刷',
+            icon: 'mdi-printer',
+            click: (date) => this.$GENERATE_PLACEMENT_SHEET(date),
+          },
+        ],
+      },
       dialog: {
+        dayMenu: false,
         employeeSelector: false,
         employeePlacement: false,
         outsourcerPlacement: false,
@@ -86,6 +100,8 @@ export default {
       activeCell: null,
 
       copiedContent: null,
+
+      position: { x: 0, y: 0 },
     }
   },
 
@@ -344,6 +360,17 @@ export default {
       }
       return { attrs, on }
     },
+
+    showDayMenu(e, date) {
+      e.preventDefault()
+      this.dayMenu.display = false
+      this.dayMenu.positionX = e.clientX
+      this.dayMenu.positionY = e.clientY
+      this.dayMenu.date = date
+      this.$nextTick(() => {
+        this.dayMenu.display = true
+      })
+    },
   },
 }
 </script>
@@ -359,6 +386,14 @@ export default {
         >
           <v-icon v-if="column.isHoliday" color="red">mdi-flag-variant</v-icon>
           {{ column.col }}
+          <v-btn
+            icon
+            small
+            :disabled="dayMenu.display"
+            @click="($event) => showDayMenu($event, column.date)"
+          >
+            <v-icon small>mdi-menu</v-icon>
+          </v-btn>
         </th>
       </tr>
     </thead>
@@ -390,6 +425,29 @@ export default {
         </tr>
       </template>
     </tbody>
+
+    <v-menu
+      v-model="dayMenu.display"
+      :position-x="dayMenu.positionX"
+      :position-y="dayMenu.positionY"
+      absolute
+      offset-y
+    >
+      <v-list dense>
+        <v-list-item
+          v-for="(menu, index) of dayMenu.items"
+          :key="index"
+          @click="menu.click(dayMenu.date)"
+        >
+          <v-list-item-title>
+            <v-icon left small>
+              {{ menu.icon }}
+            </v-icon>
+            {{ menu.title }}
+          </v-list-item-title>
+        </v-list-item>
+      </v-list>
+    </v-menu>
 
     <!-- employee selector -->
     <g-dialog-employee-selector
