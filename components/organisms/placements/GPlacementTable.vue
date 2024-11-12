@@ -78,7 +78,7 @@ export default {
           {
             title: '配置表印刷',
             icon: 'mdi-printer',
-            disabled: !this.$store.getters['auth/roles'].includes('developer'),
+            // disabled: !this.$store.getters['auth/roles'].includes('developer'),
             click: (date) => this.$GENERATE_PLACEMENT_SHEET(date),
           },
           {
@@ -400,7 +400,9 @@ export default {
         let outputText = ''
 
         // 日付のフォーマット（先頭に追加）
-        const formattedDate = this.$dayjs(date).locale(ja).format('MM/DD (ddd)')
+        const formattedDate = this.$dayjs(date)
+          .locale('ja')
+          .format('MM/DD (ddd)')
         outputText += `${formattedDate} 配置\n\n`
 
         // siteOrderをループして出力順を制御
@@ -446,9 +448,9 @@ export default {
           outputText += `${siteAddress}\n`
           outputText += `${scheduleText}\n`
 
-          // 配置された従業員をループ
-          if (shiftData.employees) {
-            for (const employeeId in shiftData.employees) {
+          // 配置された従業員を指定された順序でループ
+          if (shiftData.employeeOrder) {
+            for (const employeeId of shiftData.employeeOrder) {
               const employee = this.$store.getters['employees/get'](employeeId)
               const employeeName = employee ? employee.abbr : 'N/A'
 
@@ -457,16 +459,16 @@ export default {
                 'assignments/isEmployeeAssignedToDifferentShifts'
               ](date, employeeId)
               const displayEmployeeName = isAssignedToDifferentShifts
-                ? `${employeeName}★`
+                ? `${employeeName}警備士★`
                 : employeeName
 
               outputText += `${workShiftSymbol} ${displayEmployeeName}\n`
             }
           }
 
-          // 配置された外注先をループ
-          if (shiftData.outsourcers) {
-            for (const outsourcerKey in shiftData.outsourcers) {
+          // 配置された外注先を指定された順序でループ
+          if (shiftData.outsourcerOrder) {
+            for (const outsourcerKey of shiftData.outsourcerOrder) {
               const [outsourcerId] = outsourcerKey.split('-') // outsourcerKeyからoutsourcerIdを抽出
               const outsourcer =
                 this.$store.getters['outsourcers/get'](outsourcerId)
