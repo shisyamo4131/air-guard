@@ -95,6 +95,41 @@ export const getters = {
     const employeeIds = getters.employeeIdsWithMultipleSiteIds(date)
     return employeeIds.includes(employeeId)
   },
+
+  /**
+   * 指定日付の従業員と外注先の勤務数を取得します。
+   * @param {string} date - 勤務数を取得する日付 (YYYY-MM-DD形式)。
+   * @returns {Object} 勤務数のオブジェクト { employee, outsourcer, total }
+   */
+  operationCount: (state) => (date) => {
+    let employeeShifts = 0
+    let outsourcerShifts = 0
+
+    // 指定日付のサイト情報を取得
+    const sitesOnDate = state.sites[date] || {}
+
+    for (const siteId in sitesOnDate) {
+      const workShifts = sitesOnDate[siteId]
+
+      for (const workShift in workShifts) {
+        const assignmentsInShift = workShifts[workShift]
+
+        for (const assignment of Object.values(assignmentsInShift)) {
+          if (assignment.isEmployee) {
+            employeeShifts += 1 // 従業員の勤務としてカウント
+          } else {
+            outsourcerShifts += 1 // 外注先の勤務としてカウント
+          }
+        }
+      }
+    }
+
+    return {
+      employee: employeeShifts,
+      outsourcer: outsourcerShifts,
+      total: employeeShifts + outsourcerShifts,
+    }
+  },
 }
 
 export const mutations = {
