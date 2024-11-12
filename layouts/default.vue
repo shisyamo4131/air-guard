@@ -228,6 +228,17 @@ export default {
   /* box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1); */ /* 境界線を強調するための影 */
 }
 
+#placement-table tfoot {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+}
+
+#placement-table tfoot th {
+  background: #fff;
+  text-align: center;
+}
+
 #placement-table tr:hover {
   background-color: transparent !important;
 }
