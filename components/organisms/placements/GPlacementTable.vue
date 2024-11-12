@@ -460,7 +460,7 @@ export default {
               ](date, employeeId)
               const displayEmployeeName = isAssignedToDifferentShifts
                 ? `${employeeName}警備士★`
-                : employeeName
+                : `${employeeName}警備士`
 
               outputText += `${workShiftSymbol} ${displayEmployeeName}\n`
             }
