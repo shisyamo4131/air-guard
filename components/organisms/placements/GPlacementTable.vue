@@ -553,6 +553,25 @@ export default {
       </template>
     </tbody>
 
+    <tfoot>
+      <tr>
+        <th
+          v-for="column of columns"
+          :key="column.date"
+          :class="`th-${column.dayOfWeek}`"
+        >
+          <v-icon v-if="column.isHoliday" color="red">mdi-flag-variant</v-icon>
+          <span class="grey--text text--darken-2 text-subtitle-2">
+            {{
+              `稼働数: ${
+                $store.getters['assignments/operationCount'](column.date).total
+              }`
+            }}
+          </span>
+        </th>
+      </tr>
+    </tfoot>
+
     <!-- dayMenu -->
     <v-menu
       v-model="dayMenu.display"
