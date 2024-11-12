@@ -203,13 +203,20 @@ export default {
       // activeCell に配置されている従業員のIDを収集
       const placementedIds = Object.entries(assignments).map(([key]) => key)
 
-      // 全従業員を Vuex から取得
-      const allEmployees = this.$store.getters['employees/items']
+      // // 全従業員を Vuex から取得
+      // const allEmployees = this.$store.getters['employees/items']
 
-      // 配置されていない従業員をフィルタリングして返す
-      return allEmployees.filter(
-        (employee) => !placementedIds.includes(employee.docId)
-      )
+      // // 配置されていない従業員をフィルタリングして返す
+      // return allEmployees.filter(
+      //   (employee) => !placementedIds.includes(employee.docId)
+      // )
+      const result = this.$store.getters['employees/items'].map((employee) => {
+        return {
+          ...employee,
+          isPlaced: placementedIds.includes(employee.docId),
+        }
+      })
+      return result
     },
 
     selectableOutsourcers() {
@@ -586,7 +593,29 @@ export default {
       v-model="dialog.employeeSelector"
       :items="selectableEmployees"
       @click:submit="addEmployeesInBulk"
-    />
+    >
+      <template #filter>
+        <div class="align-self-center text-subtitle-2">
+          {{
+            `未配置: ${
+              selectableEmployees.filter(({ isPlaced }) => !isPlaced).length
+            } / ${selectableEmployees.length}`
+          }}
+        </div>
+      </template>
+      <template #third-line="props">
+        <v-list-item-subtitle
+          v-if="props.item.isPlaced"
+          class="red--text text-caption"
+        >
+          <v-icon color="error" left small>mdi-alert</v-icon
+          >既に配置されています。
+        </v-list-item-subtitle>
+        <v-list-item-subtitle v-else class="text-caption">
+          未配置
+        </v-list-item-subtitle>
+      </template>
+    </g-dialog-employee-selector>
 
     <!-- outsourcer selector -->
     <g-dialog-outsourcer-selector
