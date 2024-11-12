@@ -201,13 +201,15 @@ export default {
         >
       </v-toolbar>
       <v-divider />
-      <v-container class="d-flex justify-end">
-        <g-switch
-          v-model="internalIncludeExpired"
-          class="mt-0"
-          label="退職者を含める"
-          hide-details
-        />
+      <v-container class="d-flex justify-end" style="height: 52px">
+        <slot name="filter" v-bind="{ includeExpired: internalIncludeExpired }">
+          <g-switch
+            v-model="internalIncludeExpired"
+            class="mt-0"
+            label="退職者を含める"
+            hide-details
+          />
+        </slot>
       </v-container>
       <v-divider />
       <v-card-text class="d-flex pa-0" style="height: 368px">
@@ -243,9 +245,10 @@ export default {
                       x-small
                     />
                   </v-list-item-title>
-                  <v-list-item-subtitle>
+                  <v-list-item-subtitle class="text-caption">
                     {{ item.fullNameKana }}
                   </v-list-item-subtitle>
+                  <slot name="third-line" v-bind="{ item }" />
                 </v-list-item-content>
               </v-list-item>
               <v-divider :key="`div-${index}`" />
