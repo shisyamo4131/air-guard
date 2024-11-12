@@ -22,6 +22,9 @@ export default {
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
+    htmlAttrs: {
+      lang: 'ja', // 日本語であることを指定（2024-11-12 add）
+    },
     titleTemplate: '%s - air-guard',
     title: 'air-guard',
     meta: [
@@ -29,6 +32,7 @@ export default {
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { hid: 'description', name: 'description', content: '' },
       { name: 'format-detection', content: 'telephone=no' },
+      { name: 'google', content: 'notranslate' }, // Google翻訳プロンプトを抑止（2024-11-12 add）
     ],
     link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
   },
