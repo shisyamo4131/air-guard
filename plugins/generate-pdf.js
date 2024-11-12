@@ -30,6 +30,7 @@ const generatePdf = async ({
   content = [],
   background = null,
   download = false,
+  options = null,
 } = {}) => {
   try {
     // pdfmakeのモジュールはクライアントサイドでのみ読み込み
@@ -67,6 +68,7 @@ const generatePdf = async ({
           fontSize: 8,
         }
       },
+      ...options,
     }
 
     if (download) {
