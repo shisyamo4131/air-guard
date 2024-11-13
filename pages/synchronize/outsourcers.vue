@@ -153,7 +153,7 @@ export default {
           const item = this.selectedUnsync[0]
           if (this.asNewItem) {
             const instance = new Outsourcer(item)
-            const docRef = await instance.create({ useAutonum: false })
+            const docRef = await instance.create({ useAutonumber: false })
             await Autonumber.refresh('Outsourcers')
             return docRef.id
           } else {
@@ -199,7 +199,7 @@ export default {
       try {
         for (const item of this.selectedUnsync) {
           const instance = new Outsourcer(item) // codeを初期設定しておかないと自動採番が正常に更新されない。
-          const docRef = await instance.create({ useAutonum: false })
+          const docRef = await instance.create({ useAutonumber: false })
           const dbRef = ref(database, `AirGuard/Outsourcers/${item.code}`)
           await update(dbRef, { docId: docRef.id })
         }
@@ -286,7 +286,7 @@ export default {
                 class="flex-table"
                 disable-sort
                 :items="unsyncedOutsourcers"
-                item-key="code"
+                item-key="docId"
                 :show-select="!asNewItem"
                 single-select
                 :page.sync="page.toSync"

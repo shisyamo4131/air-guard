@@ -157,7 +157,7 @@ export default {
           const item = this.selectedUnsync[0]
           if (this.asNewItem) {
             const instance = new Customer(item)
-            const docRef = await instance.create({ useAutonum: false })
+            const docRef = await instance.create({ useAutonumber: false })
             await Autonumber.refresh('Customers')
             return docRef.id
           } else {
@@ -203,7 +203,7 @@ export default {
       try {
         for (const item of this.selectedUnsync) {
           const instance = new Customer(item) // codeを初期設定しておかないと自動採番が正常に更新されない。
-          const docRef = await instance.create({ useAutonum: false })
+          const docRef = await instance.create({ useAutonumber: false })
           const dbRef = ref(database, `AirGuard/Customers/${item.code}`)
           await update(dbRef, { docId: docRef.id })
         }
@@ -300,7 +300,7 @@ export default {
                   { text: '取引先名2', value: 'name2' },
                 ]"
                 :items="unsyncedCustomers"
-                item-key="code"
+                item-key="docId"
                 :show-select="!asNewItem"
                 single-select
                 :page.sync="page.toSync"

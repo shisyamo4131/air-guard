@@ -175,7 +175,7 @@ export default {
               customer,
               customerId: customer.docId,
             }) // codeを初期設定しておかないと自動採番が正常に更新されない。
-            const docRef = await instance.create({ useAutonum: false })
+            const docRef = await instance.create({ useAutonumber: false })
             await Autonumber.refresh('Sites')
             return docRef.id
           } else {
@@ -248,7 +248,7 @@ export default {
             customerId: customer.docId,
             customer,
           })
-          const docRef = await instance.create({ useAutonum: false })
+          const docRef = await instance.create({ useAutonumber: false })
           const dbRef = ref(database, `AirGuard/Sites/${item.code}`)
           await update(dbRef, { docId: docRef.id })
         }
@@ -362,7 +362,7 @@ export default {
                   { text: '現場名', value: 'name' },
                 ]"
                 :items="items.unsync"
-                item-key="code"
+                item-key="docId"
                 :show-select="!asNewItem"
                 single-select
                 :page.sync="page.toSync"
