@@ -163,12 +163,12 @@ export default (context, inject) => {
           }
         })
       return [
-        { text: truncateText(customerName, 12) },
-        { text: siteAddress, rowSpan: 2 },
+        { text: truncateText(customerName, 11) },
+        { text: truncateText(siteAddress, 12), rowSpan: 2 },
         { text: workShift === 'day' ? '○' : '', alignment: 'center' },
         { text: requiredWorkers, rowSpan: 4, alignment: 'center' },
         ...filledWorkers.flatMap((worker) => [
-          { text: worker, colSpan: 3, alignment: 'center' },
+          { text: truncateText(worker, 8), colSpan: 3, alignment: 'center' },
           {},
           {},
         ]),
@@ -182,7 +182,7 @@ export default (context, inject) => {
     const get4thRow = (siteId, workShift) => {
       const siteName = context.store.getters['sites/get'](siteId)?.abbr || 'N/A'
       return [
-        truncateText(siteName, 12),
+        truncateText(siteName, 11),
         {},
         { text: workShift === 'night' ? '●' : '', alignment: 'center' },
         {},
