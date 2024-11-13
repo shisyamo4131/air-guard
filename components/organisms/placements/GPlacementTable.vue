@@ -80,9 +80,9 @@ export default {
   data() {
     return {
       columns: [],
-      command: {
-        text: '',
-      },
+
+      command: { text: '' },
+
       dayMenu: {
         date: '',
         display: false,
@@ -103,25 +103,40 @@ export default {
           },
         ],
       },
-      dialog: {
-        employeeSelector: false,
-        employeePlacement: false,
-        outsourcerPlacement: false,
-        outsourcerSelector: false,
-        schedule: false,
-        siteDetail: false,
+
+      employeeSelector: {
+        dialog: false,
+        onlyUnplaced: false,
       },
+
+      outsourcerSelector: {
+        dialog: false,
+      },
+
+      employeePlacement: {
+        dialog: false,
+        editModel: new PlacedEmployee(),
+        path: '',
+      },
+
+      outsourcerPlacement: {
+        dialog: false,
+        editModel: new PlacedOutsourcer(),
+        path: '',
+      },
+
+      schedule: {
+        dialog: false,
+        editModel: new SiteOperationSchedule(),
+      },
+
+      siteDetail: {
+        dialog: false,
+        item: null,
+      },
+
       draggingItem: null,
-      editModel: {
-        employeePlacement: new PlacedEmployee(),
-        employeePlacementPath: '',
-        outsourcerPlacement: new PlacedOutsourcer(),
-        outsourcerPlacementPath: '',
-        schedule: new SiteOperationSchedule(),
-      },
-      item: {
-        siteDetail: null,
-      },
+
       // ユーザーがアクションを行ったセルを特定するためのオブジェクト
       activeCell: null,
 
@@ -131,8 +146,6 @@ export default {
         show: false,
         text: '',
       },
-
-      onlyUnplaced: false,
     }
   },
 
@@ -294,12 +307,12 @@ export default {
     },
     /**
      * Displays detailed information for a specified site item.
-     * - Clones the item data to avoid direct mutations and assigns it to item.siteDetail.
-     * - Opens the site detail dialog by setting dialog.siteDetail to true.
+     * - Clones the item data to avoid direct mutations and assigns it to siteDetail.item.
+     * - Opens the site detail dialog by setting siteDetail.dialog to true.
      */
     onClickShowSiteDetail(siteId) {
-      this.item.siteDetail = this.$store.getters['site-order/site'](siteId)
-      this.dialog.siteDetail = true
+      this.siteDetail.item = this.$store.getters['site-order/site'](siteId)
+      this.siteDetail.dialog = true
     },
 
     /**
@@ -321,20 +334,20 @@ export default {
       }
 
       // 編集対象のモデルにインスタンスを設定し、ダイアログを開く
-      this.editModel.schedule = instance
-      this.dialog.schedule = true
+      this.schedule.editModel = instance
+      this.schedule.dialog = true
     },
 
     openEmployeePlacementEditDialog({ item, path }) {
-      this.editModel.employeePlacement = item
-      this.editModel.employeePlacementPath = path
-      this.dialog.employeePlacement = true
+      this.employeePlacement.editModel = item
+      this.employeePlacement.path = path
+      this.employeePlacement.dialog = true
     },
 
     openOutsourcerPlacementEditDialog({ item, path }) {
-      this.editModel.outsourcerPlacement = item
-      this.editModel.outsourcerPlacementPath = path
-      this.dialog.outsourcerPlacement = true
+      this.outsourcerPlacement.editModel = item
+      this.outsourcerPlacement.path = path
+      this.outsourcerPlacement.dialog = true
     },
 
     /**
@@ -378,8 +391,8 @@ export default {
       }
       const on = {
         'active-cell': ($event) => (this.activeCell = $event),
-        'click:addEmployee': () => (this.dialog.employeeSelector = true),
-        'click:addOutsourcer': () => (this.dialog.outsourcerSelector = true),
+        'click:addEmployee': () => (this.employeeSelector.dialog = true),
+        'click:addOutsourcer': () => (this.outsourcerSelector.dialog = true),
         'click:edit-employee': this.openEmployeePlacementEditDialog,
         'click:edit-outsourcer': this.openOutsourcerPlacementEditDialog,
         'click:schedule': this.openScheduleDialog,
@@ -603,11 +616,12 @@ export default {
       </v-list>
     </v-menu>
 
-    <v-snackbar v-model="snackbar.show" centered color="primary" text>
+    <!-- snackbar -->
+    <v-snackbar v-model="snackbar.show" centered color="info" text>
       {{ snackbar.text }}
 
       <template #action="{ attrs }">
-        <v-btn color="primary" v-bind="attrs" @click="snackbar.show = false">
+        <v-btn color="info" v-bind="attrs" @click="snackbar.show = false">
           Close
         </v-btn>
       </template>
@@ -615,9 +629,11 @@ export default {
 
     <!-- employee selector -->
     <g-dialog-employee-selector
-      v-model="dialog.employeeSelector"
+      v-model="employeeSelector.dialog"
       :items="selectableEmployees"
-      :custom-filter="(item) => !onlyUnplaced || item.isPlaced === false"
+      :custom-filter="
+        (item) => !employeeSelector.onlyUnplaced || item.isPlaced === false
+      "
       @click:submit="addEmployeesInBulk"
     >
       <template #filter>
@@ -630,7 +646,7 @@ export default {
         </div>
         <v-spacer />
         <g-switch
-          v-model="onlyUnplaced"
+          v-model="employeeSelector.onlyUnplaced"
           class="mt-0 pt-0"
           label="未配置のみ表示"
           hide-details
@@ -652,37 +668,39 @@ export default {
 
     <!-- outsourcer selector -->
     <g-dialog-outsourcer-selector
-      v-model="dialog.outsourcerSelector"
+      v-model="outsourcerSelector.dialog"
       :items="selectableOutsourcers"
       @click:submit="addOutsourcersInBulk"
     />
 
     <!-- detail dialog -->
     <g-placement-site-operation-schedules-dialog
-      v-model="dialog.siteDetail"
+      v-model="siteDetail.dialog"
       max-width="840"
-      :site-id="item.siteDetail?.docId || ''"
+      :site-id="siteDetail.item?.docId || ''"
     />
 
     <!-- schedule dialog -->
     <g-placement-site-operation-schedule-edit-dialog
-      v-model="dialog.schedule"
-      :instance="editModel.schedule"
+      v-model="schedule.dialog"
+      :instance="schedule.editModel"
     />
 
     <!-- employee placement dialog -->
     <g-placement-employee-placement-edit-dialog
-      v-model="dialog.employeePlacement"
-      :item="editModel.employeePlacement"
-      :path="editModel.employeePlacementPath"
+      v-model="employeePlacement.dialog"
+      :item="employeePlacement.editModel"
+      :path="employeePlacement.path"
     />
 
     <!-- outsourcer placement dialog -->
     <g-placement-outsourcer-placement-edit-dialog
-      v-model="dialog.outsourcerPlacement"
-      :item="editModel.outsourcerPlacement"
-      :path="editModel.outsourcerPlacementPath"
+      v-model="outsourcerPlacement.dialog"
+      :item="outsourcerPlacement.editModel"
+      :path="outsourcerPlacement.path"
     />
+
+    <!-- availabilty dialog-->
   </v-simple-table>
 </template>
 
