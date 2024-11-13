@@ -29,11 +29,17 @@
  *    |             |- startTime: '08:00'
  *    |             |- endTime: '17:00'
  *    |             |- breakMinutes: 60
- *    |        |    |- confirmedAt: timestamp
+ *    |             |- confirmedAt: timestamp
  *    |             |- arrivedAt: timestamp
  *    |             |- leavedAt: timestamp
- *    |        |    |- temperature: 36.5
+ *    |             |- temperature: 36.5
  *    |- assignments
+ *       |- employeeAvailability
+ *       |  |- ${date}（YYYY-MM-DD）
+ *       |     |- day
+ *       |     |  |- employeeIds: <Array>
+ *       |     |- night
+ *       |        |- employeeIds: <Array>
  *       |- employees
  *       |  |- ${date} (YYYY-MM-DD)
  *       |     |- ${employeeId} or ${outsourcerKey}
