@@ -46,7 +46,7 @@ export default {
       internalValue: [],
       isRange: false,
       multiFunctional: false,
-      selectableDayOfWeeks: ['mon', 'tue', 'wed', 'thu', 'fri'],
+      selectableDayOfWeeks: ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'],
     }
   },
 
