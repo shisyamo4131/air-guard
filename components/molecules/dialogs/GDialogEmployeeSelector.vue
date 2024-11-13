@@ -75,21 +75,19 @@ export default {
      * - data.internalIncludeExpired が false の場合、status が active であるものを抽出します。
      */
     filteredItems() {
-      if (this.customFilter) {
-        return this.customFilter(this.items)
-      } else {
-        return this.items
-          .filter(({ abbr, fullNameKana, status }) => {
-            const regexMatch =
-              !this.regex ||
-              this.regex.test(fullNameKana) ||
-              this.regex.test(abbr)
-            const statusMatch =
-              this.internalIncludeExpired || status === 'active'
-            return regexMatch && statusMatch
-          })
-          .sort((a, b) => a.fullNameKana.localeCompare(b.fullNameKana))
-      }
+      return this.items
+        .filter((item) => {
+          return !this.customFilter || this.customFilter(item)
+        })
+        .filter(({ abbr, fullNameKana, status }) => {
+          const regexMatch =
+            !this.regex ||
+            this.regex.test(fullNameKana) ||
+            this.regex.test(abbr)
+          const statusMatch = this.internalIncludeExpired || status === 'active'
+          return regexMatch && statusMatch
+        })
+        .sort((a, b) => a.fullNameKana.localeCompare(b.fullNameKana))
     },
   },
 
