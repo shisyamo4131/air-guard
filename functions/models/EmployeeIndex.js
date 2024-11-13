@@ -5,7 +5,6 @@
  * - コンストラクタの引数には `Employees` ドキュメントのデータを渡します。
  *
  * @author shisyamo4131
- * @version 1.0.0
  */
 export default class EmployeeIndex {
   /****************************************************************************
@@ -20,6 +19,7 @@ export default class EmployeeIndex {
     this.address2 = item?.address2 || ''
     this.mobile = item?.mobile || ''
     this.status = item?.status || ''
+    this.contractType = item?.contractType || ''
   }
 
   /****************************************************************************
