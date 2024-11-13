@@ -60,6 +60,18 @@ export default {
      * Enables abbreviated display if set to true.
      */
     ellipsis: { type: Boolean, default: false },
+
+    /**
+     * 表示モードを切り替えます。
+     * placement: 配置モードです。移動のためのアイコンと編集のためのボタンが表示されます。
+     * confirmation: 確認モードです。配置確認、上番・下番などの切り替えボタンが表示されます。
+     */
+    mode: {
+      type: String,
+      default: 'placement',
+      validator: (mode) => ['placement', 'confirmation'].includes(mode),
+      required: false,
+    },
   },
 
   /***************************************************************************
@@ -360,6 +372,7 @@ export default {
         siteId: order.siteId,
         workShift: order.workShift,
         ellipsis: this.ellipsis,
+        mode: this.mode,
         draggingItem: this.draggingItem,
         copiedContent: this.copiedContent,
       }
