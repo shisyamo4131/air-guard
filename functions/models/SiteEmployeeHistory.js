@@ -212,7 +212,7 @@ export class SiteEmployeeHistory {
         ['where', 'createAt', '>=', timestamp],
       ])
       const updatedDocs = await resultInstance.fetchDocs([
-        ['where', 'updated', '>=', timestamp],
+        ['where', 'updateAt', '>=', timestamp],
       ])
 
       // 対象の従業員稼働実績ドキュメントが存在しなければ終了
