@@ -8,13 +8,22 @@ import {
   getFunctions,
   httpsCallable,
 } from 'firebase/functions'
+import GSelect from '~/components/atoms/inputs/GSelect.vue'
 
 const firebaseApp = getApp()
 const functions = getFunctions(firebaseApp, 'asia-northeast1')
 
 export default {
+  components: { GSelect },
   data() {
     return {
+      collection: 'all',
+      collections: [
+        { text: 'すべて', value: 'all' },
+        { text: '取引先', value: 'Customers' },
+        { text: '現場', value: 'Sites' },
+        { text: '従業員', value: 'Employees' },
+      ],
       loading: false,
       funcName: 'maintenance-refreshIndex',
     }
@@ -32,7 +41,7 @@ export default {
           connectFunctionsEmulator(functions, 'localhost', 5001)
         }
         const func = httpsCallable(functions, this.funcName)
-        const result = await func({ indexType: 'all' })
+        const result = await func({ indexType: this.collection })
         console.info(result.data.message) // eslint-disable-line no-console
       } catch (err) {
         console.error('Error calling function:', err) // eslint-disable-line no-console
@@ -54,6 +63,9 @@ export default {
       Realtime DatabaseのCustomers、Sites、Employeesインデックスを再構築します。
     </v-card-subtitle>
     <v-divider />
+    <v-card-text>
+      <g-select v-model="collection" :items="collections" />
+    </v-card-text>
     <v-card-actions class="justify-end">
       <v-btn
         color="primary"

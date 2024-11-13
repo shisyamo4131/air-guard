@@ -7,7 +7,7 @@
       <v-col cols="12">
         <g-maintenance-refresh-site-employee-history />
       </v-col>
-      <v-col cols="12">
+      <v-col cols="12" md="6">
         <g-maintenance-refresh-index />
       </v-col>
     </v-row>
