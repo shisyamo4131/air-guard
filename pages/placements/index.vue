@@ -109,7 +109,7 @@ export default {
       ellipsis: false,
       includesExpiredEmployee: false,
       length: 7,
-      mode: 'confirmation',
+      mode: 'placement',
     }
   },
 
