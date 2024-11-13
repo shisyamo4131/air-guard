@@ -18,6 +18,7 @@
  *    |        |    |- startTime: '08:00'
  *    |        |    |- endTime: '17:00'
  *    |        |    |- breakMinutes: 60
+ *    |        |    |- confirmedAt: timestamp
  *    |        |    |- arrivedAt: timestamp
  *    |        |    |- leavedAt: timestamp
  *    |        |    |- temperature: 36.5
@@ -28,8 +29,10 @@
  *    |             |- startTime: '08:00'
  *    |             |- endTime: '17:00'
  *    |             |- breakMinutes: 60
+ *    |        |    |- confirmedAt: timestamp
  *    |             |- arrivedAt: timestamp
  *    |             |- leavedAt: timestamp
+ *    |        |    |- temperature: 36.5
  *    |- assignments
  *       |- employees
  *       |  |- ${date} (YYYY-MM-DD)
@@ -68,7 +71,7 @@
 import { database } from 'air-firebase'
 import { ref, onValue, update } from 'firebase/database'
 
-const ARRIVAL_ALLOWED_TIME_OFFSET = 60 * 60 * 1000
+// const ARRIVAL_ALLOWED_TIME_OFFSET = 60 * 60 * 1000
 
 /**
  * Represents the placement information of an employee, stored at
@@ -83,6 +86,7 @@ class PlacedEmployee {
    * @param {string} args.startTime - The start time (HH:MM).
    * @param {string} args.endTime - The end time (HH:MM).
    * @param {number} args.breakMinutes - The break duration in minutes.
+   * @param {Object} args.confirmedAt - 配置確認日時（タイムスタンプ）
    * @param {Object} args.arrivedAt - The arrival time (timestamp).
    * @param {Object} args.leavedAt - The departure time (timestamp).
    * @param {number} args.temperature - The temperature recorded.
@@ -92,6 +96,7 @@ class PlacedEmployee {
     startTime,
     endTime,
     breakMinutes,
+    confirmedAt,
     arrivedAt,
     leavedAt,
     temperature,
@@ -100,6 +105,7 @@ class PlacedEmployee {
     this.startTime = startTime || ''
     this.endTime = endTime || ''
     this.breakMinutes = breakMinutes || null
+    this.confirmedAt = confirmedAt || null
     this.arrivedAt = arrivedAt || null
     this.leavedAt = leavedAt || null
     this.temperature = temperature || null
@@ -115,6 +121,7 @@ class PlacedEmployee {
       startTime: this.startTime,
       endTime: this.endTime,
       breakMinutes: this.breakMinutes,
+      confirmedAt: this.confirmedAt,
       arrivedAt: this.arrivedAt,
       leavedAt: this.leavedAt,
       temperature: this.temperature,
@@ -135,6 +142,7 @@ class PlacedOutsourcer extends PlacedEmployee {
    * @param {string} args.startTime - The start time (HH:MM).
    * @param {string} args.endTime - The end time (HH:MM).
    * @param {number} args.breakMinutes - The break duration in minutes.
+   * @param {Object} args.confirmedAt - 配置確認日時（タイムスタンプ）
    * @param {Object} args.arrivedAt - The arrival time (timestamp).
    * @param {Object} args.leavedAt - The departure time (timestamp).
    * @param {number} args.temperature - The temperature recorded.
@@ -144,6 +152,7 @@ class PlacedOutsourcer extends PlacedEmployee {
     startTime,
     endTime,
     breakMinutes,
+    confirmedAt,
     arrivedAt,
     leavedAt,
     temperature,
@@ -152,6 +161,7 @@ class PlacedOutsourcer extends PlacedEmployee {
       startTime,
       endTime,
       breakMinutes,
+      confirmedAt,
       arrivedAt,
       leavedAt,
       temperature,
@@ -170,6 +180,7 @@ class PlacedOutsourcer extends PlacedEmployee {
       startTime: this.startTime,
       endTime: this.endTime,
       breakMinutes: this.breakMinutes,
+      confirmedAt: this.confirmedAt,
       arrivedAt: this.arrivedAt,
       leavedAt: this.leavedAt,
       temperature: this.temperature,
@@ -222,8 +233,8 @@ class Placement {
       move: this.moveEmployee.bind(this),
       leave: this.leaveEmployee.bind(this),
       remove: this.removeEmployee.bind(this),
-      resetArrival: this.resetEmployeeArrival.bind(this),
-      resetLeave: this.resetEmployeeLeave.bind(this),
+      confirm: this.confirmEmployee.bind(this),
+      unconfirm: this.unconfirmEmployee.bind(this),
     }
 
     // Expose outsourcer methods in outsourcer property
@@ -234,8 +245,8 @@ class Placement {
       move: this.moveOutsourcer.bind(this),
       leave: this.leaveOutsourcer.bind(this),
       remove: this.removeOutsourcer.bind(this),
-      resetArrival: this.resetOutsourcerArrival.bind(this),
-      resetLeave: this.resetOutsourcerLeave.bind(this),
+      confirm: this.confirmOutsourcer.bind(this),
+      unconfirm: this.unconfirmOutsourcer.bind(this),
     }
   }
 
@@ -779,439 +790,363 @@ class Placement {
     }
   }
 
-  /**
-   * Records the arrival of an employee at the specified start time and logs their temperature.
-   * - Ensures the temperature is a valid number.
-   * - Checks if the employee exists in the data.
-   * - Verifies that the employee has not already been marked as arrived.
-   * - Ensures arrival time is within an acceptable time window.
-   *
-   * @param {string} employeeId - The ID of the employee arriving.
-   * @param {number} temperature - The recorded temperature of the employee.
-   * @param {string|null} [startTime=null] - Optional new start time for the employee (format: HH:MM).
-   * @throws Will throw an error if the temperature is invalid, employee data is missing, or arrival is recorded too early.
-   */
-  async arriveEmployee(employeeId, temperature, startTime = null) {
-    // Validate that temperature is provided and is a valid number
-    if (typeof temperature !== 'number' || isNaN(temperature)) {
-      throw new TypeError(
-        'Temperature is required and must be specified as a valid number.'
-      )
-    }
-
-    // Retrieve current employee data
-    const currentEmployeeData = this.data?.employees?.[employeeId]
-    if (!currentEmployeeData) {
-      throw new Error(`Employee ID not found: ${employeeId}`)
-    }
-
-    // Check if the employee already has an arrival record
-    if (currentEmployeeData.arrivedAt) {
+  /***************************************************************************
+   * 従業員の配置状態を `確認済` に更新します。
+   * @param {string} employeeId - 従業員ID
+   * @throws {Error} 指定された従業員の配置データが存在しない場合、
+   *                 またはデータベース更新に失敗した場合にスローされます。
+   ***************************************************************************/
+  async confirmEmployee(employeeId) {
+    // 従業員の現在の配置データを取得
+    const employeeData = this.data?.employees?.[employeeId]
+    if (!employeeData) {
       throw new Error(
-        `Employee ID ${employeeId} already has an arrival record.`
+        `指定された従業員の配置データが取得できませんでした。従業員ID: ${employeeId}`
       )
     }
 
-    // Determine start date and effective start time
-    const startDate = this.date
-    const effectiveStartTime = startTime || currentEmployeeData.startTime
-    if (!startDate || !effectiveStartTime) {
-      throw new Error('Date or start time is invalid.')
-    }
+    // 既に確認済みの場合は処理を終了
+    if (employeeData.confirmedAt) return
 
-    // Calculate the allowed time window for arrival
-    const baseTime = new Date(`${startDate}T${effectiveStartTime}:00.000Z`)
-    const allowedTime = new Date(
-      baseTime.getTime() - ARRIVAL_ALLOWED_TIME_OFFSET
-    )
-    const currentTime = new Date()
-
-    // Validate that current time is within the allowed window
-    if (currentTime < allowedTime) {
-      throw new Error(
-        'Arrival recording is allowed starting one hour before shift start time.'
-      )
-    }
-
-    // Prepare the data for updating the employee's arrival status
-    const currentTimeISO = currentTime.toISOString()
+    // 更新データを作成（到着時刻と退出時刻は初期化）
     const updates = {
-      [`${this.getEmployeesPath(employeeId)}/arrivedAt`]: currentTimeISO,
-      [`${this.getEmployeesPath(employeeId)}/temperature`]: temperature,
-    }
-
-    // Update startTime if a new start time is provided and differs from the current one
-    if (startTime && startTime !== currentEmployeeData.startTime) {
-      updates[`${this.getEmployeesPath(employeeId)}/startTime`] = startTime
+      [`${this.getEmployeesPath(employeeId)}/confirmedAt`]: new Date(),
+      [`${this.getEmployeesPath(employeeId)}/arrivedAt`]: null,
+      [`${this.getEmployeesPath(employeeId)}/leavedAt`]: null,
     }
 
     try {
-      // Perform atomic update in the database
-      await update(ref(this.database), updates)
+      await update(ref(database), updates)
     } catch (error) {
-      const message = `Failed to record arrival for employeeId: ${employeeId}.`
+      const message = `従業員ID: ${employeeId} の配置状態の更新に失敗しました。`
       console.error(message, error) // eslint-disable-line no-console
       throw new Error(`${message} ${error.message}`)
     }
   }
 
-  /**
-   * Records the arrival of an outsourcer at the specified start time and logs their temperature.
-   * - Ensures the temperature is a valid number.
-   * - Checks if the outsourcer exists in the data.
-   * - Verifies that the outsourcer has not already been marked as arrived.
-   * - Ensures arrival time is within an acceptable time window.
-   *
-   * @param {string} outsourcerKey - The KEy of the outsourcer arriving.
-   * @param {number} temperature - The recorded temperature of the outsourcer.
-   * @param {string|null} [startTime=null] - Optional new start time for the outsourcer (format: HH:MM).
-   * @throws Will throw an error if the temperature is invalid, outsourcer data is missing, or arrival is recorded too early.
-   */
-  async arriveOutsourcer(outsourcerKey, temperature, startTime = null) {
-    // Validate that temperature is provided and is a valid number
-    if (typeof temperature !== 'number' || isNaN(temperature)) {
-      throw new TypeError(
-        'Temperature is required and must be specified as a valid number.'
-      )
-    }
-
-    // Retrieve current outsourcer data
-    const currentOutsourcerData = this.data?.outsourcers?.[outsourcerKey]
-    if (!currentOutsourcerData) {
-      throw new Error(`Outsourcer KEY not found: ${outsourcerKey}`)
-    }
-
-    // Check if the outsourcer already has an arrival record
-    if (currentOutsourcerData.arrivedAt) {
+  /***************************************************************************
+   * 外注先の配置状態を `確認済` に更新します。
+   * @param {string} outsourcerKey - 外注先KEY
+   * @throws {Error} 指定された外注先の配置データが存在しない場合、
+   *                 またはデータベース更新に失敗した場合にスローされます。
+   ***************************************************************************/
+  async confirmOutsourcer(outsourcerKey) {
+    // 外注先の現在の配置データを取得
+    const outsourcerData = this.data?.outsourcers?.[outsourcerKey]
+    if (!outsourcerData) {
       throw new Error(
-        `Outsourcer KEY ${outsourcerKey} already has an arrival record.`
+        `指定された外注先の配置データが取得できませんでした。外注先ID: ${outsourcerKey}`
       )
     }
 
-    // Determine start date and effective start time
-    const startDate = this.date
-    const effectiveStartTime = startTime || currentOutsourcerData.startTime
-    if (!startDate || !effectiveStartTime) {
-      throw new Error('Date or start time is invalid.')
-    }
+    // 既に確認済みの場合は処理を終了
+    if (outsourcerData.confirmedAt) return
 
-    // Calculate the allowed time window for arrival
-    const baseTime = new Date(`${startDate}T${effectiveStartTime}:00.000Z`)
-    const allowedTime = new Date(
-      baseTime.getTime() - ARRIVAL_ALLOWED_TIME_OFFSET
-    )
-    const currentTime = new Date()
-
-    // Validate that current time is within the allowed window
-    if (currentTime < allowedTime) {
-      throw new Error(
-        'Arrival recording is allowed starting one hour before shift start time.'
-      )
-    }
-
-    // Prepare the data for updating the outsourcer's arrival status
-    const currentTimeISO = currentTime.toISOString()
+    // 更新データを作成（到着時刻と退出時刻は初期化）
     const updates = {
-      [`${this.getOutsourcersPath(outsourcerKey)}/arrivedAt`]: currentTimeISO,
-      [`${this.getOutsourcersPath(outsourcerKey)}/temperature`]: temperature,
+      [`${this.getOutsourcersPath(outsourcerKey)}/confirmedAt`]: new Date(),
+      [`${this.getOutsourcersPath(outsourcerKey)}/arrivedAt`]: null,
+      [`${this.getOutsourcersPath(outsourcerKey)}/leavedAt`]: null,
     }
 
-    // Update startTime if a new start time is provided and differs from the current one
-    if (startTime && startTime !== currentOutsourcerData.startTime) {
+    try {
+      await update(ref(database), updates)
+    } catch (error) {
+      const message = `外注先ID: ${outsourcerKey} の配置状態の更新に失敗しました。`
+      console.error(message, error) // eslint-disable-line no-console
+      throw new Error(`${message} ${error.message}`)
+    }
+  }
+
+  /***************************************************************************
+   * 従業員の配置状態を `上番済` に更新します。
+   * @param {Object} params - パラメータオブジェクト
+   * @param {string} params.employeeId - 従業員ID
+   * @param {number|null} [params.temperature=null] - 体温（オプション）
+   * @param {string|null} [params.startTime=null] - 開始時刻（オプション）
+   * @throws {TypeError} 体温または開始時刻の型が不正な場合にスローされます。
+   * @throws {Error} 指定された従業員の配置データが存在しない場合、
+   *                 またはデータベース更新に失敗した場合にスローされます。
+   ***************************************************************************/
+  async arriveEmployee({
+    employeeId,
+    temperature = null,
+    startTime = null,
+  } = {}) {
+    // 体温が指定されていれば型をチェック
+    if (
+      temperature !== null &&
+      (typeof temperature !== 'number' || isNaN(temperature))
+    ) {
+      throw new TypeError(
+        `体温は数値でなくてはなりません。体温: ${temperature}`
+      )
+    }
+
+    // 開始時刻が指定されていれば型をチェック
+    if (startTime !== null && typeof startTime !== 'string') {
+      throw new TypeError(
+        `開始時刻は文字列でなくてはなりません。開始時刻: ${startTime}`
+      )
+    }
+
+    // 現在の配置データを取得
+    const employeeData = this.data?.employees?.[employeeId]
+    if (!employeeData) {
+      throw new Error(
+        `指定された従業員の配置データが取得できませんでした。従業員ID: ${employeeId}`
+      )
+    }
+
+    // 更新データを作成（退出時刻は初期化）
+    const updates = {
+      [`${this.getEmployeesPath(employeeId)}/arrivedAt`]: new Date(),
+      [`${this.getEmployeesPath(employeeId)}/leavedAt`]: null,
+    }
+
+    if (temperature !== null) {
+      updates[`${this.getEmployeesPath(employeeId)}/temperature`] = temperature
+    }
+
+    if (startTime !== null) {
+      updates[`${this.getEmployeesPath(employeeId)}/startTime`] = startTime
+    }
+
+    try {
+      await update(ref(database), updates)
+    } catch (error) {
+      const message = `従業員ID: ${employeeId} の配置状態の更新に失敗しました。`
+      console.error(message, error) // eslint-disable-line no-console
+      throw new Error(`${message} ${error.message}`)
+    }
+  }
+
+  /***************************************************************************
+   * 外注先の配置状態を `上番済` に更新します。
+   *
+   * @param {Object} params - パラメータオブジェクト
+   * @param {string} params.outsourcerKey - 外注先KEY
+   * @param {number|null} [params.temperature=null] - 体温（オプション）
+   * @param {string|null} [params.startTime=null] - 開始時刻（オプション）
+   * @throws {TypeError} 体温または開始時刻の型が不正な場合にスローされます。
+   * @throws {Error} 指定された外注先の配置データが存在しない場合、
+   *                 またはデータベース更新に失敗した場合にスローされます。
+   ***************************************************************************/
+  async arriveOutsourcer({
+    outsourcerKey,
+    temperature = null,
+    startTime = null,
+  } = {}) {
+    // 体温が指定されていれば型をチェック
+    if (
+      temperature !== null &&
+      (typeof temperature !== 'number' || isNaN(temperature))
+    ) {
+      throw new TypeError(
+        `体温は数値でなくてはなりません。体温: ${temperature}`
+      )
+    }
+
+    // 開始時刻が指定されていれば型をチェック
+    if (startTime !== null && typeof startTime !== 'string') {
+      throw new TypeError(
+        `開始時刻は文字列でなくてはなりません。開始時刻: ${startTime}`
+      )
+    }
+
+    // 現在の配置データを取得
+    const outsourcerData = this.data?.outsourcers?.[outsourcerKey]
+    if (!outsourcerData) {
+      throw new Error(
+        `指定された外注先の配置データが取得できませんでした。外注先ID: ${outsourcerKey}`
+      )
+    }
+
+    // 更新データを作成（退出時刻は初期化）
+    const updates = {
+      [`${this.getOutsourcersPath(outsourcerKey)}/arrivedAt`]: new Date(),
+      [`${this.getOutsourcersPath(outsourcerKey)}/leavedAt`]: null,
+    }
+
+    if (temperature !== null) {
+      updates[`${this.getOutsourcersPath(outsourcerKey)}/temperature`] =
+        temperature
+    }
+
+    if (startTime !== null) {
       updates[`${this.getOutsourcersPath(outsourcerKey)}/startTime`] = startTime
     }
 
     try {
-      // Perform atomic update in the database
-      await update(ref(this.database), updates)
+      await update(ref(database), updates)
     } catch (error) {
-      const message = `Failed to record arrival for outsourcerKey: ${outsourcerKey}.`
+      const message = `外注先KEY: ${outsourcerKey} の配置状態の更新に失敗しました。`
       console.error(message, error) // eslint-disable-line no-console
       throw new Error(`${message} ${error.message}`)
     }
   }
 
-  /**
-   * Resets the arrival record for a specified employee.
-   * - Clears the `arrivedAt` timestamp for the employee, if no leave record exists.
-   * - Ensures that the employee's data is present and no departure (`leavedAt`) record exists.
-   *
-   * @param {string} employeeId - The ID of the employee whose arrival information is being reset.
-   * @throws Will throw an error if the employee data is not found or if a departure record exists.
-   */
-  async resetEmployeeArrival(employeeId) {
-    try {
-      // Retrieve the current employee data
-      const currentEmployeeData = this.data?.employees?.[employeeId]
-
-      // Check if employee data exists
-      if (!currentEmployeeData) {
-        throw new Error(`Employee ID not found: ${employeeId}`)
-      }
-
-      // Ensure that the employee has not already recorded a departure
-      if (currentEmployeeData.leavedAt) {
-        throw new Error(
-          `Employee ID ${employeeId} already has a departure record. Arrival reset is not allowed.`
-        )
-      }
-
-      // Prepare the update object to reset arrival details
-      const updates = {
-        [`${this.getEmployeesPath(employeeId)}/arrivedAt`]: null,
-      }
-
-      // Perform atomic update in Firebase
-      await update(ref(this.database), updates)
-    } catch (error) {
-      const message = `Failed to reset arrival information for employeeId: ${employeeId}.`
-      console.error(message, error) // eslint-disable-line no-console
-      throw new Error(`${message} ${error.message}`)
-    }
-  }
-
-  /**
-   * Resets the arrival record for a specified outsourcer.
-   * - Clears the `arrivedAt` timestamp for the outsourcer, if no leave record exists.
-   * - Ensures that the outsourcer's data is present and no departure (`leavedAt`) record exists.
-   *
-   * @param {string} outsourcerKey - The KEY of the outsourcer whose arrival information is being reset.
-   * @throws Will throw an error if the outsourcer data is not found or if a departure record exists.
-   */
-  async resetOutsourcerArrival(outsourcerKey) {
-    try {
-      // Retrieve the current outsourcer data
-      const currentOutsourcerData = this.data?.outsourcers?.[outsourcerKey]
-
-      // Check if outsourcer data exists
-      if (!currentOutsourcerData) {
-        throw new Error(`Outsourcer KEY not found: ${outsourcerKey}`)
-      }
-
-      // Ensure that the outsourcer has not already recorded a departure
-      if (currentOutsourcerData.leavedAt) {
-        throw new Error(
-          `Outsourcer KEY ${outsourcerKey} already has a departure record. Arrival reset is not allowed.`
-        )
-      }
-
-      // Prepare the update object to reset arrival details
-      const updates = {
-        [`${this.getOutsourcersPath(outsourcerKey)}/arrivedAt`]: null,
-      }
-
-      // Perform atomic update in Firebase
-      await update(ref(this.database), updates)
-    } catch (error) {
-      const message = `Failed to reset arrival information for outsourcerKey: ${outsourcerKey}.`
-      console.error(message, error) // eslint-disable-line no-console
-      throw new Error(`${message} ${error.message}`)
-    }
-  }
-
-  /**
-   * Records the departure of an employee, updating end time, break minutes, and other details as needed.
-   * - Checks that the employee exists and has an arrival record.
-   * - Updates `leavedAt` with the current time.
-   * - Optionally updates `startTime`, `endTime`, and `breakMinutes` if new values are provided.
-   *
-   * @param {string} employeeId - The ID of the employee leaving.
-   * @param {string|null} [startTime=null] - Optional start time for the shift (format: HH:MM).
-   * @param {string|null} [endTime=null] - Optional end time for the shift (format: HH:MM).
-   * @param {number|null} [breakMinutes=null] - Optional break duration in minutes.
-   * @throws Will throw an error if the employee is not found or has no arrival record.
-   */
-  async leaveEmployee(
+  /***************************************************************************
+   * 従業員の配置状態を `退勤済` に更新します。
+   * @param {Object} params - パラメータオブジェクト
+   * @param {string} params.employeeId - 従業員ID
+   * @param {string|null} [params.startTime=null] - 開始時刻（オプション）
+   * @param {string|null} [params.endTime=null] - 終了時刻（オプション）
+   * @param {number|null} [params.breakMinutes=null] - 休憩時間（分単位・オプション）
+   * @throws {Error} 指定された従業員の配置データが存在しない場合、
+   *                 またはデータベース更新に失敗した場合にスローされます。
+   ***************************************************************************/
+  async leaveEmployee({
     employeeId,
     startTime = null,
     endTime = null,
-    breakMinutes = null
-  ) {
-    // Retrieve employee data from this.data
-    const currentEmployeeData = this.data?.employees?.[employeeId]
-
-    // Check if the employee exists
-    if (!currentEmployeeData) {
-      throw new Error(`Employee ID not found: ${employeeId}`)
-    }
-
-    // Ensure the employee has an arrival record before recording departure
-    if (!currentEmployeeData.arrivedAt) {
+    breakMinutes = null,
+  } = {}) {
+    // 現在の従業員データを取得
+    const employeeData = this.data?.employees?.[employeeId]
+    if (!employeeData) {
       throw new Error(
-        `Employee ID ${employeeId} has no arrival record and cannot be marked as left.`
+        `指定された従業員の配置データが取得できませんでした。従業員ID: ${employeeId}`
       )
     }
 
-    // Get the current time in ISO 8601 format for leavedAt
-    const currentTimeISO = new Date().toISOString()
-
-    // Create the update object (leavedAt, startTime, endTime, breakMinutes)
+    // 更新データを作成
     const updates = {
-      [`${this.getEmployeesPath(employeeId)}/leavedAt`]: currentTimeISO,
+      [`${this.getEmployeesPath(employeeId)}/leavedAt`]: new Date(),
     }
 
-    // Update startTime if provided and different from the current startTime
-    if (startTime && startTime !== currentEmployeeData.startTime) {
+    if (startTime !== null) {
       updates[`${this.getEmployeesPath(employeeId)}/startTime`] = startTime
     }
 
-    // Update endTime if provided and different from the current endTime
-    if (endTime && endTime !== currentEmployeeData.endTime) {
+    if (endTime !== null) {
       updates[`${this.getEmployeesPath(employeeId)}/endTime`] = endTime
     }
 
-    // Update breakMinutes if provided and different from the current breakMinutes
-    if (
-      breakMinutes !== null &&
-      breakMinutes !== currentEmployeeData.breakMinutes
-    ) {
+    if (breakMinutes !== null) {
       updates[`${this.getEmployeesPath(employeeId)}/breakMinutes`] =
         breakMinutes
     }
 
     try {
-      // Perform atomic update to Firebase
-      await update(ref(this.database), updates)
+      await update(ref(database), updates)
     } catch (error) {
-      const message = `Failed to record departure for employeeId: ${employeeId}.`
+      const message = `従業員ID: ${employeeId} の配置状態の更新に失敗しました。`
       console.error(message, error) // eslint-disable-line no-console
       throw new Error(`${message} ${error.message}`)
     }
   }
 
-  /**
-   * Records the departure of an outsourcer, updating end time, break minutes, and other details as needed.
-   * - Checks that the outsourcer exists and has an arrival record.
-   * - Updates `leavedAt` with the current time.
-   * - Optionally updates `startTime`, `endTime`, and `breakMinutes` if new values are provided.
+  /***************************************************************************
+   * 外注先の配置状態を `退勤済` に更新します。
    *
-   * @param {string} outsourcerKey - The KEY of the outsourcer leaving.
-   * @param {string|null} [startTime=null] - Optional start time for the shift (format: HH:MM).
-   * @param {string|null} [endTime=null] - Optional end time for the shift (format: HH:MM).
-   * @param {number|null} [breakMinutes=null] - Optional break duration in minutes.
-   * @throws Will throw an error if the outsourcer is not found or has no arrival record.
-   */
-  async leaveOutsourcer(
+   * @param {Object} params - パラメータオブジェクト
+   * @param {string} params.outsourcerKey - 外注先KEY
+   * @param {string|null} [params.startTime=null] - 開始時刻（オプション）
+   * @param {string|null} [params.endTime=null] - 終了時刻（オプション）
+   * @param {number|null} [params.breakMinutes=null] - 休憩時間（分単位・オプション）
+   * @throws {Error} 指定された外注先の配置データが存在しない場合、
+   *                 またはデータベース更新に失敗した場合にスローされます。
+   ***************************************************************************/
+  async leaveOutsourcer({
     outsourcerKey,
     startTime = null,
     endTime = null,
-    breakMinutes = null
-  ) {
-    // Retrieve outsourcer data from this.data
-    const currentOutsourcerData = this.data?.outsourcers?.[outsourcerKey]
-
-    // Check if the outsourcer exists
-    if (!currentOutsourcerData) {
-      throw new Error(`Outsourcer KEY not found: ${outsourcerKey}`)
-    }
-
-    // Ensure the outsourcer has an arrival record before recording departure
-    if (!currentOutsourcerData.arrivedAt) {
+    breakMinutes = null,
+  } = {}) {
+    // 現在の外注先データを取得
+    const outsourcerData = this.data?.outsourcers?.[outsourcerKey]
+    if (!outsourcerData) {
       throw new Error(
-        `Outsourcer KEY ${outsourcerKey} has no arrival record and cannot be marked as left.`
+        `指定された外注先の配置データが取得できませんでした。外注先KEY: ${outsourcerKey}`
       )
     }
 
-    // Get the current time in ISO 8601 format for leavedAt
-    const currentTimeISO = new Date().toISOString()
-
-    // Create the update object (leavedAt, startTime, endTime, breakMinutes)
+    // 更新データを作成
     const updates = {
-      [`${this.getOutsourcersPath(outsourcerKey)}/leavedAt`]: currentTimeISO,
+      [`${this.getOutsourcersPath(outsourcerKey)}/leavedAt`]: new Date(),
     }
 
-    // Update startTime if provided and different from the current startTime
-    if (startTime && startTime !== currentOutsourcerData.startTime) {
+    if (startTime !== null) {
       updates[`${this.getOutsourcersPath(outsourcerKey)}/startTime`] = startTime
     }
 
-    // Update endTime if provided and different from the current endTime
-    if (endTime && endTime !== currentOutsourcerData.endTime) {
+    if (endTime !== null) {
       updates[`${this.getOutsourcersPath(outsourcerKey)}/endTime`] = endTime
     }
 
-    // Update breakMinutes if provided and different from the current breakMinutes
-    if (
-      breakMinutes !== null &&
-      breakMinutes !== currentOutsourcerData.breakMinutes
-    ) {
+    if (breakMinutes !== null) {
       updates[`${this.getOutsourcersPath(outsourcerKey)}/breakMinutes`] =
         breakMinutes
     }
 
     try {
-      // Perform atomic update to Firebase
-      await update(ref(this.database), updates)
+      await update(ref(database), updates)
     } catch (error) {
-      const message = `Failed to record departure for outsourcerKey: ${outsourcerKey}.`
+      const message = `外注先KEY: ${outsourcerKey} の配置状態の更新に失敗しました。`
       console.error(message, error) // eslint-disable-line no-console
       throw new Error(`${message} ${error.message}`)
     }
   }
 
-  /**
-   * Resets the leave information for a specified employee.
-   * - Clears the `leavedAt` timestamp for the employee.
-   * - Resets `endTime` and `breakMinutes` to default values based on site contract if available.
-   *
-   * @param {string} employeeId - The ID of the employee whose leave information is being reset.
-   * @throws Will throw an error if the employee data is not found.
-   */
-  async resetEmployeeLeave(employeeId) {
-    // Retrieve current employee data
-    const currentEmployeeData = this.data?.employees?.[employeeId]
-    if (!currentEmployeeData) {
-      throw new Error(`Employee ID not found: ${employeeId}`)
+  /***************************************************************************
+   * 従業員の配置状態を `未確認` に更新します。
+   * @param {string} employeeId - 従業員ID
+   * @throws {Error} 指定された従業員の配置データが存在しない場合、
+   *                 またはデータベース更新に失敗した場合にスローされます。
+   ***************************************************************************/
+  async unconfirmEmployee(employeeId) {
+    // 現在の従業員データを取得
+    const employeeData = this.data?.employees?.[employeeId]
+    if (!employeeData) {
+      throw new Error(
+        `指定された従業員の配置データが取得できませんでした。従業員ID: ${employeeId}`
+      )
     }
 
-    // Prepare the update object to reset leave details
+    // 更新データを作成
     const updates = {
+      [`${this.getEmployeesPath(employeeId)}/confirmedAt`]: null,
+      [`${this.getEmployeesPath(employeeId)}/arrivedAt`]: null,
       [`${this.getEmployeesPath(employeeId)}/leavedAt`]: null,
-      [`${this.getEmployeesPath(employeeId)}/endTime`]:
-        this.siteContract?.endTime || null,
-      [`${this.getEmployeesPath(employeeId)}/breakMinutes`]:
-        this.siteContract?.breakMinutes || 0,
     }
 
-    // Perform atomic update in Firebase with error handling
     try {
-      await update(ref(this.database), updates)
+      await update(ref(database), updates)
     } catch (error) {
-      const message = `Failed to reset leave information for employeeId: ${employeeId}.`
+      const message = `従業員ID: ${employeeId} の配置状態の更新に失敗しました。`
       console.error(message, error) // eslint-disable-line no-console
       throw new Error(`${message} ${error.message}`)
     }
   }
 
-  /**
-   * Resets the leave information for a specified outsourcer.
-   * - Clears the `leavedAt` timestamp for the outsourcer.
-   * - Resets `endTime` and `breakMinutes` to default values based on site contract if available.
+  /***************************************************************************
+   * 外注先の配置状態を `未確認` に更新します。
    *
-   * @param {string} outsourcerKey - The KEY of the outsourcer whose leave information is being reset.
-   * @throws Will throw an error if the outsourcer data is not found.
-   */
-  async resetOutsourcerLeave(outsourcerKey) {
-    // Retrieve current outsourcer data
-    const currentOutsourcerData = this.data?.outsourcers?.[outsourcerKey]
-    if (!currentOutsourcerData) {
-      throw new Error(`Outsourcer KEY not found: ${outsourcerKey}`)
+   * @param {string} outsourcerKey - 外注先KEY
+   * @throws {Error} 指定された外注先の配置データが存在しない場合、
+   *                 またはデータベース更新に失敗した場合にスローされます。
+   ***************************************************************************/
+  async unconfirmOutsourcer(outsourcerKey) {
+    // 現在の外注先データを取得
+    const outsourcerData = this.data?.outsourcers?.[outsourcerKey]
+    if (!outsourcerData) {
+      throw new Error(
+        `指定された外注先の配置データが取得できませんでした。外注先KEY: ${outsourcerKey}`
+      )
     }
 
-    // Prepare the update object to reset leave details
+    // 更新データを作成
     const updates = {
+      [`${this.getOutsourcersPath(outsourcerKey)}/confirmedAt`]: null,
+      [`${this.getOutsourcersPath(outsourcerKey)}/arrivedAt`]: null,
       [`${this.getOutsourcersPath(outsourcerKey)}/leavedAt`]: null,
-      [`${this.getOutsourcersPath(outsourcerKey)}/endTime`]:
-        this.siteContract?.endTime || null,
-      [`${this.getOutsourcersPath(outsourcerKey)}/breakMinutes`]:
-        this.siteContract?.breakMinutes || 0,
     }
 
-    // Perform atomic update in Firebase with error handling
     try {
-      await update(ref(this.database), updates)
+      await update(ref(database), updates)
     } catch (error) {
-      const message = `Failed to reset leave information for outsourcerKey: ${outsourcerKey}.`
+      const message = `外注先KEY: ${outsourcerKey} の配置状態の更新に失敗しました。`
       console.error(message, error) // eslint-disable-line no-console
       throw new Error(`${message} ${error.message}`)
     }
