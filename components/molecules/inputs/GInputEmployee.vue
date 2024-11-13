@@ -191,6 +191,19 @@ export default {
         label="携帯番号"
         input-type="tel"
       />
+      <g-select
+        v-model="editModel.contractType"
+        label="雇用形態"
+        required
+        :items="$EMPLOYEE_CONTRACT_TYPE_ARRAY"
+      />
+      <g-text-field
+        v-model="editModel.designation"
+        label="役職"
+        required
+        counter
+        maxlength="5"
+      />
       <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
   </g-card-input-form>

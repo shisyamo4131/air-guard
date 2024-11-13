@@ -145,6 +145,28 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
+  /**
+   * 雇用形態
+   */
+  contractType: {
+    type: String,
+    default: 'full-time',
+    validator: (v) =>
+      ['exective', 'full-time', 'contract', 'part-time'].includes(v),
+    required: false,
+    requiredByClass: false,
+  },
+
+  /**
+   * 役職・役割（略称の語尾に付与される）
+   */
+  designation: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
 }
 
 const vueProps = generateVueProps(propsDefinition)
