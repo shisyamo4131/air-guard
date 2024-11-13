@@ -40,6 +40,19 @@ export default {
   props: {
     draggingItem: { type: undefined, default: null },
     ellipsis: { type: Boolean, default: false },
+
+    /**
+     * チップの表示モードを切り替えます。
+     * placement: 配置モードです。移動のためのアイコンと編集のためのボタンが表示されます。
+     * confirmation: 確認モードです。配置確認、上番・下番などの切り替えボタンが表示されます。
+     */
+    mode: {
+      type: String,
+      default: 'placement',
+      validator: (mode) => ['placement', 'confirmation'].includes(mode),
+      required: false,
+    },
+
     group: { type: Object, default: () => ({}) },
     placement: {
       type: Object,
@@ -195,6 +208,25 @@ export default {
       const path = this.placement.getEmployeesPath(item.employeeId)
       this.$emit('click:edit', structuredClone({ item, path }))
     },
+
+    /**
+     * 従業員の配置状態がクリックされた時の処理です。
+     * Placement インスタンスが提供するメソッドを利用して従業員の配置状態を更新します。
+     */
+    onClickStatus({ employeeId, status }) {
+      try {
+        if (status === 'unconfirmed')
+          this.placement.employee.confirm(employeeId)
+        if (status === 'confirmed')
+          this.placement.employee.arrive({ employeeId })
+        if (status === 'arrived') this.placement.employee.leave({ employeeId })
+        if (status === 'leaved') this.placement.employee.unconfirm(employeeId)
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error(err)
+        alert(err.message)
+      }
+    },
   },
 }
 </script>
@@ -217,13 +249,11 @@ export default {
         name="employees"
         v-bind="{
           attrs: {
+            ...(employees?.[employeeId] || {}),
+            ...placement,
             employeeId,
-            date: placement.date,
-            siteId: placement.siteId,
-            workShift: placement.workShift,
             ellipsis,
-            startTime: employees?.[employeeId]?.startTime || '',
-            endTime: employees?.[employeeId]?.endTime || '',
+            mode,
             isNewEntry: !$store.getters['site-order/hasEmployeeEnteredSite']({
               siteId: placement.siteId,
               employeeId,
@@ -243,6 +273,7 @@ export default {
           on: {
             'click:edit': () => onClickEdit(employees?.[employeeId] || null),
             'click:remove': () => handleRemove({ element: employeeId }),
+            'click:status': (params) => onClickStatus(params),
           },
         }"
       />
