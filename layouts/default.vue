@@ -210,24 +210,28 @@ export default {
 /*****************************************************************************
  * placements
  *****************************************************************************/
+/* テーブルヘッダーのスタイル */
 #placement-table > div > table > thead > tr > th {
   text-align: center;
   min-width: 240px;
   max-width: 240px;
 }
 
+/* 奇数行のサイト行の背景色 */
 #placement-table > div > table > tbody > tr:nth-child(odd) .site-row {
   background-color: beige;
 }
 
+/* 奇数行のサイト行の左側を固定する */
 #placement-table > div > table > tbody > tr:nth-child(odd) .site-row div {
   display: inline-block;
   position: sticky;
   left: 16px;
   z-index: 1 !important; /* 他の要素より前面に表示 */
-  /* box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1); */ /* 境界線を強調するための影 */
+  /* box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1); */ /* 必要に応じて影を追加 */
 }
 
+/* テーブルフッターのスタイル */
 #placement-table tfoot {
   position: sticky;
   bottom: 0;
@@ -239,6 +243,7 @@ export default {
   text-align: center;
 }
 
+/* 行・セルのホバー時の背景色 */
 #placement-table tr:hover {
   background-color: transparent !important;
 }
@@ -247,25 +252,33 @@ export default {
   background-color: #e0e0e0;
 }
 
+/* 日曜・祝日セルの背景色 */
 #placement-table .th-sun,
 #placement-table .th-holi,
-#placement-table .col-sun,
-#placement-table .col-holi {
+#placement-table .td-sun,
+#placement-table .td-holi {
   background-color: #ffebee;
 }
 
-#placement-table .col-sun:hover,
-#placement-table .col-holi:hover {
+#placement-table .td-sun:hover,
+#placement-table .td-holi:hover {
   background-color: #ffcdd2;
 }
 
+/* 土曜日セルの背景色 */
 #placement-table .th-sat,
-#placement-table .col-sat {
+#placement-table .td-sat {
   background-color: #e3f2fd;
 }
 
-#placement-table .col-sat:hover {
+#placement-table .td-sat:hover {
   background-color: #bbdefb;
+}
+
+/* 過去日付セルの背景色 */
+#placement-table .th-previous,
+#placement-table .td-previous {
+  background-color: #e0e0e0;
 }
 
 /*****************************************************************************

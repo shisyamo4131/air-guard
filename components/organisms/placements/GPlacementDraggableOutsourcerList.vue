@@ -49,6 +49,11 @@ export default {
       validator: (instance) => instance instanceof Placement,
       required: true,
     },
+
+    /**
+     * true にすると Draggable が無効になります。
+     */
+    disabled: { type: Boolean, default: false, required: false },
   },
 
   computed: {
@@ -140,6 +145,7 @@ export default {
     class="d-flex flex-column pa-2 flex-grow-1"
     style="min-height: 24px; gap: 8px"
     :value="outsourcerOrder"
+    :disabled="disabled"
     :group="{
       name: `outsourcers-${placement.date}-${placement.siteId}-${placement.workShift}`,
     }"
@@ -157,6 +163,7 @@ export default {
             outsourcerKey,
             ellipsis,
             mode,
+            disabled,
           },
           on: {
             'click:edit': () =>

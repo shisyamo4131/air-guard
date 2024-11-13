@@ -220,8 +220,9 @@ export default {
      */
     dates() {
       if (!this.currentDate) return []
-      return [...Array(this.length)].map((_, i) =>
-        this.$dayjs(this.currentDate).add(i, 'day').format('YYYY-MM-DD')
+      const from = this.$dayjs(this.currentDate).subtract(1, 'day')
+      return [...Array(this.length + 1)].map((_, i) =>
+        from.add(i, 'day').format('YYYY-MM-DD')
       )
     },
 
@@ -279,7 +280,7 @@ export default {
    ***************************************************************************/
   methods: {
     async updateColumns() {
-      const today = this.$dayjs().format('YYYY-MM-DD')
+      // const today = this.$dayjs().format('YYYY-MM-DD')
       const columns = await Promise.all(
         this.dates.map(async (date, index) => {
           const isHoliday =
@@ -290,7 +291,8 @@ export default {
             index,
             col: this.$dayjs(date).locale(ja).format('MM/DD(ddd)'),
             isHoliday, // 祝日情報を追加
-            isToday: date === today,
+            isToday: date === this.currentDate,
+            isPreviousDay: date < this.currentDate,
             dayOfWeek: isHoliday ? 'holi' : dayOfWeek,
           }
         })
@@ -392,6 +394,7 @@ export default {
         siteId: order.siteId,
         workShift: order.workShift,
         ellipsis: this.ellipsis,
+        disabled: column.isPreviousDay,
         mode: this.mode,
         draggingItem: this.draggingItem,
         copiedContent: this.copiedContent,
@@ -535,7 +538,11 @@ export default {
         <th
           v-for="column of columns"
           :key="column.date"
-          :class="`th-${column.dayOfWeek}`"
+          :class="{
+            ['th-' + column.dayOfWeek]: true,
+            'th-previous': column.isPreviousDay,
+            'th-today': column.isToday,
+          }"
         >
           <v-icon v-if="column.isHoliday" color="red">mdi-flag-variant</v-icon>
           {{ column.col }}
@@ -553,7 +560,7 @@ export default {
     <tbody>
       <template v-for="(order, rowIndex) of siteOrder">
         <tr :key="`site-row-${rowIndex}`">
-          <td class="site-row" :colspan="length">
+          <td class="site-row" :colspan="length + 1">
             <slot name="site-row" v-bind="getSiteRowSlotProps(order)" />
           </td>
         </tr>
@@ -561,7 +568,11 @@ export default {
           <td
             v-for="column of columns"
             :key="column.date"
-            :class="`col-${column.dayOfWeek}`"
+            :class="{
+              ['td-' + column.dayOfWeek]: true,
+              'td-previous': column.isPreviousDay,
+              'td-today': column.isToday,
+            }"
           >
             <g-placement-draggable-cell
               v-bind="getCellProps(column, order)?.attrs || {}"
@@ -584,7 +595,11 @@ export default {
         <th
           v-for="column of columns"
           :key="column.date"
-          :class="`th-${column.dayOfWeek}`"
+          :class="{
+            ['th-' + column.dayOfWeek]: true,
+            'th-previous': column.isPreviousDay,
+            'th-today': column.isToday,
+          }"
         >
           <v-icon v-if="column.isHoliday" color="red">mdi-flag-variant</v-icon>
           <span class="grey--text text--darken-2 text-subtitle-2">

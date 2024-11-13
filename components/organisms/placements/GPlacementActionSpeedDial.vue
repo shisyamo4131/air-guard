@@ -7,10 +7,14 @@ export default {
   props: {
     /**
      * FAB の展開方向
-     * @type {String}
      */
     direction: { type: String, default: 'left' },
 
+    /**
+     * true にするとそれぞれのボタンが操作不可になります。
+     */
+    disabledEmployee: { type: Boolean, default: false },
+    disabledOutsourcer: { type: Boolean, default: false },
     disabledCopy: { type: Boolean, default: false },
     disabledPaste: { type: Boolean, default: false },
 
@@ -41,10 +45,23 @@ export default {
         <v-icon v-else>mdi-plus</v-icon>
       </v-btn>
     </template>
-    <v-btn color="indigo" dark fab x-small @click="$emit('click:add-employee')">
+    <v-btn
+      color="indigo"
+      :disabled="disabledEmployee"
+      :dark="!disabledEmployee"
+      fab
+      x-small
+      @click="$emit('click:add-employee')"
+    >
       <v-icon>mdi-account</v-icon>
     </v-btn>
-    <v-btn color="secondary" fab x-small @click="$emit('click:add-outsourcer')">
+    <v-btn
+      color="secondary"
+      :disabled="disabledOutsourcer"
+      fab
+      x-small
+      @click="$emit('click:add-outsourcer')"
+    >
       <v-icon>mdi-handshake</v-icon>
     </v-btn>
     <v-btn

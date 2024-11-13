@@ -38,6 +38,11 @@ export default {
     confirmedAt: { type: String, default: undefined, required: false },
     arrivedAt: { type: String, default: undefined, required: false },
     leavedAt: { type: String, default: undefined, required: false },
+
+    /**
+     * 各種ボタンが操作できなくなります。
+     */
+    disabled: { type: Boolean, default: false },
   },
 
   /***************************************************************************
@@ -109,13 +114,17 @@ export default {
         <div>
           <div class="d-flex align-center">
             <!-- 削除ボタン -->
-            <v-btn icon x-small @click="$emit('click:remove')">
+            <v-btn v-if="!disabled" icon x-small @click="$emit('click:remove')">
               <v-icon small>mdi-close</v-icon>
             </v-btn>
 
             <!-- 名前 -->
             <h4
-              class="text-truncate red--text"
+              :class="{
+                'text-truncate': true,
+                'red--text': true,
+                'pl-2': disabled,
+              }"
               style="max-width: 120px; padding-top: 2px"
             >
               {{ outsourcer?.abbr || 'N/A' }}
@@ -130,7 +139,7 @@ export default {
               <div>-</div>
               <div>{{ endTime }}</div>
               <v-btn
-                v-if="mode === 'placement'"
+                v-if="mode === 'placement' && !disabled"
                 class="ml-1"
                 icon
                 x-small
@@ -143,13 +152,13 @@ export default {
         </div>
 
         <!-- ハンドルアイコン -->
-        <v-icon v-if="mode === 'placement'" class="handle ml-auto">
+        <v-icon v-if="mode === 'placement' && !disabled" class="handle ml-auto">
           mdi-arrow-all
         </v-icon>
 
         <!-- 状態チップ -->
         <v-chip
-          v-else
+          v-if="mode === 'confirmation' && !disabled"
           class="ml-auto align-self-center"
           :color="color"
           x-small

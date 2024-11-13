@@ -125,7 +125,9 @@ export default {
      */
     from() {
       if (!this.currentDate) return undefined
-      return this.currentDate
+      return this.$dayjs(this.currentDate)
+        .subtract(1, 'day')
+        .format('YYYY-MM-DD')
     },
 
     /**

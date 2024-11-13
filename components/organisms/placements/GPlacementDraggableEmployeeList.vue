@@ -59,6 +59,11 @@ export default {
       validator: (instance) => instance instanceof Placement,
       required: true,
     },
+
+    /**
+     * true にすると Draggable が無効になります。
+     */
+    disabled: { type: Boolean, default: false, required: false },
   },
 
   computed: {
@@ -236,7 +241,7 @@ export default {
     class="d-flex flex-column pa-2 flex-grow-1"
     style="min-height: 24px; gap: 8px"
     :value="employeeOrder"
-    :disabled="!acceptable"
+    :disabled="!acceptable || disabled"
     :group="{ ...group, name: `employees-${group?.name || ''}` }"
     handle=".handle"
     v-bind="{ animation: 300 }"
@@ -254,6 +259,7 @@ export default {
             employeeId,
             ellipsis,
             mode,
+            disabled,
             isNewEntry: !$store.getters['site-order/hasEmployeeEnteredSite']({
               siteId: placement.siteId,
               employeeId,

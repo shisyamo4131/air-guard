@@ -75,6 +75,11 @@ export default {
     },
 
     copiedContent: { type: undefined, default: null },
+
+    /**
+     * true にすると Draggable が無効になります。
+     */
+    disabled: { type: Boolean, default: false, required: false },
   },
 
   /***************************************************************************
@@ -305,15 +310,17 @@ export default {
       style="position: absolute; right: -12px; top: 4px; z-index: 1"
       :placement="placement"
       :site-operation-schedule="siteOperationSchedule"
+      :disabled="disabled"
       small
       @click="$emit('click:schedule', siteOperationSchedule)"
     />
 
     <!-- アクション スピードダイヤル -->
     <g-placement-action-speed-dial
+      v-if="!disabled"
       style="position: absolute; bottom: 2px; right: -12px"
       :disabled-copy="!hasSomeOrder"
-      :disabled-paste="hasSomeOrder || !copiedContent"
+      :disabled-paste="hasSomeOrder || !copiedContent || disabled"
       @click:add-employee="onClickAddEmployee"
       @click:add-outsourcer="onClickAddOutsourcer"
       @click:copy="contentCopy"
@@ -328,6 +335,7 @@ export default {
         :ellipsis="ellipsis"
         :mode="mode"
         :group="group"
+        :disabled="disabled"
         :placement="placement"
         @update:dragging-item="$emit('update:dragging-item', $event)"
         @click:edit="$emit('click:edit-employee', $event)"
@@ -345,6 +353,7 @@ export default {
         :ellipsis="ellipsis"
         :mode="mode"
         :placement="placement"
+        :disabled="disabled"
         @click:edit="$emit('click:edit-outsourcer', $event)"
       >
         <template #outsourcers="props">

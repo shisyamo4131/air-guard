@@ -46,6 +46,11 @@ export default {
     confirmedAt: { type: String, default: undefined, required: false },
     arrivedAt: { type: String, default: undefined, required: false },
     leavedAt: { type: String, default: undefined, required: false },
+
+    /**
+     * 各種ボタンが操作できなくなります。
+     */
+    disabled: { type: Boolean, default: false },
   },
 
   /***************************************************************************
@@ -119,7 +124,13 @@ export default {
         <div>
           <div class="d-flex align-center">
             <!-- 削除ボタン -->
-            <v-btn class="mr-1" icon x-small @click="$emit('click:remove')">
+            <v-btn
+              v-if="!disabled"
+              class="mr-1"
+              icon
+              x-small
+              @click="$emit('click:remove')"
+            >
               <v-icon small>mdi-close</v-icon>
             </v-btn>
 
@@ -134,7 +145,9 @@ export default {
             </v-icon>
 
             <!-- 名前 -->
-            <h4 style="padding-top: 2px">{{ employee?.abbr || 'N/A' }}</h4>
+            <h4 :class="{ 'pl-2': disabled }" style="padding-top: 2px">
+              {{ employee?.abbr || 'N/A' }}
+            </h4>
 
             <!-- 新規アイコン -->
             <v-icon v-if="isNewEntry" right small color="error"
@@ -150,7 +163,7 @@ export default {
               <div>-</div>
               <div>{{ endTime }}</div>
               <v-btn
-                v-if="mode === 'placement'"
+                v-if="mode === 'placement' && !disabled"
                 class="ml-1"
                 icon
                 x-small
@@ -163,13 +176,13 @@ export default {
         </div>
 
         <!-- ハンドルアイコン -->
-        <v-icon v-if="mode === 'placement'" class="handle ml-auto">
+        <v-icon v-if="mode === 'placement' && !disabled" class="handle ml-auto">
           mdi-arrow-all
         </v-icon>
 
         <!-- 状態チップ -->
         <v-chip
-          v-else
+          v-if="mode === 'confirmation' && !disabled"
           class="ml-auto align-self-center"
           :color="color"
           x-small
