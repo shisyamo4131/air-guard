@@ -119,6 +119,8 @@ export default {
         show: false,
         text: '',
       },
+
+      onlyUnplaced: false,
     }
   },
 
@@ -602,6 +604,7 @@ export default {
     <g-dialog-employee-selector
       v-model="dialog.employeeSelector"
       :items="selectableEmployees"
+      :custom-filter="(item) => !onlyUnplaced || item.isPlaced === false"
       @click:submit="addEmployeesInBulk"
     >
       <template #filter>
@@ -613,7 +616,12 @@ export default {
           }}
         </div>
         <v-spacer />
-        <g-switch class="mt-0 pt-0" label="未配置のみ表示" hide-details />
+        <g-switch
+          v-model="onlyUnplaced"
+          class="mt-0 pt-0"
+          label="未配置のみ表示"
+          hide-details
+        />
       </template>
       <template #third-line="props">
         <v-list-item-subtitle
