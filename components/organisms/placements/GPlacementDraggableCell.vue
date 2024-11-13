@@ -62,6 +62,18 @@ export default {
      */
     ellipsis: { type: Boolean, default: false },
 
+    /**
+     * 表示モードを切り替えます。
+     * placement: 配置モードです。移動のためのアイコンと編集のためのボタンが表示されます。
+     * confirmation: 確認モードです。配置確認、上番・下番などの切り替えボタンが表示されます。
+     */
+    mode: {
+      type: String,
+      default: 'placement',
+      validator: (mode) => ['placement', 'confirmation'].includes(mode),
+      required: false,
+    },
+
     copiedContent: { type: undefined, default: null },
   },
 
@@ -314,6 +326,7 @@ export default {
       <g-placement-draggable-employee-list
         :dragging-item="draggingItem"
         :ellipsis="ellipsis"
+        :mode="mode"
         :group="group"
         :placement="placement"
         @update:dragging-item="$emit('update:dragging-item', $event)"
@@ -330,6 +343,7 @@ export default {
       -->
       <g-placement-draggable-outsourcer-list
         :ellipsis="ellipsis"
+        :mode="mode"
         :placement="placement"
         @click:edit="$emit('click:edit-outsourcer', $event)"
       >
