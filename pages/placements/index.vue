@@ -24,6 +24,13 @@
                 :menu-props="{ offsetY: true }"
               />
               <g-checkbox v-model="ellipsis" hide-details label="省略表示" />
+              <g-checkbox
+                v-model="mode"
+                hide-details
+                label="確認モード"
+                true-value="confirmation"
+                false-value="placement"
+              />
             </div>
           </v-toolbar>
           <!-- 非表示現場存在アラート -->
@@ -37,19 +44,16 @@
               :current-date="currentDate"
               :ellipsis="ellipsis"
               :length="length"
+              :mode="mode"
             >
               <template #site-row="{ attrs, on }">
                 <g-placement-site-work-shift-row v-bind="attrs" v-on="on" />
               </template>
               <template #employees-col="{ attrs, on }">
-                <g-placement-employee-card v-bind="attrs" v-on="on" />
+                <g-placement-employee-card-v-2 v-bind="attrs" v-on="on" />
               </template>
               <template #outsourcers-col="{ attrs, on }">
-                <g-placement-outsourcer-card
-                  v-bind="attrs"
-                  color="orange lighten-4"
-                  v-on="on"
-                />
+                <g-placement-outsourcer-card-v-2 v-bind="attrs" v-on="on" />
               </template>
             </g-placement-table>
           </div>
@@ -61,14 +65,14 @@
 
 <script>
 import dayjs from 'dayjs'
-import GPlacementEmployeeCard from '~/components/organisms/placements/GPlacementEmployeeCard.vue'
 import GPlacementTable from '~/components/organisms/placements/GPlacementTable.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GPlacementSiteWorkShiftRow from '~/components/organisms/placements/GPlacementSiteWorkShiftRow.vue'
 import GPlacementToolbar from '~/components/organisms/placements/GPlacementToolbar.vue'
-import GPlacementOutsourcerCard from '~/components/organisms/placements/GPlacementOutsourcerCard.vue'
 import GPlacementAlertHiddenSites from '~/components/organisms/placements/GPlacementAlertHiddenSites.vue'
+import GPlacementEmployeeCardV2 from '~/components/organisms/placements/GPlacementEmployeeCardV2.vue'
+import GPlacementOutsourcerCardV2 from '~/components/organisms/placements/GPlacementOutsourcerCardV2.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -79,14 +83,14 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GPlacementEmployeeCard,
     GPlacementTable,
     GCheckbox,
     GTemplateDefault,
     GPlacementSiteWorkShiftRow,
     GPlacementToolbar,
-    GPlacementOutsourcerCard,
     GPlacementAlertHiddenSites,
+    GPlacementEmployeeCardV2,
+    GPlacementOutsourcerCardV2,
   },
 
   /***************************************************************************
@@ -105,6 +109,7 @@ export default {
       ellipsis: false,
       includesExpiredEmployee: false,
       length: 7,
+      mode: 'confirmation',
     }
   },
 
