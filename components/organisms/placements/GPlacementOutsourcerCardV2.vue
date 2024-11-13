@@ -114,7 +114,10 @@ export default {
             </v-btn>
 
             <!-- 名前 -->
-            <h4 class="text-truncate red--text" style="max-width: 120px">
+            <h4
+              class="text-truncate red--text"
+              style="max-width: 120px; padding-top: 2px"
+            >
               {{ outsourcer?.abbr || 'N/A' }}
             </h4>
           </div>

@@ -134,7 +134,7 @@ export default {
             </v-icon>
 
             <!-- 名前 -->
-            <h4>{{ employee?.abbr || 'N/A' }}</h4>
+            <h4 style="padding-top: 2px">{{ employee?.abbr || 'N/A' }}</h4>
 
             <!-- 新規アイコン -->
             <v-icon v-if="isNewEntry" right small color="error"
