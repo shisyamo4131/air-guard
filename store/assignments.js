@@ -13,13 +13,15 @@ import {
   orderByKey,
   startAt,
   endAt,
+  update,
 } from 'firebase/database'
 import { database } from 'air-firebase'
 
 export const state = () => ({
   employees: {}, // 現在の従業員の割り当てデータ
   sites: {}, // 現在のサイトの割り当てデータ
-  listeners: { employees: null, sites: null }, // リスナーの参照を保持
+  availability: {}, // 勤務可能従業員IDのデータ
+  listeners: { employees: null, sites: null, availability: null }, // リスナーの参照を保持
 })
 
 export const getters = {
@@ -151,13 +153,21 @@ export const mutations = {
   SET_SITES(state, data) {
     state.sites = data
   },
-  SET_LISTENERS(state, { employeesListener, sitesListener }) {
+  SET_AVAILABILITY(state, data) {
+    state.availability = data
+  },
+  SET_LISTENERS(
+    state,
+    { employeesListener, sitesListener, availabilityListener }
+  ) {
     state.listeners.employees = employeesListener
     state.listeners.sites = sitesListener
+    state.listeners.availability = availabilityListener
   },
   RESET_DATA(state) {
     state.employees = {}
     state.sites = {}
+    state.availability = {}
   },
 }
 
@@ -186,6 +196,14 @@ export const actions = {
         endAt(to)
       )
 
+      // 勤務可能データのクエリをセットアップ
+      const availabilityQuery = query(
+        child(dbRef, 'employeeAvailability'),
+        orderByKey(),
+        startAt(from),
+        endAt(to)
+      )
+
       // 従業員データ用のリアルタイムリスナーを設定
       const employeesListener = onValue(employeesQuery, (snapshot) => {
         const data = snapshot.val()
@@ -198,8 +216,18 @@ export const actions = {
         commit('SET_SITES', data && typeof data === 'object' ? data : {})
       })
 
+      // 勤務可能データ用のリアルタイムリスナーを設定
+      const availabilityListener = onValue(availabilityQuery, (snapshot) => {
+        const data = snapshot.val()
+        commit('SET_AVAILABILITY', data && typeof data === 'object' ? data : {})
+      })
+
       // リスナーを保存しておく
-      commit('SET_LISTENERS', { employeesListener, sitesListener })
+      commit('SET_LISTENERS', {
+        employeesListener,
+        sitesListener,
+        availabilityListener,
+      })
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Failed to subscribe to assignment data:', error)
@@ -221,6 +249,57 @@ export const actions = {
       // eslint-disable-next-line no-console
       console.error('Failed to unsubscribe from assignment data:', error)
       throw new Error('Unsubscription failed due to an unexpected error.')
+    }
+  },
+
+  /**
+   * 指定された日付と勤務区分に従業員IDの配列を設定します。
+   * @param {Object} context - Vuex コンテキストオブジェクト
+   * @param {Object} payload - 更新するデータ
+   * @param {string} payload.date - YYYY-MM-DD形式の日付
+   * @param {string} payload.workShift - "day" または "night" の勤務区分
+   * @param {Array<string>} payload.employeeIds - 勤務可能な従業員IDの配列
+   * @throws {Error} - 入力が無効な場合にスローされます
+   */
+  async updateEmployeeAvailability(
+    { commit },
+    { date, workShift, employeeIds }
+  ) {
+    // 引数のバリデーション
+    if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      throw new Error('日付はYYYY-MM-DD形式で指定してください')
+    }
+    if (!['day', 'night'].includes(workShift)) {
+      throw new Error(
+        "勤務区分は 'day' または 'night' のいずれかで指定してください"
+      )
+    }
+    if (
+      !Array.isArray(employeeIds) ||
+      !employeeIds.every((id) => typeof id === 'string')
+    ) {
+      throw new Error('employeeIdsは文字列の配列で指定してください')
+    }
+
+    // Firebaseデータベースのパスを作成
+    const path = `Placements/assignments/employeeAvailability/${date}/${workShift}`
+    const updates = {
+      [path]: employeeIds,
+    }
+
+    try {
+      await update(ref(database), updates)
+      // eslint-disable-next-line no-console
+      console.log(
+        `Placements/assignments/employeeAvailability の更新に成功しました: ${path}`
+      )
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(
+        'Placements/assignments/employeeAvailability の更新に失敗しました',
+        error
+      )
+      throw new Error(`データベースの更新に失敗しました: ${error.message}`)
     }
   },
 }
