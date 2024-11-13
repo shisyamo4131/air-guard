@@ -107,7 +107,7 @@ export default {
     <v-card-text :class="ellipsis ? 'pa-1' : 'pa-2'">
       <div class="d-flex">
         <div>
-          <div class="d-flex">
+          <div class="d-flex align-center">
             <!-- 削除ボタン -->
             <v-btn icon x-small @click="$emit('click:remove')">
               <v-icon small>mdi-close</v-icon>
@@ -120,20 +120,22 @@ export default {
           </div>
 
           <!-- 開始時刻, 終了時刻, 編集ボタン -->
-          <div v-show="!ellipsis" class="d-flex flex-grow-1 align-center">
-            <v-icon left small>mdi-clock-outline</v-icon>
-            <div>{{ startTime }}</div>
-            <div>-</div>
-            <div>{{ endTime }}</div>
-            <v-btn
-              v-if="mode === 'placement'"
-              class="ml-1"
-              icon
-              x-small
-              @click="$emit('click:edit')"
-            >
-              <v-icon small>mdi-pencil</v-icon>
-            </v-btn>
+          <div v-show="!ellipsis">
+            <div class="d-flex flex-grow-1 align-center">
+              <v-icon left small>mdi-clock-outline</v-icon>
+              <div>{{ startTime }}</div>
+              <div>-</div>
+              <div>{{ endTime }}</div>
+              <v-btn
+                v-if="mode === 'placement'"
+                class="ml-1"
+                icon
+                x-small
+                @click="$emit('click:edit')"
+              >
+                <v-icon small>mdi-pencil</v-icon>
+              </v-btn>
+            </div>
           </div>
         </div>
 
