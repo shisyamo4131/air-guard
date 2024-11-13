@@ -137,14 +137,15 @@ export default {
   /***************************************************************************
    * WATCH
    ***************************************************************************/
-  watch: {
-    /**
-     * data.currentDate を監視します。
-     * - Vuex.assignments への購読を解除します。
-     * - from, to が有効だと判断できる場合のみ、 Vuex.assignments への購読を開始します。
-     */
-    currentDate: {
-      handler() {
+  watch: {},
+
+  /***************************************************************************
+   * CREATED
+   ***************************************************************************/
+  created() {
+    this.$watch(
+      () => [this.currentDate, this.length],
+      () => {
         this.$store.dispatch('site-order/unsubscribe')
         this.$store.dispatch('assignments/unsubscribe')
         if (!this.from || !this.to) return
@@ -157,8 +158,8 @@ export default {
           to: this.to,
         })
       },
-      immediate: true,
-    },
+      { immediate: true }
+    )
   },
 
   /***************************************************************************
