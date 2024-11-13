@@ -110,6 +110,15 @@ export default {
           background: '#f5f5f5',
         },
       },
+      options: {
+        /**
+         * Vuetify のテーマカラーをルートの <html> 要素に含める設定
+         * コンポーネントにカラーコードで色を設定しなければならないときに便利な設定
+         * ‐ getComputedStyle(document.documentElement).getPropertyValue('--v-parimary-base') で取得可能になる。
+         * - インラインスタイルで使う場合は var(--v-primary-base) でも取得可能
+         */
+        customProperties: true, // css, style でテーマカラーを使えるようにする
+      },
     },
     breakpoint: {
       mobileBreakpoint: 'xs',
