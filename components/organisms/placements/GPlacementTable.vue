@@ -296,6 +296,7 @@ export default {
         })
       )
       this.columns = columns
+      this.$emit('columns', columns)
     },
 
     /**

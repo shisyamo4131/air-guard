@@ -2,7 +2,7 @@
   <g-template-default>
     <v-card style="height: 100%" class="d-flex flex-column" tile>
       <!-- ツールバーの表示 -->
-      <g-placement-toolbar />
+      <g-placement-toolbar :columns="columns" />
       <!-- メインコンテナ -->
       <div class="d-flex flex-grow-1 overflow-y-hidden pb-12 pb-sm-0">
         <v-sheet class="overflow-x-auto flex-grow-1 d-flex flex-column">
@@ -45,6 +45,7 @@
               :ellipsis="ellipsis"
               :length="length"
               :mode="mode"
+              @columns="columns = $event"
             >
               <template #site-row="{ attrs, on }">
                 <g-placement-site-work-shift-row v-bind="attrs" v-on="on" />
@@ -110,6 +111,7 @@ export default {
       includesExpiredEmployee: false,
       length: 7,
       mode: 'placement',
+      columns: [],
     }
   },
 

@@ -144,6 +144,27 @@ export const getters = {
 
     return employeeIds
   },
+
+  /**
+   * 指定された日付、従業員ID、勤務区分に基づき、当該従業員が配置されているか
+   * どうかを判定します。
+   *
+   * @param {Object} state - Vuex state
+   * @param {string} date - 日付 (YYYY-MM-DD 形式)
+   * @param {string} employeeId - 従業員ID
+   * @param {string} workShift - 勤務区分 ('day' または 'night')
+   * @return {boolean} - 配置されている場合は true、されていない場合は false
+   */
+  isEmployeeAssigned: (state) => (date, employeeId, workShift) => {
+    // date、employeeId、workShift が存在しない場合は false を返す
+    if (!state.employees[date] || !state.employees[date][employeeId]) {
+      return false
+    }
+
+    // 指定された勤務区分が存在するかをチェックし、存在する場合は true を返す
+    const assignment = state.employees[date][employeeId][workShift]
+    return !!assignment
+  },
 }
 
 export const mutations = {

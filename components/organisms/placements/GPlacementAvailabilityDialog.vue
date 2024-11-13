@@ -15,7 +15,12 @@
         <v-spacer />
         <g-btn-cancel-icon @click="dialog = false" />
       </v-toolbar>
-      <v-card-text class="d-flex flex-grow-1 py-0 px-0 px-md-4">
+      <div class="pa-4">
+        <v-alert class="ma-0 text-caption" type="info" dense text
+          >アルバイトのシフトを編集します。既に配置されている場合、チェックボックスは操作できません。</v-alert
+        >
+      </div>
+      <v-card-text class="d-flex flex-grow-1 py-0 px-0 px-md-4 pb-4 pb-sm-0">
         <v-simple-table fixed-header class="flex-table">
           <thead>
             <tr>
@@ -44,7 +49,8 @@
                   background-color: white;
                 "
               >
-                {{ employee.abbr }}
+                <div>{{ employee.code }}</div>
+                <div>{{ employee.abbr }}</div>
               </td>
               <td
                 v-for="column of columns"
@@ -57,6 +63,7 @@
                       (data?.[column.date]?.day || []).includes(employee.docId)
                     "
                     color="primary"
+                    :disabled="isAssigned(column.date, employee.docId, 'day')"
                     @click="
                       submit({
                         date: column.date,
@@ -72,6 +79,7 @@
                       )
                     "
                     color="error"
+                    :disabled="isAssigned(column.date, employee.docId, 'night')"
                     @click="
                       submit({
                         date: column.date,
@@ -111,6 +119,8 @@ export default {
     },
     employees() {
       return this.$store.getters['employees/active']
+        .filter(({ contractType }) => contractType === 'part-time')
+        .sort((a, b) => a.code.localeCompare(b.code))
     },
   },
 
@@ -127,6 +137,17 @@ export default {
   },
 
   methods: {
+    /**
+     * 指定された日付、勤務区分で指定された従業員が配置済みかどうかを返します。
+     */
+    isAssigned(date, employeeId, workShift) {
+      const getter = this.$store.getters['assignments/isEmployeeAssigned']
+      return getter(date, employeeId, workShift)
+    },
+
+    /**
+     * 従業員のシフト情報を Realtime Database に更新します。
+     */
     async submit({ date, workShift, employeeId }) {
       // 指定された日付と勤務区分の employeeIds を取得（初期値として空配列を使用）
       let employeeIds = this.data?.[date]?.[workShift] || []

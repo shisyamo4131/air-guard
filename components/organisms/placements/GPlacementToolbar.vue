@@ -6,11 +6,21 @@
  *
  * @author shisyamo4131
  */
+import GPlacementAvailabilityDialog from './GPlacementAvailabilityDialog.vue'
 import GPlacementDraggableSiteOrder from './GPlacementDraggableSiteOrder.vue'
 import GPlacementSiteSelector from './GPlacementSiteSelector.vue'
 
 export default {
-  components: { GPlacementSiteSelector, GPlacementDraggableSiteOrder },
+  components: {
+    GPlacementSiteSelector,
+    GPlacementDraggableSiteOrder,
+    GPlacementAvailabilityDialog,
+  },
+
+  props: {
+    columns: { type: Array, default: () => [], required: false },
+  },
+
   computed: {
     /**
      * モバイル表示かどうかを判定します。
@@ -36,6 +46,7 @@ export default {
       return this.isMobile ? 'div' : 'v-toolbar-items'
     },
   },
+
   methods: {
     /**
      * 新しい現場をsite-orderに追加します。
@@ -86,6 +97,16 @@ export default {
           </v-btn>
         </template>
       </g-placement-draggable-site-order>
+
+      <!-- シフト管理ボタン -->
+      <g-placement-availability-dialog :columns="columns">
+        <template #activator="{ attrs, on }">
+          <v-btn v-bind="{ ...btnAttrs, ...attrs }" v-on="on">
+            <v-icon :left="!isMobile">mdi-calendar-account</v-icon>
+            <span v-if="!isMobile">シフト管理</span>
+          </v-btn>
+        </template>
+      </g-placement-availability-dialog>
     </component>
   </v-toolbar>
 </template>
