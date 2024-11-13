@@ -14,6 +14,7 @@ import GPlacementSiteOperationScheduleEditDialog from './GPlacementSiteOperation
 import GPlacementEmployeePlacementEditDialog from './GPlacementEmployeePlacementEditDialog.vue'
 import GPlacementOutsourcerPlacementEditDialog from './GPlacementOutsourcerPlacementEditDialog.vue'
 import GPlacementSiteOperationSchedulesDialog from './GPlacementSiteOperationSchedulesDialog.vue'
+import GPlacementAvailabilityDialog from './GPlacementAvailabilityDialog.vue'
 import GDialogEmployeeSelector from '~/components/molecules/dialogs/GDialogEmployeeSelector.vue'
 import GDialogOutsourcerSelector from '~/components/molecules/dialogs/GDialogOutsourcerSelector.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
@@ -34,6 +35,7 @@ export default {
     GPlacementOutsourcerPlacementEditDialog,
     GPlacementSiteOperationSchedulesDialog,
     GSwitch,
+    GPlacementAvailabilityDialog,
   },
 
   /***************************************************************************
@@ -102,6 +104,10 @@ export default {
             click: (date) => this.createCommandText(date),
           },
         ],
+      },
+
+      availability: {
+        dialog: false,
       },
 
       employeeSelector: {
@@ -701,6 +707,10 @@ export default {
     />
 
     <!-- availabilty dialog-->
+    <g-placement-availability-dialog
+      v-model="availability.dialog"
+      :columns="columns"
+    />
   </v-simple-table>
 </template>
 
