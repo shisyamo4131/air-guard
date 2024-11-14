@@ -300,7 +300,7 @@ export const refreshEmployeeSiteHistoryByEmployeeId = onCall(
  ****************************************************************************/
 export const refreshEmployeeSiteHistoryByTimestamp = onCall(async (request) => {
   const { date } = request.data
-  const timestamp = new Date(date)
+  const timestamp = new Date(`${date}T00:00:00+09:00`)
 
   try {
     // 非同期処理の開始をログで通知
@@ -388,7 +388,7 @@ export const refreshSiteEmployeeHistoryBySiteId = onCall(async (request) => {
  ****************************************************************************/
 export const refreshSiteEmployeeHistoryByTimestamp = onCall(async (request) => {
   const { date } = request.data
-  const timestamp = new Date(date)
+  const timestamp = new Date(`${date}T00:00:00+09:00`)
 
   try {
     // 非同期処理の開始をログで通知
