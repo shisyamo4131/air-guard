@@ -64,7 +64,7 @@
                     "
                     color="primary"
                     :disabled="isAssigned(column.date, employee.docId, 'day')"
-                    @click="
+                    @input="
                       submit({
                         date: column.date,
                         workShift: 'day',
@@ -80,7 +80,7 @@
                     "
                     color="error"
                     :disabled="isAssigned(column.date, employee.docId, 'night')"
-                    @click="
+                    @input="
                       submit({
                         date: column.date,
                         workShift: 'night',
