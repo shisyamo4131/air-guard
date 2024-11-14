@@ -43,6 +43,12 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+  sync: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
 }
 
 const vueProps = generateVueProps(propsDefinition)

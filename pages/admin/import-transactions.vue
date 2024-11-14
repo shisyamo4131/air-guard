@@ -468,7 +468,9 @@ export default {
                 const message = `契約情報が存在しません。`
                 // eslint-disable-next-line no-console
                 console.error(message, noContract)
-                throw new Error(`${message}`)
+                throw new Error(
+                  `${message} 詳細: ${JSON.stringify(noContract)}`
+                )
               }
 
               /**

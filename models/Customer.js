@@ -53,6 +53,11 @@ export default class Customer extends FireModel {
   /****************************************************************************
    * 取引先codeの配列を受け取り、該当する取引先ドキュメントデータを配列で返します。
    * 取引先codeの配列は、重複があれば一意に整理されます。
+   *
+   * 2024-11-14 - 同期設定がなされたもののみを返すように変更
+   * -> 稼働実績の取り込み時に、スポット登録された現場があると CODE 重複で意図しない
+   *    マスタと紐づけられてしまう為。
+   *
    * @param {Array<string>} codes - 取引先コードの配列
    * @returns {Promise<Array>} - 取引先ドキュメントデータの配列
    * @throws {Error} - 処理中にエラーが発生した場合にスローされます
@@ -69,7 +74,8 @@ export default class Customer extends FireModel {
         return this.fetchDocs(constraints)
       })
       const snapshots = await Promise.all(promises)
-      return snapshots.flat()
+      // return snapshots.flat()
+      return snapshots.flat().filter((item) => item.sync)
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(

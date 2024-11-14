@@ -125,6 +125,11 @@ export default class Site extends FireModel {
   /****************************************************************************
    * 現場codeの配列を受け取り、該当する現場ドキュメントデータを配列で返します。
    * 現場codeの配列は、重複があれば一意に整理されます。
+   *
+   * 2024-11-14 - 同期設定がなされたもののみを返すように変更
+   * -> 稼働実績の取り込み時に、スポット登録された現場があると CODE 重複で意図しない
+   *    マスタと紐づけられてしまう為。
+   *
    * @param {Array<string>} codes - 現場コードの配列
    * @returns {Promise<Array>} - 現場ドキュメントデータの配列
    * @throws {Error} - 処理中にエラーが発生した場合にスローされます
@@ -141,7 +146,8 @@ export default class Site extends FireModel {
         return await this.fetchDocs(constraints)
       })
       const snapshots = await Promise.all(promises)
-      return snapshots.flat()
+      // return snapshots.flat()
+      return snapshots.flat().filter((item) => item.sync)
     } catch (err) {
       // eslint-disable-next-line
       console.error(
