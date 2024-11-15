@@ -1,5 +1,6 @@
 <script>
 /**
+ * [使用不可]
  * OutsourcerCard component for placements.
  * This component displays an outsourcer card with optional icons for continuous service or error.
  * It includes a start and end time, and options to edit or remove the card.

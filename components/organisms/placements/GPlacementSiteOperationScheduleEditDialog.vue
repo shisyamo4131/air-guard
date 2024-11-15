@@ -45,12 +45,30 @@ export default {
       validator: (instance) => instance instanceof SiteOperationSchedule,
       required: true,
     },
+    value: { type: Boolean, default: false, required: false },
+  },
+
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
+  data() {
+    return {
+      dialog: false,
+    }
   },
 
   /***************************************************************************
    * WATCH
    ***************************************************************************/
   watch: {
+    /**
+     * data.dialog を監視します。
+     * - 値を input イベントで emit します。
+     */
+    dialog(v) {
+      this.$emit('input', v)
+    },
+
     /**
      * props.instance の状態に応じて editMode を切り替えます。
      */
@@ -60,12 +78,40 @@ export default {
       },
       immediate: true,
     },
+
+    /**
+     * props.value を監視します。
+     * - 値を data.dialog に同期します。
+     */
+    value: {
+      handler(v) {
+        this.dialog = v
+      },
+      immediate: true,
+    },
+  },
+
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    /**
+     * 外部から当該コンポーネントを開くためのメソッドです。
+     */
+    open() {
+      this.dialog = true
+    },
   },
 }
 </script>
 
 <template>
-  <g-dialog-input v-bind="$attrs" max-width="360" v-on="$listeners">
+  <g-dialog-input
+    v-bind="$attrs"
+    v-model="dialog"
+    max-width="360"
+    v-on="$listeners"
+  >
     <template #default="{ attrs, on }">
       <g-input-site-operation-schedule
         v-bind="{ ...$props, editMode, ...attrs }"

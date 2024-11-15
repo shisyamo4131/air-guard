@@ -26,9 +26,10 @@
  * <GComboboxDate v-model="selectedDate" :multiple="true" />
  *
  * @author shisyamo4131
- * @version 1.2.1
+ * @version 1.3.0
  *
  * @updates
+ * - version 1.3.0 - 2024-11-15 - 日付のアイコンクリックでカレンダーが起動するように修正
  * - version 1.2.2 - 2024-09-23 - `multiple`による`width`の調整を削除。
  * - version 1.2.1 - 2024-09-16 - OK、Cancelボタンの配置を修正。
  * - version 1.2.0 - 2024-08-12 - `multiple`が`false`の場合、GComboboxの`width`を指定。
@@ -136,6 +137,7 @@ export default {
           :required="dialog ? false : required"
           append-icon=""
           prepend-inner-icon="mdi-calendar"
+          @click:prepend-inner="dialog = true"
           v-on="{ ...$listeners, ...props.on }"
         >
           <template v-if="multiple" #selection="{ item, index }">

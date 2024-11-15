@@ -37,11 +37,12 @@ export const onCreate = onDocumentCreated(`Users/{docId}`, async (event) => {
  */
 export const onUpdate = onDocumentUpdated(`Users/{docId}`, async (event) => {
   const uid = event.params.docId
-  const { isAdmin, isDeveloper } = event.data.after.data()
+  const { isAdmin, isDeveloper, isManager } = event.data.after.data()
 
   // Firestoreの参照を取得
   const adminRef = firestore.collection('admin_users').doc(uid)
   const developerRef = firestore.collection('developer_users').doc(uid)
+  const managerRef = firestore.collection('manager_users').doc(uid)
 
   try {
     // isAdmin の値に応じて admin_users コレクションを更新または削除
@@ -56,6 +57,13 @@ export const onUpdate = onDocumentUpdated(`Users/{docId}`, async (event) => {
       await developerRef.set({ uid })
     } else {
       await developerRef.delete()
+    }
+
+    // isManager の値に応じて manager_users コレクションを更新または削除
+    if (isManager) {
+      await managerRef.set({ uid })
+    } else {
+      await managerRef.delete()
     }
   } catch (error) {
     // エラーログを記録

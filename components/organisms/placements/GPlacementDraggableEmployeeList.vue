@@ -1,48 +1,51 @@
 <script>
 /**
- * ## GPlacementDraggableEmployeeList
+ * 配置管理の従業員タグ用 Draggable コンポーネントです。
  *
- * 従業員の配置情報を編集、管理するためのコンポーネントです。
- * ルートコンポーネントに vue-draggable を使用しており、従業員情報を表示するためのスロットを提供します。
+ * - リアルタイムリスナーがセットされた Placement クラスインスタンスを受け取ります。
+ * - 同じ日付内での D&D のみを許可します。
  *
- * ### props.draggingItem
- * 現在ドラッグ中のオブジェクトです。
- * { employeeId, date, siteId, workShift }
- * 自身からドラッグが開始されるとオブジェクトを生成して update:dragging-item イベント で emit します。
- *
- * ### props.group
- * Draggable に設定される group オプションです。
- * name 属性には `employees-` が接頭辞として強制的に付与されます。
- * { name: YYYY-MM-DD } を受け取り、異なる日付間での D&D を不可能にすることを想定しています。
- *
- * ### props.placement
- * 親コンポーネントで生成された Placement インスタンスです。
- * D&D などによって編集された配置情報を Realtime Database に更新するためのメソッドが提供されます。
- *
- * ### slots.employees
- * employeeOrder の分だけ生成される、配置された従業員情報を表示するコンポーネントのスロットです。
- * 様々な属性と、コンポーネントが emit するイベントの処理を定義しています。
- *
- * ### events.click:edit
- * 配置された従業員情報を表示するコンポーネントの click:edit イベントで emit されるイベントです。
- * 当該従業員情報オブジェクトと、当該オブジェクトを更新するための Realtime Database のパスを含むオブジェクトを emit します。
- *
- * ### events.update:dragging-item
- * 当該コンポーネントでドラッグが発生した場合に emit されるイベントです。
- * 親コンポーネントに対して当該コンポーネントが生成した draggingItem を同期するためのイベントです。
+ * NOTE:
+ * - 外注先用コンポーネントと作りがほぼ一緒ですが、細かいところで異なるため別コンポーネントにしています。
+ * @author shisyamo4131
  */
 import draggable from 'vuedraggable'
+import GPlacementTag from './GPlacementTag.vue'
 import { Placement } from '~/models/Placement'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
-  components: { draggable },
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
+  components: { draggable, GPlacementTag },
 
+  /***************************************************************************
+   * PROPS
+   ***************************************************************************/
   props: {
+    /**
+     * リアルタイムリスナーがセットされた Placement クラスインスタンス
+     * 配置表の1枠に関するデータを操作できるオブジェクトをイメージしてください。
+     */
+    placement: {
+      type: Object,
+      validator: (instance) => instance instanceof Placement,
+      required: true,
+    },
+
+    /**
+     * 現在ドラッグ中のアイテムオブジェクトです。
+     */
     draggingItem: { type: undefined, default: null },
+
+    /**
+     * コンポーネントを省略表示します。
+     * -> GPlacementTag に引き渡します。
+     */
     ellipsis: { type: Boolean, default: false },
 
     /**
-     * チップの表示モードを切り替えます。
+     * GPlacementTag の表示モードを切り替えます。
      * placement: 配置モードです。移動のためのアイコンと編集のためのボタンが表示されます。
      * confirmation: 確認モードです。配置確認、上番・下番などの切り替えボタンが表示されます。
      */
@@ -53,20 +56,24 @@ export default {
       required: false,
     },
 
-    group: { type: Object, default: () => ({}) },
-    placement: {
-      type: Object,
-      validator: (instance) => instance instanceof Placement,
-      required: true,
-    },
-
     /**
      * true にすると Draggable が無効になります。
      */
     disabled: { type: Boolean, default: false, required: false },
   },
 
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
   computed: {
+    /**
+     * 当該 Draggable コンポーネントが、現在ドラッグ中のアイテムを
+     * 受け入れられるかどうかを返します。
+     * - 従業員IDの重複がなければ受け入れます。
+     * - 日付、現場ID、勤務区分がすべて一致すれば受け入れます。
+     *   -> 自身からドラッグされたアイテムを戻せるようにするため。
+     * - 上記以外は受け入れません。
+     */
     acceptable() {
       // draggingItem が設定されていなければ true を返す
       if (!this.draggingItem) return true
@@ -90,14 +97,25 @@ export default {
       )
     },
 
+    /**
+     * 当該 Placement クラスインスタンスの従業員配置順序データです。
+     */
     employeeOrder() {
       return this.placement?.data?.employeeOrder || []
     },
 
+    /**
+     * 当該 Placement クラスインスタンスの従業員配置詳細データです。
+     */
     employees() {
       return this.placement?.data?.employees || null
     },
 
+    /**
+     * 当該 Placement クラスインスタンスの情報に一致する SiteContract クラスインスタンスを
+     * Vuex.site-order から取得して返します。
+     * - 存在しない場合は null を返します。
+     */
     siteContract() {
       return this.$store.getters['site-order/siteContract']({
         date: this.placement.date,
@@ -107,10 +125,11 @@ export default {
     },
 
     /**
-     * siteId, workShift, date に一致する SiteOperationSchedule インスタンスを
-     * Vuex から取得して返します。
-     * 存在しない場合は新しい SiteOperationSchedule インスタンスを生成して返します。
-     * - インスタンス生成時、自身が管理する日付、現場ID、勤務区分を初期値として設定します。
+     * 当該 Placement クラスインスタンスの情報に一致する SiteOperationSchedule クラスインスタンスを
+     * Vuex.site-order から取得して返します。
+     * - 新しい従業員が追加される際に使用されます。
+     * - 存在しない場合は新しい SiteOperationSchedule クラスインスタンスを生成して返します。
+     * - インスタンス生成時、Placement クラスインスタンスの日付、現場ID、勤務区分を初期値として設定します。
      * - computed.siteContract が存在する場合は開始時刻、終了時刻も初期値として設定します。
      */
     siteOperationSchedule() {
@@ -134,6 +153,10 @@ export default {
       )
     },
   },
+
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
   methods: {
     /**
      * DraggingItem を作成して返します。
@@ -213,36 +236,17 @@ export default {
       const path = this.placement.getEmployeesPath(item.employeeId)
       this.$emit('click:edit', structuredClone({ item, path }))
     },
-
-    /**
-     * 従業員の配置状態がクリックされた時の処理です。
-     * Placement インスタンスが提供するメソッドを利用して従業員の配置状態を更新します。
-     */
-    onClickStatus({ employeeId, status }) {
-      try {
-        if (status === 'unconfirmed')
-          this.placement.employee.confirm(employeeId)
-        if (status === 'confirmed')
-          this.placement.employee.arrive({ employeeId })
-        if (status === 'arrived') this.placement.employee.leave({ employeeId })
-        if (status === 'leaved') this.placement.employee.unconfirm(employeeId)
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error(err)
-        alert(err.message)
-      }
-    },
   },
 }
 </script>
 
 <template>
   <draggable
-    class="d-flex flex-column pa-2 flex-grow-1"
+    class="d-flex flex-column pa-2"
     style="min-height: 24px; gap: 8px"
     :value="employeeOrder"
     :disabled="!acceptable || disabled"
-    :group="{ ...group, name: `employees-${group?.name || ''}` }"
+    :group="{ name: `employees-${placement?.date || ''}` }"
     handle=".handle"
     v-bind="{ animation: 300 }"
     @start="$emit('update:dragging-item', createDraggingItem($event))"
@@ -250,38 +254,14 @@ export default {
     @change="onChange"
   >
     <div v-for="employeeId of employeeOrder" :key="employeeId">
-      <slot
-        name="employees"
-        v-bind="{
-          attrs: {
-            ...(employees?.[employeeId] || {}),
-            ...placement,
-            employeeId,
-            ellipsis,
-            mode,
-            disabled,
-            isNewEntry: !$store.getters['site-order/hasEmployeeEnteredSite']({
-              siteId: placement.siteId,
-              employeeId,
-            }),
-            showError: $store.getters[
-              'assignments/isEmployeeAssignedToMultipleSites'
-            ](placement.date, employeeId),
-            showExist:
-              employeeId === draggingItem?.employeeId &&
-              placement.date === draggingItem?.date &&
-              (placement.siteId !== draggingItem?.siteId ||
-                placement.workShift !== draggingItem?.workShift),
-            showContinuous: $store.getters[
-              'assignments/isEmployeeAssignedToDifferentShifts'
-            ](placement.date, employeeId),
-          },
-          on: {
-            'click:edit': () => onClickEdit(employees?.[employeeId] || null),
-            'click:remove': () => handleRemove({ element: employeeId }),
-            'click:status': (params) => onClickStatus(params),
-          },
-        }"
+      <g-placement-tag
+        :placement="placement"
+        :employee-id="employeeId"
+        :dragging-item="draggingItem"
+        :disabled="disabled"
+        :ellipsis="ellipsis"
+        :mode="mode"
+        @click:edit="onClickEdit"
       />
     </div>
   </draggable>

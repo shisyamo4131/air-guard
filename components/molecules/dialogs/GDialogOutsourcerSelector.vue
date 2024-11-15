@@ -159,6 +159,13 @@ export default {
         this.scrollTargetRef.$el.scrollTop = position
       }
     },
+
+    /**
+     * 外部から当該コンポーネントを開くためのメソッドです。
+     */
+    open() {
+      this.dialog = true
+    },
   },
 }
 </script>

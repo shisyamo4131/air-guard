@@ -81,8 +81,8 @@ export default {
           return ['CustomersIndex']
         case '/sites':
           return ['SitesIndex']
-        // case '/employees':
-        //   return ['EmployeesIndex', 'EmployeeDetail']
+        case '/employees':
+          return ['EmployeesIndex', 'EmployeeDetail']
         default:
           return []
       }
@@ -210,11 +210,17 @@ export default {
 /*****************************************************************************
  * placements
  *****************************************************************************/
+
+#placement-table > div > table {
+  table-layout: fixed;
+}
+
 /* テーブルヘッダーのスタイル */
 #placement-table > div > table > thead > tr > th {
   text-align: center;
   min-width: 240px;
   max-width: 240px;
+  width: 240px;
 }
 
 /* 奇数行のサイト行の背景色 */

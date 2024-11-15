@@ -5,34 +5,70 @@
 import GSiteOperationScheduleManager from '../GSiteOperationScheduleManager.vue'
 import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 export default {
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
   components: { GSiteOperationScheduleManager, GBtnCancelIcon },
 
+  /***************************************************************************
+   * PROPS
+   ***************************************************************************/
   props: {
     siteId: { type: String, required: true },
     value: { type: Boolean, default: false, required: false },
   },
 
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
   data() {
     return {
       dialog: false,
     }
   },
 
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
   computed: {
     label() {
       return this.$store.getters['sites/get'](this.siteId)?.abbr || 'N/A'
     },
   },
 
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
   watch: {
+    /**
+     * data.dialog を監視します。
+     * - 値を input イベントで emit します。
+     */
     dialog(v) {
       this.$emit('input', v)
     },
+
+    /**
+     * props.value を監視します。
+     * - 値を data.dialog に同期します。
+     */
     value: {
       handler(v) {
         this.dialog = v
       },
       immediate: true,
+    },
+  },
+
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    /**
+     * 外部から当該コンポーネントを開くためのメソッドです。
+     */
+    open() {
+      this.dialog = true
     },
   },
 }

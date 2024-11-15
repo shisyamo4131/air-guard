@@ -14,7 +14,6 @@ import GPlacementSiteOperationScheduleEditDialog from './GPlacementSiteOperation
 import GPlacementEmployeePlacementEditDialog from './GPlacementEmployeePlacementEditDialog.vue'
 import GPlacementOutsourcerPlacementEditDialog from './GPlacementOutsourcerPlacementEditDialog.vue'
 import GPlacementSiteOperationSchedulesDialog from './GPlacementSiteOperationSchedulesDialog.vue'
-import GPlacementAvailabilityDialog from './GPlacementAvailabilityDialog.vue'
 import GDialogEmployeeSelector from '~/components/molecules/dialogs/GDialogEmployeeSelector.vue'
 import GDialogOutsourcerSelector from '~/components/molecules/dialogs/GDialogOutsourcerSelector.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
@@ -35,7 +34,6 @@ export default {
     GPlacementOutsourcerPlacementEditDialog,
     GPlacementSiteOperationSchedulesDialog,
     GSwitch,
-    GPlacementAvailabilityDialog,
   },
 
   /***************************************************************************
@@ -81,10 +79,37 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      /**
+       * GPlacementCell によって同期される変数です。
+       * activeCell: 現在ユーザーがアクションを起こそうとしているセル情報です。
+       * copiedContent: コピーされた配置情報です。
+       * draggingItem: 現在ドラッグ中のアイテムオブジェクトです。
+       */
+      activeCell: null,
+      copiedContent: null,
+      draggingItem: null,
+
+      /**
+       * 配置表の列を制御するための配列です。
+       * { date, index, col, isHoliday, isToday, isPreviousDay, dayOfWeek }
+       * date: YYYY-MM-DD 形式の日付文字列です。
+       * index: インデックスです。
+       * col: 配置表テーブルの列名用にフォーマットされた日付文字列です。
+       * isHoliday: 祝日の場合 true
+       * isToday: 当日の場合 true
+       * isPreviousDay: 前日以前の場合 true
+       * dayOfWeek: sun-sat の曜日を表す文字列（祝日の場合は holi）
+       */
       columns: [],
 
-      command: { text: '' },
-
+      /**
+       * 列メニューに関する情報です。
+       * - items で表示するメニューを定義可能です。
+       *
+       * NOTE:
+       * 勤務指示ボタンはモバイル表示では操作不可にしています。
+       * -> クリップボードの制御が不安定なため。
+       */
       dayMenu: {
         date: '',
         display: false,
@@ -94,7 +119,6 @@ export default {
           {
             title: '配置表印刷',
             icon: 'mdi-printer',
-            // disabled: !this.$store.getters['auth/roles'].includes('developer'),
             click: (date) => this.$GENERATE_PLACEMENT_SHEET(date),
           },
           {
@@ -106,48 +130,45 @@ export default {
         ],
       },
 
-      availability: {
-        dialog: false,
-      },
-
-      employeeSelector: {
-        dialog: false,
-        onlyUnplaced: false,
-      },
-
-      outsourcerSelector: {
-        dialog: false,
-      },
-
-      employeePlacement: {
-        dialog: false,
+      /**
+       * 従業員の配置情報編集用変数です。
+       */
+      employeePlacementEditor: {
         editModel: new PlacedEmployee(),
         path: '',
       },
 
-      outsourcerPlacement: {
+      /**
+       * 従業員選択画面で未配置の従業員のみで絞り込みを行うかどうかのフラグです。
+       */
+      onlyUnplaced: false,
+
+      /**
+       * 外注先の配置情報編集用変数です。
+       */
+      outsourcerPlacementEditor: {
         dialog: false,
         editModel: new PlacedOutsourcer(),
         path: '',
       },
 
+      /**
+       * 稼働予定編集用変数です。
+       */
       schedule: {
-        dialog: false,
         editModel: new SiteOperationSchedule(),
       },
 
+      /**
+       * 現場の詳細情報編集用変数です。
+       */
       siteDetail: {
-        dialog: false,
         item: null,
       },
 
-      draggingItem: null,
-
-      // ユーザーがアクションを行ったセルを特定するためのオブジェクト
-      activeCell: null,
-
-      copiedContent: null,
-
+      /**
+       * スナックバーの表示制御用変数です。
+       */
       snackbar: {
         show: false,
         text: '',
@@ -215,8 +236,9 @@ export default {
     },
 
     /**
-     * Generates an array of dates based on the current date and specified length.
-     * - Creates an array of dates from currentDate, each formatted as 'YYYY-MM-DD'.
+     * props.currentDate, props.length をもとに当該コンポーネントで管理すべき
+     * 配置情報の期間を、YYYY-MM-DD 形式文字列の配列で返します。
+     * props.currentDate が設定されていない場合は空の配列を返します。
      */
     dates() {
       if (!this.currentDate) return []
@@ -226,28 +248,39 @@ export default {
       )
     },
 
+    /**
+     * 選択可能な従業員情報を配列で返します。
+     */
     selectableEmployees() {
       // activeCellが存在しない場合は空の配列を返す
       if (!this.activeCell) return []
+
+      // Vuex から現在在職中の従業員情報を取得
+      const acitiveEmployees = this.$store.getters['employees/active']
 
       // activeCell の date 限定で配置されている従業員のIDを取得
       const assignedEmployeeIds = this.$store.getters[
         'assignments/employeeIdsByDate'
       ](this.activeCell.date)
 
-      const result = this.$store.getters['employees/active'].map((employee) => {
-        return {
-          ...employee,
-          isPlaced: assignedEmployeeIds.includes(employee.docId),
-        }
+      // 従業員が既に配置されている稼働を表す isPlace プロパティを付与して返す
+      const result = acitiveEmployees.map((employee) => {
+        const isPlaced = assignedEmployeeIds.includes(employee.docId)
+        return { ...employee, isPlaced }
       })
       return result
     },
 
+    /**
+     * 選択可能な外注先情報を配列で返します
+     */
     selectableOutsourcers() {
       return this.$store.getters['outsourcers/items']
     },
 
+    /**
+     * 表示対象の現場-勤務区分の配列を返します
+     */
     siteOrder() {
       return this.$store.state['site-order'].data
     },
@@ -279,8 +312,13 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    /**
+     * data.columns を更新します。
+     * - `columns` イベントで更新した columns の内容を emit します。
+     * NOTE:
+     * 祝日判断の為の非同期関数を実行するため、columns の生成に computed は使えません。
+     */
     async updateColumns() {
-      // const today = this.$dayjs().format('YYYY-MM-DD')
       const columns = await Promise.all(
         this.dates.map(async (date, index) => {
           const isHoliday =
@@ -302,9 +340,7 @@ export default {
     },
 
     /**
-     * Excludes a specified site and work shift from the siteOrder.
-     * - Finds the index of the given siteWorkShiftId in siteOrder.
-     * - If found, removes it from the array and emits an update event to the parent component.
+     * 指定された現場-勤務区分を site-order から除外します。
      */
     onClickExcludeSite(id) {
       const index = this.siteOrder.findIndex((order) => order.id === id)
@@ -314,14 +350,14 @@ export default {
         this.$store.dispatch('site-order/update', updatedSiteIndex)
       }
     },
+
     /**
-     * Displays detailed information for a specified site item.
-     * - Clones the item data to avoid direct mutations and assigns it to siteDetail.item.
-     * - Opens the site detail dialog by setting siteDetail.dialog to true.
+     * 指定された現場の詳細情報画面を開きます。
+     * - 対象現場の詳細情報（オブジェクト）は Vuex.site-order から取得します。
      */
     onClickShowSiteDetail(siteId) {
       this.siteDetail.item = this.$store.getters['site-order/site'](siteId)
-      this.siteDetail.dialog = true
+      this.$refs['site-detail-editor'].open()
     },
 
     /**
@@ -344,74 +380,30 @@ export default {
 
       // 編集対象のモデルにインスタンスを設定し、ダイアログを開く
       this.schedule.editModel = instance
-      this.schedule.dialog = true
+      this.$refs['schedule-editor'].open()
     },
 
+    /**
+     * 従業員の配置情報編集画面を開きます。
+     */
     openEmployeePlacementEditDialog({ item, path }) {
-      this.employeePlacement.editModel = item
-      this.employeePlacement.path = path
-      this.employeePlacement.dialog = true
+      this.employeePlacementEditor.editModel = item
+      this.employeePlacementEditor.path = path
+      this.$refs['employee-placement-editor'].open()
     },
 
+    /**
+     * 外注先の配置情報編集画面を開きます。
+     */
     openOutsourcerPlacementEditDialog({ item, path }) {
-      this.outsourcerPlacement.editModel = item
-      this.outsourcerPlacement.path = path
-      this.outsourcerPlacement.dialog = true
+      this.outsourcerPlacementEditor.editModel = item
+      this.outsourcerPlacementEditor.path = path
+      this.$refs['outsourcer-placement-editor'].open()
     },
 
     /**
-     * slots.site-row のスロットプロパティを生成して返します。
-     * @param {Object} order siteOrder オブジェクト
-     * @param {string} order.siteId 現場ID
-     * @param {string} order.workShift 勤務区分
+     * 列メニューを表示します。
      */
-    getSiteRowSlotProps(order) {
-      const attrs = {
-        siteId: order.siteId,
-        workShift: order.workShift,
-        ellipsis: this.ellipsis,
-      }
-      const on = {
-        'click:remove': () => this.onClickExcludeSite(order.id),
-        'click:show-detail': () => this.onClickShowSiteDetail(order.siteId),
-      }
-      return { attrs, on }
-    },
-
-    /**
-     * GPlacementDraggableCell コンポーネントに引き渡す各種プロパティを生成して返します。
-     * @param {Object} column 列生成用オブジェクト
-     * @param {string} column.date 日付（YYYY-MM-DD形式）
-     * @param {Object} order siteOrder オブジェクト
-     * @param {string} order.siteId 現場ID
-     * @param {string} order.workShift 勤務区分
-     */
-    getCellProps(column, order) {
-      const attrs = {
-        ref: `cell-${column.date}-${order.siteId}-${order.workShift}`,
-        date: column.date,
-        group: { name: column.date },
-        siteId: order.siteId,
-        workShift: order.workShift,
-        ellipsis: this.ellipsis,
-        disabled: column.isPreviousDay,
-        mode: this.mode,
-        draggingItem: this.draggingItem,
-        copiedContent: this.copiedContent,
-      }
-      const on = {
-        'active-cell': ($event) => (this.activeCell = $event),
-        'click:addEmployee': () => (this.employeeSelector.dialog = true),
-        'click:addOutsourcer': () => (this.outsourcerSelector.dialog = true),
-        'click:edit-employee': this.openEmployeePlacementEditDialog,
-        'click:edit-outsourcer': this.openOutsourcerPlacementEditDialog,
-        'click:schedule': this.openScheduleDialog,
-        'update:copied-content': ($event) => (this.copiedContent = $event),
-        'update:dragging-item': ($event) => (this.draggingItem = $event),
-      }
-      return { attrs, on }
-    },
-
     showDayMenu(e, date) {
       e.preventDefault()
       this.dayMenu.display = false
@@ -423,16 +415,18 @@ export default {
       })
     },
 
-    async getPlacements(date) {
-      const dbRef = ref(database, `Placements/${date}`)
-      const snapshot = await get(dbRef)
-      return snapshot.val()
-    },
-
+    /**
+     * 勤務指示用のテキストを生成してクリップボードにコピーします。
+     */
     async createCommandText(date) {
+      const getPlacements = async () => {
+        const dbRef = ref(database, `Placements/${date}`)
+        const snapshot = await get(dbRef)
+        return snapshot.val()
+      }
       try {
         // `Placements/${date}` のデータを取得
-        const placements = await this.getPlacements(date)
+        const placements = await getPlacements(date)
         let outputText = ''
 
         // 日付のフォーマット（先頭に追加）
@@ -488,15 +482,17 @@ export default {
           if (shiftData.employeeOrder) {
             for (const employeeId of shiftData.employeeOrder) {
               const employee = this.$store.getters['employees/get'](employeeId)
-              const employeeName = employee ? employee.abbr : 'N/A'
+              const employeeName = employee
+                ? `${employee.abbr}${employee.designation}`
+                : 'N/A'
 
               // 異なる勤務区分での複数配置をチェック
               const isAssignedToDifferentShifts = this.$store.getters[
                 'assignments/isEmployeeAssignedToDifferentShifts'
               ](date, employeeId)
               const displayEmployeeName = isAssignedToDifferentShifts
-                ? `${employeeName}警備士★`
-                : `${employeeName}警備士`
+                ? `${employeeName}★`
+                : `${employeeName}`
 
               outputText += `${workShiftSymbol} ${displayEmployeeName}\n`
             }
@@ -525,6 +521,17 @@ export default {
         return outputText
       } catch (error) {
         console.error(`配置レポートの生成に失敗しました: ${error.message}`) // eslint-disable-line no-console
+      }
+    },
+
+    /**
+     * 指定された行（現場-勤務区分）にスクロールします。
+     */
+    scroll(siteWorkShiftId) {
+      const target = this.$refs[siteWorkShiftId]
+      const container = this.$el.querySelector('div.v-data-table__wrapper')
+      if (target && target.length && container) {
+        this.$vuetify.goTo(target[0], { container })
       }
     },
   },
@@ -559,9 +566,27 @@ export default {
     </thead>
     <tbody>
       <template v-for="(order, rowIndex) of siteOrder">
-        <tr :key="`site-row-${rowIndex}`">
+        <tr
+          :ref="`${order.siteId}-${order.workShift}`"
+          :key="`site-row-${rowIndex}`"
+        >
           <td class="site-row" :colspan="length + 1">
-            <slot name="site-row" v-bind="getSiteRowSlotProps(order)" />
+            <!-- <slot name="site-row" v-bind="getSiteRowSlotProps(order)" /> -->
+            <slot
+              name="site-row"
+              v-bind="{
+                attrs: {
+                  siteId: order.siteId,
+                  workShift: order.workShift,
+                  ellipsis,
+                },
+                on: {
+                  'click:remove': () => onClickExcludeSite(order.id),
+                  'click:show-detail': () =>
+                    onClickShowSiteDetail(order.siteId),
+                },
+              }"
+            />
           </td>
         </tr>
         <tr :key="`placement-row-${rowIndex}`">
@@ -574,17 +599,32 @@ export default {
               'td-today': column.isToday,
             }"
           >
+            <!--
+              ref参照の生成について
+              - v-forディレクティブの中でrefをダイレクトに定義すると、参照がすべて配列になってしまう。
+              - v-bindディレクティブを通すことで直接参照できるようになる。
+            -->
             <g-placement-draggable-cell
-              v-bind="getCellProps(column, order)?.attrs || {}"
-              v-on="getCellProps(column, order)?.on || {}"
-            >
-              <template #employees="{ attrs, on }">
-                <slot name="employees-col" v-bind="{ attrs, on }" />
-              </template>
-              <template #outsourcers="{ attrs, on }">
-                <slot name="outsourcers-col" v-bind="{ attrs, on }" />
-              </template>
-            </g-placement-draggable-cell>
+              v-bind="{
+                ref: `cell-${column.date}-${order.siteId}-${order.workShift}`,
+              }"
+              :date="column.date"
+              :site-id="order.siteId"
+              :work-shift="order.workShift"
+              :ellipsis="ellipsis"
+              :disabled="column.isPreviousDay"
+              :mode="mode"
+              :dragging-item="draggingItem"
+              :copied-content="copiedContent"
+              @active-cell="($event) => (activeCell = $event)"
+              @click:addEmployee="() => $refs['employee-selector'].open()"
+              @click:addOutsourcer="() => $refs['outsourcer-selector'].open()"
+              @click:edit-employee="openEmployeePlacementEditDialog"
+              @click:edit-outsourcer="openOutsourcerPlacementEditDialog"
+              @click:schedule="openScheduleDialog"
+              @update:copied-content="($event) => (copiedContent = $event)"
+              @update:dragging-item="($event) => (draggingItem = $event)"
+            />
           </td>
         </tr>
       </template>
@@ -651,11 +691,9 @@ export default {
 
     <!-- employee selector -->
     <g-dialog-employee-selector
-      v-model="employeeSelector.dialog"
+      ref="employee-selector"
       :items="selectableEmployees"
-      :custom-filter="
-        (item) => !employeeSelector.onlyUnplaced || item.isPlaced === false
-      "
+      :custom-filter="(item) => !onlyUnplaced || item.isPlaced === false"
       @click:submit="addEmployeesInBulk"
     >
       <template #filter>
@@ -668,7 +706,7 @@ export default {
         </div>
         <v-spacer />
         <g-switch
-          v-model="employeeSelector.onlyUnplaced"
+          v-model="onlyUnplaced"
           class="mt-0 pt-0"
           label="未配置のみ表示"
           hide-details
@@ -690,42 +728,36 @@ export default {
 
     <!-- outsourcer selector -->
     <g-dialog-outsourcer-selector
-      v-model="outsourcerSelector.dialog"
+      ref="outsourcer-selector"
       :items="selectableOutsourcers"
       @click:submit="addOutsourcersInBulk"
     />
 
     <!-- detail dialog -->
     <g-placement-site-operation-schedules-dialog
-      v-model="siteDetail.dialog"
+      ref="site-detail-editor"
       max-width="840"
       :site-id="siteDetail.item?.docId || ''"
     />
 
     <!-- schedule dialog -->
     <g-placement-site-operation-schedule-edit-dialog
-      v-model="schedule.dialog"
+      ref="schedule-editor"
       :instance="schedule.editModel"
     />
 
     <!-- employee placement dialog -->
     <g-placement-employee-placement-edit-dialog
-      v-model="employeePlacement.dialog"
-      :item="employeePlacement.editModel"
-      :path="employeePlacement.path"
+      ref="employee-placement-editor"
+      :item="employeePlacementEditor.editModel"
+      :path="employeePlacementEditor.path"
     />
 
     <!-- outsourcer placement dialog -->
     <g-placement-outsourcer-placement-edit-dialog
-      v-model="outsourcerPlacement.dialog"
-      :item="outsourcerPlacement.editModel"
-      :path="outsourcerPlacement.path"
-    />
-
-    <!-- availabilty dialog-->
-    <g-placement-availability-dialog
-      v-model="availability.dialog"
-      :columns="columns"
+      ref="outsourcer-placement-editor"
+      :item="outsourcerPlacementEditor.editModel"
+      :path="outsourcerPlacementEditor.path"
     />
   </v-simple-table>
 </template>

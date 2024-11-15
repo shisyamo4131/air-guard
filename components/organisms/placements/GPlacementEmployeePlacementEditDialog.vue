@@ -83,6 +83,13 @@ export default {
         this.loading = false
       }
     },
+
+    /**
+     * 外部から当該コンポーネントを開くためのメソッドです。
+     */
+    open() {
+      this.dialog = true
+    },
   },
 }
 </script>

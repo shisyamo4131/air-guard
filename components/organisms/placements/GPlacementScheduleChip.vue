@@ -60,6 +60,8 @@ export default {
       mdi-star
     </v-icon>
     {{ placedAmount }}/{{ siteOperationSchedule?.requiredWorkers || '-' }}
+
+    <v-icon right small>mdi-calendar</v-icon>
   </v-chip>
 </template>
 

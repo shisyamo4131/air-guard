@@ -1,18 +1,19 @@
 <script>
 /**
- * ## GPlacementDraggableCell
+ * 配置表の特定の日付、現場、勤務区分のセルに該当するコンポーネントです。
  *
- * 配置管理で、特定の日付、現場、勤務区分における従業員または外注先の配置情報を管理するためのコンポーネントです。
+ * - 親コンポーネント（GPlacementTable）から日付、現場ID、勤務区分を受け取ります。
+ * - 受け取った情報から Placement クラスインスタンスを生成します。
+ *   -> Placement クラスインスタンスの起点となります。
  *
- * ### イベント
- * - click:schedule イベントで当該コンポーネントが管理している SiteOperationSchedule インスタンスを emit します。
- * - `update:dragging-item` : 親コンポーネントへ draggingItem を emit します。
- *
- * ### draggingItemについて:
- * - draggingItem は draggable コンポーネントの start イベントで生成される、
- *   employeeId, date, siteId, workShift から構成されるオブジェクトです。
- * - update:dragging-item イベントでこのオブジェクトを親コンポーネントに emit します。
- * - 同時に、このコンポーネントは props.draggingItem でこのオブジェクトを受け取ります。
+ * NOTE:
+ * - v-for ディレクティブで繰り返し生成されるコンポーネントなので、自身に
+ *   Dialog や Menu コンポーネントの内包できません。
+ * - Placement クラスインスタンスが提供する機能を利用したデータの更新処理は
+ *   当該コンポーネントが親コンポーネントに提供するようにしています。
+ *   -> 親コンポーネントが自身を特定するための情報として active-cell イベントを emit します。
+ *   -> 親コンポーネントは active-cell イベントで受け取った情報を基に当該コンポーネントを特定し、
+ *      当該コンポーネントが提供するメソッドを実行します。
  */
 import GPlacementActionSpeedDial from './GPlacementActionSpeedDial.vue'
 import GPlacementScheduleChip from './GPlacementScheduleChip.vue'
@@ -36,29 +37,28 @@ export default {
    ***************************************************************************/
   props: {
     /**
-     * The target date in YYYY-MM-DD format.
+     * 日付、現場ID、勤務区分です。
      */
     date: { type: String, required: true },
-    /**
-     * The target site ID.
-     */
     siteId: { type: String, required: true },
-    /**
-     * The target work shift.
-     */
     workShift: { type: String, required: true },
+
     /**
-     * Options for the draggable component's group.
+     * コピーされた配置情報（順序のみ）で、employeeIds および outsourcers を
+     * Key としたオブジェクトです。
+     * 自身または他のコンポーネントで生成されたものが親からリレーされます。
      */
-    group: { type: Object, required: true },
+    copiedContent: { type: undefined, default: null },
+
     /**
-     * Receives an object with properties employeeId, siteId, and workShift.
-     * - Used to determine whether the dragged object can be accepted.
-     * - Can be synced with the parent component using the .sync modifier.
+     * 現在ドラッグ中のアイテムオブジェクトです。
+     * 自身または他のコンポーネントで生成されたものが親からリレーされます。
      */
     draggingItem: { type: Object, default: null },
+
     /**
-     * Enables abbreviated display if set to true.
+     * コンポーネントを省略表示します。
+     * -> GPlacementEmployeeList, GPlacementOutsourcerList に引き渡します。
      */
     ellipsis: { type: Boolean, default: false },
 
@@ -74,8 +74,6 @@ export default {
       required: false,
     },
 
-    copiedContent: { type: undefined, default: null },
-
     /**
      * true にすると Draggable が無効になります。
      */
@@ -88,7 +86,9 @@ export default {
   data() {
     return {
       /**
-       * Variable to store an instance of the Placement class.
+       * Placement クラスインスタンス用変数です。
+       * 当該コンポーネントおよび他のコンポーネントで Placement クラスインスタンスの
+       * 存在の有無により処理を分けることがあるため、初期値および不要に場合は null でなければなりません。
        */
       placement: null,
     }
@@ -138,6 +138,10 @@ export default {
       )
     },
 
+    /**
+     * 従業員または外注先の配置が存在するかどうかを返します。
+     * - 主にスピードダイヤルのボタン制御に使用されます。
+     */
     hasSomeOrder() {
       const employees = this.placement?.data?.employeeOrder || []
       const outsourcers = this.placement?.data?.outsourcerOrder || []
@@ -150,9 +154,7 @@ export default {
    ***************************************************************************/
   created() {
     /**
-     * Registers a watcher for the combination of props: date, siteId, and workShift.
-     * - When all values are set, it instantiates the Placement class and starts subscribing to Placement information.
-     * - If any of the values are missing, the subscription process is skipped.
+     * 日付、現場ID、勤務区分をまとめて監視します。
      */
     this.$watch(
       () => [this.date, this.siteId, this.workShift],
@@ -173,11 +175,8 @@ export default {
    ***************************************************************************/
   methods: {
     /**
-     * Subscribes to placement data for the specified date, site, and work shift.
-     * - First, any existing subscription is canceled.
-     * - If date, siteId, or workShift is missing, subscription is skipped.
-     * - Otherwise, a new Placement instance is created and subscribed to.
-     * - Catches and logs any errors, displaying an alert with the error message if an error occurs.
+     * Placement クラスインスタンスの subscribe を実行し、配置情報への
+     * リアルタイムリッスンを開始します。
      */
     subscribe() {
       try {
@@ -195,8 +194,8 @@ export default {
     },
 
     /**
-     * Unsubscribes from the current Placement instance if it exists, and resets it to null.
-     * - Catches and logs any errors, displaying an alert with the error message if an error occurs.
+     * Placement クラスインスタンスの unsubscribe を実行し、
+     * 配置情報への購読を解除します。
      */
     unsubscribe() {
       try {
@@ -215,11 +214,8 @@ export default {
      * - click:addEmployee イベント emit します。
      */
     onClickAddEmployee() {
-      this.$emit('active-cell', {
-        date: this.date,
-        siteId: this.siteId,
-        workShift: this.workShift,
-      })
+      const { date, siteId, workShift } = this
+      this.$emit('active-cell', { date, siteId, workShift })
       this.$nextTick(() => this.$emit('click:addEmployee'))
     },
 
@@ -229,11 +225,8 @@ export default {
      * - click:addOutsourcer イベント emit します。
      */
     onClickAddOutsourcer() {
-      this.$emit('active-cell', {
-        date: this.date,
-        siteId: this.siteId,
-        workShift: this.workShift,
-      })
+      const { date, siteId, workShift } = this
+      this.$emit('active-cell', { date, siteId, workShift })
       this.$nextTick(() => this.$emit('click:addOutsourcer'))
     },
 
@@ -269,6 +262,10 @@ export default {
       await func({ outsourcerId, length, startTime, endTime, breakMinutes })
     },
 
+    /**
+     * スピードダイヤルのコピーボタンがクリックされた時の処理です。
+     * 自身に配置されている従業員および外注先のデータを update:copied-content イベントで emit します。
+     */
     contentCopy() {
       const employeeIds = this.placement?.data?.employeeOrder || []
       const outsourcerOrder = this.placement?.data?.outsourcerOrder || []
@@ -284,6 +281,10 @@ export default {
       this.$emit('update:copied-content', { employeeIds, outsourcers })
     },
 
+    /**
+     * スピードダイヤルのペーストボタンがクリックされた時の処理です。
+     * 自身が受け取った copiedContent オブジェクトを基に、配置情報を更新します。
+     */
     async contentPaste() {
       if (!this.copiedContent) return
       if (this.copiedContent.employeeIds) {
@@ -328,13 +329,15 @@ export default {
     />
 
     <!-- メインコンテナ -->
-    <div style="border: 1px solid lightgray" class="py-2 flex-grow-1">
+    <div
+      style="border: 1px solid lightgray"
+      class="d-flex flex-column py-2 flex-grow-1"
+    >
       <!-- 従業員用 Draggable コンポーネント -->
       <g-placement-draggable-employee-list
         :dragging-item="draggingItem"
         :ellipsis="ellipsis"
         :mode="mode"
-        :group="group"
         :disabled="disabled"
         :placement="placement"
         @update:dragging-item="$emit('update:dragging-item', $event)"

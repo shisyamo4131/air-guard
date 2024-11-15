@@ -32,6 +32,14 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
+  // true だと manager 権限を付与
+  isManager: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
 }
 
 const vueProps = generateVueProps(propsDefinition)

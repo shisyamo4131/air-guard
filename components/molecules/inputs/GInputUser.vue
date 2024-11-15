@@ -77,10 +77,11 @@ export default {
       <g-checkbox
         v-model="editModel.isAdmin"
         class="mt-0"
-        label="管理者"
+        label="アドミニストレータ"
         hide-details
       />
       <g-checkbox v-model="editModel.isDeveloper" label="開発者" hide-details />
+      <g-checkbox v-model="editModel.isManager" label="管理者" hide-details />
     </v-form>
     <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
   </g-card-input-form>

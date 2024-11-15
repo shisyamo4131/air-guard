@@ -8,30 +8,99 @@
         <v-sheet class="overflow-x-auto flex-grow-1 d-flex flex-column">
           <!-- サブメニュー -->
           <v-toolbar dense flat class="flex-grow-0">
-            <div class="d-flex align-center" style="gap: 16px">
-              <v-select
-                v-model="length"
-                :items="[
-                  { text: '3日', value: 3 },
-                  { text: '7日', value: 7 },
-                  { text: '14日', value: 14 },
-                ]"
-                style="max-width: 96px"
-                label="表示日数"
-                hide-details
-                solo
-                dense
-                :menu-props="{ offsetY: true }"
-              />
+            <v-btn
+              :color="ellipsis ? 'primary' : 'grey darken-1'"
+              text
+              @click="ellipsis = !ellipsis"
+            >
+              <v-icon :left="!$vuetify.breakpoint.mobile"
+                >mdi-image-size-select-small</v-icon
+              >
+              <span v-if="!$vuetify.breakpoint.mobile">省略表示</span>
+            </v-btn>
+            <v-btn
+              :color="mode !== 'placement' ? 'primary' : 'grey darken-1'"
+              text
+              @click="
+                mode === 'placement'
+                  ? (mode = 'confirmation')
+                  : (mode = 'placement')
+              "
+            >
+              <v-icon :left="!$vuetify.breakpoint.mobile"
+                >mdi-account-check</v-icon
+              >
+              <span v-if="!$vuetify.breakpoint.mobile">確認モード</span>
+            </v-btn>
+            <v-dialog v-model="dialog.jump" max-width="480" scrollable>
+              <template #activator="{ attrs, on }">
+                <v-btn v-bind="attrs" color="primary" text v-on="on">
+                  <v-icon :left="!$vuetify.breakpoint.mobile"
+                    >mdi-target</v-icon
+                  >
+                  <span v-if="!$vuetify.breakpoint.mobile">ジャンプ</span>
+                </v-btn>
+              </template>
+              <v-card>
+                <v-toolbar color="secondary" dark dense flat>
+                  <v-toolbar-title>ジャンプ</v-toolbar-title>
+                  <v-spacer />
+                  <g-btn-cancel-icon @click="dialog.jump = false" />
+                </v-toolbar>
+                <v-card-text ref="jump-container" class="pa-2">
+                  <v-list-item
+                    v-for="(order, index) in $store.state['site-order'].data"
+                    :key="index"
+                  >
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        <g-chip-work-shift :value="order.workShift" small />
+                        {{
+                          $store.getters['site-order/site'](order.siteId)
+                            ?.name || 'N/A'
+                        }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                    <v-list-item-icon>
+                      <v-icon
+                        color="primary"
+                        class="handle"
+                        @click="onClickJump(order.id)"
+                        >mdi-arrow-right-bold-circle</v-icon
+                      >
+                    </v-list-item-icon>
+                  </v-list-item>
+                </v-card-text>
+              </v-card>
+            </v-dialog>
+            <!-- モード切替を↑に修正したがとりあえず残しておく -->
+            <div v-if="false">
               <g-checkbox v-model="ellipsis" hide-details label="省略表示" />
               <g-checkbox
                 v-model="mode"
+                class="ml-2"
                 hide-details
                 label="確認モード"
                 true-value="confirmation"
                 false-value="placement"
               />
             </div>
+            <v-spacer />
+            <v-select
+              v-model="length"
+              :items="[
+                { text: '3日', value: 3 },
+                { text: '7日', value: 7 },
+                { text: '14日', value: 14 },
+              ]"
+              style="max-width: 96px"
+              label="表示日数"
+              hide-details
+              solo-inverted
+              flat
+              dense
+              :menu-props="{ offsetY: true }"
+            />
           </v-toolbar>
           <!-- 非表示現場存在アラート -->
           <g-placement-alert-hidden-sites />
@@ -40,6 +109,7 @@
           <div class="overflow-hidden d-flex flex-grow-1">
             <g-placement-table
               id="placement-table"
+              ref="placement-table"
               class="flex-table"
               :current-date="currentDate"
               :ellipsis="ellipsis"
@@ -49,12 +119,6 @@
             >
               <template #site-row="{ attrs, on }">
                 <g-placement-site-work-shift-row v-bind="attrs" v-on="on" />
-              </template>
-              <template #employees-col="{ attrs, on }">
-                <g-placement-employee-card-v-2 v-bind="attrs" v-on="on" />
-              </template>
-              <template #outsourcers-col="{ attrs, on }">
-                <g-placement-outsourcer-card-v-2 v-bind="attrs" v-on="on" />
               </template>
             </g-placement-table>
           </div>
@@ -72,8 +136,8 @@ import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GPlacementSiteWorkShiftRow from '~/components/organisms/placements/GPlacementSiteWorkShiftRow.vue'
 import GPlacementToolbar from '~/components/organisms/placements/GPlacementToolbar.vue'
 import GPlacementAlertHiddenSites from '~/components/organisms/placements/GPlacementAlertHiddenSites.vue'
-import GPlacementEmployeeCardV2 from '~/components/organisms/placements/GPlacementEmployeeCardV2.vue'
-import GPlacementOutsourcerCardV2 from '~/components/organisms/placements/GPlacementOutsourcerCardV2.vue'
+import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
+import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -90,8 +154,8 @@ export default {
     GPlacementSiteWorkShiftRow,
     GPlacementToolbar,
     GPlacementAlertHiddenSites,
-    GPlacementEmployeeCardV2,
-    GPlacementOutsourcerCardV2,
+    GBtnCancelIcon,
+    GChipWorkShift,
   },
 
   /***************************************************************************
@@ -112,6 +176,10 @@ export default {
       length: 7,
       mode: 'placement',
       columns: [],
+
+      dialog: {
+        jump: false,
+      },
     }
   },
 
@@ -146,7 +214,12 @@ export default {
   /***************************************************************************
    * WATCH
    ***************************************************************************/
-  watch: {},
+  watch: {
+    'dialog.jump'(v) {
+      if (v) return
+      this.$vuetify.goTo(this, { container: this.$refs['jump-container'] })
+    },
+  },
 
   /***************************************************************************
    * CREATED
@@ -183,7 +256,16 @@ export default {
   /***************************************************************************
    * METHODS
    ***************************************************************************/
-  methods: {},
+  methods: {
+    /**
+     * ジャンプアイコンがクリックされた時の処理です。
+     * 受け取った引数（siteWorkShiftId）を基に GPlacementTable の scroll を実行します。
+     */
+    onClickJump(id) {
+      this.dialog.jump = false
+      this.$refs['placement-table'].scroll(id)
+    },
+  },
 }
 </script>
 

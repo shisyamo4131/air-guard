@@ -55,6 +55,30 @@ export const removeDeveloperClaim = onDocumentDeleted(
 )
 
 /**
+ * addManagerClaim
+ */
+export const addManagerClaim = onDocumentCreated(
+  'manager_users/{docID}',
+  async (event) => {
+    const newManagerUser = event.data.data()
+    if (newManagerUser === undefined) return
+    await modifyRole(newManagerUser.uid, 'manager', true)
+  }
+)
+
+/**
+ * removeManagerClaim
+ */
+export const removeManagerClaim = onDocumentDeleted(
+  'manager_users/{docID}',
+  async (event) => {
+    const deletedManagerUser = event.data.data()
+    if (deletedManagerUser === undefined) return
+    await modifyRole(deletedManagerUser.uid, 'manager', false)
+  }
+)
+
+/**
  * modifyRole
  * @param {string} uid
  * @param {object} role

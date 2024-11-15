@@ -174,6 +174,13 @@ export default {
     },
 
     /**
+     * 外部から当該コンポーネントを開くためのメソッドです。
+     */
+    open() {
+      this.dialog = true
+    },
+
+    /**
      * VDataIterator のスクロールを初期化
      */
     scrollTo(position = 0) {

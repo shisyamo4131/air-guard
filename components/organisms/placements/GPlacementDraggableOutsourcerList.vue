@@ -1,39 +1,46 @@
 <script>
 /**
- * ## GPlacementDraggableOutsourcerList
+ * 配置管理の外注先タグ用 Draggable コンポーネントです。
  *
- * 外注先の配置情報を編集、管理するためのコンポーネントです。
- * ルートコンポーネントに vue-draggable を使用しており、外注先情報を表示するためのスロットを提供します。
+ * - リアルタイムリスナーがセットされた Placement クラスインスタンスを受け取ります。
+ * - 同一枠内での順序入れ替え処理のみを許容します。
  *
- * 注意事項:
- * draggable コンポーネントは group オプションで name が固定されます。
- * `outsourcers-${date}-${siteId}-${workShift}`
- * 同一コンポーネント内でのドラッグ操作のみを可能にしています。
- * 外注先の配置情報については、データを一意に識別するための KEY にインデックスを使用しているため、
- * 別現場-勤務区分への D&D を行うことができません。
- *
- * ### props.placement
- * 親コンポーネントで生成された Placement インスタンスです。
- * D&D などによって編集された配置情報を Realtime Database に更新するためのメソッドが提供されます。
- *
- * ### slots.outsourcers
- * outsourcerOrder の分だけ生成される、配置された外注先情報を表示するコンポーネントのスロットです。
- * 様々な属性と、コンポーネントが emit するイベントの処理を定義しています。
- *
- * ### events.click:edit
- * 配置された外注先情報を表示するコンポーネントの click:edit イベントで emit されるイベントです。
- * 当該外注先情報オブジェクトと、当該オブジェクトを更新するための Realtime Database のパスを含むオブジェクトを emit します。
+ * NOTE:
+ * - 従業員用コンポーネントと作りがほぼ一緒ですが、細かいところで異なるため別コンポーネントにしています。
+ * @author shisyamo4131
  */
 import draggable from 'vuedraggable'
+import GPlacementTag from './GPlacementTag.vue'
 import { Placement } from '~/models/Placement'
+import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
-  components: { draggable },
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
+  components: { draggable, GPlacementTag },
 
+  /***************************************************************************
+   * PROPS
+   ***************************************************************************/
   props: {
+    /**
+     * リアルタイムリスナーがセットされた Placement クラスインスタンス
+     * 配置表の1枠に関するデータを操作できるオブジェクトをイメージしてください。
+     */
+    placement: {
+      type: Object,
+      validator: (instance) => instance instanceof Placement,
+      required: true,
+    },
+
+    /**
+     * コンポーネントを省略表示します。
+     * -> GPlacementTag に引き渡します。
+     */
     ellipsis: { type: Boolean, default: false },
 
     /**
-     * チップの表示モードを切り替えます。
+     * GPlacementTag の表示モードを切り替えます。
      * placement: 配置モードです。移動のためのアイコンと編集のためのボタンが表示されます。
      * confirmation: 確認モードです。配置確認、上番・下番などの切り替えボタンが表示されます。
      */
@@ -44,27 +51,35 @@ export default {
       required: false,
     },
 
-    placement: {
-      type: Object,
-      validator: (instance) => instance instanceof Placement,
-      required: true,
-    },
-
     /**
      * true にすると Draggable が無効になります。
      */
     disabled: { type: Boolean, default: false, required: false },
   },
 
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
   computed: {
+    /**
+     * 当該 Placement クラスインスタンスの外注先配置順序データです。
+     */
     outsourcerOrder() {
       return this.placement?.data?.outsourcerOrder || []
     },
 
+    /**
+     * 当該 Placement クラスインスタンスの外注先配置詳細データです。
+     */
     outsourcers() {
       return this.placement?.data?.outsourcers || null
     },
 
+    /**
+     * 当該 Placement クラスインスタンスの情報に一致する SiteContract クラスインスタンスを
+     * Vuex.site-order から取得して返します。
+     * - 存在しない場合は null を返します。
+     */
     siteContract() {
       return this.$store.getters['site-order/siteContract']({
         date: this.placement.date,
@@ -72,8 +87,40 @@ export default {
         workShift: this.placement.workShift,
       })
     },
+
+    /**
+     * 当該 Placement クラスインスタンスの情報に一致する SiteOperationSchedule クラスインスタンスを
+     * Vuex.site-order から取得して返します。
+     * - 新しい従業員が追加される際に使用されます。
+     * - 存在しない場合は新しい SiteOperationSchedule クラスインスタンスを生成して返します。
+     * - インスタンス生成時、Placement クラスインスタンスの日付、現場ID、勤務区分を初期値として設定します。
+     * - computed.siteContract が存在する場合は開始時刻、終了時刻も初期値として設定します。
+     */
+    siteOperationSchedule() {
+      // Vuex から SiteOperationSchedule を取得
+      const { date, siteId, workShift } = this.placement
+      const getterKey = 'site-order/siteOperationSchedule'
+      const instance = this.$store.getters[getterKey]({
+        date,
+        siteId,
+        workShift,
+      })
+      return (
+        instance ||
+        new SiteOperationSchedule({
+          dates: [date],
+          siteId,
+          workShift,
+          startTime: this.siteContract?.startTime || '',
+          endTime: this.siteContract?.endTime || '',
+        })
+      )
+    },
   },
 
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
   methods: {
     /**
      * Draggable の change イベントで実行される処理です。
@@ -115,34 +162,13 @@ export default {
       const path = this.placement.getOutsourcersPath(item.outsourcerKey)
       this.$emit('click:edit', structuredClone({ item, path }))
     },
-
-    /**
-     * 外注先の配置状態がクリックされた時の処理です。
-     * Placement インスタンスが提供するメソッドを利用して外注先の配置状態を更新します。
-     */
-    onClickStatus({ outsourcerKey, status }) {
-      try {
-        if (status === 'unconfirmed')
-          this.placement.outsourcer.confirm(outsourcerKey)
-        if (status === 'confirmed')
-          this.placement.outsourcer.arrive({ outsourcerKey })
-        if (status === 'arrived')
-          this.placement.outsourcer.leave({ outsourcerKey })
-        if (status === 'leaved')
-          this.placement.outsourcer.unconfirm(outsourcerKey)
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error(err)
-        alert(err.message)
-      }
-    },
   },
 }
 </script>
 
 <template>
   <draggable
-    class="d-flex flex-column pa-2 flex-grow-1"
+    class="d-flex flex-column pa-2"
     style="min-height: 24px; gap: 8px"
     :value="outsourcerOrder"
     :disabled="disabled"
@@ -154,24 +180,13 @@ export default {
     @change="onChange"
   >
     <div v-for="outsourcerKey of outsourcerOrder" :key="outsourcerKey">
-      <slot
-        name="outsourcers"
-        v-bind="{
-          attrs: {
-            ...(outsourcers?.[outsourcerKey] || {}),
-            ...placement,
-            outsourcerKey,
-            ellipsis,
-            mode,
-            disabled,
-          },
-          on: {
-            'click:edit': () =>
-              onClickEdit(outsourcers?.[outsourcerKey] || null),
-            'click:remove': () => handleRemove({ element: outsourcerKey }),
-            'click:status': (params) => onClickStatus(params),
-          },
-        }"
+      <g-placement-tag
+        :placement="placement"
+        :outsourcer-key="outsourcerKey"
+        :disabled="disabled"
+        :ellipsis="ellipsis"
+        :mode="mode"
+        @click:edit="onClickEdit"
       />
     </div>
   </draggable>
