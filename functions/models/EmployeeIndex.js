@@ -20,6 +20,7 @@ export default class EmployeeIndex {
     this.mobile = item?.mobile || ''
     this.status = item?.status || ''
     this.contractType = item?.contractType || ''
+    this.designation = item?.designation || ''
   }
 
   /****************************************************************************
