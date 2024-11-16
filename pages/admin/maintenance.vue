@@ -10,11 +10,15 @@
       <v-col cols="12" md="6">
         <g-maintenance-refresh-index />
       </v-col>
+      <v-col cols="12" md="6">
+        <g-maintenance-clean-up-placements />
+      </v-col>
     </v-row>
   </v-container>
 </template>
 
 <script>
+import GMaintenanceCleanUpPlacements from '~/components/organisms/maintenances/GMaintenanceCleanUpPlacements.vue'
 import GMaintenanceRefreshEmployeeSiteHistory from '~/components/organisms/maintenances/GMaintenanceRefreshEmployeeSiteHistory.vue'
 import GMaintenanceRefreshIndex from '~/components/organisms/maintenances/GMaintenanceRefreshIndex.vue'
 import GMaintenanceRefreshSiteEmployeeHistory from '~/components/organisms/maintenances/GMaintenanceRefreshSiteEmployeeHistory.vue'
@@ -23,6 +27,7 @@ export default {
     GMaintenanceRefreshEmployeeSiteHistory,
     GMaintenanceRefreshIndex,
     GMaintenanceRefreshSiteEmployeeHistory,
+    GMaintenanceCleanUpPlacements,
   },
 }
 </script>

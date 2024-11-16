@@ -20,8 +20,10 @@
  * このコンポーネントは`props.value`を使用することでその開閉を制御可能です。
  *
  * @author shisyamo4131
- * @version 1.0.1
+ * @version 1.1.0
  * @updates
+ * - version 1.1.0 - 2024-11-15 - default スロットに配置される VCard コンポーネントがモバイル表示の時に tile 設定されるよう修正。
+ *                              - モバイル表示の時にフルスクリーンになるように修正
  * - version 1.0.1 - 2024-09-17 - initializeメソッドの実行について、dialogの変更内容にかかわらず実行するように修正。
  * - version 1.0.0 - 2024-09-06 - 初版作成
  */
@@ -30,6 +32,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    fullscreen: { type: Boolean, default: false, required: false },
     maxWidth: { type: [String, Number], default: 600, required: false },
     value: { type: Boolean, default: false, required: false },
   },
@@ -50,6 +53,7 @@ export default {
     attrs() {
       return {
         ref: this.setInputRef,
+        tile: this.$vuetify.breakpoint.mobile,
       }
     },
     on() {
@@ -187,6 +191,7 @@ export default {
     v-model="dialog"
     :max-width="maxWidth"
     eager
+    :fullscreen="fullscreen || $vuetify.breakpoint.mobile"
     persistent
     scrollable
   >

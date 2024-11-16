@@ -138,7 +138,7 @@ export default {
 
 <template>
   <v-container
-    class="d-flex flex-column"
+    class="d-flex flex-column pa-0"
     :style="{ height: `${templateHeight}px` }"
   >
     <v-navigation-drawer v-model="drawer" fixed right temporary>
@@ -152,7 +152,7 @@ export default {
       </v-container>
     </v-navigation-drawer>
     <!-- HEADER -->
-    <v-toolbar class="flex-grow-0" :color="toolbarColor" flat dense>
+    <v-toolbar class="flex-grow-0" :color="toolbarColor" flat>
       <div class="d-flex align-center flex-grow-1" style="gap: 8px">
         <!-- slot: prepend-search -->
         <slot name="prepend-search" />
@@ -173,20 +173,20 @@ export default {
         <slot name="extension" />
       </template>
     </v-toolbar>
-    <v-container fluid class="d-flex flex-grow-1 overflow-y-hidden">
-      <v-card class="d-flex flex-grow-1" outlined>
-        <!-- slot: default -->
-        <slot
-          name="default"
-          v-bind="{
-            attrs: defaultAttrs,
-            search: internalSearch,
-            lazySearch: internalLazySearch,
-            on: defaultOn,
-          }"
-        />
-      </v-card>
-    </v-container>
+    <!-- <v-container fluid class="d-flex flex-grow-1 overflow-y-hidden"> -->
+    <v-card class="d-flex flex-grow-1 overflow-y-hidden" outlined>
+      <!-- slot: default -->
+      <slot
+        name="default"
+        v-bind="{
+          attrs: defaultAttrs,
+          search: internalSearch,
+          lazySearch: internalLazySearch,
+          on: defaultOn,
+        }"
+      />
+    </v-card>
+    <!-- </v-container> -->
     <v-container v-if="!hidePagination" class="flex-grow-0">
       <v-pagination v-model="page" :length="pageCount" total-visible="20" />
     </v-container>

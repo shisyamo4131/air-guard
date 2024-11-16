@@ -12,19 +12,8 @@ import System from '~/models/System'
 /**
  * アプリのバージョンです。
  * Firestore のシステムバージョンとの比較に使用されます。
- *
- * 2024-11-14 - ver 0.0.1 - 勤務指示用テキストに肩書を適用するため、従業員管理に肩書を追加
- * 2024-11-15 - ver 0.1.0 - 配置管理機能のレイアウトを調整
- *                        - 配置管理機能に現場-勤務区分へのジャンプ機能を実装
- *                        - 配置管理に関わるコンポーネントのコードをリファクタリング
- *                        - 従業員のインデックスに肩書、雇用形態を追加
- *                        - GComboboxDate でアイコンクリックでカレンダーが起動するように修正
- *                        - 権限管理に `管理者` を追加（既存の `管理者` を `アドミニストレータ` に変更）
- *                        - ユーザー管理で `管理者` 権限を制御できるように機能を追加
- *                        - 現場管理を管理者権限に公開
- *                        - 勤務指示テキストに従業員の肩書を出力するように修正
  */
-const APP_VERSION = '0.1.0'
+const APP_VERSION = '0.2.0'
 
 /******************************************************************
  * STATE
@@ -63,18 +52,49 @@ export const getters = {
  * MUTATIONS
  ******************************************************************/
 export const mutations = {
-  SET_ITEM(state, item) {
-    state.calcAttendance = item?.calcAttendance || null
-    state.calcMonthlySales = item?.calcMonthlySales || null
-    state.calcSiteBillings = item?.calcSiteBillings || null
-    state.refreshEmployeeSiteHistory = item?.refreshEmployeeSiteHistory || null
-    state.refreshSiteEmployeeHistory = item?.refreshSiteEmployeeHistory || null
-    state.maintenanceMode = item?.maintenanceMode ?? true
-    state.version = item?.version || null
+  /**
+   * 引数で受け取ったオブジェクトから対応する値を state にセットします。
+   * プロパティが存在しない場合、デフォルト値を使用します。
+   *
+   * @param {Object} state - Vuex の状態オブジェクト
+   * @param {Object} item - セットするデータ
+   * @param {boolean|null} [item.calcAttendance=null] - 勤怠計算の状態（null または boolean）
+   * @param {boolean|null} [item.calcMonthlySales=null] - 月間売上計算の状態（null または boolean）
+   * @param {boolean|null} [item.calcSiteBillings=null] - 現場請求計算の状態（null または boolean）
+   * @param {boolean|null} [item.refreshEmployeeSiteHistory=null] - 従業員履歴の更新状態（null または boolean）
+   * @param {boolean|null} [item.refreshSiteEmployeeHistory=null] - 現場履歴の更新状態（null または boolean）
+   * @param {boolean} [item.maintenanceMode=true] - メンテナンスモードの状態（デフォルト: true）
+   * @param {string|null} [item.version=null] - アプリケーションのバージョン（null または文字列）
+   */
+  SET_ITEM(state, item = {}) {
+    const defaults = {
+      calcAttendance: null,
+      calcMonthlySales: null,
+      calcSiteBillings: null,
+      refreshEmployeeSiteHistory: null,
+      refreshSiteEmployeeHistory: null,
+      maintenanceMode: true,
+      version: null,
+    }
+
+    // 各プロパティに対応する値をセット
+    Object.keys(defaults).forEach((key) => {
+      state[key] = item[key] ?? defaults[key]
+    })
   },
+
+  /**
+   * system ドキュメントへのリアルタイムリスナーを state に保存します。
+   * @param {Object} listener - system ドキュメントへのリアルタイムリスナー
+   */
   SET_LISTENER(state, listener) {
     state.listener = listener
   },
+
+  /**
+   * state.listener を初期化します。
+   * - リアルタイムリスナーがセットされていれば購読を解除します。
+   */
   REMOVE_LISTENER(state) {
     if (state.listener) state.listener()
     state.listener = null

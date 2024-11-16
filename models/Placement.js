@@ -256,61 +256,47 @@ class Placement {
     }
   }
 
-  /**
-   * Sets the date property.
-   *
-   * If the date changes and a listener is already active, it will re-subscribe.
-   *
-   * @param {string} date - The target date in YYYY-MM-DD format.
-   * @throws {Error} Throws an error if the date is not a string.
-   */
+  /****************************************************************************
+   * date プロパティをセットします。
+   * @param {string} date - YYYY-MM-DD 形式の文字列
+   * @throws {TypeError} date が文字列でない場合にエラーをスローします。
+   ****************************************************************************/
   setDate(date) {
-    if (!date || typeof date !== 'string') {
+    if (date && typeof date !== 'string') {
       const message = `setDate requires a string argument. Received ${date}`
       console.error(message) // eslint-disable-line no-console
-      throw new Error(message)
+      throw new TypeError(message)
     }
 
-    if (this.date !== date) {
-      this.date = date
-      if (this.#listener) this.subscribe() // Re-subscribe if a listener exists
-    }
+    this.date = date
   }
 
-  /**
-   * Sets the siteId property.
-   *
-   * If the siteId changes and a listener is already active, it will re-subscribe.
-   *
-   * @param {string} siteId - The target site ID.
-   * @throws {Error} Throws an error if siteId is not a string.
-   */
+  /****************************************************************************
+   * siteId プロパティをセットします。
+   * @param {string} siteId - 現場ID
+   * @throws {TypeError} siteId が文字列でない場合にエラーをスローします。
+   ****************************************************************************/
   setSiteId(siteId) {
-    if (!siteId || typeof siteId !== 'string') {
+    if (siteId && typeof siteId !== 'string') {
       const message = `setSiteId requires a string argument. Received ${siteId}`
       console.error(message) // eslint-disable-line no-console
-      throw new Error(message)
+      throw new TypeError(message)
     }
 
-    if (this.siteId !== siteId) {
-      this.siteId = siteId
-      if (this.#listener) this.subscribe() // Re-subscribe if a listener exists
-    }
+    this.siteId = siteId
   }
 
-  /**
-   * Sets the workShift property.
-   *
-   * If the workShift changes and a listener is already active, it will re-subscribe.
-   *
-   * @param {string} workShift - The target work shift, either 'day' or 'night'.
-   * @throws {Error} Throws an error if workShift is not 'day' or 'night'.
-   */
+  /****************************************************************************
+   * workShift プロパティをセットします。
+   * @param {string} workShift - 勤務区分
+   * @throws {TypeError} 勤務区分が文字列でない場合にエラーをスローします。
+   * @throws {Error} 勤務区分が `day` または `night` でない場合にエラーをスローします。
+   ****************************************************************************/
   setWorkShift(workShift) {
-    if (!workShift || typeof workShift !== 'string') {
+    if (workShift && typeof workShift !== 'string') {
       const message = `setWorkShift requires a string argument. Received ${workShift}`
       console.error(message) // eslint-disable-line no-console
-      throw new Error(message)
+      throw new TypeError(message)
     }
 
     if (!['day', 'night'].includes(workShift)) {
@@ -319,10 +305,7 @@ class Placement {
       throw new Error(message)
     }
 
-    if (this.workShift !== workShift) {
-      this.workShift = workShift
-      if (this.#listener) this.subscribe() // Re-subscribe if a listener exists
-    }
+    this.workShift = workShift
   }
 
   /**

@@ -12,9 +12,6 @@
  * - `props.loading`にtrueが与えられると、`submit`ボタンが操作不可になります。
  *
  * @author shisyamo4131
- * @version 1.0.0
- * @updates
- * - version 1.0.0 - 初版作成
  */
 import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
@@ -41,15 +38,15 @@ export default {
 
 <template>
   <v-card v-bind="$attrs">
-    <v-card-title>
-      {{ label }}
-      <v-chip label class="ml-auto">{{ editMode }}</v-chip>
-    </v-card-title>
-    <v-card-text class="pt-3">
+    <v-toolbar class="flex-grow-0" color="secondary" dark dense flat>
+      <v-toolbar-title>{{ label }}</v-toolbar-title>
+      <v-spacer />
+      <g-btn-cancel-icon :disabled="loading" @click="$emit('click:cancel')" />
+    </v-toolbar>
+    <v-card-text class="pt-5">
       <slot name="default" v-bind="{ attrs: { editMode, label, loading } }" />
     </v-card-text>
-    <v-card-actions class="justify-space-between">
-      <g-btn-cancel-icon :disabled="loading" @click="$emit('click:cancel')" />
+    <v-card-actions class="justify-end">
       <g-btn-submit-icon
         color="primary"
         :disabled="loading || disableSubmit"

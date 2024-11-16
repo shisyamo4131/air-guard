@@ -1,30 +1,6 @@
 /**
  * ## アプリから実行可能な onCall を定義
  * アプリから呼び出す場合の関数名は `maitenance-${function name}`
- *
- * ### refreshIndex
- * Realtime Database の customer, sites, employees を更新
- *
- * ### refreshMonthlyAttendances
- * 出勤簿月次更新処理
- *
- * ### refreshMonthlySales
- * 月次売上更新処理
- *
- * ### refreshSiteBillings
- * 月次請求更新処理
- *
- * ### refreshEmployeeSiteHistoryByEmployeeId
- * 従業員単位での現場入場履歴更新処理
- *
- * ### refreshEmployeeSiteHistoryByTimestamp
- * 基準日単位での現場入場履歴更新処理
- *
- * ### refreshSiteEmployeeHistoryBySiteId
- * 現場単位での従業員入場履歴更新処理
- *
- * ### refreshSiteEmployeeHistoryByTimestamp
- * 基準日単位での従業員入場履歴更新処理
  */
 import { getDatabase } from 'firebase-admin/database'
 import { getFirestore } from 'firebase-admin/firestore'
@@ -36,6 +12,7 @@ import CustomerIndex from '../models/CustomerIndex.js'
 import System from '../models/System.js'
 import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory.js'
 import { SiteEmployeeHistory } from '../models/SiteEmployeeHistory.js'
+import Placement from '../models/Placement.js'
 
 const database = getDatabase()
 const firestore = getFirestore()
@@ -416,6 +393,47 @@ export const refreshSiteEmployeeHistoryByTimestamp = onCall(async (request) => {
     throw new https.HttpsError(
       'unknown',
       `現場の従業員入場履歴更新処理で不明なエラーが発生しました。締め切り日時: ${timestamp}`
+    )
+  }
+})
+
+/****************************************************************************
+ * 指定された日以前の配置情報データを削除します。
+ *
+ * @param {Object} request - Cloud Functions の `onCall` から渡されるリクエストオブジェクト。
+ * @param {string} request.date - 削除の基準日（YYYY-MM-DD形式）
+ * @returns {Promise<void>} - 更新処理が完了した場合に解決される Promise。
+ * @throws {https.HttpsError} アプリ側とサーバーログの両方にエラーメッセージを出力。
+ ****************************************************************************/
+export const cleanUpPlacements = onCall(async (request) => {
+  const { date } = request.data
+
+  try {
+    // 非同期処理の開始をログで通知
+    logger.info(
+      `[cleanUpPlacements] 配置情報データ削除処理が呼び出されました。締め切り日時: ${date}`
+    )
+
+    await Placement.cleanUp(date)
+
+    // 非同期処理の終了をログで通知
+    logger.info(
+      `[cleanUpPlacements] 配置情報データ削除処理が終了しました。締め切り日時: ${date}`
+    )
+
+    // 処理完了のメッセージを返す
+    return {
+      message: `[cleanUpPlacements] 配置情報データ削除処理が正常に完了しました。締め切り日時: ${date}`,
+    }
+  } catch (error) {
+    // サーバー側のエラーログ
+    logger.error(
+      `[cleanUpPlacements] 配置情報データ削除処理で不明なエラーが発生しました。締め切り日時: ${date}`,
+      { request }
+    )
+    throw new https.HttpsError(
+      'unknown',
+      `配置情報データ削除処理で不明なエラーが発生しました。締め切り日時: ${date}`
     )
   }
 })

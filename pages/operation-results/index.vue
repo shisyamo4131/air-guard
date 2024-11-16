@@ -135,6 +135,7 @@ export default {
             v-bind="attrs"
             :edit-mode="editMode"
             :instance="instance"
+            tile
             v-on="on"
           />
         </template>
