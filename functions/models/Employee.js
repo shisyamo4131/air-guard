@@ -133,57 +133,57 @@ export default class Employee extends FireModel {
     await super.beforeUpdate()
   }
 
-  /****************************************************************************
-   * 指定された従業員codeに該当する従業員ドキュメントデータを配列で返します。
-   * @param {string} code - 従業員コード
-   * @returns {Promise<Array>} - 従業員ドキュメントデータの配列
-   * @throws {Error} - エラーが発生した場合にスローされます
-   ****************************************************************************/
-  async fetchByCode(code) {
-    if (!code) throw new Error('従業員コードは必須です。')
-    try {
-      const constraints = [['where', 'code', '==', code]]
-      const snapshots = await this.fetchDocs(constraints)
-      return snapshots
-    } catch (err) {
-      const message = `[Employee.js fetchByCode] 従業員コード ${code} に対するドキュメントの取得に失敗しました: ${err.message}`
-      logger.error(message)
-      throw new Error(message)
-    }
-  }
+  // /****************************************************************************
+  //  * 指定された従業員codeに該当する従業員ドキュメントデータを配列で返します。
+  //  * @param {string} code - 従業員コード
+  //  * @returns {Promise<Array>} - 従業員ドキュメントデータの配列
+  //  * @throws {Error} - エラーが発生した場合にスローされます
+  //  ****************************************************************************/
+  // async fetchByCode(code) {
+  //   if (!code) throw new Error('従業員コードは必須です。')
+  //   try {
+  //     const constraints = [['where', 'code', '==', code]]
+  //     const snapshots = await this.fetchDocs(constraints)
+  //     return snapshots
+  //   } catch (err) {
+  //     const message = `[Employee.js fetchByCode] 従業員コード ${code} に対するドキュメントの取得に失敗しました: ${err.message}`
+  //     logger.error(message)
+  //     throw new Error(message)
+  //   }
+  // }
 
-  /****************************************************************************
-   * 従業員codeの配列を受け取り、該当する従業員ドキュメントデータを配列で返します。
-   * 従業員codeの配列は、重複があれば一意に整理されます。
-   *
-   * 2024-11-14 - 同期設定がなされたもののみを返すように変更
-   * -> 稼働実績の取り込み時に、スポット登録された現場があると CODE 重複で意図しない
-   *    マスタと紐づけられてしまう為。
-   *
-   * @param {Array<string>} codes - 従業員コードの配列
-   * @returns {Promise<Array>} - 従業員ドキュメントデータの配列
-   * @throws {Error} - 処理中にエラーが発生した場合にスローされます
-   ****************************************************************************/
-  async fetchByCodes(codes) {
-    if (!Array.isArray(codes) || codes.length === 0) return []
-    try {
-      const unique = [...new Set(codes)]
-      const chunked = unique.flatMap((_, i) =>
-        i % 30 ? [] : [unique.slice(i, i + 30)]
-      )
-      const promises = chunked.map((arr) => {
-        const constraints = [['where', 'code', 'in', arr]]
-        return this.fetchDocs(constraints)
-      })
-      const snapshots = await Promise.all(promises)
-      // return snapshots.flat() // 2024-11-14
-      return snapshots.flat().filter((item) => item.sync)
-    } catch (err) {
-      const message = `[Employee.js fetchByCodes] ドキュメントの取得中にエラーが発生しました: ${err.message}`
-      logger.error(message)
-      throw new Error(message)
-    }
-  }
+  // /****************************************************************************
+  //  * 従業員codeの配列を受け取り、該当する従業員ドキュメントデータを配列で返します。
+  //  * 従業員codeの配列は、重複があれば一意に整理されます。
+  //  *
+  //  * 2024-11-14 - 同期設定がなされたもののみを返すように変更
+  //  * -> 稼働実績の取り込み時に、スポット登録された現場があると CODE 重複で意図しない
+  //  *    マスタと紐づけられてしまう為。
+  //  *
+  //  * @param {Array<string>} codes - 従業員コードの配列
+  //  * @returns {Promise<Array>} - 従業員ドキュメントデータの配列
+  //  * @throws {Error} - 処理中にエラーが発生した場合にスローされます
+  //  ****************************************************************************/
+  // async fetchByCodes(codes) {
+  //   if (!Array.isArray(codes) || codes.length === 0) return []
+  //   try {
+  //     const unique = [...new Set(codes)]
+  //     const chunked = unique.flatMap((_, i) =>
+  //       i % 30 ? [] : [unique.slice(i, i + 30)]
+  //     )
+  //     const promises = chunked.map((arr) => {
+  //       const constraints = [['where', 'code', 'in', arr]]
+  //       return this.fetchDocs(constraints)
+  //     })
+  //     const snapshots = await Promise.all(promises)
+  //     // return snapshots.flat() // 2024-11-14
+  //     return snapshots.flat().filter((item) => item.sync)
+  //   } catch (err) {
+  //     const message = `[Employee.js fetchByCodes] ドキュメントの取得中にエラーが発生しました: ${err.message}`
+  //     logger.error(message)
+  //     throw new Error(message)
+  //   }
+  // }
 
   /****************************************************************************
    * Realtime Databaseの`AirGuard/Employees`の内容で、FirestoreのEmployeesドキュメントを更新します。

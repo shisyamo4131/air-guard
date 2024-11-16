@@ -13,7 +13,7 @@ import System from '~/models/System'
  * アプリのバージョンです。
  * Firestore のシステムバージョンとの比較に使用されます。
  */
-const APP_VERSION = '0.2.0'
+const APP_VERSION = '0.2.1'
 
 /******************************************************************
  * STATE

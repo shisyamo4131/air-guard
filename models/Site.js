@@ -26,10 +26,16 @@ export default class Site extends FireModel {
   static tokenFields = ['abbr', 'abbrKana']
   static hasMany = [
     {
+      collection: 'SiteContracts',
+      field: 'siteId',
+      condition: '==',
+      type: 'collection',
+    },
+    {
       collection: 'SiteOperationSchedules',
       field: 'siteId',
       condition: '==',
-      type: 'subcollection',
+      type: 'collection',
     },
     {
       collection: 'OperationResults',

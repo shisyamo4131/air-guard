@@ -14,6 +14,18 @@
 
 # System Updates
 
+## 2024-XX-XX - ver 0.3.0 (future)
+
+1. ver 0.2.1 でコメントアウトした functions.models.Site の fetchByCode, fetchByCodes を削除
+2. ver 0.2.1 でコメントアウトした functions.models.Employee の fetchByCode, fetchByCodes を削除
+
+## 2024-11-16 - ver 0.2.1
+
+- models.Site, functions.models.Site で稼働実績の従属設定が `subcollection` になっていたのを修正
+- models.Site, functions.models.Site に現場取極めの従属設定がなされていなかったの修正
+- functions.models.Site の fetchByCode, fetchByCodes メソッドをコメントアウト -> 未使用
+- functions.models.Employee の fetchByCode, fetchByCodes メソッドをコメントアウト -> 未使用
+
 ## 2024-11-16 - ver 0.2.0
 
 - 稼働実績の編集画面が tile 表示されるように修正
