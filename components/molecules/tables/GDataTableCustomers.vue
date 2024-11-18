@@ -1,41 +1,75 @@
 <script>
+import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 /**
- * ### GDataTableCustomers
- *
  * 取引先のDataTableコンポーネントです。
  *
  * @author shisyamo4131
- * @version 1.1.0
- *
- * @updates
- * - version 1.1.0 - 2024-07-25 - 契約中かどうかを表すアイコンを取引先名の左に追加。
- * - version 1.0.0 - 2024-06-25 - 初版作成
  */
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GDataTable },
+  components: { GDataTable, GChipSyncStatus },
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
     headers() {
-      const isMobile = this.$vuetify.breakpoint.mobile
-      if (!isMobile) {
-        return [
-          { text: 'CODE', value: 'code', width: 84 },
-          { text: '取引先名', value: 'name1', sortable: false },
-          { text: '住所', value: 'address1', sortable: false },
-          { text: 'TEL/FAX', value: 'tel', sortable: false },
-        ]
-      } else {
-        return [
-          { text: 'CODE', value: 'code', width: 84 },
-          { text: '略称', value: 'abbr', cellClass: 'truncate-cell' },
-        ]
+      const result = []
+      switch (this.$vuetify.breakpoint.name) {
+        case 'xs':
+          result.push(
+            { text: 'CODE', value: 'code', width: 84 },
+            { text: '取引先名', value: 'abbr', cellClass: 'truncate-cell' },
+            {
+              text: '同期状態',
+              value: 'sync',
+              sortable: false,
+              align: 'center',
+            }
+          )
+          break
+        case 'sm':
+          result.push(
+            { text: 'CODE', value: 'code', width: 84 },
+            { text: '取引先名', value: 'abbr', cellClass: 'truncate-cell' },
+            {
+              text: '同期状態',
+              value: 'sync',
+              sortable: false,
+              align: 'center',
+            }
+          )
+          break
+        case 'md':
+          result.push(
+            { text: 'CODE', value: 'code', width: 84 },
+            { text: '取引先名', value: 'abbr', cellClass: 'truncate-cell' },
+            { text: '住所', value: 'address1', sortable: false },
+            {
+              text: '同期状態',
+              value: 'sync',
+              sortable: false,
+              align: 'center',
+            }
+          )
+          break
+        default:
+          result.push(
+            { text: 'CODE', value: 'code', width: 84 },
+            { text: '取引先名', value: 'abbr', sortable: false },
+            { text: '住所', value: 'address1', sortable: false },
+            { text: 'TEL/FAX', value: 'tel', sortable: false },
+            {
+              text: '同期状態',
+              value: 'sync',
+              sortable: false,
+              align: 'center',
+            }
+          )
       }
+      return result
     },
   },
 }
@@ -45,7 +79,7 @@ export default {
   <g-data-table
     v-bind="$attrs"
     :headers="headers"
-    :mobile-breakpoint="0"
+    :mobile-breakpoint="600"
     v-on="$listeners"
   >
     <template #[`item.name1`]="{ item }">
@@ -65,6 +99,9 @@ export default {
     <template #[`item.tel`]="{ item }">
       <div><v-icon left x-small>mdi-phone</v-icon>{{ item.tel }}</div>
       <div><v-icon left x-small>mdi-fax</v-icon>{{ item.fax }}</div>
+    </template>
+    <template #[`item.sync`]="{ item }">
+      <g-chip-sync-status :value="item.sync" x-small />
     </template>
   </g-data-table>
 </template>

@@ -1,17 +1,17 @@
 <script>
 /**
- * GArrangementSiteSelector
+ * 配置管理で現場を選択するためのコンポーネントです。
  */
 import { mapGetters } from 'vuex'
 import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
+import GChipSiteStatus from '~/components/atoms/chips/GChipSiteStatus.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GRadioGroupWorkShift from '~/components/molecules/inputs/GRadioGroupWorkShift.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
-import GDataTableSites from '~/components/molecules/tables/GDataTableSites.vue'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
 import Site from '~/models/Site'
 export default {
@@ -19,7 +19,6 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GDataTableSites,
     GTextFieldSearch,
     GBtnSubmitIcon,
     GBtnCancelIcon,
@@ -28,6 +27,7 @@ export default {
     GBtnRegistIcon,
     GDialogInput,
     GInputSite,
+    GChipSiteStatus,
   },
   /***************************************************************************
    * MIXINS
@@ -41,11 +41,15 @@ export default {
       dialog: false,
       includesExpired: false,
       instance: new Site(),
-      internalDialog: false,
       page: 1,
       pageCount: 0,
-      selectedItems: [],
+      scrollTargetRef: null,
+      selectedItem: null,
+      selectWorkShift: {
+        dialog: false,
+      },
       search: null,
+      step: 1,
       workShift: 'day',
     }
   },
@@ -66,10 +70,15 @@ export default {
   watch: {
     dialog(v) {
       if (v) return
-      this.selectedItems.splice(0)
+      this.selectedItem = null
       this.search = null
+      this.workShift = 'day'
+      this.selectWorkShift.dialog = false
       this.page = 1
-      this.$refs.table.scrollToTop()
+      this.scrollTo()
+    },
+    page() {
+      this.scrollTo()
     },
   },
   /***************************************************************************
@@ -77,11 +86,20 @@ export default {
    ***************************************************************************/
   methods: {
     onClickSubmit() {
-      if (!this.selectedItems.length) return
-      const siteId = this.selectedItems[0].docId
+      if (!this.selectedItem) return
+      const siteId = this.selectedItem.docId
       const workShift = this.workShift
       this.$emit('selected', { siteId, workShift })
       this.dialog = false
+    },
+
+    /**
+     * VDataIterator のスクロールを初期化
+     */
+    scrollTo(position = 0) {
+      const container = this.scrollTargetRef
+      if (!container) return
+      this.$vuetify.goTo(this, { container })
     },
   },
 }
@@ -90,8 +108,9 @@ export default {
 <template>
   <v-dialog
     v-model="dialog"
-    max-width="720"
+    max-width="600"
     scrollable
+    content-class="fixed-height-dialog"
     :fullscreen="$vuetify.breakpoint.mobile"
   >
     <template #activator="{ attrs, on }">
@@ -101,7 +120,7 @@ export default {
       <v-toolbar class="flex-grow-0" color="secondary" dark dense flat>
         <v-toolbar-title>現場選択</v-toolbar-title>
         <v-spacer />
-        <g-dialog-input v-model="internalDialog">
+        <g-dialog-input>
           <template #activator="{ attrs, on }">
             <g-btn-regist-icon v-bind="attrs" v-on="on" />
           </template>
@@ -118,43 +137,105 @@ export default {
       <v-toolbar class="flex-grow-0" flat>
         <g-text-field-search v-model="search" />
       </v-toolbar>
-      <v-container class="px-4 py-0 d-flex justify-end">
+      <v-toolbar class="flex-grow-0" dense flat>
+        <v-spacer />
         <g-switch
           v-model="includesExpired"
           class="mt-0"
           hide-details
           label="終了現場を含める"
         />
-      </v-container>
-      <v-container class="px-4 d-flex overflow-y-hidden" style="height: 480px">
-        <g-data-table-sites
-          ref="table"
-          v-model="selectedItems"
-          class="flex-table"
-          checkbox-color="primary"
+      </v-toolbar>
+      <v-divider />
+      <v-container class="py-0 px-0 flex-grow-1 overflow-y-auto">
+        <v-data-iterator
+          :ref="(el) => (scrollTargetRef = el)"
           :items="filteredItems"
+          item-key="docId"
+          :mobile-breakpoint="0"
+          hide-default-footer
           :search="search"
-          show-select
-          single-select
+          sort-by="code"
+          sort-desc
           :page.sync="page"
           @page-count="pageCount = $event"
-        />
+        >
+          <template #default="props">
+            <v-list-item-group
+              v-model="selectedItem"
+              active-class="primary--text"
+            >
+              <template v-for="(item, index) of props.items">
+                <v-list-item
+                  :key="`item-${index}`"
+                  active-class="primary--text"
+                  :dense="$vuetify.breakpoint.mobile"
+                  :value="item"
+                >
+                  <template #default="{ active }">
+                    <v-list-item-action>
+                      <v-checkbox
+                        :input-value="active"
+                        color="primary"
+                      ></v-checkbox>
+                    </v-list-item-action>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ item.abbr }}
+                      </v-list-item-title>
+                      <v-list-item-subtitle class="text-caption">
+                        {{ item.address }}
+                      </v-list-item-subtitle>
+                      <slot name="third-line" v-bind="{ item }" />
+                    </v-list-item-content>
+                    <v-list-item-action>
+                      <g-chip-site-status
+                        class="ml-2"
+                        :value="item.status"
+                        x-small
+                      />
+                    </v-list-item-action>
+                  </template>
+                </v-list-item>
+                <v-divider
+                  v-if="index + 1 < props.items.length"
+                  :key="`div-${index}`"
+                />
+              </template>
+            </v-list-item-group>
+          </template>
+        </v-data-iterator>
       </v-container>
+      <v-divider />
       <v-container style="max-width: 90%">
         <v-pagination v-model="page" :length="pageCount" />
       </v-container>
       <v-divider />
-      <v-container class="px-4 py-0 d-flex justify-end">
-        <g-radio-group-work-shift v-model="workShift" row />
-      </v-container>
-      <v-divider />
       <v-card-actions class="justify-space-between">
         <g-btn-cancel-icon @click="dialog = false" />
-        <g-btn-submit-icon
-          color="primary"
-          :disabled="!selectedItems.length"
-          @click="onClickSubmit"
-        />
+        <v-dialog v-model="selectWorkShift.dialog" max-width="240" persistent>
+          <template #activator="{ attrs, on }">
+            <g-btn-submit-icon
+              v-bind="attrs"
+              color="primary"
+              :disabled="!selectedItem"
+              v-on="on"
+            />
+          </template>
+          <v-card>
+            <v-toolbar color="secondary" dark dense flat>
+              <v-toolbar-title>勤務区分選択</v-toolbar-title>
+            </v-toolbar>
+            <v-container class="d-flex justify-center">
+              <g-radio-group-work-shift v-model="workShift" row />
+            </v-container>
+            <v-divider />
+            <v-card-actions class="justify-space-between">
+              <g-btn-cancel-icon @click="selectWorkShift.dialog = false" />
+              <g-btn-submit-icon color="primary" @click="onClickSubmit" />
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </v-card-actions>
     </v-card>
   </v-dialog>

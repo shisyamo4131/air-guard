@@ -1,21 +1,21 @@
 <script>
 /**
- * ### GDataTableSites
- *
  * 現場のDataTableコンポーネントです。
  *
  * @author shisyamo4131
  */
+import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GDataTable },
+  components: { GDataTable, GChipSyncStatus },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
+    items: { type: Array, default: () => [], required: false },
     sortBy: { type: [String, Array], default: 'code', required: false },
     sortDesc: { type: [Boolean, Array], default: true, required: false },
   },
@@ -24,25 +24,60 @@ export default {
    ***************************************************************************/
   computed: {
     headers() {
-      const result = [{ text: 'CODE', value: 'code', width: 84 }]
+      const result = []
       switch (this.$vuetify.breakpoint.name) {
         case 'xs':
-          result.push({ text: '略称', value: 'abbr', sortable: false })
+          result.push(
+            { text: 'CODE', value: 'code', width: 84 },
+            { text: '現場名', value: 'abbr', sortable: false },
+            { text: '取引先', value: 'customerName', sortable: false },
+            {
+              text: '同期状態',
+              value: 'sync',
+              sortable: false,
+              align: 'center',
+            }
+          )
           break
         case 'sm':
-          result.push({
-            text: '現場名/住所',
-            value: 'abbr',
-            sortable: false,
-          })
+          result.push(
+            { text: 'CODE', value: 'code', width: 84 },
+            {
+              text: '現場名/取引先',
+              value: 'abbr',
+              sortable: false,
+            },
+            {
+              text: '同期状態',
+              value: 'sync',
+              sortable: false,
+              align: 'center',
+            }
+          )
           break
         default:
           result.push(
-            { text: '現場名', value: 'name', sortable: false },
-            { text: '住所', value: 'address', sortable: false }
+            { text: 'CODE', value: 'code', width: 84 },
+            { text: '現場名/取引先', value: 'abbr', sortable: false },
+            { text: '住所', value: 'address', sortable: false },
+            {
+              text: '同期状態',
+              value: 'sync',
+              sortable: false,
+              align: 'center',
+            }
           )
       }
       return result
+    },
+    internalItems() {
+      return this.items.map((item) => {
+        const customer = this.$store.getters['customers/get'](item.customerId)
+        return {
+          ...item,
+          customerName: customer?.abbr || 'N/A',
+        }
+      })
     },
   },
   /***************************************************************************
@@ -64,54 +99,34 @@ export default {
     v-bind="$attrs"
     ref="table"
     :headers="headers"
-    :mobile-breakpoint="0"
+    :items="internalItems"
+    :mobile-breakpoint="600"
     :sort-by="sortBy"
     :sort-desc="sortDesc"
     v-on="$listeners"
   >
-    <!-- <template #[`item.name-xs`]="{ item }">
-      <div class="d-flex">
-        <div class="align-self-center">
-          <v-icon v-if="item.status === 'active'" color="green" left x-small
-            >mdi-play</v-icon
-          ><v-icon v-else color="red" left x-small>mdi-stop</v-icon>
-        </div>
-        <div>{{ item.abbr }}</div>
-      </div>
-    </template> -->
-    <!-- <template #[`item.namesm`]="{ item }">
-      <div class="d-flex">
-        <div class="align-self-center">
+    <template #[`item.abbr`]="{ item }">
+      <div class="d-flex align-center">
+        <div>
           <v-icon v-if="item.status === 'active'" color="green" left x-small
             >mdi-play</v-icon
           ><v-icon v-else color="red" left x-small>mdi-stop</v-icon>
         </div>
         <div>
           <div>
-            {{ item.name }}
+            {{ item.abbr }}
           </div>
-          <div class="text-caption grey--text text--darken-1">
-            {{ item.address }}
-          </div>
-        </div>
-      </div>
-    </template> -->
-    <template #[`item.name`]="{ item }">
-      <div class="d-flex">
-        <div class="align-self-center">
-          <v-icon v-if="item.status === 'active'" color="green" left x-small
-            >mdi-play</v-icon
-          ><v-icon v-else color="red" left x-small>mdi-stop</v-icon>
-        </div>
-        <div>
-          <div>
-            {{ item.name }}
-          </div>
-          <div class="text-caption grey--text text--darken-1">
-            {{ item.customer?.abbr || '' }}
+          <div
+            v-if="$vuetify.breakpoint.smAndUp"
+            class="text-caption grey--text text--darken-1"
+          >
+            {{ item.customerName }}
           </div>
         </div>
       </div>
+    </template>
+    <template #[`item.sync`]="{ item }">
+      <g-chip-sync-status :value="item.sync" x-small />
     </template>
   </g-data-table>
 </template>

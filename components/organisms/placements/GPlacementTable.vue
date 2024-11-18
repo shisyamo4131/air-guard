@@ -20,6 +20,7 @@ import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
 import { PlacedEmployee, PlacedOutsourcer } from '~/models/Placement'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
+import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 
 export default {
   /***************************************************************************
@@ -34,6 +35,7 @@ export default {
     GPlacementOutsourcerPlacementEditDialog,
     GPlacementSiteOperationSchedulesDialog,
     GSwitch,
+    GBtnCancelIcon,
   },
 
   /***************************************************************************
@@ -124,7 +126,7 @@ export default {
           {
             title: '勤務指示',
             icon: 'mdi-message-bulleted',
-            disabled: this.$vuetify.breakpoint.mobile,
+            // disabled: this.$vuetify.breakpoint.mobile,
             click: (date) => this.createCommandText(date),
           },
         ],
@@ -172,6 +174,11 @@ export default {
       snackbar: {
         show: false,
         text: '',
+      },
+
+      commandText: {
+        dialog: false,
+        text: null,
       },
     }
   },
@@ -425,8 +432,11 @@ export default {
         return snapshot.val()
       }
       try {
-        // `Placements/${date}` のデータを取得
+        // `Placements/${date}` のデータを取得 -> データが存在しなければ終了
         const placements = await getPlacements(date)
+
+        if (!placements) return
+
         let outputText = ''
 
         // 日付のフォーマット（先頭に追加）
@@ -464,7 +474,7 @@ export default {
           ]({ date, siteId, workShift })
           const scheduleText = operationSchedule
             ? `${operationSchedule.startTime} ～ ${operationSchedule.endTime}`
-            : 'N/A'
+            : '※稼働予定未登録※'
 
           // 検定配置路線の表示を追加
           const qualificationText =
@@ -514,10 +524,19 @@ export default {
         }
 
         // 生成されたテキストをクリップボードにコピー
-        await navigator.clipboard.writeText(outputText)
+        // await navigator.clipboard.writeText(outputText)
+        // this.snackbar.text = 'クリップボードにコピーしました。'
+        // this.snackbar.show = true
 
-        this.snackbar.text = 'クリップボードにコピーしました。'
-        this.snackbar.show = true
+        if (this.$vuetify.breakpoint.mobile) {
+          this.commandText.text = outputText
+          this.commandText.dialog = true
+        } else {
+          await navigator.clipboard.writeText(outputText)
+          this.snackbar.text = 'クリップボードにコピーしました。'
+          this.snackbar.show = true
+        }
+
         return outputText
       } catch (error) {
         console.error(`配置レポートの生成に失敗しました: ${error.message}`) // eslint-disable-line no-console
@@ -652,6 +671,27 @@ export default {
         </th>
       </tr>
     </tfoot>
+
+    <v-dialog v-model="commandText.dialog">
+      <v-card>
+        <v-toolbar color="secondary" dark dense flat>
+          <v-toolbar-title>勤務指示</v-toolbar-title>
+          <v-spacer />
+          <g-btn-cancel-icon @click="commandText.dialog = false" />
+        </v-toolbar>
+        <v-card-text class="pa-4 pb-2">
+          <v-textarea
+            :value="commandText.text"
+            readonly
+            autofocus
+            hint="コピーして使用してください。"
+            persistent-hint
+            outlined
+            @focus="($event) => $event.target.select()"
+          />
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <!-- dayMenu -->
     <v-menu

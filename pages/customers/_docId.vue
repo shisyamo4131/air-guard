@@ -114,7 +114,7 @@ export default {
       </v-col>
     </v-row>
     <!-- editor -->
-    <g-dialog-input v-model="dialog">
+    <g-dialog-input v-model="dialog" @submit:complete="onSubmitComplete">
       <template #default="{ attrs, on }">
         <g-input-customer
           v-bind="attrs"

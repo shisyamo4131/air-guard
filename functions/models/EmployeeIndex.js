@@ -11,16 +11,17 @@ export default class EmployeeIndex {
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    this.code = item?.code || ''
-    this.fullName = item?.fullName || ''
-    this.fullNameKana = item?.fullNameKana || ''
-    this.abbr = item?.abbr || ''
-    this.address1 = item?.address1 || ''
-    this.address2 = item?.address2 || ''
-    this.mobile = item?.mobile || ''
-    this.status = item?.status || ''
-    this.contractType = item?.contractType || ''
-    this.designation = item?.designation || ''
+    this.code = item.code ?? ''
+    this.fullName = item.fullName ?? ''
+    this.fullNameKana = item.fullNameKana ?? ''
+    this.abbr = item.abbr ?? ''
+    this.address1 = item.address1 ?? ''
+    this.address2 = item.address2 ?? ''
+    this.mobile = item.mobile ?? ''
+    this.status = item.status ?? ''
+    this.contractType = item.contractType ?? ''
+    this.designation = item.designation ?? ''
+    this.sync = item.sync ?? false
   }
 
   /****************************************************************************

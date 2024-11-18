@@ -1,22 +1,19 @@
 <script>
+import GDataTable from '../../atoms/tables/GDataTable.vue'
+import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 /**
- * ## GDataTableEmployees
- *
  * Employees用DataTableコンポーネント
  *
  * 機能詳細:
  * - 氏名、氏名カナで検索がヒットするようにcustomFilterを使用しています。
  *
  * @author shisyamo4131
- * @create 2024-06-28
- * @version 1.0.0
  */
-import GDataTable from '../../atoms/tables/GDataTable.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GDataTable },
+  components: { GDataTable, GChipSyncStatus },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -43,15 +40,61 @@ export default {
    ***************************************************************************/
   computed: {
     headers() {
-      if (this.$vuetify.breakpoint.xs) {
-        return [{ text: '氏名', value: 'fullName' }]
+      const result = []
+      switch (this.$vuetify.breakpoint.name) {
+        case 'xs':
+          result.push(
+            { text: 'CODE', value: 'code', width: 84 },
+            { text: '氏名', value: 'fullName' },
+            {
+              text: '同期状態',
+              value: 'sync',
+              sortable: false,
+              align: 'center',
+            }
+          )
+          break
+        case 'sm':
+          result.push(
+            { text: 'CODE', value: 'code', width: 84 },
+            { text: '氏名', value: 'fullName' },
+            { text: '連絡先', value: 'mobile', sortable: false, width: 156 },
+            {
+              text: '同期状態',
+              value: 'sync',
+              sortable: false,
+              align: 'center',
+            }
+          )
+          break
+        case 'md':
+          result.push(
+            { text: 'CODE', value: 'code', width: 84 },
+            { text: '氏名', value: 'fullName' },
+            { text: '住所', value: 'address1', sortable: false },
+            {
+              text: '同期状態',
+              value: 'sync',
+              sortable: false,
+              align: 'center',
+            }
+          )
+          break
+        default:
+          result.push(
+            { text: 'CODE', value: 'code', width: 84 },
+            { text: '氏名', value: 'fullName' },
+            { text: '住所', value: 'address', sortable: false },
+            { text: '連絡先', value: 'mobile', sortable: false, width: 156 },
+            {
+              text: '同期状態',
+              value: 'sync',
+              sortable: false,
+              align: 'center',
+            }
+          )
       }
-      return [
-        { text: 'CODE', value: 'code', width: 84 },
-        { text: '氏名', value: 'fullName' },
-        { text: '住所', value: 'address', sortable: false },
-        { text: '連絡先', value: 'mobile', sortable: false, width: 156 },
-      ]
+      return result
     },
   },
 }
@@ -61,7 +104,7 @@ export default {
   <g-data-table
     v-bind="{ ...$props, ...$attrs }"
     :headers="headers"
-    :mobile-breakpoint="0"
+    :mobile-breakpoint="600"
     :custom-filter="customFilter"
     v-on="$listeners"
   >
@@ -95,6 +138,9 @@ export default {
     </template>
     <template #[`item.mobile`]="{ item }">
       <v-icon x-small left>mdi-cellphone</v-icon>{{ item.mobile }}
+    </template>
+    <template #[`item.sync`]="{ item }">
+      <g-chip-sync-status :value="item.sync" x-small />
     </template>
   </g-data-table>
 </template>

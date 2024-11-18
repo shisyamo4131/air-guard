@@ -1,15 +1,10 @@
 <script>
 /**
- * ## GInputSite
+ * 現場情報入力コンポーネントです。
  *
- * 現場情報入力コンポーネント
+ * - 登録モードでは、入力された現場名に類似する既登録現場が存在した場合、アラートを出します。
  *
  * @author shisyamo4131
- * @version 1.2.0
- * @updates
- * - version 1.2.0 - 2024-10-04 - Use `GCheckboxDeleteData` instead of `GCheckbox`.
- * - version 1.1.0 - 2024-07-22 - データモデルの修正に伴って`customer`の選択ではなく、`customerId`の選択に修正。
- * - version 1.0.0 - 2024-07-10 - 初版作成
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GDate from '~/components/atoms/inputs/GDate.vue'
@@ -51,13 +46,36 @@ export default {
     },
     hideCustomer: { type: Boolean, default: false, required: false },
   },
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
       editModel: new Site(),
+      fuzzySeachItems: [],
     }
+  },
+
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    afterInitialize() {
+      this.fuzzySeachItems = []
+    },
+
+    setFuzzySearchItems() {
+      this.fuzzySeachItems = []
+      if (this.editMode !== this.CREATE) return
+      if (!this.editModel.customerId) return
+      if (!this.editModel.name) return
+      const regex = new RegExp(this.editModel.name.split('').join('.*'), 'i') // 'i'は大文字小文字を無視
+      this.fuzzySeachItems = this.$store.getters['sites/items'].filter(
+        (item) =>
+          regex.test(item.name) && item.customerId === this.editModel.customerId
+      )
+    },
   },
 }
 </script>
@@ -77,8 +95,32 @@ export default {
         v-model="editModel.customerId"
         label="取引先"
         required
+        @blur="setFuzzySearchItems"
       />
-      <g-text-field v-model="editModel.name" label="現場名" required />
+      <g-text-field
+        v-model="editModel.name"
+        label="現場名"
+        required
+        @change="editModel.abbr = editModel.name"
+        @blur="setFuzzySearchItems"
+      />
+
+      <v-expand-transition>
+        <v-alert
+          v-show="!!fuzzySeachItems.length"
+          type="info"
+          dense
+          text
+          class="text-subtitle-2"
+        >
+          類似した既登録現場があります。<br />重複登録に注意してください。
+          <ul>
+            <li v-for="(item, index) of fuzzySeachItems" :key="index">
+              {{ item.name }}
+            </li>
+          </ul>
+        </v-alert>
+      </v-expand-transition>
       <g-text-field
         v-model="editModel.abbr"
         label="略称"
@@ -110,7 +152,7 @@ export default {
         :items="$SECURITY_TYPE_ARRAY"
         required
       />
-      <g-textarea v-model="editModel.remarks" label="備考" />
+      <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
     <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
   </g-card-input-form>

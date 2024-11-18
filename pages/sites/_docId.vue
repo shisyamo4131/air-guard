@@ -132,7 +132,6 @@ export default {
             <v-row no-gutters>
               <v-col cols="12">
                 <v-container fluid>
-                  <!-- <g-site-operation-schedule-manager :instance="listener" /> -->
                   <g-site-operation-schedule-manager
                     :site-id="listener.docId"
                   />
@@ -152,7 +151,7 @@ export default {
       </v-card>
     </v-container>
     <!-- editor -->
-    <g-dialog-input v-model="dialog">
+    <g-dialog-input v-model="dialog" @submit:complete="onSubmitComplete">
       <template #default="{ attrs, on }">
         <g-input-site
           v-bind="attrs"

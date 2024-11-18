@@ -1,7 +1,9 @@
 /**
  * authenticated.js
  *
- * Copyright 2022 Daizo Maruyama. All Rights reserved.
+ * Middleware to handle authentication, maintenance mode, and access control.
+ *
+ * Copyright 2022 Daizo Maruyama. All Rights Reserved.
  */
 
 const STORE_GETTERS = {
@@ -10,27 +12,57 @@ const STORE_GETTERS = {
 }
 const pages = require('@/assets/pagePermissions')
 
-export default ({ app, store, route, redirect, error }) => {
+export default ({ store, route, redirect }) => {
   const isAuthenticated = store.getters[STORE_GETTERS.IS_AUTHENTICATED]
   const userRoles = store.getters[STORE_GETTERS.ROLES] || []
   const publicPages = ['login', 'register']
-
-  // メンテナンスモードの取得
   const isMaintenance = store.state.systems.maintenanceMode
-  if (isMaintenance && route.name !== 'maintenancing') {
-    redirect('/maintenancing')
+
+  /**
+   * Handle login page access:
+   * - Redirect authenticated users to the top page.
+   * - Allow unauthenticated users to proceed.
+   */
+  if (route.name === 'login') {
+    if (isAuthenticated) {
+      return redirect('/')
+    }
+    return
   }
 
+  /**
+   * Handle maintenance mode:
+   * - Redirect non-admin users to the maintenance page if they try to access other pages.
+   */
+  if (
+    isMaintenance &&
+    route.name !== 'maintenancing' &&
+    !userRoles.includes('admin')
+  ) {
+    return redirect('/maintenancing')
+  }
+
+  /**
+   * Handle unauthenticated users:
+   * - Redirect to the login page if trying to access non-public pages.
+   */
   if (!isAuthenticated) {
-    if (!publicPages.includes(route.name)) redirect('/login')
-  } else if (publicPages.includes(route.name)) {
-    redirect('/')
+    if (!publicPages.includes(route.name)) {
+      return redirect('/login')
+    }
+    return
   }
 
+  /**
+   * Handle authenticated users:
+   * - Check if the user has permission to access the requested page.
+   * - Redirect to the top page if they do not have the required permissions.
+   */
   const permissions = pages[route.name] || []
-  if (permissions.length) {
-    const isApproved =
-      permissions.filter((item) => userRoles.includes(item)).length > 0
-    if (!isApproved) redirect('/')
+  if (
+    permissions.length > 0 &&
+    !permissions.some((role) => userRoles.includes(role))
+  ) {
+    return redirect('/')
   }
 }

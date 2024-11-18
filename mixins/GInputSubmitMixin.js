@@ -63,9 +63,10 @@ import GInputInitializeMixin from '~/mixins/GInputInitializeMixin'
  * };
  * </script>
  *
- * @version 1.9.0
+ * @version 1.10.0
  * @creator shisyamo4131
  * @updates
+ * - version 1.10.0 - `data.forceDelete` を GInputInitializeMixin に移動
  * - version 1.9.0 - `data.forceDelete` を追加。
  * - version 1.8.0 - `data.loading`を追加。
  *                 - `submit`処理で`data.loading`の状態を制御するように修正
@@ -87,7 +88,6 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      forceDelete: false,
       loading: false,
       submitType: 'toFirestore',
     }

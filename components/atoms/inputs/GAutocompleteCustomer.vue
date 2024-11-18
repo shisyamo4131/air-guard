@@ -1,17 +1,10 @@
 <script>
 /**
- * ## GAutocompleteCustomer
- *
  * 取引先選択用のAutocompleteコンポーネントです。
  *
  * - `multiple`オプションは使用できません。
  *
  * @author shisyamo4131
- * @version 2.0.0
- * @updates
- * - version 2.0.0 - 2024-10-01 - Vuexがインデックスデータを管理するようになったことによる修正。
- * - version 1.1.0 - 2024-09-18 - `computed.items`に存在しない値が`$attrs.value`にセットされた場合に対応。
- * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
 import GAutocomplete from './GAutocomplete.vue'
 export default {
@@ -24,7 +17,9 @@ export default {
    ***************************************************************************/
   computed: {
     items() {
-      return this.$store.getters['customers/items']
+      return this.$store.getters['customers/items'].slice().sort((a, b) => {
+        return a.abbrKana.localeCompare(b.abbrKana)
+      })
     },
   },
 }
@@ -36,7 +31,6 @@ export default {
     item-text="abbr"
     item-value="docId"
     :items="items"
-    :multiple="false"
     v-on="$listeners"
   >
     <template #item="{ item }">

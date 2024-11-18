@@ -125,6 +125,16 @@ export default {
 </script>
 
 <style>
+/*
+  ダイアログの高さを固定するためのクラスです。
+  v-dialog の content-class プロパティに設定すると、ダイアログの高さが固定されます。
+  VDataIterator など、ダイアログ内で高さが変わるコンポーネントを使用する際に、
+  ダイアログの高さが変わらないように固定します。
+*/
+.fixed-height-dialog:not(.v-dialog--fullscreen) {
+  height: 90% !important;
+}
+
 .firebase-emulator-warning {
   display: none;
 }
