@@ -74,6 +74,15 @@ export default {
       validator: (mode) => ['placement', 'confirmation'].includes(mode),
       required: false,
     },
+
+    /**
+     * true が指定されると未上番の札がある行のみを表示します。
+     */
+    onlyNonArrival: {
+      type: Boolean,
+      default: false,
+      required: false,
+    },
   },
 
   /***************************************************************************
@@ -180,6 +189,14 @@ export default {
         dialog: false,
         text: null,
       },
+
+      /**
+       * 未上番の札が存在する現場-勤務区分のリストです。
+       * { id, siteId, workShift, value: [] }
+       * - value は従業員ID（または外注先KEY）の配列です。
+       * - GPlacementDraggableCell の non-arrivals イベントで更新されます。
+       */
+      nonArrivals: [],
     }
   },
 
@@ -291,6 +308,23 @@ export default {
     siteOrder() {
       return this.$store.state['site-order'].data
     },
+
+    /**
+     * 現在日付の未上番の札がある現場-勤務区分のリストを返します。
+     */
+    currentDayNonArrivalSiteWorkShifts() {
+      return this.nonArrivals
+        .filter(({ date, value }) => {
+          return date === this.currentDate && value.length > 0
+        })
+        .flatMap(({ siteId, workShift }) => {
+          return {
+            id: `${siteId}-${workShift}`,
+            siteId,
+            workShift,
+          }
+        })
+    },
   },
 
   /***************************************************************************
@@ -319,6 +353,24 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    /**
+     * data.nonArrivals を更新します。
+     * - GPlacementDraggableCell の non-arrivals イベントから呼び出されます。
+     */
+    refreshNonArrivals(event) {
+      const index = this.nonArrivals.findIndex(
+        ({ date, siteId, workShift }) =>
+          date === event.date &&
+          siteId === event.siteId &&
+          workShift === event.workShift
+      )
+      if (index === -1) {
+        this.nonArrivals.push(event)
+      } else {
+        this.nonArrivals.splice(index, 1, event)
+      }
+    },
+
     /**
      * data.columns を更新します。
      * - `columns` イベントで更新した columns の内容を emit します。
@@ -523,11 +575,6 @@ export default {
           outputText += '\n'
         }
 
-        // 生成されたテキストをクリップボードにコピー
-        // await navigator.clipboard.writeText(outputText)
-        // this.snackbar.text = 'クリップボードにコピーしました。'
-        // this.snackbar.show = true
-
         if (this.$vuetify.breakpoint.mobile) {
           this.commandText.text = outputText
           this.commandText.dialog = true
@@ -565,9 +612,10 @@ export default {
           v-for="column of columns"
           :key="column.date"
           :class="{
-            ['th-' + column.dayOfWeek]: true,
-            'th-previous': column.isPreviousDay,
-            'th-today': column.isToday,
+            'g-col': true,
+            ['g-col-' + column.dayOfWeek]: true,
+            'g-col-previous': column.isPreviousDay,
+            'g-col-today': column.isToday,
           }"
         >
           <v-icon v-if="column.isHoliday" color="red">mdi-flag-variant</v-icon>
@@ -583,14 +631,19 @@ export default {
         </th>
       </tr>
     </thead>
-    <tbody>
+    <!-- <tbody> -->
+    <transition-group tag="tbody" name="fade">
       <template v-for="(order, rowIndex) of siteOrder">
         <tr
+          v-show="
+            !onlyNonArrival ||
+            currentDayNonArrivalSiteWorkShifts.some(({ id }) => id === order.id)
+          "
           :ref="`${order.siteId}-${order.workShift}`"
           :key="`site-row-${rowIndex}`"
+          class="g-row g-row-no-hover"
         >
           <td class="site-row" :colspan="length + 1">
-            <!-- <slot name="site-row" v-bind="getSiteRowSlotProps(order)" /> -->
             <slot
               name="site-row"
               v-bind="{
@@ -608,14 +661,22 @@ export default {
             />
           </td>
         </tr>
-        <tr :key="`placement-row-${rowIndex}`">
+        <tr
+          v-show="
+            !onlyNonArrival ||
+            currentDayNonArrivalSiteWorkShifts.some(({ id }) => id === order.id)
+          "
+          :key="`placement-row-${rowIndex}`"
+          class="g-row g-row-no-hover"
+        >
           <td
             v-for="column of columns"
             :key="column.date"
             :class="{
-              ['td-' + column.dayOfWeek]: true,
-              'td-previous': column.isPreviousDay,
-              'td-today': column.isToday,
+              'g-col': true,
+              [`g-col-${column.dayOfWeek}`]: true,
+              'g-col-previous': column.isPreviousDay,
+              'g-col-today': column.isToday,
             }"
           >
             <!--
@@ -631,7 +692,7 @@ export default {
               :site-id="order.siteId"
               :work-shift="order.workShift"
               :ellipsis="ellipsis"
-              :disabled="column.isPreviousDay"
+              :disabled="column.isPreviousDay && order.workShift === 'day'"
               :mode="mode"
               :dragging-item="draggingItem"
               :copied-content="copiedContent"
@@ -643,21 +704,23 @@ export default {
               @click:schedule="openScheduleDialog"
               @update:copied-content="($event) => (copiedContent = $event)"
               @update:dragging-item="($event) => (draggingItem = $event)"
+              @non-arrivals="refreshNonArrivals"
             />
           </td>
         </tr>
       </template>
-    </tbody>
-
+      <!-- </tbody> -->
+    </transition-group>
     <tfoot>
       <tr>
         <th
           v-for="column of columns"
           :key="column.date"
           :class="{
-            ['th-' + column.dayOfWeek]: true,
-            'th-previous': column.isPreviousDay,
-            'th-today': column.isToday,
+            'g-col': true,
+            ['g-col-' + column.dayOfWeek]: true,
+            'g-col-previous': column.isPreviousDay,
+            'g-col-today': column.isToday,
           }"
         >
           <v-icon v-if="column.isHoliday" color="red">mdi-flag-variant</v-icon>
@@ -672,6 +735,7 @@ export default {
       </tr>
     </tfoot>
 
+    <!-- 勤務指示ダイアログ -->
     <v-dialog v-model="commandText.dialog">
       <v-card>
         <v-toolbar color="secondary" dark dense flat>
@@ -802,4 +866,43 @@ export default {
   </v-simple-table>
 </template>
 
-<style></style>
+<style>
+/* fixed テーブルに */
+#placement-table > div > table {
+  table-layout: fixed;
+}
+
+/* テーブルヘッダーのスタイル */
+#placement-table > div > table > thead > tr > th {
+  text-align: center;
+  min-width: 240px;
+  max-width: 240px;
+  width: 240px;
+}
+
+/* 奇数行のサイト行の背景色 */
+#placement-table > div > table > tbody > tr:nth-child(odd) .site-row {
+  background-color: beige;
+}
+
+/* 奇数行のサイト行の左側を固定する */
+#placement-table > div > table > tbody > tr:nth-child(odd) .site-row div {
+  display: inline-block;
+  position: sticky;
+  left: 16px;
+  z-index: 1 !important; /* 他の要素より前面に表示 */
+  /* box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1); */ /* 必要に応じて影を追加 */
+}
+
+/* テーブルフッターのスタイル */
+#placement-table tfoot {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+}
+
+#placement-table tfoot th {
+  background: #fff;
+  text-align: center;
+}
+</style>
