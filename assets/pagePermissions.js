@@ -9,7 +9,7 @@
 module.exports = {
   // 管制業務
   placements: [],
-  'site-operation-schedules': ['admin', 'developer'],
+  'site-operation-schedules': ['admin', 'developer', 'manager'],
   'operation-results': ['admin', 'developer'],
   'monthly-attendances': ['admin', 'developer'],
 
