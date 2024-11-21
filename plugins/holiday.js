@@ -79,11 +79,11 @@ class Holiday {
         )
         if (response[date]) {
           // eslint-disable-next-line no-console
-          console.log(`The date ${date} is a holiday: ${response[date]}`)
+          // console.log(`The date ${date} is a holiday: ${response[date]}`)
           return true
         } else {
           // eslint-disable-next-line no-console
-          console.log(`The date ${date} is not a holiday.`)
+          // console.log(`The date ${date} is not a holiday.`)
           return false
         }
       }
@@ -97,7 +97,7 @@ class Holiday {
 
       if (snapshot.exists()) {
         // eslint-disable-next-line no-console
-        console.log(`The date ${date} is a holiday: ${snapshot.val().name}`)
+        // console.log(`The date ${date} is a holiday: ${snapshot.val().name}`)
         return true
       } else {
         // eslint-disable-next-line no-console
