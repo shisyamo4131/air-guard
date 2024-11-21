@@ -99,6 +99,24 @@ export default {
    ***************************************************************************/
   computed: {
     /**
+     * 当該現場-勤務区分に配置されている従業員（または外注先）で未上番であるものの
+     * 従業員ID（または外注先KEY）を返します。
+     */
+    nonArrivals() {
+      if (!this.placement?.data) return []
+
+      const employees = Object.entries(this.placement.data.employees || {})
+        .filter(([_, data]) => !data.arrivedAt)
+        .map(([employeeId]) => ({ id: employeeId, type: 'employee' }))
+
+      const outsourcers = Object.entries(this.placement.data.outsourcers || {})
+        .filter(([_, data]) => !data.arrivedAt)
+        .map(([outsourcerKey]) => ({ id: outsourcerKey, type: 'outsourcer' }))
+
+      return [...employees, ...outsourcers]
+    },
+
+    /**
      * Vuex.site-order から適用すべき site-contract を取得して返します。
      * - 該当するものがなければ undefined を返します。
      */
@@ -146,6 +164,28 @@ export default {
       const employees = this.placement?.data?.employeeOrder || []
       const outsourcers = this.placement?.data?.outsourcerOrder || []
       return employees.length + outsourcers.length > 0
+    },
+  },
+
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    /**
+     * computed.nonArraivals を監視します。
+     * - non-arrivals イベントを emit します。
+     */
+    nonArrivals: {
+      handler(v) {
+        this.$emit('non-arrivals', {
+          date: this.date,
+          siteId: this.siteId,
+          workShift: this.workShift,
+          value: v,
+        })
+      },
+      immediate: true,
+      deep: true,
     },
   },
 
