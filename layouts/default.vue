@@ -125,14 +125,79 @@ export default {
 </script>
 
 <style>
-/*
+/*****************************************************************************
+  テーブルのセルの背景色定義
+******************************************************************************/
+
+/* 行のホバー時協調表示解除 */
+tr.g-row.g-row-no-hover:hover {
+  background-color: transparent !important;
+}
+
+/* セルホバー時のデフォルト背景色 */
+.g-col:hover {
+  background-color: #e0e0e0;
+}
+
+/* 土曜セルの背景色 */
+.g-col.g-col-sat {
+  background-color: #e3f2fd !important;
+}
+
+/* 土曜セルのホバー時背景色 */
+.g-col.g-col-sat:hover {
+  background-color: #bbdefb !important;
+}
+
+/* 日曜・祝日セルの背景色 */
+.g-col.g-col-sun,
+.g-col.g-col-holi {
+  background-color: #ffebee !important;
+}
+
+/* 日曜・祝日セルのホバー時背景色 */
+.g-col.g-col-sun:hover,
+.g-col.g-col-holi:hover {
+  background-color: #ffcdd2 !important;
+}
+
+/* 当日セルの背景色 */
+.g-col.g-col-today {
+  background-color: #fffde7 !important;
+}
+
+/* 当日セルのホバー時背景色 */
+.g-col.g-col-today:hover {
+  background-color: #fff9c4 !important;
+}
+
+/* 過去日付セルの背景色 */
+.g-col.g-col-previous {
+  background-color: #e0e0e0 !important;
+}
+
+/*****************************************************************************
   ダイアログの高さを固定するためのクラスです。
   v-dialog の content-class プロパティに設定すると、ダイアログの高さが固定されます。
   VDataIterator など、ダイアログ内で高さが変わるコンポーネントを使用する際に、
   ダイアログの高さが変わらないように固定します。
-*/
-.fixed-height-dialog:not(.v-dialog--fullscreen) {
+  fullscreen の場合は無視されます。
+******************************************************************************/
+.g-dialog__height--fixed:not(.v-dialog--fullscreen) {
   height: 90% !important;
+}
+
+/*****************************************************************************
+  トランジションの定義です。
+******************************************************************************/
+/* フェード */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
 }
 
 .firebase-emulator-warning {
@@ -215,86 +280,6 @@ export default {
 
 .flex-table > div {
   width: 100%;
-}
-
-/*****************************************************************************
- * placements
- *****************************************************************************/
-
-#placement-table > div > table {
-  table-layout: fixed;
-}
-
-/* テーブルヘッダーのスタイル */
-#placement-table > div > table > thead > tr > th {
-  text-align: center;
-  min-width: 240px;
-  max-width: 240px;
-  width: 240px;
-}
-
-/* 奇数行のサイト行の背景色 */
-#placement-table > div > table > tbody > tr:nth-child(odd) .site-row {
-  background-color: beige;
-}
-
-/* 奇数行のサイト行の左側を固定する */
-#placement-table > div > table > tbody > tr:nth-child(odd) .site-row div {
-  display: inline-block;
-  position: sticky;
-  left: 16px;
-  z-index: 1 !important; /* 他の要素より前面に表示 */
-  /* box-shadow: 1px 0 5px rgba(0, 0, 0, 0.1); */ /* 必要に応じて影を追加 */
-}
-
-/* テーブルフッターのスタイル */
-#placement-table tfoot {
-  position: sticky;
-  bottom: 0;
-  z-index: 1;
-}
-
-#placement-table tfoot th {
-  background: #fff;
-  text-align: center;
-}
-
-/* 行・セルのホバー時の背景色 */
-#placement-table tr:hover {
-  background-color: transparent !important;
-}
-
-#placement-table td:hover {
-  background-color: #e0e0e0;
-}
-
-/* 日曜・祝日セルの背景色 */
-#placement-table .th-sun,
-#placement-table .th-holi,
-#placement-table .td-sun,
-#placement-table .td-holi {
-  background-color: #ffebee;
-}
-
-#placement-table .td-sun:hover,
-#placement-table .td-holi:hover {
-  background-color: #ffcdd2;
-}
-
-/* 土曜日セルの背景色 */
-#placement-table .th-sat,
-#placement-table .td-sat {
-  background-color: #e3f2fd;
-}
-
-#placement-table .td-sat:hover {
-  background-color: #bbdefb;
-}
-
-/* 過去日付セルの背景色 */
-#placement-table .th-previous,
-#placement-table .td-previous {
-  background-color: #e0e0e0;
 }
 
 /*****************************************************************************
