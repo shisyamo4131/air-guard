@@ -22,7 +22,7 @@ export default class Employee extends FireModel {
   static useAutonumber = true
   static logicalDelete = true
   static classProps = classProps
-  static tokenFields = ['lastNameKana', 'firstNameKana', 'abbr']
+  static tokenFields = ['lastNameKana', 'firstNameKana', 'abbr', 'abbrKana']
   static hasMany = [
     {
       collection: 'EmployeeContracts',

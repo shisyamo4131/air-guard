@@ -79,11 +79,11 @@ export default {
         .filter((item) => {
           return !this.customFilter || this.customFilter(item)
         })
-        .filter(({ abbr, fullNameKana, status }) => {
+        .filter(({ abbrKana, fullNameKana, status }) => {
           const regexMatch =
             !this.regex ||
             this.regex.test(fullNameKana) ||
-            this.regex.test(abbr)
+            this.regex.test(abbrKana)
           const statusMatch = this.internalIncludeExpired || status === 'active'
           return regexMatch && statusMatch
         })

@@ -4,9 +4,6 @@ import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 /**
  * Employees用DataTableコンポーネント
  *
- * 機能詳細:
- * - 氏名、氏名カナで検索がヒットするようにcustomFilterを使用しています。
- *
  * @author shisyamo4131
  */
 export default {
@@ -28,7 +25,7 @@ export default {
     return {
       customFilter: (value, search, item) => {
         if (!search) return true
-        const props = ['fullName', 'fullNameKana'].map((key) =>
+        const props = ['fullName', 'fullNameKana', 'abbrKana'].map((key) =>
           item[key].toLowerCase()
         )
         return props.some((prop) => prop.includes(search))

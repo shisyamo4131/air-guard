@@ -1,16 +1,8 @@
 <script>
 /**
- * ## InputEmployee
  * Employee用Inputコンポーネントです。
  *
  * @author shisyamo4131
- * @version 1.2.0
- *
- * @updates
- * - version 1.3.0 - 2024-07-23 - 氏名から略称を自動入力
- *                              - 退職日と退職事由を削除 -> 登録時には不要。退職処理は別途用意。
- * - version 1.2.0 - 2024-07-02 - 生年月日を追加
- * - version 1.1.0 - 2024-07-01 - 血液型を追加
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
@@ -134,9 +126,42 @@ export default {
           />
         </v-col>
         <v-col cols="12" md="6">
+          <g-text-field
+            v-model="editModel.abbrKana"
+            label="略称カナ"
+            required
+            hint="検索に使用されます"
+            ignore-surrogate-pair
+            counter
+            maxlength="5"
+            input-type="katakana"
+          />
+        </v-col>
+        <v-col cols="12" md="6">
           <g-combobox-date
             v-model="editModel.hireDate"
             label="入社日"
+            required
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <g-combobox-date
+            v-model="editModel.birth"
+            label="生年月日"
+            required
+          />
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-radio-group v-model="editModel.gender" class="mt-1 mb-2" row>
+            <v-radio label="男性" value="male" />
+            <v-radio label="女性" value="female" />
+          </v-radio-group>
+        </v-col>
+        <v-col cols="12" md="6">
+          <g-select
+            v-model="editModel.bloodType"
+            label="血液型"
+            :items="['A', 'B', 'O', 'AB', '-']"
             required
           />
         </v-col>
@@ -155,26 +180,7 @@ export default {
             :disabled="!editModel.isForeigner"
           />
         </v-col>
-        <v-col cols="12" md="6">
-          <g-combobox-date
-            v-model="editModel.birth"
-            label="生年月日"
-            required
-          />
-        </v-col>
-        <v-col cols="12" md="6">
-          <v-radio-group v-model="editModel.gender" class="mt-1 mb-2" row>
-            <v-radio label="男性" value="male" />
-            <v-radio label="女性" value="female" />
-          </v-radio-group>
-        </v-col>
       </v-row>
-      <g-select
-        v-model="editModel.bloodType"
-        label="血液型"
-        :items="['A', 'B', 'O', 'AB', '-']"
-        required
-      />
       <a-renderless-zipcode
         v-model="editModel.zipcode"
         @loaded="editModel.address1 = $event.full"
