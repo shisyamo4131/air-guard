@@ -11,6 +11,11 @@
     "lists": [
       { "name": "配置管理", "to": "/placements", "icon": "mdi-table-account" },
       {
+        "name": "稼働予定管理",
+        "to": "/site-operation-schedules",
+        "icon": "mdi-calendar-outline"
+      },
+      {
         "name": "稼働実績",
         "to": "/operation-results",
         "icon": "mdi-table-edit"
