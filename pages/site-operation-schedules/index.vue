@@ -547,10 +547,15 @@ export default {
 }
 
 /* --- 列固定 --- */
-#site-operation-schedule-table th:nth-child(-n + 2),
-#site-operation-schedule-table td:nth-child(-n + 2) {
+#site-operation-schedule-table th:nth-child(-n + 2) {
   position: sticky !important;
   z-index: 3 !important;
+  background-color: #fff;
+}
+
+#site-operation-schedule-table td:nth-child(-n + 2) {
+  position: sticky !important;
+  z-index: 2 !important;
   background-color: #fff;
 }
 
@@ -592,6 +597,12 @@ export default {
   position: sticky;
   bottom: 0;
   z-index: 4;
+}
+
+/* --- フッターの列設定 --- */
+#site-operation-schedule-table tfoot {
+  background: #fff;
+  text-align: center;
 }
 
 /* ホバー時の背景色処理 */
