@@ -28,7 +28,12 @@
               <th
                 v-for="column of columns"
                 :key="column.date"
-                :class="`th-${column.dayOfWeek}`"
+                :class="{
+                  'g-col': true,
+                  ['g-col-' + column.dayOfWeek]: true,
+                  'g-col-previous': column.isPreviousDay,
+                  'g-col-today': column.isToday,
+                }"
                 style="text-align: center"
               >
                 <v-icon v-if="column.isHoliday" color="red"
@@ -39,7 +44,11 @@
             </tr>
           </thead>
           <tbody>
-            <tr v-for="employee of employees" :key="employee.docId">
+            <tr
+              v-for="employee of employees"
+              :key="employee.docId"
+              class="g-row g-row-no-hover"
+            >
               <td
                 style="
                   position: sticky;
@@ -56,14 +65,25 @@
                 v-for="column of columns"
                 :key="column.date"
                 style="text-align: center"
+                :class="{
+                  'g-col': true,
+                  ['g-col-' + column.dayOfWeek]: true,
+                  'g-col-previous': column.isPreviousDay,
+                  'g-col-today': column.isToday,
+                }"
               >
                 <div class="d-flex justify-center">
                   <v-simple-checkbox
                     :value="
-                      (data?.[column.date]?.day || []).includes(employee.docId)
+                      (data?.[column.date]?.day || []).includes(
+                        employee.docId
+                      ) || isAssigned(column.date, employee.docId, 'day')
                     "
                     color="primary"
-                    :disabled="isAssigned(column.date, employee.docId, 'day')"
+                    :disabled="
+                      isAssigned(column.date, employee.docId, 'day') ||
+                      column.isPreviousDay
+                    "
                     @input="
                       submit({
                         date: column.date,
@@ -76,10 +96,13 @@
                     :value="
                       (data?.[column.date]?.night || []).includes(
                         employee.docId
-                      )
+                      ) || isAssigned(column.date, employee.docId, 'night')
                     "
                     color="error"
-                    :disabled="isAssigned(column.date, employee.docId, 'night')"
+                    :disabled="
+                      isAssigned(column.date, employee.docId, 'night') ||
+                      column.isPreviousDay
+                    "
                     @input="
                       submit({
                         date: column.date,
