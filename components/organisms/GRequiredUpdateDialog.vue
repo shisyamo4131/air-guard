@@ -28,8 +28,7 @@ export default {
      * ダイアログを起動するトリガーです。
      */
     dialog() {
-      // return !this.$store.getters['systems/isLatest']
-      return true
+      return !this.$store.getters['systems/isLatest']
     },
 
     /**
