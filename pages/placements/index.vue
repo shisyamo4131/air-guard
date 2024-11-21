@@ -32,6 +32,18 @@
               >
               <span v-if="!$vuetify.breakpoint.mobile">確認モード</span>
             </v-btn>
+
+            <!-- 未上番抽出スイッチ（準備ができるまで非公開） -->
+            <div v-if="false">
+              <g-switch
+                v-show="mode === 'confirmation'"
+                v-model="onlyNonArrival"
+                class="ml-2"
+                hide-details
+                label="未上番表示"
+              />
+            </div>
+            <!-- ジャンプボタン -->
             <v-dialog v-model="dialog.jump" max-width="480" scrollable>
               <template #activator="{ attrs, on }">
                 <v-btn v-bind="attrs" color="primary" text v-on="on">
@@ -73,20 +85,12 @@
                 </v-card-text>
               </v-card>
             </v-dialog>
-            <!-- モード切替を↑に修正したがとりあえず残しておく -->
-            <div v-if="false">
-              <g-checkbox v-model="ellipsis" hide-details label="省略表示" />
-              <g-checkbox
-                v-model="mode"
-                class="ml-2"
-                hide-details
-                label="確認モード"
-                true-value="confirmation"
-                false-value="placement"
-              />
-            </div>
+
             <v-spacer />
+
+            <!-- 表示日数切替 -->
             <v-select
+              v-if="mode === 'placement'"
               v-model="length"
               :items="[
                 { text: '3日', value: 3 },
@@ -115,6 +119,7 @@
               :ellipsis="ellipsis"
               :length="length"
               :mode="mode"
+              :only-non-arrival="onlyNonArrival"
               @columns="columns = $event"
             >
               <template #site-row="{ attrs, on }">
@@ -131,13 +136,13 @@
 <script>
 import dayjs from 'dayjs'
 import GPlacementTable from '~/components/organisms/placements/GPlacementTable.vue'
-import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GPlacementSiteWorkShiftRow from '~/components/organisms/placements/GPlacementSiteWorkShiftRow.vue'
 import GPlacementToolbar from '~/components/organisms/placements/GPlacementToolbar.vue'
 import GPlacementAlertHiddenSites from '~/components/organisms/placements/GPlacementAlertHiddenSites.vue'
 import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
+import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -149,13 +154,13 @@ export default {
    ***************************************************************************/
   components: {
     GPlacementTable,
-    GCheckbox,
     GTemplateDefault,
     GPlacementSiteWorkShiftRow,
     GPlacementToolbar,
     GPlacementAlertHiddenSites,
     GBtnCancelIcon,
     GChipWorkShift,
+    GSwitch,
   },
 
   /***************************************************************************
@@ -176,6 +181,7 @@ export default {
       length: 7,
       mode: 'placement',
       columns: [],
+      onlyNonArrival: false,
 
       dialog: {
         jump: false,
@@ -218,6 +224,9 @@ export default {
     'dialog.jump'(v) {
       if (v) return
       this.$vuetify.goTo(this, { container: this.$refs['jump-container'] })
+    },
+    mode(v) {
+      if (v === 'placement') this.onlyNonArrival = false
     },
   },
 
