@@ -28,6 +28,7 @@ import GEditModeMixin from '~/mixins/GEditModeMixin'
 import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
 import GDialogLoading from '~/components/molecules/dialogs/GDialogLoading.vue'
 import GSosRequiredWorkersChip from '~/components/organisms/site-operation-schedules/GSosRequiredWorkersChip.vue'
+import GSosSiteOrderBtn from '~/components/organisms/site-operation-schedules/GSosSiteOrderBtn.vue'
 
 export default {
   /***************************************************************************
@@ -46,6 +47,7 @@ export default {
     GChipWorkShift,
     GDialogLoading,
     GSosRequiredWorkersChip,
+    GSosSiteOrderBtn,
   },
 
   /***************************************************************************
@@ -452,6 +454,7 @@ export default {
               />
             </template>
           </g-dialog-input>
+          <g-sos-site-order-btn v-model="siteOrder" color="primary" text />
         </v-toolbar-items>
       </v-toolbar>
       <div class="px-2 pb-2 overflow-hidden d-flex flex-column flex-grow-1">
@@ -487,7 +490,6 @@ export default {
               <tr v-for="(order, index) of siteOrder" :key="index">
                 <td>
                   <div class="site-name">
-                    <v-icon left small>mdi-arrow-all</v-icon>
                     {{
                       $store.getters['sites/get'](order.siteId)?.abbr || 'N/A'
                     }}
