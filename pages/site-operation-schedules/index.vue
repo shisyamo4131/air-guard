@@ -487,6 +487,7 @@ export default {
               <tr v-for="(order, index) of siteOrder" :key="index">
                 <td>
                   <div class="site-name">
+                    <v-icon left small>mdi-arrow-all</v-icon>
                     {{
                       $store.getters['sites/get'](order.siteId)?.abbr || 'N/A'
                     }}
@@ -554,9 +555,9 @@ export default {
 /* --- 1列目のセル設定 --- */
 #site-operation-schedule-table th:nth-child(1),
 #site-operation-schedule-table td:nth-child(1) {
-  min-width: 156px !important;
-  max-width: 156px !important;
-  width: 156px !important;
+  min-width: 180px !important;
+  max-width: 180px !important;
+  width: 180px !important;
   left: 0; /* 列固定位置 */
 }
 
@@ -566,7 +567,7 @@ export default {
   min-width: 96px !important;
   max-width: 96px !important;
   width: 96px !important;
-  left: 156px; /* 列固定位置 */
+  left: 180px; /* 列固定位置 */
 }
 
 /* --- 3列目以降のセル設定 --- */
@@ -598,7 +599,7 @@ export default {
 
 /* --- サイト名スタイル --- */
 #site-operation-schedule-table .site-name {
-  width: calc(156px - 32px); /* 1列目の幅から TD の padding を差し引く */
+  width: calc(180px - 32px); /* 1列目の幅から TD の padding を差し引く */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
