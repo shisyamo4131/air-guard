@@ -1,7 +1,5 @@
 {
   "rules": {
-    ".read": "auth !== null",
-    ".write": "auth !== null",
     "AirGuard": {
       "Customers": {
         ".indexOn": ["docId"],
@@ -29,6 +27,10 @@
       ".write": false,
       ".indexOn": ["code"]
     },
+    "EmployeeSiteHistory": {
+      ".read": "auth !== null",
+      ".write": false
+    },
     "Employees": {
       ".read": "auth !== null",
       ".write": false,
@@ -42,6 +44,8 @@
     "History": {
       "SiteOperationSchedules": {
         "$siteId": {
+          ".read": "auth !== null",
+          ".write": false,
           ".indexOn": ["date"]
         }
       }
@@ -50,6 +54,18 @@
       ".read": "auth !== null",
       ".write": false,
       ".indexOn": ["code"]
+    },
+    "Placements": {
+      ".read": "auth !== null",
+      ".write": "auth !== null"
+    },
+    "SiteEmployeeHistory": {
+      ".read": "auth !== null",
+      ".write": "auth !== null"
+    },
+    "SiteOperationSchedules": {
+      ".read": "auth !== null",
+      ".write": false
     },
     "Sites": {
       ".read": "auth !== null",
