@@ -28,6 +28,12 @@ const propsDefinition = {
     requiredByClass: true,
   },
   abbr: { type: String, default: '', required: false, requiredByClass: true },
+  abbrKana: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
   gender: {
     type: String,
     default: 'male',

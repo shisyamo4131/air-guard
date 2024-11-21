@@ -15,6 +15,7 @@ export default class EmployeeIndex {
     this.fullName = item.fullName ?? ''
     this.fullNameKana = item.fullNameKana ?? ''
     this.abbr = item.abbr ?? ''
+    this.abbrKana = item.abbrKana ?? ''
     this.address1 = item.address1 ?? ''
     this.address2 = item.address2 ?? ''
     this.mobile = item.mobile ?? ''
