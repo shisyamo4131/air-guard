@@ -15,7 +15,10 @@ import {
   onDocumentUpdated,
 } from 'firebase-functions/v2/firestore'
 import { logger } from 'firebase-functions/v2'
-import { isDocumentChanged } from '../modules/utils.js'
+import {
+  isDocumentChanged,
+  removeDependentDocuments,
+} from '../modules/utils.js'
 import Site from '../models/Site.js'
 
 /****************************************************************************
@@ -103,6 +106,13 @@ export const onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
   try {
     // Realtime Databaseインデックスを削除
     await Site.syncIndex(docId, true)
+
+    // 従属する現場取極め, 現場稼働予定を削除
+    await removeDependentDocuments(
+      ['SiteContracts', 'SiteOperationSchedules'],
+      'siteId',
+      docId
+    )
   } catch (err) {
     // エラーハンドリング
     logger.error(
