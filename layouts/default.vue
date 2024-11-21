@@ -38,7 +38,7 @@
     </v-app-bar>
     <v-main>
       <Nuxt keep-alive :keep-alive-props="{ include: keepAlivePages }" />
-      <g-dialog-required-system-update />
+      <g-required-update-dialog />
     </v-main>
   </v-app>
 </template>
@@ -49,7 +49,7 @@ import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
 import GNavigationDrawer from '~/components/organisms/GNavigationDrawer.vue'
 import User from '~/models/User'
-import GDialogRequiredSystemUpdate from '~/components/organisms/GDialogRequiredSystemUpdate.vue'
+import GRequiredUpdateDialog from '~/components/organisms/GRequiredUpdateDialog.vue'
 export default {
   name: 'DefaultLayout',
   components: {
@@ -57,7 +57,7 @@ export default {
     GTextField,
     GBtnCancelIcon,
     GBtnSubmitIcon,
-    GDialogRequiredSystemUpdate,
+    GRequiredUpdateDialog,
   },
   data() {
     return {
