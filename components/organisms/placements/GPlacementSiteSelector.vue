@@ -110,7 +110,7 @@ export default {
     v-model="dialog"
     max-width="600"
     scrollable
-    content-class="fixed-height-dialog"
+    content-class="g-dialog__height--fixed"
     :fullscreen="$vuetify.breakpoint.mobile"
   >
     <template #activator="{ attrs, on }">
