@@ -13,7 +13,7 @@ import System from '~/models/System'
  * STATE
  ******************************************************************/
 export const state = () => ({
-  APP_VERSION: '0.4.0', // アプリのバージョン -> Firestore のシステムバージョンとの比較に使用
+  APP_VERSION: '0.5.0', // アプリのバージョン -> Firestore のシステムバージョンとの比較に使用
   calcAttendance: null,
   calcMonthlySales: null,
   calcSiteBillings: null,
