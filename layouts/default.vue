@@ -3,7 +3,12 @@
     <g-navigation-drawer v-model="drawer" app fixed temporary touchless />
     <v-app-bar app color="primary" dark dense fixed flat>
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
-      <v-toolbar-title>Air Guard</v-toolbar-title>
+      <v-toolbar-title>
+        Air Guard
+        <span class="text-subtitle-2 ml-2">{{
+          `ver.${$store.state.systems['APP_VERSION']}`
+        }}</span>
+      </v-toolbar-title>
       <v-spacer />
       <v-dialog v-model="dialog" max-width="360" persistent>
         <template #activator="{ attrs, on }">

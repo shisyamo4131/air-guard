@@ -9,16 +9,11 @@ import { firestore } from 'air-firebase'
 import { doc, onSnapshot } from 'firebase/firestore'
 import System from '~/models/System'
 
-/**
- * アプリのバージョンです。
- * Firestore のシステムバージョンとの比較に使用されます。
- */
-const APP_VERSION = '0.3.0'
-
 /******************************************************************
  * STATE
  ******************************************************************/
 export const state = () => ({
+  APP_VERSION: '0.4.0', // アプリのバージョン -> Firestore のシステムバージョンとの比較に使用
   calcAttendance: null,
   calcMonthlySales: null,
   calcSiteBillings: null,
@@ -39,7 +34,7 @@ export const getters = {
    * @returns
    */
   isLatest(state) {
-    const appVer = APP_VERSION.split('.')
+    const appVer = state.APP_VERSION.split('.')
     const required = (state.version || '0.0.0').split('.')
     for (let i = 0; i < 3; i++) {
       if (parseInt(appVer[i]) > parseInt(required[i])) return true
