@@ -507,7 +507,7 @@ export default {
 
           // 現場オブジェクトの取得
           const site = this.$store.getters['sites/get'](siteId)
-          const siteName = site ? site.name : 'N/A' // site.nameが存在しない場合はN/Aと表示
+          const siteName = site ? site.abbr : 'N/A' // site.abbrが存在しない場合はN/Aと表示
           const siteAddress = site ? site.address : 'N/A' // site.addressが存在しない場合はN/Aと表示
 
           // 取引先オブジェクトの取得
