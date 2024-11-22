@@ -7,7 +7,7 @@ const database = getDatabase()
 /**
  * EmployeeSiteHistory クラス
  *
- * - 従業員の現場履歴を管理し、更新するためのクラス
+ * - 従業員の現場入場履歴を管理し、更新するためのクラス
  *
  * /EmployeeSiteHistory
  *   |- ${employeeId}                    // 従業員ごとのルートノード
@@ -18,7 +18,7 @@ const database = getDatabase()
  *       |- lastOperationId: ${docId}    // 対象となる稼働実績ドキュメントID
  *
  * NOTE:
- * 従業員現場履歴は従業員稼働実績ドキュメントを基に更新されるデータですが、当該ドキュメントの作成・更新トリガーでの
+ * 従業員現場入場履歴は従業員稼働実績ドキュメントを基に更新されるデータですが、当該ドキュメントの作成・更新トリガーでの
  * 更新は行いません。
  * - トリガーに依存した処理になるため出来るだけ避けたい。
  * - 日時バッチ処理にて更新されるほか、アプリ側のメンテナンス機能として更新する処理を用意しています。
@@ -79,23 +79,28 @@ export class EmployeeSiteHistory {
   }
 
   /**
-   * 指定された従業員の現場履歴を強制的に更新します。
-   * - 従業員稼働実績ドキュメント（OperationWorkResults）を使用します。
-   * - バグなどの理由で現場履歴が正常に記録されていなかった場合の強制的な処理です。
+   * 指定された従業員の現場入場履歴を強制的に更新します。
+   * - 従業員稼働実績ドキュメントを使用します。
+   * - 従業員稼働実績ドキュメントが削除された時に現場入場履歴を更新するために使用するほか、
+   *   バグなどの理由で現場入場履歴が正常に記録されていなかった場合の強制的な処理です。
    * - 大量のデータ、ドキュメントを読み込む可能性があるため、必要な時にだけ実行してください。
    * - 現場IDが指定された場合、対象の現場のみで強制更新します。
-   * - 稼働実績ドキュメントが削除された際の稼働履歴の更新には便利です。
-   *
    * @param {string} employeeId 従業員ID
    * @param {string} siteId 現場ID（オプション）
    */
   static async updateByEmployeeId({ employeeId, siteId }) {
     try {
       // 処理開始ログを出力
-      logger.info(`[updateByEmployeeId] 従業員の現場履歴を更新します。`, {
+      logger.info(`[updateByEmployeeId] 従業員の現場入場履歴を更新します。`, {
         employeeId,
         siteId,
       })
+
+      // 対象従業員（現場が指定されていれば現場）の入場履歴を一旦削除
+      const path = siteId
+        ? `EmployeeSiteHistory/${employeeId}/${siteId}`
+        : `EmployeeSiteHistory/${employeeId}`
+      await database.ref(path).remove()
 
       // 対象従業員が稼働した従業員稼働実績ドキュメントをすべて取得
       const workResultInstance = new OperationWorkResult()
@@ -104,16 +109,12 @@ export class EmployeeSiteHistory {
 
       const workResultDocs = await workResultInstance.fetchDocs(conditions)
 
-      // 従業員稼働実績ドキュメントが存在しなければ稼働履歴を削除
+      // 従業員稼働実績ドキュメントが存在しなければ終了
       if (!workResultDocs.length) {
         logger.info(
-          `従業員稼働実績が存在しませんでした。現場履歴を初期化して終了します。`,
+          `従業員稼働実績が存在しませんでした。現場入場履歴の更新処理を終了します。`,
           { employeeId, siteId }
         )
-        const path = siteId
-          ? `EmployeeSiteHistory/${employeeId}/${siteId}`
-          : `EmployeeSiteHistory/${employeeId}`
-        await database.ref(path).remove()
         return
       }
 
@@ -139,42 +140,15 @@ export class EmployeeSiteHistory {
         return sum
       }, {})
 
-      // 現場入場履歴を更新（first -> last）
-      const promises = []
-      for (const [siteId, obj] of Object.entries(data)) {
-        const { firstDate, firstOperationId } = obj
-        promises.push(
-          EmployeeSiteHistory.update({
-            employeeId,
-            siteId,
-            date: firstDate,
-            operationResultId: firstOperationId,
-          })
-        )
-      }
-      await Promise.all(promises)
-
-      promises.splice(0)
-      for (const [siteId, obj] of Object.entries(data)) {
-        const { lastDate, lastOperationId } = obj
-        promises.push(
-          EmployeeSiteHistory.update({
-            employeeId,
-            siteId,
-            date: lastDate,
-            operationResultId: lastOperationId,
-          })
-        )
-      }
-      await Promise.all(promises)
+      await database.ref(path).set(data)
 
       // 終了ログを出力
-      logger.info(`従業員の現場履歴を更新しました。`, {
+      logger.info(`従業員の現場入場履歴を更新しました。`, {
         employeeId,
         siteId,
       })
     } catch (error) {
-      const message = `[updateByEmployeeId] 従業員の現場履歴更新処理でエラーが発生しました。`
+      const message = `[updateByEmployeeId] 従業員の現場入場履歴更新処理でエラーが発生しました。`
       logger.error(message, { employeeId, siteId, error })
       throw error
     }
@@ -182,7 +156,7 @@ export class EmployeeSiteHistory {
 
   /**
    * 引数で与えられた日時以降に作成または更新された従業員稼働実績ドキュメントを
-   * もとに、従業員の現場履歴を更新します。
+   * もとに、従業員の現場入場履歴を更新します。
    * @param {Date} timestamp 基準とする日時（Dateオブジェクト）
    * @returns
    */
@@ -203,7 +177,7 @@ export class EmployeeSiteHistory {
     try {
       // 処理開始ログを出力
       logger.info(
-        `[updateByTimestamp] ${deadline} 以降に作成または更新された従業員稼働実績ドキュメントを対象に従業員の現場履歴を更新します。`
+        `[updateByTimestamp] ${deadline} 以降に作成または更新された従業員稼働実績ドキュメントを対象に従業員の現場入場履歴を更新します。`
       )
 
       // 指定された timestamp 以降に作成または更新された従業員稼働実績ドキュメントを取得
@@ -232,7 +206,7 @@ export class EmployeeSiteHistory {
       // 対象の従業員稼働実績ドキュメントが存在したことをログに出力
       logger.info(`${targetDocs.length} 件の対象ドキュメントが見つかりました。`)
 
-      // 対象の従業員稼働実績ドキュメントから、現場履歴の元データを作成
+      // 対象の従業員稼働実績ドキュメントから、現場入場履歴の元データを作成
       const data = targetDocs.reduce((result, doc) => {
         const { employeeId, siteId, date, operationResultId } = doc
 
@@ -296,10 +270,10 @@ export class EmployeeSiteHistory {
 
       // 処理完了ログを出力
       logger.info(
-        `[updateByTimestamp] 従業員の現場履歴の更新処理が完了しました。`
+        `[updateByTimestamp] 従業員の現場入場履歴の更新処理が完了しました。`
       )
     } catch (error) {
-      const message = `[updateByTimestamp] 従業員の現場履歴更新処理でエラーが発生しました。`
+      const message = `[updateByTimestamp] 従業員の現場入場履歴更新処理でエラーが発生しました。`
       logger.error(message, { timestamp: deadline, error })
       throw error
     }

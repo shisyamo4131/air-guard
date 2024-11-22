@@ -8,8 +8,8 @@
 
 import { onDocumentDeleted } from 'firebase-functions/v2/firestore'
 import { logger } from 'firebase-functions/v2'
-import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory'
-import { SiteEmployeeHistory } from '../models/SiteEmployeeHistory'
+import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory.js'
+import { SiteEmployeeHistory } from '../models/SiteEmployeeHistory.js'
 
 /****************************************************************************
  * 削除トリガー

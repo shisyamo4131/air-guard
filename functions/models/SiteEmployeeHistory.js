@@ -80,11 +80,11 @@ export class SiteEmployeeHistory {
 
   /**
    * 指定された現場の従業員入場履歴を強制的に更新します。
-   * - 従業員稼働実績ドキュメント（OperationWorkResults）を使用します。
-   * - バグなどの理由で従業員入場履歴が正常に記録されていなかった場合の強制的な処理です。
+   * - 従業員稼働実績ドキュメントを使用します。
+   * - 従業員稼働実績ドキュメントが削除された時に従業員入場履歴を更新するために使用するほか、
+   *   バグなどの理由で従業員入場履歴が正常に記録されていなかった場合の強制的な処理です。
    * - 大量のデータ、ドキュメントを読み込む可能性があるため、必要な時にだけ実行してください。
-   * - 現場IDが指定された場合、対象の現場のみで強制更新します。
-   * - 稼働実績ドキュメントが削除された際の従業員入場履歴の更新には便利です。
+   * - 従業員IDが指定された場合、対象の従業員のみで強制更新します。
    *
    * @param {string} siteId 現場ID
    * @param {string} employeeId 従業員ID（オプション）
@@ -97,6 +97,12 @@ export class SiteEmployeeHistory {
         employeeId,
       })
 
+      // 対象現場（従業員が指定されていれば従業員）の入場履歴を一旦削除
+      const path = employeeId
+        ? `SiteEmployeeHistory/${siteId}/${employeeId}`
+        : `SiteEmployeeHistory/${siteId}`
+      await database.ref(path).remove()
+
       // 対象従業員が稼働した従業員稼働実績ドキュメントをすべて取得
       const workResultInstance = new OperationWorkResult()
       const conditions = [['where', 'siteId', '==', siteId]]
@@ -107,13 +113,9 @@ export class SiteEmployeeHistory {
       // 従業員稼働実績ドキュメントが存在しなければ従業員入場履歴を削除
       if (!workResultDocs.length) {
         logger.info(
-          `従業員稼働実績が存在しませんでした。従業員入場履歴を初期化して終了します。`,
+          `従業員稼働実績が存在しませんでした。従業員入場履歴の更新処理を終了します。`,
           { siteId, employeeId }
         )
-        const path = employeeId
-          ? `SiteEmployeeHistory/${siteId}/${employeeId}`
-          : `SiteEmployeeHistory/${siteId}`
-        await database.ref(path).remove()
         return
       }
 
@@ -139,34 +141,7 @@ export class SiteEmployeeHistory {
         return sum
       }, {})
 
-      // 従業員入場履歴を更新（first -> last）
-      const promises = []
-      for (const [employeeId, obj] of Object.entries(data)) {
-        const { firstDate, firstOperationId } = obj
-        promises.push(
-          await SiteEmployeeHistory.update({
-            siteId,
-            employeeId,
-            date: firstDate,
-            operationResultId: firstOperationId,
-          })
-        )
-      }
-      await Promise.all(promises)
-
-      promises.splice(0)
-      for (const [employeeId, obj] of Object.entries(data)) {
-        const { lastDate, lastOperationId } = obj
-        promises.push(
-          SiteEmployeeHistory.update({
-            siteId,
-            employeeId,
-            date: lastDate,
-            operationResultId: lastOperationId,
-          })
-        )
-      }
-      await Promise.all(promises)
+      await database.ref(path).set(data)
 
       // 終了ログを出力
       logger.info(`現場の従業員入場履歴を更新しました。`, {
