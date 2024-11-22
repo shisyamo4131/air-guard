@@ -6,6 +6,7 @@
  */
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
+
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -99,6 +100,7 @@ export default {
     v-bind="$attrs"
     ref="table"
     :headers="headers"
+    :filter-props="['name', 'nameKana', 'abbrKana']"
     :items="internalItems"
     :mobile-breakpoint="600"
     :sort-by="sortBy"

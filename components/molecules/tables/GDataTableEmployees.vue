@@ -102,7 +102,7 @@ export default {
     v-bind="{ ...$props, ...$attrs }"
     :headers="headers"
     :mobile-breakpoint="600"
-    :custom-filter="customFilter"
+    :filter-props="['fullName', 'fullNameKana', 'abbrKana']"
     v-on="$listeners"
   >
     <template #[`item.fullName`]="{ item }">

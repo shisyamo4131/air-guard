@@ -287,12 +287,15 @@ export default {
         'assignments/employeeIdsByDate'
       ](this.activeCell.date)
 
-      // 従業員が既に配置されている稼働を表す isPlace プロパティを付与して返す
+      // 従業員が既に配置されている稼働を表す isPlace プロパティを付与
       const result = acitiveEmployees.map((employee) => {
         const isPlaced = assignedEmployeeIds.includes(employee.docId)
         return { ...employee, isPlaced }
       })
-      return result
+
+      return result.filter(
+        (item) => !this.onlyUnplaced || item.isPlaced === false
+      )
     },
 
     /**
@@ -797,7 +800,6 @@ export default {
     <g-dialog-employee-selector
       ref="employee-selector"
       :items="selectableEmployees"
-      :custom-filter="(item) => !onlyUnplaced || item.isPlaced === false"
       @click:submit="addEmployeesInBulk"
     >
       <template #filter>

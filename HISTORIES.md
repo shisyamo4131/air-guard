@@ -34,6 +34,18 @@
 8. トップ画面を再構築
 9. 配置管理で、配置されている従業員のセルにジャンプしたい
 
+## 2024-11-22 - ver 0.5.5
+
+### 修正: GDataTable
+
+- filterProps プロパティを追加し、headers に指定されていない項目についてもフィルタリングが可能になるように機能を追加
+  - VDataTable の customFilter プロパティを使用するため、既に customFilter を使用していたコンポーネントを修正
+  - 対象コンポーネントは GDataTableEmployees, GDialogEmployeeSelector
+
+### 修正: GInputSite
+
+- 既に実装していたあいまい検索結果の表示に略称を追加
+
 ## 2024-11-22 - ver 0.5.4
 
 - 配置管理の勤務指示に出力される現場名を略称に変更

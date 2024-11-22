@@ -116,7 +116,7 @@ export default {
           類似した既登録現場があります。<br />重複登録に注意してください。
           <ul>
             <li v-for="(item, index) of fuzzySeachItems" :key="index">
-              {{ item.name }}
+              {{ `${item.name} (略称: ${item.abbr})` }}
             </li>
           </ul>
         </v-alert>
