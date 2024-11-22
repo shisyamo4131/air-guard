@@ -12,12 +12,13 @@ export default class OutsourcerIndex {
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    this.code = item?.code || ''
-    this.name = item?.name || ''
-    this.abbr = item?.abbr || ''
-    this.abbrKana = item?.abbrKana || ''
-    this.address1 = item?.address1 || ''
-    this.status = item?.status || ''
+    this.code = item.code ?? ''
+    this.name = item.name ?? ''
+    this.abbr = item.abbr ?? ''
+    this.abbrKana = item.abbrKana ?? ''
+    this.address1 = item.address1 ?? ''
+    this.status = item.status ?? ''
+    this.sync = item.sync ?? false
   }
 
   /****************************************************************************

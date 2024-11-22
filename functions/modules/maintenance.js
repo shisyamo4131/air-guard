@@ -13,6 +13,7 @@ import System from '../models/System.js'
 import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory.js'
 import { SiteEmployeeHistory } from '../models/SiteEmployeeHistory.js'
 import Placement from '../models/Placement.js'
+import OutsourcerIndex from '../models/OutsourcerIndex.js'
 
 const database = getDatabase()
 const firestore = getFirestore()
@@ -31,7 +32,7 @@ export const refreshIndex = onCall(async (request) => {
   const { indexType } = request.data
 
   // 有効なインデックスタイプをリストアップ
-  const validTypes = ['Employees', 'Sites', 'Customers', 'all']
+  const validTypes = ['Employees', 'Sites', 'Customers', 'Outsourcers', 'all']
 
   // 無効なインデックスタイプが指定された場合のエラーハンドリング
   if (!validTypes.includes(indexType)) {
@@ -44,7 +45,9 @@ export const refreshIndex = onCall(async (request) => {
 
   // "all" が指定された場合、すべてのインデックスを更新
   const indexTypesToUpdate =
-    indexType === 'all' ? ['Employees', 'Sites', 'Customers'] : [indexType]
+    indexType === 'all'
+      ? ['Employees', 'Sites', 'Customers', 'Outsourcers']
+      : [indexType]
 
   try {
     // 各インデックスタイプごとに処理を実行
@@ -65,6 +68,8 @@ export const refreshIndex = onCall(async (request) => {
           data = new SiteIndex(doc.data())
         } else if (type === 'Customers') {
           data = new CustomerIndex(doc.data())
+        } else if (type === 'Outsourcers') {
+          data = new OutsourcerIndex(doc.data())
         }
 
         acc[docId] = data.toObject() // インデックスオブジェクトをシリアライズ

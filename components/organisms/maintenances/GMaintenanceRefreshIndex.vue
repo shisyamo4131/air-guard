@@ -23,6 +23,7 @@ export default {
         { text: '取引先', value: 'Customers' },
         { text: '現場', value: 'Sites' },
         { text: '従業員', value: 'Employees' },
+        { text: '外注先', value: 'Outsourcers' },
       ],
       loading: false,
       funcName: 'maintenance-refreshIndex',
@@ -37,6 +38,7 @@ export default {
         this.$store.dispatch('customers/unsubscribe')
         this.$store.dispatch('sites/unsubscribe')
         this.$store.dispatch('employees/unsubscribe')
+        this.$store.dispatch('outsourcers/unsubscribe')
         if (process.env.NODE_ENV === 'local') {
           connectFunctionsEmulator(functions, 'localhost', 5001)
         }
@@ -49,6 +51,7 @@ export default {
         await this.$store.dispatch('customers/subscribe')
         await this.$store.dispatch('sites/subscribe')
         await this.$store.dispatch('employees/subscribe')
+        await this.$store.dispatch('outsourcers/subscribe')
         this.loading = false
       }
     },

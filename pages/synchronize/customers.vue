@@ -58,9 +58,17 @@ export default {
      * `AirGuard/Customers`の同期設定がされていないデータへのリスナーをセット
      */
     const items = { airGuard: [], unsync: [] }
+    const listeners = {
+      added: null,
+      changed: null,
+      removed: null,
+      unsync: new Customer(),
+    }
+    /**
+     * `AirGuard/Customers`の同期設定がされていないデータへのリスナーをセット
+     */
     const dbRef = ref(database, 'AirGuard/Customers')
     const q = query(dbRef, orderByChild('docId'), equalTo(null))
-
     const updateItem = (data, type) => {
       const index = items.airGuard.findIndex((item) => item.code === data.key)
       if (type === 'add') items.airGuard.push(data.val())
@@ -69,11 +77,15 @@ export default {
       if (type === 'remove') items.airGuard.splice(index, 1)
     }
 
-    const listeners = {
-      added: onChildAdded(q, (data) => updateItem(data, 'add')),
-      changed: onChildChanged(q, (data) => updateItem(data, 'change')),
-      removed: onChildRemoved(q, (data) => updateItem(data, 'remove')),
-    }
+    listeners.added = onChildAdded(q, (data) => updateItem(data, 'add'))
+    listeners.changed = onChildChanged(q, (data) => updateItem(data, 'change'))
+    listeners.removed = onChildRemoved(q, (data) => updateItem(data, 'remove'))
+    /**
+     * 同期設定がされていないSiteドキュメントコレクションへのリスナーをセット
+     */
+    items.unsync = listeners.unsync.subscribeDocs([
+      ['where', 'sync', '==', false],
+    ])
     return { items, listeners }
   },
   /***************************************************************************
@@ -91,16 +103,6 @@ export default {
       snackbar: false,
       step: 0,
     }
-  },
-  /***************************************************************************
-   * COMPUTED
-   ***************************************************************************/
-  computed: {
-    unsyncedCustomers() {
-      return this.$store.getters['customers/items'].filter(
-        (item) => item.sync === false
-      )
-    },
   },
   /***************************************************************************
    * WATCH
@@ -298,7 +300,7 @@ export default {
                   { text: '取引先名1', value: 'name1' },
                   { text: '取引先名2', value: 'name2' },
                 ]"
-                :items="unsyncedCustomers"
+                :items="items.unsync"
                 item-key="docId"
                 :show-select="!asNewItem"
                 single-select

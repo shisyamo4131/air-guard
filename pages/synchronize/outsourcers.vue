@@ -50,10 +50,16 @@ export default {
    * ASYNCDATA
    ***************************************************************************/
   asyncData() {
+    const items = { airGuard: [], unsync: [] }
+    const listeners = {
+      added: null,
+      changed: null,
+      removed: null,
+      unsync: new Outsourcer(),
+    }
     /**
      * `AirGuard/Outsourcers`の同期設定がされていないデータへのリスナーをセット
      */
-    const items = { airGuard: [], unsync: [] }
     const dbRef = ref(database, 'AirGuard/Outsourcers')
     const q = query(dbRef, orderByChild('docId'), equalTo(null))
 
@@ -64,12 +70,16 @@ export default {
       if (type === 'change') items.airGuard.splice(index, 1, data.val())
       if (type === 'remove') items.airGuard.splice(index, 1)
     }
+    listeners.added = onChildAdded(q, (data) => updateItem(data, 'add'))
+    listeners.changed = onChildChanged(q, (data) => updateItem(data, 'change'))
+    listeners.removed = onChildRemoved(q, (data) => updateItem(data, 'remove'))
 
-    const listeners = {
-      added: onChildAdded(q, (data) => updateItem(data, 'add')),
-      changed: onChildChanged(q, (data) => updateItem(data, 'change')),
-      removed: onChildRemoved(q, (data) => updateItem(data, 'remove')),
-    }
+    /**
+     * 同期設定がされていないSiteドキュメントコレクションへのリスナーをセット
+     */
+    items.unsync = listeners.unsync.subscribeDocs([
+      ['where', 'sync', '==', false],
+    ])
     return { items, listeners }
   },
   /***************************************************************************
@@ -87,16 +97,6 @@ export default {
       snackbar: false,
       step: 0,
     }
-  },
-  /***************************************************************************
-   * COMPUTED
-   ***************************************************************************/
-  computed: {
-    unsyncedOutsourcers() {
-      return this.$store.getters['outsourcers/items'].filter(
-        (item) => item.sync === false
-      )
-    },
   },
   /***************************************************************************
    * WATCH
@@ -284,7 +284,7 @@ export default {
                 v-model="selectedToSync"
                 class="flex-table"
                 disable-sort
-                :items="unsyncedOutsourcers"
+                :items="items.unsync"
                 item-key="docId"
                 :show-select="!asNewItem"
                 single-select
