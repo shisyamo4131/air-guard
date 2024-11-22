@@ -1,13 +1,11 @@
 <script>
-import GChartBar from '~/components/atoms/charts/GChartBar.vue'
 /**
- * ### BChartSales
- *
  * 売上高の棒グラフ（縦）コンポーネントです。
  * - DailySale ドキュメントの配列を props.items で受け取り、売上高を棒グラフで描画します。
  *
  * @author shisyamo4131
  */
+import GChartBar from '~/components/atoms/charts/GChartBar.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -20,7 +18,7 @@ export default {
     /**
      * 表示する月数です。
      */
-    cols: { type: Number, default: 3, required: false },
+    cols: { type: Number, default: 6, required: false },
     /**
      * 表示のメインとなる年月を YYYY-MM の形式で指定します。
      * 未指定の場合、現在の年月が対象となります。
@@ -52,11 +50,11 @@ export default {
        * chartjsのoption設定
        */
       options: {
-        title: {
-          display: true,
-          text: '売上推移',
-          fontSize: 14,
-        },
+        // title: {
+        //   display: true,
+        //   text: '売上推移',
+        //   fontSize: 14,
+        // },
         scales: {
           yAxes: [
             {
@@ -67,6 +65,7 @@ export default {
               },
               ticks: {
                 beginAtZero: true,
+                min: 0,
                 // Y軸の数字を3桁で区切る
                 callback: function (label) {
                   return `${label.toLocaleString()}人工`
@@ -78,6 +77,7 @@ export default {
               stacked: true,
               ticks: {
                 beginAtZero: true,
+                min: 0,
                 // Y軸の数字を3桁で区切る
                 callback: function (label) {
                   return `${label.toLocaleString()}円`
@@ -98,17 +98,18 @@ export default {
               if (tooltipItem.datasetIndex === 0) {
                 return `${tooltipItem.yLabel.toLocaleString()}人工`
               }
-              // 属性ごとの合計値
+
+              // 現在のデータポイントの値
               const currentValue = tooltipItem.yLabel
 
-              // データセット全体の総合計を計算（"workers" 軸を持つ dataset を除外）
+              // 選択されたデータポイントのインデックス（該当月）
+              const index = tooltipItem.index
+
+              // 同じ月のデータセットのみを対象に総合計を計算
               const totalSum = data.datasets
-                .filter((dataset, index) => dataset.yAxisID !== 'workers')
+                .filter((dataset) => dataset.yAxisID !== 'workers') // "workers" 軸を除外
                 .reduce((sum, dataset) => {
-                  return (
-                    sum +
-                    dataset.data.reduce((dataSum, value) => dataSum + value, 0)
-                  )
+                  return sum + (dataset.data[index] || 0) // 該当月のデータを加算
                 }, 0)
 
               // 割合の計算
@@ -117,22 +118,17 @@ export default {
               // 結果を表示
               return `${currentValue.toLocaleString()}円 (${percentage}%)`
             },
-            // ツールチップの下部に全データセットの総合計を表示
-            footer: function (tooltipItems, data) {
-              // datasetIndex が 0 のデータポイントが1つでも含まれている場合は、総合計を表示しない
-              const containsDatasetIndexZero = tooltipItems.some(
-                (item) => item.datasetIndex === 0
-              )
-              if (containsDatasetIndexZero) return ''
 
-              // 総合計を計算
+            // // ツールチップの下部に総合計を表示
+            footer: function (tooltipItems, data) {
+              // 選択されたデータポイントのインデックスを取得
+              const index = tooltipItems[0].index
+
+              // 選択された月の合計を計算
               const totalSum = data.datasets
-                .filter((dataset) => dataset.yAxisID !== 'workers')
+                .filter((dataset) => dataset.yAxisID !== 'workers') // "workers" 軸以外を対象
                 .reduce((sum, dataset) => {
-                  return (
-                    sum +
-                    dataset.data.reduce((dataSum, value) => dataSum + value, 0)
-                  )
+                  return sum + (dataset.data[index] || 0) // 選択されたインデックスのみを加算
                 }, 0)
 
               return `総合計: ${totalSum.toLocaleString()}円`
@@ -234,7 +230,7 @@ export default {
           },
           {
             type: 'bar',
-            label: ['交通誘導警備'],
+            label: ['交通'],
             backgroundColor: 'rgba(255, 99, 132, 0.2)',
             borderColor: 'rgb(255, 99, 132)',
             borderWidth: 1,
@@ -243,7 +239,7 @@ export default {
           },
           {
             type: 'bar',
-            label: ['雑踏警備'],
+            label: ['雑踏'],
             backgroundColor: 'rgba(255, 159, 64, 0.2)',
             borderColor: 'rgb(255, 159, 64)',
             borderWidth: 1,
@@ -252,7 +248,7 @@ export default {
           },
           {
             type: 'bar',
-            label: ['施設警備'],
+            label: ['施設'],
             backgroundColor: 'rgba(54, 162, 235, 0.2)',
             borderColor: 'rgb(54, 162, 235)',
             borderWidth: 1,
@@ -261,7 +257,7 @@ export default {
           },
           {
             type: 'bar',
-            label: ['巡回警備'],
+            label: ['巡回'],
             backgroundColor: 'rgba(75, 192, 192, 0.2)',
             borderColor: 'rgb(75, 192, 192)',
             borderWidth: 1,
