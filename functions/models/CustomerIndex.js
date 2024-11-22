@@ -19,6 +19,7 @@ export default class CustomerIndex {
     this.address1 = item.address1 ?? ''
     this.status = item.status ?? ''
     this.sync = item.sync ?? false
+    this.isInternal = item.isInternal ?? false
   }
 
   /****************************************************************************

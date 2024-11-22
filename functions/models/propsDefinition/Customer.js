@@ -72,6 +72,12 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+  isInternal: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
 }
 
 const vueProps = generateVueProps(propsDefinition)
