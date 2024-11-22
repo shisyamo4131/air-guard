@@ -70,10 +70,21 @@ export default {
     const q = query(dbRef, orderByChild('docId'), equalTo(null))
     const updateItem = (data, type) => {
       const item = data.val()
-      // storeを参照して取引先の存在有無を`isSelectable`にセット
-      item.isSelectable = store.getters['customers/items'].some(
+
+      // // storeを参照して取引先の存在有無を`isSelectable`にセット
+      // item.isSelectable = store.getters['customers/items'].some(
+      //   (customer) => customer.code === item.customerCode
+      // )
+
+      // Vuex から取引先情報を取得
+      const customer = store.getters['customers/items'].find(
         (customer) => customer.code === item.customerCode
       )
+
+      // item の内容を補足
+      item.customer = customer
+      item.isSelectable = !!customer // 取引先情報の有無に応じて
+
       const index = items.airGuard.findIndex((item) => item.code === data.key)
       if (type === 'add') items.airGuard.push(item)
       if (index === -1) return
@@ -83,6 +94,7 @@ export default {
     listeners.added = onChildAdded(q, (data) => updateItem(data, 'add'))
     listeners.changed = onChildChanged(q, (data) => updateItem(data, 'change'))
     listeners.removed = onChildRemoved(q, (data) => updateItem(data, 'remove'))
+
     /**
      * 同期設定がされていないSiteドキュメントコレクションへのリスナーをセット
      */
@@ -270,7 +282,12 @@ export default {
 
 <template>
   <g-template-fixed v-slot="{ height }">
-    <v-card outlined :height="height" class="d-flex flex-column">
+    <v-card
+      outlined
+      :height="height"
+      class="d-flex flex-column"
+      max-width="800"
+    >
       <v-card-title> 現場情報同期設定 </v-card-title>
       <v-card-text> 現場情報の同期設定を行います。 </v-card-text>
       <v-window v-model="step" style="height: 100%">
@@ -300,7 +317,6 @@ export default {
               <g-data-table
                 v-model="selectedUnsync"
                 class="flex-table"
-                checkbox-color="primary"
                 disable-sort
                 :headers="[
                   { text: 'CODE', value: 'code', width: '108' },
@@ -320,6 +336,12 @@ export default {
                     mdi-close-circle
                   </v-icon>
                   {{ item.code }}
+                </template>
+                <template #[`item.name`]="{ item }">
+                  <div>{{ item.name }}</div>
+                  <div class="grey--text">
+                    {{ item?.customer?.abbr || 'N/A' }}
+                  </div>
                 </template>
               </g-data-table>
             </v-card>
@@ -360,6 +382,7 @@ export default {
                 :headers="[
                   { text: 'CODE', value: 'code', width: '96' },
                   { text: '現場名', value: 'name' },
+                  { text: '住所', value: 'address' },
                 ]"
                 :items="items.unsync"
                 item-key="docId"
@@ -367,7 +390,14 @@ export default {
                 single-select
                 :page.sync="page.toSync"
                 @page-count="pageCount.toSync = $event"
-              />
+              >
+                <template #[`item.name`]="{ item }">
+                  <div>{{ item.name }}</div>
+                  <div class="grey--text">
+                    {{ item?.customer?.abbr || 'N/A' }}
+                  </div>
+                </template>
+              </g-data-table>
             </v-card>
             <v-container class="text-center">
               <v-pagination

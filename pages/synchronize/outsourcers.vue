@@ -241,7 +241,6 @@ export default {
               <g-data-table-outsourcers
                 v-model="selectedUnsync"
                 class="flex-table"
-                checkbox-color="primary"
                 disable-sort
                 :items="items.airGuard"
                 item-key="code"

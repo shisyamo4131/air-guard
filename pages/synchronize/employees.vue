@@ -252,7 +252,6 @@ export default {
               <g-data-table
                 v-model="selectedUnsync"
                 class="flex-table"
-                checkbox-color="primary"
                 disable-sort
                 :headers="[
                   { text: 'CODE', value: 'code' },

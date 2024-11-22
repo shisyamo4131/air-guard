@@ -1,16 +1,6 @@
 <script>
-import GIconDelete from '~/components/atoms/icons/GIconDelete.vue'
-import GIconEdit from '~/components/atoms/icons/GIconEdit.vue'
-import GIconDetail from '~/components/atoms/icons/GIconDetail.vue'
-
 /**
- * ## GDataTable
- * @version 1.0.0
- * @date 2024-06-21
- * @author shisyamo4131
- *
- * 概要:
- * GDataTableコンポーネントは、Vuetifyのv-data-tableを拡張し、カスタムアクション（編集、削除、詳細）を提供します。
+ * Vuetifyのv-data-tableを拡張した、カスタムアクション（編集、削除、詳細）を提供する DataTable コンポーネントです。
  * 各アクションには、対応するアイコンコンポーネントが使用されます。
  *
  * 主な機能:
@@ -19,71 +9,38 @@ import GIconDetail from '~/components/atoms/icons/GIconDetail.vue'
  * - ページ変更時にトップへスクロール
  * - デフォルトフッターを非表示（paginationは別のコンポーネントで実装）
  *
- * 使用例:
- * <GDataTable :headers="headers" :items="items" :actions="['edit', 'delete', 'detail']" @click:edit="onEdit" @click:delete="onDelete" @click:detail="onDetail" />
- *
- * props設定:
+ * props設定（VDataTable の props 以外）:
  * - actions: 使用するアクションのリスト（'edit', 'delete', 'detail'）
  * - disableEdit: 編集アクションの無効化
  * - disableDelete: 削除アクションの無効化
  * - disableDetail: 詳細アクションの無効化
- * - headers: テーブルのヘッダー設定
- * - height: テーブルの高さ
- * - itemKey: 各アイテムの一意のキー
  *
- * 更新履歴:
- * 2024-06-21 - 初版作成
+ * @author shisyamo4131
  */
 
+import GIconDelete from '~/components/atoms/icons/GIconDelete.vue'
+import GIconEdit from '~/components/atoms/icons/GIconEdit.vue'
+import GIconDetail from '~/components/atoms/icons/GIconDetail.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: {
-    GIconDelete,
-    GIconEdit,
-    GIconDetail,
-  },
+  components: { GIconDelete, GIconEdit, GIconDetail },
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
-    actions: {
-      type: Array,
-      default: () => [],
-      required: false,
-    },
-    disableEdit: {
-      type: Boolean,
-      default: false,
-      required: false,
-    },
-    disableDelete: {
-      type: Boolean,
-      default: false,
-      required: false,
-    },
-    disableDetail: {
-      type: Boolean,
-      default: false,
-      required: false,
-    },
-    headers: {
-      type: Array,
-      default: () => [],
-      required: false,
-    },
-    height: {
-      type: [Number, String],
-      default: undefined,
-      required: false,
-    },
-    itemKey: {
-      type: String,
-      default: 'docId',
-      required: false,
-    },
+    actions: { type: Array, default: () => [], required: false },
+    checkboxColor: { type: String, default: 'primary', required: false },
+    disableEdit: { type: Boolean, default: false, required: false },
+    disableDelete: { type: Boolean, default: false, required: false },
+    disableDetail: { type: Boolean, default: false, required: false },
+    headers: { type: Array, default: () => [], required: false },
+    height: { type: [Number, String], default: undefined, required: false },
+    itemKey: { type: String, default: 'docId', required: false },
   },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
@@ -102,6 +59,7 @@ export default {
       if (this.actions.length) result.push(actionColumn)
       return result
     },
+
     /**
      * テーブルの高さを計算
      */
@@ -111,6 +69,7 @@ export default {
       return result <= 0 ? undefined : result
     },
   },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/
@@ -123,6 +82,7 @@ export default {
       this.scrollToTop()
     },
   },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/
@@ -141,6 +101,7 @@ export default {
 <template>
   <v-data-table
     v-bind="$attrs"
+    :checkbox-color="checkboxColor"
     fixed-header
     :headers="internalHeaders"
     :height="internalHeight"
@@ -190,6 +151,4 @@ export default {
   </v-data-table>
 </template>
 
-<style scoped>
-/* 必要に応じてスタイルを追加 */
-</style>
+<style></style>
