@@ -358,7 +358,7 @@ export default {
 
     <!-- アクション スピードダイヤル -->
     <g-placement-action-speed-dial
-      v-if="!disabled"
+      v-if="!disabled && !siteOperationSchedule?.isClosed"
       style="position: absolute; bottom: 2px; right: -12px"
       :disabled-copy="!hasSomeOrder"
       :disabled-paste="hasSomeOrder || !copiedContent || disabled"

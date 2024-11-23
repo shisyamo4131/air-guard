@@ -31,6 +31,10 @@ export default {
       return this.placement?.data?.outsourcerOrder || []
     },
 
+    isClosed() {
+      return this.siteOperationSchedule.isClosed ?? false
+    },
+
     /**
      * 配置した人員数が必要人員数を満たしているかを返します
      * - 満たしていない場合はtrue、満たしている場合はfalseを返します
@@ -46,6 +50,14 @@ export default {
     placedAmount() {
       return this.employeeOrder.length + this.outsourcerOrder.length
     },
+
+    qualification() {
+      return this.siteOperationSchedule.qualification ?? false
+    },
+
+    requiredWorkers() {
+      return this.siteOperationSchedule.requiredWorkers ?? '-'
+    },
   },
 }
 </script>
@@ -53,14 +65,15 @@ export default {
 <template>
   <v-chip
     v-bind="$attrs"
-    :color="isLackedWorkers ? 'error' : 'info'"
+    :color="isClosed ? 'lime darken-4' : isLackedWorkers ? 'error' : 'info'"
+    dark
     v-on="$listeners"
   >
-    <v-icon v-if="siteOperationSchedule?.qualification" small left>
-      mdi-star
-    </v-icon>
-    {{ placedAmount }}/{{ siteOperationSchedule?.requiredWorkers || '-' }}
-
+    <v-icon v-if="!isClosed && qualification" small left> mdi-star </v-icon>
+    <span v-if="!isClosed"
+      >{{ placedAmount }}/{{ requiredWorkers || '-' }}</span
+    >
+    <span v-else>休工</span>
     <v-icon right small>mdi-calendar</v-icon>
   </v-chip>
 </template>

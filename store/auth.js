@@ -22,6 +22,11 @@ export const getters = {
   isAuthenticated(state) {
     return !!state.user
   },
+  // Returns if the user is developer or not.
+  isDeveloper(state) {
+    const roles = state.user?.roles || []
+    return roles.includes('developer')
+  },
   // Returns user roles as array.
   roles(state) {
     return state.user?.roles || []

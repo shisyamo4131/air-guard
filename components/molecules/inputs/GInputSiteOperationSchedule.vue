@@ -110,42 +110,45 @@ export default {
           <v-radio value="night" label="夜勤" />
         </v-radio-group>
       </div>
-      <v-row dense>
-        <v-col cols="6">
-          <g-text-field
-            v-model="editModel.startTime"
-            class="center-input"
-            label="開始時刻"
-            required
-            input-type="time"
-          />
-        </v-col>
-        <v-col cols="6">
-          <g-text-field
-            v-model="editModel.endTime"
-            class="center-input"
-            label="終了時刻"
-            required
-            input-type="time"
-          />
-        </v-col>
-        <v-col cols="6">
-          <g-numeric
-            v-model="editModel.requiredWorkers"
-            class="right-input"
-            label="人数"
-            required
-            suffix="名"
-          />
-        </v-col>
-        <v-col cols="6">
-          <g-switch
-            v-model="editModel.qualification"
-            class="mt-1"
-            label="要資格者"
-          />
-        </v-col>
-      </v-row>
+      <g-switch v-model="editModel.isClosed" class="mt-0" label="休工" />
+      <v-expand-transition>
+        <v-row v-show="!editModel.isClosed" dense>
+          <v-col cols="6">
+            <g-text-field
+              v-model="editModel.startTime"
+              class="center-input"
+              label="開始時刻"
+              :required="!editModel.isClosed"
+              input-type="time"
+            />
+          </v-col>
+          <v-col cols="6">
+            <g-text-field
+              v-model="editModel.endTime"
+              class="center-input"
+              label="終了時刻"
+              :required="!editModel.isClosed"
+              input-type="time"
+            />
+          </v-col>
+          <v-col cols="6">
+            <g-numeric
+              v-model="editModel.requiredWorkers"
+              class="right-input"
+              label="人数"
+              :required="!editModel.isClosed"
+              suffix="名"
+            />
+          </v-col>
+          <v-col cols="6">
+            <g-switch
+              v-model="editModel.qualification"
+              class="mt-1"
+              label="要資格者"
+            />
+          </v-col>
+        </v-row>
+      </v-expand-transition>
       <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
     <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />

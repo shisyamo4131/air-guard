@@ -201,9 +201,8 @@ export default {
     >
       <g-card-site-operation-schedule-histories
         :items="items.histories"
-        class="overflow-y-auto"
-        height="100%"
         flat
+        height="100%"
       />
     </div>
   </div>

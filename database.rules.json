@@ -65,7 +65,7 @@
     },
     "SiteOperationSchedules": {
       ".read": "auth !== null",
-      ".write": false
+      ".write": "auth !== null"
     },
     "Sites": {
       ".read": "auth !== null",

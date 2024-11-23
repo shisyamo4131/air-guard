@@ -46,7 +46,7 @@ export default {
 
     // 色とラベルを取得
     const color = workShift === 'day' ? 'blue white--text' : 'red white--text'
-    const label = schedule ? schedule.requiredWorkers || '休工' : '-'
+    const label = schedule?.isClosed ? '休工' : schedule?.requiredWorkers || '-'
 
     /**
      * click イベントを emit します。

@@ -68,6 +68,14 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
+  // 休工フラグ（true で休工）
+  isClosed: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
 }
 
 const vueProps = generateVueProps(propsDefinition)

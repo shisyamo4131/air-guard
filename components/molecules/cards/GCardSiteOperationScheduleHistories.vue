@@ -38,8 +38,8 @@ export default {
 </script>
 
 <template>
-  <v-card v-bind="$attrs" v-on="$listeners">
-    <v-container>
+  <v-card v-bind="$attrs" class="overflow-y-auto" v-on="$listeners">
+    <v-container class="pl-0">
       <v-timeline dense>
         <v-slide-x-transition group>
           <v-timeline-item v-for="item of sortedItems" :key="item.id" small>

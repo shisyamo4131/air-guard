@@ -6,15 +6,15 @@
  *
  * @author shisyamo4131
  */
+import GSiteOrderManager from '../GSiteOrderManager.vue'
 import GPlacementAvailabilityDialog from './GPlacementAvailabilityDialog.vue'
-import GPlacementDraggableSiteOrder from './GPlacementDraggableSiteOrder.vue'
 import GPlacementSiteSelector from './GPlacementSiteSelector.vue'
 
 export default {
   components: {
     GPlacementSiteSelector,
-    GPlacementDraggableSiteOrder,
     GPlacementAvailabilityDialog,
+    GSiteOrderManager,
   },
 
   props: {
@@ -44,6 +44,18 @@ export default {
      */
     component() {
       return this.isMobile ? 'div' : 'v-toolbar-items'
+    },
+
+    /**
+     * Vuex の site-order と連携します。
+     */
+    siteOrder: {
+      get() {
+        return this.$store.state['site-order'].data
+      },
+      set(v) {
+        this.$store.dispatch('site-order/update', v)
+      },
     },
   },
 
@@ -89,14 +101,7 @@ export default {
         </template>
       </g-placement-site-selector>
       <!-- 並べ替えボタン -->
-      <g-placement-draggable-site-order>
-        <template #activator="{ attrs, on }">
-          <v-btn v-bind="{ ...btnAttrs, ...attrs }" v-on="on">
-            <v-icon :left="!isMobile">mdi-order-alphabetical-ascending</v-icon>
-            <span v-if="!isMobile">並べ替え</span>
-          </v-btn>
-        </template>
-      </g-placement-draggable-site-order>
+      <g-site-order-manager v-model="siteOrder" text></g-site-order-manager>
 
       <!-- シフト管理ボタン -->
       <g-placement-availability-dialog :columns="columns">

@@ -56,6 +56,7 @@ export default class SiteOperationSchedule extends FireModel {
     if (!this.workShift) {
       throw new Error('勤務区分の指定が必要です。')
     }
+    if (this.isClosed) this.requiredWorkers = 0
     try {
       const id = `${this.siteId}-${this.date}-${this.workShift}`
       const existingSchedule = await this.fetchDoc(id)
@@ -88,6 +89,8 @@ export default class SiteOperationSchedule extends FireModel {
     ) {
       throw new Error('現場、日付、勤務区分は変更できません。')
     }
+
+    if (this.isClosed) this.requiredWorkers = 0
 
     // 親クラスの beforeUpdate メソッドを呼び出す
     await super.beforeUpdate()

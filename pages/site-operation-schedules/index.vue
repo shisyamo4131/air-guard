@@ -18,7 +18,7 @@
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
 import { database, firestore } from 'air-firebase'
 import ja from 'dayjs/locale/ja'
-import { get, ref, set } from 'firebase/database'
+import { onValue, ref, set } from 'firebase/database'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
@@ -26,9 +26,8 @@ import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GInputSiteOperationSchedule from '~/components/molecules/inputs/GInputSiteOperationSchedule.vue'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
 import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
-import GDialogLoading from '~/components/molecules/dialogs/GDialogLoading.vue'
 import GSosRequiredWorkersChip from '~/components/organisms/site-operation-schedules/GSosRequiredWorkersChip.vue'
-import GSosSiteOrderBtn from '~/components/organisms/site-operation-schedules/GSosSiteOrderBtn.vue'
+import GSiteOrderManager from '~/components/organisms/GSiteOrderManager.vue'
 
 export default {
   /***************************************************************************
@@ -45,9 +44,8 @@ export default {
     GDialogInput,
     GInputSiteOperationSchedule,
     GChipWorkShift,
-    GDialogLoading,
     GSosRequiredWorkersChip,
-    GSosSiteOrderBtn,
+    GSiteOrderManager,
   },
 
   /***************************************************************************
@@ -59,13 +57,16 @@ export default {
    * ASYNCDATA
    * - SiteOperationSchedules/siteOrder を読み込み、data.siteOrder を準備します。
    ***************************************************************************/
-  async asyncData({ app }) {
+  asyncData({ app }) {
     try {
+      let siteOrder = []
+
       // siteOrder の取得
       const dbRef = ref(database, `SiteOperationSchedules/siteOrder`)
-      const snapshot = await get(dbRef)
-      const siteOrder = snapshot.exists() ? snapshot.val() : []
-      return { siteOrder }
+      const listener = onValue(dbRef, (snapshot) => {
+        siteOrder = snapshot.val() ?? []
+      })
+      return { siteOrderListener: listener, siteOrder }
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(err)
@@ -78,12 +79,12 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      dbRef: ref(database, `SiteOperationSchedules/siteOrder`),
       columns: [],
       currentDate: this.$dayjs().format('YYYY-MM-DD'),
       dialog: false,
       instance: new SiteOperationSchedule(),
       listeners: {},
-      loading: false,
       months: [
         { text: '1ヶ月', value: 1 },
         { text: '2ヶ月', value: 2 },
@@ -95,6 +96,8 @@ export default {
       schedules: [],
       scrollContainerRef: null,
       selectedMonths: 3,
+      siteOrder: [],
+      siteOrderListener: null,
     }
   },
 
@@ -130,6 +133,15 @@ export default {
         .add(this.selectedMonths - 1, 'month')
         .endOf('month')
         .format('YYYY-MM-DD')
+    },
+
+    computedSiteOrder: {
+      get() {
+        return this.siteOrder
+      },
+      set(v) {
+        this.updateSiteOrder(v)
+      },
     },
   },
 
@@ -177,18 +189,22 @@ export default {
       },
       immediate: true,
     },
+  },
 
-    /**
-     * data.siteOrder を監視します。
-     * - 現場-勤務区分の配列が変更されたことを意味するため、updateSiteOrder で
-     *   Realtime Database の値を更新します。
-     */
-    siteOrder: {
-      handler(v) {
-        this.updateSiteOrder(v)
-      },
-      deep: true,
-    },
+  /***************************************************************************
+   * CREATED
+   ***************************************************************************/
+  created() {
+    try {
+      // siteOrder の購読を開始
+      this.siteOrderListener = onValue(this.dbRef, (snapshot) => {
+        this.siteOrder = snapshot.val() ?? []
+      })
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(err)
+      alert(err.message)
+    }
   },
 
   /***************************************************************************
@@ -196,14 +212,17 @@ export default {
    ***************************************************************************/
   destroyed() {
     this.cleanUpListeners()
+    if (!this.siteOrderListener) this.siteOrderListener()
   },
 
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
+    /**
+     * 各月の稼働予定ドキュメントに対するリアルタイムリスナーの購読を解除します。
+     */
     async cleanUpListeners() {
-      this.loading = true
       const promises = Object.values(this.listeners)
         .filter((listener) => listener)
         .map((listener) => listener())
@@ -212,7 +231,6 @@ export default {
         // eslint-disable-next-line no-console
         console.log('All listeners have been removed')
       })
-      this.loading = false
     },
 
     /**
@@ -310,8 +328,7 @@ export default {
      */
     async updateSiteOrder(newOrder) {
       try {
-        const dbRef = ref(database, `SiteOperationSchedules/siteOrder`)
-        await set(dbRef, newOrder)
+        await set(this.dbRef, newOrder)
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error(err)
@@ -438,7 +455,7 @@ export default {
         </v-toolbar-items>
         <v-spacer />
         <v-toolbar-items>
-          <g-dialog-input v-model="dialog" max-width="360">
+          <g-dialog-input v-model="dialog" max-width="840">
             <template #activator="{ attrs, on }">
               <v-btn v-bind="attrs" color="primary" text v-on="on">
                 <v-icon left>mdi-plus</v-icon>
@@ -454,7 +471,11 @@ export default {
               />
             </template>
           </g-dialog-input>
-          <g-sos-site-order-btn v-model="siteOrder" color="primary" text />
+          <g-site-order-manager
+            v-model="computedSiteOrder"
+            color="primary"
+            text
+          />
         </v-toolbar-items>
       </v-toolbar>
       <div class="px-2 pb-2 overflow-hidden d-flex flex-column flex-grow-1">
@@ -535,7 +556,6 @@ export default {
         </div>
       </div>
     </v-card>
-    <g-dialog-loading v-model="loading" />
   </g-template-default>
 </template>
 

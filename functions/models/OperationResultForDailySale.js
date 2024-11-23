@@ -31,7 +31,11 @@ export default class OperationResultForDailySale extends OperationResult {
   initialize(item = {}) {
     super.initialize(item)
 
-    this.securityType = item?.securityType || item?.site?.securityType || ''
-    this.customerId = item?.customerId || item?.site?.customer?.docId || ''
+    const site = item?.site // item.siteを変数にまとめる
+    const customer = site?.customer // site.customerを変数にまとめる
+
+    this.securityType = item?.securityType || site?.securityType || ''
+    this.customerId = item?.customerId || customer?.docId || ''
+    this.isInternal = customer?.isInternal ?? false // ?? を使ってundefinedとnullを明確に区別
   }
 }

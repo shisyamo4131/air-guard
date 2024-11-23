@@ -175,6 +175,7 @@ export default {
     async recalc() {
       this.loading = true
       try {
+        this.unsubscribe()
         const firebaseApp = getApp()
         const functions = getFunctions(firebaseApp, 'asia-northeast1')
         if (process.env.NODE_ENV === 'local') {
@@ -186,6 +187,7 @@ export default {
       } catch (err) {
         console.error('Error calling function:', err) // eslint-disable-line no-console
       } finally {
+        this.subscribe()
         this.loading = false
       }
     },

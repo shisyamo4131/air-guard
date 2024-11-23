@@ -30,42 +30,7 @@ export default class DailySale extends FireModel {
    ****************************************************************************/
   constructor(item = {}) {
     super(item)
-
     delete this.tokenMap
-
-    // Object.defineProperties(this, {
-    //   month: {
-    //     configurable: true,
-    //     enumerable: true,
-    //     get() {
-    //       if (!this.date) return ''
-    //       return this.date.slice(0, 7)
-    //     },
-    //     set(v) {},
-    //   },
-    //   year: {
-    //     configurable: true,
-    //     enumerable: true,
-    //     get() {
-    //       if (!this.month) return
-    //       return this.month.slice(0, 4)
-    //     },
-    //     set(v) {},
-    //   },
-    //   amount: {
-    //     configurable: true,
-    //     enumerable: true,
-    //     get() {
-    //       const result = { operationResults: 0 }
-    //       result.operationResults = this.operationResults.reduce(
-    //         (sum, i) => sum + i.sales.total,
-    //         0
-    //       )
-    //       return result
-    //     },
-    //     set(v) {},
-    //   },
-    // })
   }
 
   /****************************************************************************
@@ -141,6 +106,15 @@ export default class DailySale extends FireModel {
           ['where', 'date', '>=', from],
           ['where', 'date', '<=', to],
         ])
+
+        /**
+         * 2024-11-23 ADD
+         * 自社情報（isInternal === true）の稼働実績ドキュメントを除外
+         * - fetchDocs でのクエリ条件に加えた方が read 件数の抑制になるが、深い階層へのインデックスを避けたい
+         */
+        operationResults = operationResults.filter(({ isInternal }) => {
+          return !isInternal
+        })
       } catch (error) {
         const message = `[createInRange] OperationResults の取得中にエラーが発生しました。`
         logger.error(message, { from, to, error })
