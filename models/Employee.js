@@ -1,20 +1,11 @@
 import { FireModel } from 'air-firebase'
 import { classProps } from './propsDefinition/Employee'
-import EmployeeContract from './EmployeeContract'
 
 /**
- * Employeesドキュメントデータモデル【論理削除】
- *
- * - 従業員情報を管理するデータモデルです。
- * - `code`は Autonumbers による自動採番が行われます。
- *
- * @version 2.0.0
+ * 従業員データモデル
  * @author shisyamo4131
- * @updates
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class Employee extends FireModel {
-  #EmployeeContractInstance = new EmployeeContract()
   /****************************************************************************
    * STATIC
    ****************************************************************************/
@@ -217,42 +208,46 @@ export default class Employee extends FireModel {
       throw new Error(message)
     }
   }
+}
 
+/**
+ * Employee クラスから createAt, updateAt, uid, remarks, tokenMap を削除したクラスです。
+ * - 非正規化した employee プロパティを持つドキュメントに保存するデータを提供するためのクラス
+ * - 不要なプロパティを削除することでデータ量を抑制するために使用します。
+ * - 更新系のメソッドは利用できません。
+ */
+export class EmployeeMinimal extends Employee {
   /****************************************************************************
-   * 従業員の雇用契約情報に対して、Firestoreコレクションのリアルタイムリスナーを設定します。
-   * - EmployeeContractクラスを使用し、該当従業員の契約情報に対するリアルタイム監視を開始します。
-   * - docIdが設定されていない場合、エラーメッセージを出力して処理を中断します。
-   *
-   * @returns {Array<Object>|undefined} リアルタイムで監視している契約情報のデータ
+   * CONSTRUCTOR
    ****************************************************************************/
-  subscribeContracts() {
-    // docIdが設定されているか確認
-    if (!this.docId) {
-      // eslint-disable-next-line no-console
-      console.error(
-        `[${this.constructor.name} - subscribeContracts]: docId is not set.`
-      )
-      return // docIdが未設定の場合、処理を中断
-    }
+  constructor(item = {}) {
+    super(item)
 
-    // EmployeeContractクラスを使用して、該当する従業員の契約情報に対するリアルタイムリスナーを設定
-    return this.#EmployeeContractInstance.subscribeDocs([
-      ['where', 'employeeId', '==', this.docId], // employeeIdを条件にしたクエリを実行
-    ])
+    delete this.createAt
+    delete this.updateAt
+    delete this.uid
+    delete this.remarks
+    delete this.tokenMap
   }
 
   /****************************************************************************
-   * 従業員の雇用契約情報に対するリアルタイムリスナーを解除します。
-   * - EmployeeContractクラスで設定されているFirestoreのリアルタイムリスナーを解除します。
+   * 更新系メソッドは使用不可
    ****************************************************************************/
-  unsubscribeContracts() {
-    if (this.#EmployeeContractInstance) {
-      this.#EmployeeContractInstance.unsubscribe()
-    } else {
-      // eslint-disable-next-line no-console
-      console.warn(
-        `[${this.constructor.name} - unsubscribeContracts]: No active listener found.`
-      )
-    }
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
+  }
+
+  update() {
+    return Promise.reject(new Error('このクラスの update は使用できません。'))
+  }
+
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
+  }
+
+  static updateImgRef() {
+    return Promise.reject(
+      new Error('このクラスの updateImgRef は使用できません。')
+    )
   }
 }

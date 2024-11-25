@@ -1,13 +1,7 @@
 <script>
 /**
- * ## GSiteOperationScheduleManager
- *
  * 現場の稼働予定を管理するコンポーネントです。
- *
  * @author shisyamo4131
- * @version 1.0.0
- * @updates
- * - version 1.0.0 - 初版作成
  */
 import {
   onChildAdded,
@@ -24,7 +18,6 @@ import GCalendarSiteOperationSchedules from '../molecules/calendars/GCalendarSit
 import GDialogInput from '../molecules/dialogs/GDialogInput.vue'
 import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
 import GCardSiteOperationScheduleHistories from '../molecules/cards/GCardSiteOperationScheduleHistories.vue'
-import Site from '~/models/Site'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
 export default {
@@ -57,12 +50,9 @@ export default {
       currentDate: this.$dayjs().format('YYYY-MM-DD'),
       dialog: false,
       editModel: new SiteOperationSchedule(),
-      instance: new Site(),
-      items: {
-        schedules: [],
-        histories: [],
-      },
+      items: { schedules: [], histories: [] },
       listeners: {
+        schedules: new SiteOperationSchedule(),
         histories: null,
       },
     }
@@ -90,11 +80,11 @@ export default {
   watch: {
     dialog(v) {
       if (v && this.editMode === this.CREATE) {
-        this.editModel.initialize({ siteId: this.instance.docId })
+        this.editModel.initialize({ siteId: this.siteId })
       }
       if (!v) {
         this.editMode = this.CREATE
-        this.editModel.initialize()
+        this.editModel.initialize({ siteId: this.siteId })
       }
     },
     from() {
@@ -102,9 +92,8 @@ export default {
       this.subscribeHistories()
     },
     siteId: {
-      async handler(v) {
+      handler(v) {
         if (!v) return
-        await this.instance.fetch(v)
         this.subscribeSchedules()
         this.subscribeHistories()
       },
@@ -115,8 +104,10 @@ export default {
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.instance.unsubscribeSchedules()
-    if (this.listeners.histories) this.listeners.histories()
+    Object.keys(this.listeners).forEach((key) => {
+      if (!this.listeners[key]) this.listeners[key]()
+      this.listeners[key] = null
+    })
   },
   /***************************************************************************
    * METHODS
@@ -134,17 +125,18 @@ export default {
      * 現場の稼働予定ドキュメントに対するリアルタイムリスナーをセットします。
      */
     subscribeSchedules() {
-      this.items.schedules = this.instance.subscribeSchedules({
-        from: this.from,
-        to: this.to,
-      })
+      this.items.schedules = this.listeners.schedules.subscribeDocs([
+        ['where', 'siteId', '==', this.siteId],
+        ['where', 'date', '>=', this.from],
+        ['where', 'date', '<=', this.to],
+      ])
     },
     /**
      * 稼働予定の更新履歴に対するリアルタイムリスナーをセットします。
      */
     subscribeHistories() {
       this.items.histories.splice(0)
-      const path = `History/SiteOperationSchedules/${this.instance.docId}`
+      const path = `History/SiteOperationSchedules/${this.siteId}`
       const dbRef = ref(database, path)
       const q = query(
         dbRef,

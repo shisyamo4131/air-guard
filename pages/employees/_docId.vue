@@ -118,7 +118,7 @@ export default {
         />
       </v-col>
       <v-col cols="12">
-        <g-employee-contracts-manager :instance="listeners.employee" />
+        <g-employee-contracts-manager :employee-id="listeners.employee.docId" />
       </v-col>
       <v-col cols="12" md="5">
         <g-card-map

@@ -1,20 +1,7 @@
 <script>
 /**
- * ## GEmployeeContractsManager
- *
  * 従業員の雇用契約についてCRUD機能を提供するコンポーネントです。
- *
- * @events
- * @event contracts - `data.items`が更新されると、`data.items`とともにemitされます。
- *
  * @author shisyamo4131
- * @version 1.2.0
- *
- * @updates
- * - version 1.2.0 - 2024-10-08 - 雇用契約が連続した状態になるように、各種制御を追加
- * - version 1.1.0 - 2024-10-07 - `computed.hasNewContract` を実装し、GInputEmployeeContract の disable-edit にバインド
- *                              - `computed.allowedDates` を実装し、GInputEmployeeContract の allowed-dates にバインド
- * - version 1.0.0 - 2024-09-12 - 初版作成
  */
 import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
 import GInputEmployeeContract from '../molecules/inputs/GInputEmployeeContract.vue'
@@ -42,15 +29,9 @@ export default {
    ***************************************************************************/
   props: {
     /**
-     * 管理対象従業員のクラスインスタンス
+     * 管理対象の従業員ID
      */
-    instance: {
-      type: Object,
-      required: true,
-      validator(instance) {
-        return instance instanceof Employee
-      },
-    },
+    employeeId: { type: String, required: true },
   },
   /***************************************************************************
    * DATA
@@ -59,11 +40,16 @@ export default {
     return {
       dialog: false,
       editModel: new EmployeeContract(),
+      employeeInstance: new Employee(),
+      errorMessage: null,
+      contractInstance: new EmployeeContract(),
+
       /**
        * DataTableに提供される配列です。`props.employeeId`で指定された従業員の
        * 雇用契約（EmployeeContract）ドキュメントが格納されます。
        */
       items: [],
+      loadingEmployee: false,
     }
   },
   /***************************************************************************
@@ -83,7 +69,7 @@ export default {
      */
     allowedDates() {
       if (!this.items.length) {
-        return (v) => v >= this.instance.hireDate // 雇用開始日以上なら許可
+        return (v) => v >= this.employeeInstance.hireDate // 雇用開始日以上なら許可
       } else {
         const recent = this.items.reduce(
           (last, item) => (item.startDate > last.startDate ? item : last),
@@ -161,17 +147,35 @@ export default {
         this.editModel.initialize()
       }
     },
+
     /**
-     * `props.instance.employeeId`を監視します。
-     * - 従業員の雇用契約情報に対するリアルタイムリスナーをセットします。
+     * - 従業員ドキュメントをインスタンスに読み込みます。
+     * - 従業員の雇用契約ドキュメントに対するリアルタイムリスナーをセットします。
      */
-    'instance.docId': {
-      handler(v) {
-        if (!v) return
-        this.items = this.instance.subscribeContracts()
+    employeeId: {
+      async handler(v) {
+        this.loadingEmployee = true
+        this.errorMessage = null
+        try {
+          const isFetched = await this.employeeInstance.fetch(v)
+          if (!isFetched) {
+            this.errorMessage = '従業員情報の読み込みに失敗しました。'
+            return
+          }
+          this.items = this.contractInstance.subscribeDocs([
+            ['where', 'employeeId', '==', v],
+          ])
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error(err)
+          this.errorMessage = '従業員情報の読み込みに失敗しました。'
+        } finally {
+          this.loadingEmployee = false
+        }
       },
       immediate: true,
     },
+
     /**
      * `data.items`に対するwatcherです。
      * このコンポーネントが取得した雇用契約（EmployeeContract）ドキュメントの配列を
@@ -192,7 +196,7 @@ export default {
     /**
      * 雇用契約（EmployeeContracts）に対する購読を解除します。
      */
-    this.instance.unsubscribeContracts()
+    this.contractInstance.unsubscribe()
   },
   /***************************************************************************
    * METHODS
@@ -225,11 +229,11 @@ export default {
         ? recent.hasPeriod
           ? this.$dayjs(recent.expiredDate).add(1, 'day').format('YYYY-MM-DD')
           : ''
-        : this.instance?.hireDate || ''
+        : this.employeeInstance?.hireDate || ''
 
       // editModelにemployeeIdとstartDateを初期化して設定
       this.editModel.initialize({
-        employeeId: this.instance.docId,
+        employeeId: this.employeeInstance.docId,
         startDate,
       })
     },
@@ -243,7 +247,12 @@ export default {
       <div>雇用契約</div>
       <g-dialog-input v-model="dialog">
         <template #activator="{ attrs, on }">
-          <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
+          <g-btn-regist-icon
+            v-bind="attrs"
+            color="primary"
+            :disabled="loadingEmployee || !!errorMessage"
+            v-on="on"
+          />
         </template>
         <template #default="{ attrs, on }">
           <g-input-employee-contract
@@ -260,7 +269,11 @@ export default {
       </g-dialog-input>
     </v-card-title>
     <v-container>
+      <v-alert v-if="errorMessage" dense type="error" text>{{
+        errorMessage
+      }}</v-alert>
       <g-data-table-employee-contracts
+        v-else
         :actions="['edit']"
         :items="items"
         @click:edit="onClickEdit"

@@ -1,19 +1,11 @@
 import { FireModel } from 'air-firebase'
-import Employee from './Employee'
+import { EmployeeMinimal } from './Employee'
 import { classProps } from './propsDefinition/EmployeeContract'
 import WorkRegulation from './WorkRegulation'
 
 /**
- * ## EmployeeContractsドキュメントデータモデル【物理削除】
- *
- * - 従業員の雇用契約情報を管理するデータモデルです。
- *
- * @version 2.1.0
+ * 従業員の雇用契約情報を管理するデータモデルです。
  * @author shisyamo4131
- * @updates
- * - version 2.1.1 - 2024-10-08 - `hasPeriod` プロパティが false の場合、`expiredDate` を初期化するように修正。
- * - version 2.1.0 - 2024-10-07 - ドキュメント作成時に契約日と契約満了日の前後関係をチェックするように機能を追加しました。
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class EmployeeContract extends FireModel {
   /****************************************************************************
@@ -26,7 +18,7 @@ export default class EmployeeContract extends FireModel {
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
-    employee: Employee,
+    employee: EmployeeMinimal,
     workRegulation: WorkRegulation,
   }
 
@@ -55,7 +47,7 @@ export default class EmployeeContract extends FireModel {
     }
     if (!this.hasPeriod) this.expiredDate = ''
     try {
-      const employee = await new Employee().fetchDoc(this.employeeId)
+      const employee = await new EmployeeMinimal().fetchDoc(this.employeeId)
       if (!employee) {
         throw new Error('従業員情報が取得できませんでした。')
       }

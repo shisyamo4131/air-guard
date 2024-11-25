@@ -1,15 +1,7 @@
 <script>
 /**
- * ## GSiteContractsManager
- *
  * 現場の取極め情報を管理するコンポーネントです。
- *
- * - 取極め情報の表示は、勤務区分ごとに最新の1件のみです。-> 遷移を確認したくなった場合はTimelineか？
- *
  * @author shisyamo4131
- * @version 1.0.0
- * @updates
- * - version 1.0.0 - 初版作成
  */
 import GCardSiteContract from '../molecules/cards/GCardSiteContract.vue'
 import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
@@ -36,11 +28,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
-    instance: {
-      type: Object,
-      required: true,
-      validator: (instance) => instance instanceof Site,
-    },
+    siteId: { type: String, required: true },
   },
   /***************************************************************************
    * DATA
@@ -48,11 +36,15 @@ export default {
   data() {
     return {
       allowedDates: (val) => !this.items.some((item) => item.startDate === val),
+      contractInstance: new SiteContract(),
       dialog: false,
       editModel: new SiteContract(),
+      errorMessage: null,
       items: [],
-      workShift: 'day',
+      loadingSite: false,
+      siteInstance: new Site(),
       tab: null,
+      workShift: 'day',
     }
   },
   /***************************************************************************
@@ -95,7 +87,8 @@ export default {
     dialog(v) {
       if (v && this.editMode === this.CREATE) {
         this.editModel.initialize({
-          siteId: this.instance.docId,
+          // siteId: this.instance.docId,
+          siteId: this.siteId,
         })
       }
       if (!v) {
@@ -103,20 +96,36 @@ export default {
         this.editModel.initialize()
       }
     },
-    instance: {
-      handler(v) {
-        if (!v.docId) return
-        this.items = v.subscribeContracts()
+
+    siteId: {
+      async handler(v) {
+        this.loadingSite = true
+        this.errorMessage = null
+        try {
+          const isFetched = await this.siteInstance.fetch(v)
+          if (!isFetched) {
+            this.errorMessage = '現場情報の読み込みに失敗しました。'
+            return
+          }
+          this.items = this.contractInstance.subscribeDocs([
+            ['where', 'siteId', '==', v],
+          ])
+        } catch (err) {
+          // eslint-disable-next-line no-console
+          console.error(err)
+          this.errorMessage = '現場情報の読み込みに失敗しました。'
+        } finally {
+          this.loadingSite = false
+        }
       },
       immediate: true,
-      deep: true,
     },
   },
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.instance.unsubscribeContracts()
+    this.contractInstance.unsubscribe()
   },
   /***************************************************************************
    * METHODS
@@ -143,6 +152,7 @@ export default {
             v-bind="attrs"
             class="align-self-center"
             color="primary"
+            :disabled="loadingSite || !!errorMessage"
             v-on="on"
           />
         </template>
@@ -157,7 +167,11 @@ export default {
         </template>
       </g-dialog-input>
     </v-tabs>
-    <v-tabs-items v-model="workShift">
+    <v-alert v-if="errorMessage" dense type="error" text>{{
+      errorMessage
+    }}</v-alert>
+
+    <v-tabs-items v-else v-model="workShift">
       <v-tab-item value="day">
         <g-card-site-contract
           v-if="!!dayContracts.length"

@@ -8,6 +8,122 @@ import dayjs from 'dayjs'
 const firestore = getFirestore()
 const BATCH_LIMIT = 500
 
+/**
+ * Firestore のドキュメント更新イベントを受け取り、差分に関するデータを返します。
+ * ComparisonClass を指定すると、比較対象のプロパティを限定することが可能です。
+ *
+ * @param {Object} params - パラメータオブジェクト
+ * @param {Object} params.event - Firestore の更新トリガーイベントオブジェクト
+ * @param {Function} [params.ComparisonClass] - (オプション) データをインスタンス化する比較用クラス
+ * @returns {Object} 差分情報を含むオブジェクト
+ * @returns {number} result.length - 差分を検知したプロパティ数
+ * @returns {Object} result.data - afterData（またはクラスを使用して変換された結果）
+ */
+export const extractDiffsFromDocUpdatedEvent = ({ event, ComparisonClass }) => {
+  if (!event || !event.data) {
+    throw new TypeError('有効な Firestore イベントオブジェクトが必要です。')
+  }
+
+  // Firestore 更新トリガーから beforeData と afterData を抽出
+  const beforeData = event.data.before?.data() || null
+  const afterData = event.data.after?.data() || null
+
+  if (!beforeData || !afterData) {
+    throw new TypeError(
+      'Firestore イベントの before または after データが無効です。'
+    )
+  }
+
+  // findDifferences を呼び出し、差分を検出
+  return findDifferences({
+    beforeData,
+    afterData,
+    ComparisonClass,
+  })
+}
+
+/**
+ * 2つのデータ間の差分を比較し、変更箇所の情報を返します。
+ * 必要に応じて指定された比較用クラスを利用してデータをインスタンス化し、比較を行います。
+ *
+ * @param {Object} params - パラメータオブジェクト
+ * @param {Object} params.beforeData - 比較対象の1つ目のデータ
+ * @param {Object} params.afterData - 比較対象の2つ目のデータ
+ * @param {Function} [params.ComparisonClass] - (オプション) データをインスタンス化する比較用クラス
+ * @returns {Object} - 差分情報を含むオブジェクト
+ * @returns {number} result.length - 差分を検知したプロパティ数
+ * @returns {Object} result.data - afterData（またはクラスを使用して変換された結果）
+ */
+export const findDifferences = ({ beforeData, afterData, ComparisonClass }) => {
+  if (
+    typeof beforeData !== 'object' ||
+    beforeData === null ||
+    typeof afterData !== 'object' ||
+    afterData === null
+  ) {
+    throw new TypeError('比較する対象はオブジェクトである必要があります。')
+  }
+
+  let before = beforeData
+  let after = afterData
+
+  // 比較用クラスが指定されている場合
+  if (ComparisonClass) {
+    if (
+      typeof ComparisonClass !== 'function' ||
+      !ComparisonClass.prototype ||
+      ComparisonClass.prototype.constructor !== ComparisonClass
+    ) {
+      throw new TypeError(
+        'ComparisonClass は有効なクラスである必要があります。'
+      )
+    }
+
+    before = new ComparisonClass(beforeData).toObject()
+    after = new ComparisonClass(afterData).toObject()
+  }
+
+  const allKeys = new Set([...Object.keys(before), ...Object.keys(after)])
+  const differences = []
+
+  for (const key of allKeys) {
+    const valueA = before[key]
+    const valueB = after[key]
+
+    if (Array.isArray(valueA) && Array.isArray(valueB)) {
+      // 配列の比較
+      if (
+        valueA.length !== valueB.length ||
+        !valueA.every((val, idx) => val === valueB[idx])
+      ) {
+        differences.push({ key, valueA, valueB })
+      }
+    } else if (
+      typeof valueA === 'object' &&
+      valueA !== null &&
+      typeof valueB === 'object' &&
+      valueB !== null
+    ) {
+      // 再帰的にオブジェクトを比較
+      const nestedResult = findDifferences({
+        beforeData: valueA,
+        afterData: valueB,
+      })
+      if (nestedResult.length > 0) {
+        differences.push({ key, differences: nestedResult })
+      }
+    } else if (valueA !== valueB) {
+      // 値が異なる場合
+      differences.push({ key, valueA, valueB })
+    }
+  }
+
+  return {
+    length: differences.length, // 差分のプロパティ数
+    data: after, // afterData または ComparisonClass 経由で生成されたデータ
+  }
+}
+
 /****************************************************************************
  * 指定された日付が 'YYYY-MM-DD' 形式であり、かつ有効な日付かどうかをチェックします。
  * - 日付が文字列として正しく指定されていない場合はエラーをスローします。
@@ -76,25 +192,17 @@ export const isDocumentChanged = (event, ignoreFields = []) => {
   return JSON.stringify(beforeFields) !== JSON.stringify(afterFields)
 }
 
-/****************************************************************************
+/**
  * 非正規化されたドキュメントデータを同期させます。
  *
- * この関数は、指定されたコレクション内のドキュメントを特定のフィールドで
- * 一致するデータと同期します。同期対象となるフィールドは指定されたデータで
- * 上書きされます。
+ * 指定されたコレクション内のドキュメントを特定のフィールドで一致するデータと同期します。
  *
  * @param {string} collectionId - 同期対象のコレクションID
- * @param {string} field - 同期対象のフィールド名
+ * @param {string} compareProp - 比較対象のフィールド名
+ * @param {string} updateProp - 更新対象のフィールド名
  * @param {object} data - 同期するデータオブジェクト（例：{ docId: '123', ... }）
- * @returns {Promise<void>} - 同期操作が完了した時点で解決されるPromise
- *
- * @author shisyamo4131
- * @version 2.0.0
- *
- * #### 更新履歴
- * - version 2.0.0 - 2024-07-22 - [破壊]比較対象のプロパティ、更新対象のプロパティを引数で指定できるように修正。
- * - version 1.0.0 - 2024-07-10 - 初版作成
- ****************************************************************************/
+ * @returns {Promise<number>} - 同期されたドキュメントの数
+ */
 export const syncDependentDocuments = async (
   collectionId,
   compareProp,
@@ -102,28 +210,70 @@ export const syncDependentDocuments = async (
   data
 ) => {
   const BATCH_SIZE = 500
-  logger.info(`${collectionId}コレクション内のドキュメントと同期します。`)
+  logger.info(
+    `${collectionId} コレクション内のドキュメントと同期を開始します。`
+  )
+
+  if (!collectionId || typeof collectionId !== 'string') {
+    throw new TypeError('collectionId は非空の文字列である必要があります。')
+  }
+  if (!compareProp || typeof compareProp !== 'string') {
+    throw new TypeError('compareProp は非空の文字列である必要があります。')
+  }
+  if (!updateProp || typeof updateProp !== 'string') {
+    throw new TypeError('updateProp は非空の文字列である必要があります。')
+  }
+  if (!data || typeof data !== 'object' || !data.docId) {
+    throw new TypeError(
+      'data は有効なオブジェクトであり、docId プロパティが必要です。'
+    )
+  }
+
   try {
     const colRef = firestore.collection(collectionId)
     const query = colRef.where(compareProp, '==', data.docId)
     const querySnapshot = await query.get()
+
     if (querySnapshot.empty) {
-      logger.info('同期対象のドキュメントはありませんでした。')
-    } else {
-      const docCount = querySnapshot.docs.length
-      logger.info(`${docCount}件のドキュメントと同期します。`)
-      const batchArray = []
-      querySnapshot.docs.forEach((doc, index) => {
-        if (index % BATCH_SIZE === 0) batchArray.push(firestore.batch())
-        batchArray[batchArray.length - 1].update(doc.ref, {
-          [updateProp]: data,
-        })
-      })
-      await Promise.all(batchArray.map((batch) => batch.commit()))
-      logger.info('同期処理が正常に完了しました。')
+      logger.info(
+        `同期対象のドキュメントはありませんでした: collectionId=${collectionId}, compareProp=${compareProp}, value=${data.docId}`
+      )
+      return 0 // 一貫性のため 0 を返す
     }
+
+    const docCount = querySnapshot.docs.length
+    logger.info(`${docCount} 件のドキュメントと同期を開始します。`)
+    const batchArray = []
+    querySnapshot.docs.forEach((doc, index) => {
+      if (index % BATCH_SIZE === 0) batchArray.push(firestore.batch())
+      batchArray[batchArray.length - 1].update(doc.ref, {
+        [updateProp]: data,
+      })
+    })
+
+    // バッチコミットの実行
+    await Promise.all(
+      batchArray.map(async (batch, index) => {
+        try {
+          await batch.commit()
+          logger.info(`バッチ ${index + 1} が正常にコミットされました。`)
+        } catch (error) {
+          logger.error(`バッチ ${index + 1} のコミットに失敗しました。`, {
+            message: error.message,
+            stack: error.stack,
+          })
+          throw error
+        }
+      })
+    )
+
+    logger.info(
+      `同期処理が正常に完了しました: コミットされたバッチ数=${batchArray.length}`
+    )
+
+    return docCount // 同期されたドキュメント数を返す
   } catch (err) {
-    logger.error('syncDependentDocumentsでエラーが発生しました。詳細:', {
+    logger.error('syncDependentDocuments でエラーが発生しました。', {
       message: err.message,
       stack: err.stack,
     })

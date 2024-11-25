@@ -87,7 +87,7 @@ export default {
         case '/sites':
           return ['SitesIndex']
         case '/employees':
-          return ['EmployeesIndex', 'EmployeeDetail']
+          return ['EmployeesIndex']
         default:
           return []
       }

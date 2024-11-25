@@ -1,16 +1,10 @@
 import { FireModel } from 'air-firebase'
-import Employee from './Employee'
+import { EmployeeMinimal } from './Employee'
 import { classProps } from './propsDefinition/EmployeeMedicalCheckup'
 
 /**
- * EmployeeMedicalCheckupsドキュメントデータモデル【物理削除】
- *
  * 従業員の健康診断情報を管理するためのデータモデルです。
- *
- * @version 2.0.0
  * @author shisyamo4131
- * @updates
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class EmployeeMedicalCheckup extends FireModel {
   /****************************************************************************
@@ -23,7 +17,7 @@ export default class EmployeeMedicalCheckup extends FireModel {
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
-    employee: Employee,
+    employee: EmployeeMinimal,
   }
 
   /****************************************************************************
@@ -53,7 +47,7 @@ export default class EmployeeMedicalCheckup extends FireModel {
     if (existingContract) {
       throw new Error('同一の受診履歴が既に登録されています。')
     }
-    const employee = await new Employee().fetchDoc(this.employeeId)
+    const employee = await new EmployeeMinimal().fetchDoc(this.employeeId)
     if (!employee) {
       throw new Error('従業員情報が取得できませんでした。')
     }

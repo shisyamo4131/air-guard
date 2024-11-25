@@ -144,7 +144,7 @@ export default {
           </v-tab-item>
           <v-tab-item>
             <v-container fluid>
-              <g-site-contracts-manager :instance="listener" />
+              <g-site-contracts-manager :site-id="listener.docId" />
             </v-container>
           </v-tab-item>
         </v-tabs-items>

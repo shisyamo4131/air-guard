@@ -20,13 +20,23 @@
 
 ## 課題・要望一覧
 
-1. Site クラス、Employee クラスがそれぞれの Contract クラスと循環参照をしているのを解消
-2. Firestore のドキュメントトリガーでの同期処理について、カスタムクラスを利用した処理にすることで無駄な更新を避ける工夫を。
-3. 休暇申請管理の実装（配置管理に影響する）
-4. 配置表を開いている人が知りたい。（かなり面倒）
-5. 配置管理で、配置されている従業員のセルにジャンプしたい（UI が決まらないので保留）
-6. マスタデータを削除した後、一覧画面に遷移した際に削除したデータが一覧に表示されてしまう。
+1. Firestore のドキュメントトリガーでの同期処理について、カスタムクラスを利用した処理にすることで無駄な更新を避ける工夫を。
+2. 休暇申請管理の実装（配置管理に影響する）
+3. 配置表を開いている人が知りたい。（かなり面倒）
+4. 配置管理で、配置されている従業員のセルにジャンプしたい（UI が決まらないので保留）
+5. マスタデータを削除した後、一覧画面に遷移した際に削除したデータが一覧に表示されてしまう。
    -> Vuex が参照している Realtime Database からの削除処理を Cloud Functions が担っているためのタイムラグ。
+
+## 2024-11-25 - ver 0.6.2
+
+### その他
+
+- Employee クラスと EmployeeContract クラスの循環参照を解消
+- Site クラスと SiteOperationSchedule, SiteContract クラスの循環参照を解消
+- EmployeeMinimal クラスを用意 -> EmployeeContract, EmployeeMedicalCheckup クラスに適用
+- firestore.indexes.json から AttendanceRecords に関するインデックスを削除
+- AttandanceRecords に関するコンポーネント, モデルを削除
+- Cloud Functions からの無駄な非正規化データ同期処理を抑制するため、modules.utils.js に extractDiffsFromDocUpdatedEvent を実装。今後の改修で処理を組み込んでいく。
 
 ## 2024-11-25 - ver 0.6.1
 
