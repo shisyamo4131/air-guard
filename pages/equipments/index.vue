@@ -72,10 +72,10 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
-    onClickRow(item) {
+    async onClickRow(item) {
       // 詳細ページが出来上がったらこちらを適用
       // this.$router.push(`/customers/${item.docId}`)
-      this.instance.initialize(item)
+      await this.instance.fetch(item.docId)
       this.editMode = this.UPDATE
       this.dialog = true
     },
