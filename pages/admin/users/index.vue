@@ -124,7 +124,7 @@ export default {
 </script>
 
 <template>
-  <g-template-index :items="items">
+  <g-template-index label="ユーザー管理" :items="items">
     <template #append-search>
       <g-dialog-input v-model="dialog" max-width="360">
         <template #activator="{ attrs, on }">

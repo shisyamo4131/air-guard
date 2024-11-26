@@ -210,9 +210,9 @@ export const syncDependentDocuments = async (
   data
 ) => {
   const BATCH_SIZE = 500
-  logger.info(
-    `${collectionId} コレクション内のドキュメントと同期を開始します。`
-  )
+  // logger.info(
+  //   `${collectionId} コレクション内のドキュメントと同期を開始します。`
+  // )
 
   if (!collectionId || typeof collectionId !== 'string') {
     throw new TypeError('collectionId は非空の文字列である必要があります。')
@@ -242,7 +242,7 @@ export const syncDependentDocuments = async (
     }
 
     const docCount = querySnapshot.docs.length
-    logger.info(`${docCount} 件のドキュメントと同期を開始します。`)
+    // logger.info(`${docCount} 件のドキュメントと同期を開始します。`)
     const batchArray = []
     querySnapshot.docs.forEach((doc, index) => {
       if (index % BATCH_SIZE === 0) batchArray.push(firestore.batch())
@@ -256,7 +256,7 @@ export const syncDependentDocuments = async (
       batchArray.map(async (batch, index) => {
         try {
           await batch.commit()
-          logger.info(`バッチ ${index + 1} が正常にコミットされました。`)
+          // logger.info(`バッチ ${index + 1} が正常にコミットされました。`)
         } catch (error) {
           logger.error(`バッチ ${index + 1} のコミットに失敗しました。`, {
             message: error.message,
@@ -267,9 +267,9 @@ export const syncDependentDocuments = async (
       })
     )
 
-    logger.info(
-      `同期処理が正常に完了しました: コミットされたバッチ数=${batchArray.length}`
-    )
+    // logger.info(
+    //   `同期処理が正常に完了しました: コミットされたバッチ数=${batchArray.length}`
+    // )
 
     return docCount // 同期されたドキュメント数を返す
   } catch (err) {

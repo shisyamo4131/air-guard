@@ -1,9 +1,13 @@
+import { getDatabase } from 'firebase-admin/database'
+import { getFirestore } from 'firebase-admin/firestore'
+import { logger } from 'firebase-functions/v2'
+
+const database = getDatabase()
+const firestore = getFirestore()
+
 /**
- * ## EmployeeIndex.js
- *
  * Realtime Database で管理される `Employees` のデータモデルです。
  * - コンストラクタの引数には `Employees` ドキュメントのデータを渡します。
- *
  * @author shisyamo4131
  */
 export default class EmployeeIndex {
@@ -30,5 +34,54 @@ export default class EmployeeIndex {
    ****************************************************************************/
   toObject() {
     return { ...this }
+  }
+
+  /****************************************************************************
+   * Realtime Database に指定された従業員のインデックスデータを作成します。
+   * @param {string} employeeId - インデックス作成対象の従業員ID
+   ****************************************************************************/
+  static async create(employeeId) {
+    const dbRef = database.ref(`Employees/${employeeId}`)
+
+    try {
+      const docRef = firestore.collection('Employees').doc(employeeId)
+      const docSnapshot = await docRef.get()
+
+      if (!docSnapshot.exists) {
+        const message = `該当する従業員ドキュメントが取得できませんでした。`
+        logger.error(`[create] ${message}`, { employeeId })
+        throw new Error(message)
+      }
+
+      const indexData = new this(docSnapshot.data())
+
+      await dbRef.set(indexData)
+      // logger.info(`[create] インデックスが作成されました。`, { employeeId })
+    } catch (error) {
+      logger.error(`[create] インデックスの作成処理でエラーが発生しました。`, {
+        employeeId,
+      })
+      throw error
+    }
+  }
+
+  /****************************************************************************
+   * Realtime Database から指定された従業員のインデックスデータを削除します。
+   * @param {string} employeeId - インデックス削除対象の従業員ID
+   ****************************************************************************/
+  static async delete(employeeId) {
+    const dbRef = database.ref(`Employees/${employeeId}`)
+
+    try {
+      await dbRef.remove()
+      // logger.info(`[delete] インデックスが削除されました。`, {
+      //   employeeId,
+      // })
+    } catch (error) {
+      logger.error(`[delete] インデックスの削除処理でエラーが発生しました。`, {
+        employeeId,
+      })
+      throw error
+    }
   }
 }

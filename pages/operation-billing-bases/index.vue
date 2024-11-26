@@ -14,9 +14,9 @@ import OperationBillingBasis from '~/models/OperationBillingBasis'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
-import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 import GDataTableOperationBillingBases from '~/components/molecules/tables/GDataTableOperationBillingBases.vue'
 import GInputOperationBillingBasis from '~/components/molecules/inputs/GInputOperationBillingBasis.vue'
+import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -29,9 +29,9 @@ export default {
     GTemplateIndex,
     GDialogInput,
     GBtnRegistIcon,
-    GDialogMonthPicker,
     GDataTableOperationBillingBases,
     GInputOperationBillingBasis,
+    GTextFieldSearchMonth,
   },
   /***************************************************************************
    * MIXINS
@@ -108,22 +108,9 @@ export default {
 </script>
 
 <template>
-  <g-template-index :items="filteredItems">
+  <g-template-index label="取引先請求情報" :items="filteredItems">
     <template #search>
-      <g-dialog-month-picker v-model="month">
-        <template #activator="{ attrs, on }">
-          <v-text-field
-            v-bind="attrs"
-            class="center-input"
-            style="max-width: 120px"
-            flat
-            solo-inverted
-            dense
-            hide-details
-            v-on="on"
-          />
-        </template>
-      </g-dialog-month-picker>
+      <g-text-field-search-month v-model="month" />
       <v-spacer />
     </template>
     <template #append-search>

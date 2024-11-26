@@ -15,8 +15,12 @@ import {
   onDocumentDeleted,
 } from 'firebase-functions/v2/firestore'
 import { logger } from 'firebase-functions/v2'
-import { isDocumentChanged } from '../modules/utils.js'
-import Employee from '../models/Employee.js'
+import {
+  extractDiffsFromDocUpdatedEvent,
+  isDocumentChanged,
+} from '../modules/utils.js'
+import { EmployeeForEmployeeContract } from '../models/Employee.js'
+import EmployeeIndex from '../models/EmployeeIndex.js'
 
 /****************************************************************************
  * ドキュメントが作成されたときにトリガーされる関数。
@@ -30,14 +34,16 @@ export const onCreate = onDocumentCreated(
   async (event) => {
     const docId = event.params.docId
 
-    // ログに更新されたドキュメントIDを含める
     logger.info(
       `Employeesドキュメントが更新されました。ドキュメントID: ${event.params.docId}`
     )
 
     try {
-      // Realtime Databaseにインデックスを作成
-      await Employee.syncIndex(docId)
+      /**
+       * Realtime Database にインデックスを作成します。
+       */
+      await EmployeeIndex.create(docId)
+      logger.info(`Employeeインデックスとの同期完了`)
     } catch (err) {
       // エラーハンドリング
       logger.error(
@@ -53,12 +59,7 @@ export const onCreate = onDocumentCreated(
  * ドキュメントの更新トリガーです。
  * - インデックスを更新します。
  * - 従属するドキュメントの `employee` プロパティを同期します。
- *
- * #### 注意事項
- * - ドキュメントの内容に変更があったかどうかは`isDocumentChanged()`を利用します。
- *
  * @author shisyamo4131
- * @version 1.0.0
  ****************************************************************************/
 export const onUpdate = onDocumentUpdated(
   'Employees/{docId}',
@@ -67,16 +68,28 @@ export const onUpdate = onDocumentUpdated(
       // ドキュメントに変更がなければ処理を終了
       if (!isDocumentChanged(event)) return
 
-      // ログに更新されたドキュメントIDを含める
       logger.info(
         `Employeesドキュメントが更新されました。ドキュメントID: ${event.params.docId}`
       )
 
-      // Realtime Databaseにインデックスを作成
-      await Employee.syncIndex(event.params.docId)
+      /**
+       * Realtime Database にインデックスを作成します。
+       * - インデックス対象のデータに変更がある場合のみ。
+       */
+      const isChangedAsIndex = extractDiffsFromDocUpdatedEvent({
+        event,
+        ComparisonClass: EmployeeIndex,
+      })
+      if (isChangedAsIndex.length > 0) {
+        await EmployeeIndex.create(event.params.docId)
+      }
+      logger.info(`Employeeインデックスとの同期完了`)
 
-      // EmployeeContractsドキュメントのemployeeプロパティを同期
-      await Employee.syncToEmployeeContracts(event.params.docId)
+      /**
+       * EmployeeContracts ドキュメントと同期
+       */
+      await EmployeeForEmployeeContract.sync(event)
+      logger.info(`EmployeeContractsコレクションとの同期処理完了`)
     } catch (err) {
       // エラーハンドリング
       logger.error(
@@ -91,9 +104,7 @@ export const onUpdate = onDocumentUpdated(
 /****************************************************************************
  * ドキュメントが削除されたときにトリガーされる関数。
  * - インデックスを削除します。
- *
  * @author shisyamo4131
- * @version 1.0.0
  ****************************************************************************/
 export const onDelete = onDocumentDeleted(
   'Employees/{docId}',
@@ -106,8 +117,11 @@ export const onDelete = onDocumentDeleted(
     )
 
     try {
-      // Realtime Databaseインデックスを削除
-      await Employee.syncIndex(docId, true)
+      /**
+       * Realtime Database からインデックスを削除します。
+       */
+      await EmployeeIndex.delete(docId)
+      logger.info(`Employeeインデックスとの同期完了`)
     } catch (err) {
       // エラーハンドリング
       logger.error(

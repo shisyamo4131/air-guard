@@ -10,6 +10,7 @@ module.exports = {
   // 管制業務
   placements: [],
   'site-operation-schedules': ['admin', 'developer', 'manager'],
+  'employee-leave-applications': ['admin', 'developer'],
   'operation-results': ['admin', 'developer'],
   'monthly-attendances': ['admin', 'developer'],
 

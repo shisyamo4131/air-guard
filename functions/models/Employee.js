@@ -1,79 +1,53 @@
 import { getDatabase } from 'firebase-admin/database'
 import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import {
+  extractDiffsFromDocUpdatedEvent,
+  syncDependentDocuments,
+} from '../modules/utils.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/Employee.js'
-import EmployeeIndex from './EmployeeIndex.js'
 const database = getDatabase()
 const firestore = getFirestore()
 
 /**
- * Employeesドキュメントデータモデル【論理削除】
- *
- * - 従業員情報を管理するデータモデルです。
- * - `code`は Autonumbers による自動採番が行われます。
- *
- * @version 2.0.0
+ * 従業員情報を管理するデータモデルです。
+ * - データの更新系メソッドを利用することはできません。
  * @author shisyamo4131
- * @updates
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class Employee extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
   static collectionPath = 'Employees'
-  static useAutonumber = true
-  static logicalDelete = true
   static classProps = classProps
-  static tokenFields = ['lastNameKana', 'firstNameKana', 'abbr', 'abbrKana']
-  static hasMany = [
-    {
-      collection: 'EmployeeContracts',
-      field: 'employeeId',
-      condition: '==',
-      type: 'collection',
-    },
-    {
-      collection: 'EmployeeMedicalCheckups',
-      field: 'employeeId',
-      condition: '==',
-      type: 'collection',
-    },
-    {
-      collection: 'OperationResults',
-      field: 'employeeIds',
-      condition: 'array-contains',
-      type: 'collection',
-    },
-  ]
 
   /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
     super(item)
-    delete this.create
-    delete this.update
-    delete this.delete
-    Object.defineProperties(this, {
-      fullName: {
-        enumerable: true,
-        get() {
-          if (!this.lastName || !this.firstName) return ''
-          return `${this.lastName} ${this.firstName}`
-        },
-        set(v) {},
-      },
-      fullNameKana: {
-        enumerable: true,
-        get() {
-          if (!this.lastNameKana || !this.firstNameKana) return ''
-          return `${this.lastNameKana} ${this.firstNameKana}`
-        },
-        set(v) {},
-      },
-    })
+  }
+
+  /****************************************************************************
+   * 更新系メソッドは使用不可
+   ****************************************************************************/
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
+  }
+
+  update() {
+    return Promise.reject(new Error('このクラスの update は使用できません。'))
+  }
+
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
+  }
+
+  static updateImgRef() {
+    return Promise.reject(
+      new Error('このクラスの updateImgRef は使用できません。')
+    )
   }
 
   /****************************************************************************
@@ -96,51 +70,13 @@ export default class Employee extends FireModel {
   }
 
   /****************************************************************************
-   * クラスプロパティの状態に応じて、他のプロパティの値を初期化します。
-   * - `isForeigner`がfalseの場合、`nationality`を初期化します。
-   * - `leaveDate`が空の場合、`leaveReason`を初期化します。
-   * - `hasSendAddress`がfalseの場合、`sendZipcode`、`sendAddress1`、`sendAddress2`に
-   *   `zipcode`、`address1`、`address2`をセットします。
-   ****************************************************************************/
-  #initializeDependentProperties() {
-    if (!this.isForeigner) this.nationality = ''
-    if (!this.leaveDate) this.leaveReason = ''
-    // 送付先住所がなければ登録住所を送付先住所に複製
-    if (!this.hasSendAddress) {
-      this.sendZipcode = this.zipcode
-      this.sendAddress1 = this.address1
-      this.sendAddress2 = this.address2
-    }
-  }
-
-  /****************************************************************************
-   * FireModelのbeforeCreateをオーバーライドします。
-   * - 依存プロパティを初期化します。
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
-   ****************************************************************************/
-  async beforeCreate() {
-    this.#initializeDependentProperties()
-    await super.beforeCreate()
-  }
-
-  /****************************************************************************
-   * FireModelのbeforeUpdateをオーバーライドします。
-   * - 依存プロパティを初期化します。
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
-   ****************************************************************************/
-  async beforeUpdate() {
-    this.#initializeDependentProperties()
-    await super.beforeUpdate()
-  }
-
-  /****************************************************************************
-   * Realtime Databaseの`AirGuard/Employees`の内容で、FirestoreのEmployeesドキュメントを更新します。
-   * - Realtime Databaseからデータを取得し、そのデータに基づいてFirestore内の
-   *   Employeesドキュメントを更新します。
-   * - Firestoreの更新はトランザクションを使用して安全に行います。
-   * - `docId`が存在しない場合や、データが存在しない場合はエラーが発生します。
-   *
-   * @param {string} code - Realtime Database内のEmployeesデータを識別するコード
+   * Realtime Database の `AirGuard/Employees` の内容で、 Firestore の
+   * Employees ドキュメントを更新します。
+   * - Realtime Database からデータを取得し、そのデータに基づいて Firestore 内の
+   *   Employees ドキュメントを更新します。
+   * - Firestore の更新はトランザクションを使用して安全に行います。
+   * - `docId` が存在しない場合や、データが存在しない場合はエラーが発生します。
+   * @param {string} code - Realtime Database 内 の Employees データを識別するコード
    * @returns {Promise<void>} - 同期が正常に完了した場合は、解決されたPromiseを返します
    ****************************************************************************/
   static async syncFromAirGuard(code) {
@@ -205,138 +141,6 @@ export default class Employee extends FireModel {
     }
   }
 
-  /****************************************************************************
-   * Realtime DatabaseのEmployeesインデックスを更新します。
-   * - 指定された `employeeId ` に該当する `Employees` ドキュメントを取得します。
-   * - 取得したドキュメントから必要なデータを抽出してインデックスを更新します。
-   * - `isDeleted` が true の場合、無条件にインデックスを削除して終了します。
-   * @param {string} employeeId - 更新するEmployeesインデックスのドキュメントID
-   * @param {boolean} isDeleted - true の場合、インデックスを削除します。
-   * @throws {Error} インデックスの更新に失敗した場合、エラーをスローします。
-   *
-   * @author shisyamo4131
-   * @version 1.0.1
-   * @updates - version 1.0.1 - 作成するインデックスはデータモデルを使用するように変更
-   ****************************************************************************/
-  static async syncIndex(employeeId, isDeleted = false) {
-    // Create reference to index in Realtime Database.
-    const dbRef = database.ref(`Employees/${employeeId}`)
-
-    try {
-      // インデックスの削除処理
-      if (isDeleted) {
-        await dbRef.remove()
-        logger.info(`[syncIndex] インデックスが削除されました。`, {
-          employeeId,
-        })
-        return
-      }
-
-      // Firestore から Employee ドキュメントを取得
-      const docRef = firestore.collection('Employees').doc(employeeId)
-      const docSnapshot = await docRef.get()
-
-      // ドキュメントが存在しない場合のエラーハンドリング
-      if (!docSnapshot.exists) {
-        const message = `該当する Employees ドキュメントが取得できませんでした。`
-        logger.error(`[syncIndex] ${message}`, { employeeId })
-        throw new Error(message)
-      }
-
-      // インデックスデータの作成
-      const indexData = new EmployeeIndex(docSnapshot.data())
-
-      // インデックスを更新
-      await dbRef.set(indexData)
-      logger.info(`[syncIndex] インデックスが更新されました。`, { employeeId })
-    } catch (error) {
-      // 修正: catchブロックで関数の引数のみをログ出力
-      logger.error(
-        `[syncIndex] インデックスの同期処理でエラーが発生しました。`,
-        { employeeId }
-      )
-      throw error
-    }
-  }
-
-  /****************************************************************************
-   * 指定された `employeeId` に基づき、`EmployeeContracts` ドキュメントの `site` プロパティを同期します。
-   * - `EmployeeContracts` ドキュメントはバッチ処理で同期されます。
-   * - `batchLimit` の数でバッチのサイズを指定し、`batchDelay` ミリ秒でバッチごとの遅延を指定します。
-   * @param {string} employeeId - 同期対象の Employees ドキュメントの ID
-   * @param {Object} [param1] - オプション引数
-   * @param {number} [param1.batchLimit=500] - 一度に処理するドキュメントの数
-   * @param {number} [param1.batchDelay=100] - バッチごとの遅延時間 (ミリ秒)
-   * @returns {Promise<void>}
-   ****************************************************************************/
-  static async syncToEmployeeContracts(
-    employeeId,
-    { batchLimit = 500, batchDelay = 100 } = {}
-  ) {
-    logger.info(
-      `[syncToEmployeeContracts] EmployeeContracts ドキュメントの同期処理を開始します。`,
-      { employeeId }
-    )
-    try {
-      // Load site document and throw error if the document does not exist.
-      const docRef = firestore.collection('Employees').doc(employeeId)
-
-      const docSnapshot = await docRef.get()
-      if (!docSnapshot.exists) {
-        const message = `指定された Employees ドキュメントが存在しません。`
-        logger.error(`[syncToEmployeeContracts] ${message}`, { employeeId })
-        throw new Error(message)
-      }
-
-      const site = docSnapshot.data()
-
-      // Load EmployeeContracts documents.
-      const colRef = firestore.collection('EmployeeContracts')
-      const queryRef = colRef.where('employeeId', '==', employeeId)
-      const querySnapshot = await queryRef.get()
-
-      // No documents found case
-      if (querySnapshot.empty) {
-        const message = `同期対象の EmployeeContracts ドキュメントはありませんでした。`
-        logger.info(`[syncToEmployeeContracts] ${message}`, { employeeId })
-        return
-      }
-
-      const docCount = querySnapshot.docs.length
-      const message = `${docCount} 件の EmployeeContracts ドキュメントを更新します。`
-      logger.info(`[syncToEmployeeContracts] ${message}`, { employeeId })
-
-      // Synchronize EmployeeContracts documents as batch.
-      const batchArray = []
-      for (let i = 0; i < docCount; i++) {
-        if (i % batchLimit === 0) batchArray.push(firestore.batch())
-        const currentBatch = batchArray[batchArray.length - 1]
-        const doc = querySnapshot.docs[i]
-        currentBatch.update(doc.ref, { site })
-      }
-
-      // Commit each batch with delay
-      for (const batch of batchArray) {
-        await batch.commit()
-        if (batchDelay > 0) {
-          await new Promise((resolve) => setTimeout(resolve, batchDelay))
-        }
-      }
-
-      logger.info(
-        `[syncToEmployeeContracts] EmployeeContracts ドキュメントの同期処理が完了しました。`,
-        { employeeId }
-      )
-    } catch (error) {
-      // エラーハンドリングを詳細化
-      logger.error(
-        `[syncToEmployeeContracts] エラーが発生しました: ${error.message}`,
-        { employeeId, error }
-      )
-      throw error
-    }
-  }
-
   /**
    * Firestore の 'Employees' コレクションから指定された期間内に在職していた従業員ドキュメントを返します。
    *
@@ -397,6 +201,54 @@ export default class Employee extends FireModel {
       const message = `[getExistingEmployees] 不明なエラーが発生しました。`
       logger.error(message, { from, to, error })
       throw error
+    }
+  }
+}
+
+/**
+ * 他のドキュメントで不要なプロパティを排除した Employee クラスです。
+ */
+export class EmployeeMinimal extends Employee {
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item)
+
+    delete this.createAt
+    delete this.updateAt
+    delete this.remarks
+    delete this.tokenMap
+  }
+}
+
+/**
+ * EmployeeCotract 専用の Employee クラスです。
+ */
+export class EmployeeForEmployeeContract extends EmployeeMinimal {
+  /**
+   * ドキュメントの更新トリガーイベントオブジェクトを受け取り、EmployeeContract ドキュメントの
+   * employee プロパティを同期します。
+   * @param {Object} event - ドキュメントの更新トリガーイベントオブジェクト
+   */
+  static async sync(event) {
+    try {
+      const differences = extractDiffsFromDocUpdatedEvent({
+        event,
+        ComparisonClass: this,
+      })
+      if (!differences.length) return
+      await syncDependentDocuments(
+        'EmployeeContracts',
+        'employee.docId',
+        'employee',
+        differences.data
+      )
+    } catch (error) {
+      logger.error(
+        `EmployeeContract ドキュメントの employee プロパティの同期処理に失敗しました。`
+      )
+      throw new Error(error)
     }
   }
 }

@@ -27,7 +27,7 @@
             :flat="$vuetify.breakpoint.mobile"
           />
         </v-col>
-        <v-col cols="12" md="4">
+        <v-col cols="6" md="4">
           <v-card
             v-if="hasPermission('/site-operation-schedules')"
             color="lime darken-2"
@@ -36,7 +36,7 @@
             :flat="$vuetify.breakpoint.mobile"
           >
             <v-card-title>
-              <v-icon left>mdi-table-account</v-icon>
+              <v-icon left>mdi-calendar-clock</v-icon>
               稼働予定
             </v-card-title>
             <v-card-actions class="justify-end">
@@ -45,6 +45,29 @@
                 outlined
                 rounded
                 to="/site-operation-schedules"
+                >管理画面</v-btn
+              >
+            </v-card-actions>
+          </v-card>
+        </v-col>
+        <v-col cols="6" md="4">
+          <v-card
+            v-if="hasPermission('/employee-leave-applications')"
+            color="amber darken-2"
+            dark
+            :tile="$vuetify.breakpoint.mobile"
+            :flat="$vuetify.breakpoint.mobile"
+          >
+            <v-card-title>
+              <v-icon left>mdi-beach</v-icon>
+              休暇申請
+            </v-card-title>
+            <v-card-actions class="justify-end">
+              <v-btn
+                class="mr-2 mb-2"
+                outlined
+                rounded
+                to="/employee-leave-applications"
                 >管理画面</v-btn
               >
             </v-card-actions>

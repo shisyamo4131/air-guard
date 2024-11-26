@@ -129,7 +129,7 @@ export default {
 </script>
 
 <template>
-  <g-template-index :items="items">
+  <g-template-index label="就業規則管理" :items="items">
     <template #prepend-search>
       <g-select
         v-model="selectedYear"

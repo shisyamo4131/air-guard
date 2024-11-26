@@ -287,10 +287,14 @@ export default {
         'assignments/employeeIdsByDate'
       ](this.activeCell.date)
 
-      // 従業員が既に配置されている稼働を表す isPlace プロパティを付与
+      // 従業員が既に配置されていることを表す isPlace プロパティを付与
+      // 従業員の休暇申請が存在することを表す hasLeaveApplication プロパティを付与
       const result = acitiveEmployees.map((employee) => {
         const isPlaced = assignedEmployeeIds.includes(employee.docId)
-        return { ...employee, isPlaced }
+        const hasLeaveApplication = this.$store.getters[
+          'assignments/getEmployeeLeaveApplication'
+        ](this.activeCell.date, employee.docId)
+        return { ...employee, isPlaced, hasLeaveApplication }
       })
 
       return result.filter(
@@ -829,6 +833,13 @@ export default {
         <v-list-item-subtitle v-else class="text-caption">
           未配置
         </v-list-item-subtitle>
+      </template>
+      <template #append="{ item }">
+        <v-list-item-action>
+          <v-chip v-if="item.hasLeaveApplication" small color="warning"
+            >休暇申請</v-chip
+          >
+        </v-list-item-action>
       </template>
     </g-dialog-employee-selector>
 

@@ -72,6 +72,7 @@ export default {
     extend: { type: Boolean, default: false, required: false },
     hidePagination: { type: Boolean, default: false, required: false },
     items: { type: Array, default: () => [], required: false },
+    label: { type: String, default: undefined, required: false },
     lazySearch: { type: String, default: undefined, required: false },
     search: { type: String, default: undefined, required: false },
   },
@@ -108,9 +109,6 @@ export default {
     templateHeight() {
       const viewHeight = this.$vuetify.breakpoint.height
       return viewHeight - this.appbarHeight
-    },
-    toolbarColor() {
-      return this.$vuetify.theme.themes.light.background
     },
   },
   /***************************************************************************
@@ -151,8 +149,11 @@ export default {
         >
       </v-container>
     </v-navigation-drawer>
+    <v-toolbar class="flex-grow-0" color="secondary" dark dense flat>
+      <v-toolbar-title>{{ label }}</v-toolbar-title>
+    </v-toolbar>
     <!-- HEADER -->
-    <v-toolbar class="flex-grow-0" :color="toolbarColor" flat>
+    <v-toolbar class="flex-grow-0" flat>
       <div class="d-flex align-center flex-grow-1" style="gap: 8px">
         <!-- slot: prepend-search -->
         <slot name="prepend-search" />
@@ -173,8 +174,8 @@ export default {
         <slot name="extension" />
       </template>
     </v-toolbar>
-    <!-- <v-container fluid class="d-flex flex-grow-1 overflow-y-hidden"> -->
-    <v-card class="d-flex flex-grow-1 overflow-y-hidden" outlined>
+    <v-divider />
+    <v-sheet class="d-flex flex-grow-1 overflow-y-hidden" flat>
       <!-- slot: default -->
       <slot
         name="default"
@@ -185,11 +186,17 @@ export default {
           on: defaultOn,
         }"
       />
-    </v-card>
-    <!-- </v-container> -->
-    <v-container v-if="!hidePagination" class="flex-grow-0">
+    </v-sheet>
+    <!-- <v-container v-if="!hidePagination" class="flex-grow-0">
       <v-pagination v-model="page" :length="pageCount" total-visible="20" />
-    </v-container>
+    </v-container> -->
+    <v-toolbar class="flex-grow-0" flat>
+      <v-row justify="center">
+        <v-col cols="10">
+          <v-pagination v-model="page" :length="pageCount" total-visible="20" />
+        </v-col>
+      </v-row>
+    </v-toolbar>
   </v-container>
 </template>
 

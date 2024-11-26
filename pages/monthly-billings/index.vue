@@ -3,21 +3,7 @@
     <v-container>
       <v-card outlined>
         <v-toolbar flat>
-          <g-dialog-month-picker v-model="month">
-            <template #activator="{ attrs, on }">
-              <v-text-field
-                v-bind="attrs"
-                class="center-input"
-                style="max-width: 120px"
-                flat
-                solo-inverted
-                dense
-                hide-details
-                :disabled="isCalculating"
-                v-on="on"
-              />
-            </template>
-          </g-dialog-month-picker>
+          <g-text-field-search-month v-model="month" />
           <v-btn
             color="primary"
             class="ml-4"
@@ -81,15 +67,15 @@ import {
   httpsCallable,
 } from 'firebase/functions'
 import ja from 'dayjs/locale/ja'
-import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import SiteBilling from '~/models/SiteBilling'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import Customer from '~/models/Customer'
+import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
 
 export default {
   name: 'MonthlyBillings',
-  components: { GDialogMonthPicker, GTemplateDefault, GDataTable },
+  components: { GTemplateDefault, GDataTable, GTextFieldSearchMonth },
   data() {
     return {
       items: [],

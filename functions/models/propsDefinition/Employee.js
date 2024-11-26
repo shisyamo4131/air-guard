@@ -15,6 +15,12 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+  fullName: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
   lastNameKana: {
     type: String,
     default: '',
@@ -22,6 +28,12 @@ const propsDefinition = {
     requiredByClass: true,
   },
   firstNameKana: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+  fullNameKana: {
     type: String,
     default: '',
     required: false,
@@ -178,4 +190,27 @@ const propsDefinition = {
 const vueProps = generateVueProps(propsDefinition)
 const classProps = generateClassProps(propsDefinition)
 
-export { vueProps, classProps }
+/*****************************************************************************
+ * ACCESSOR
+ *****************************************************************************/
+const fullName = {
+  configurable: true,
+  enumerable: true,
+  get() {
+    if (!this.lastName || !this.firstName) return ''
+    return `${this.lastName} ${this.firstName}`
+  },
+  set(v) {},
+}
+
+const fullNameKana = {
+  enumerable: true,
+  get() {
+    if (!this.lastNameKana || !this.firstNameKana) return ''
+    return `${this.lastNameKana} ${this.firstNameKana}`
+  },
+  set(v) {},
+}
+
+const accessor = { fullName, fullNameKana }
+export { vueProps, classProps, accessor }

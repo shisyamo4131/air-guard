@@ -2,17 +2,13 @@ import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/EmployeeContract.js'
-import Employee from './Employee.js'
+import { EmployeeForEmployeeContract } from './Employee.js'
 import WorkRegulation from './WorkRegulation.js'
 const firestore = getFirestore()
 
 /**
  * EmployeeContractsドキュメントデータモデル
- *
- * @version 1.0.0
  * @author shisyamo4131
- * @updates
- * - version 1.0.0 - 2024-10-08 - 初版作成
  */
 export default class EmployeeContract extends FireModel {
   /****************************************************************************
@@ -25,7 +21,7 @@ export default class EmployeeContract extends FireModel {
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
-    employee: Employee,
+    employee: EmployeeForEmployeeContract,
     workRegulation: WorkRegulation,
   }
 
@@ -34,9 +30,21 @@ export default class EmployeeContract extends FireModel {
    ****************************************************************************/
   constructor(item = {}) {
     super(item)
-    delete this.create
-    delete this.update
-    delete this.delete
+  }
+
+  /****************************************************************************
+   * 更新系メソッドは使用不可
+   ****************************************************************************/
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
+  }
+
+  update() {
+    return Promise.reject(new Error('このクラスの update は使用できません。'))
+  }
+
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
   }
 
   /****************************************************************************

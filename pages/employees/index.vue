@@ -81,7 +81,7 @@ export default {
 </script>
 
 <template>
-  <g-template-index :items="items">
+  <g-template-index label="従業員管理" :items="items">
     <template #append-search>
       <g-dialog-input v-model="dialog">
         <template #activator="{ attrs, on }">

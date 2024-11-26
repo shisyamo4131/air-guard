@@ -15,16 +15,41 @@ import {
   endAt,
   update,
 } from 'firebase/database'
-import { database } from 'air-firebase'
+import { database, firestore } from 'air-firebase'
+import { collection, onSnapshot, query as q, where } from 'firebase/firestore'
 
 export const state = () => ({
   employees: {}, // 現在の従業員の割り当てデータ
+  employeeLeaveApplications: [], // 従業員の休暇申請データ
   sites: {}, // 現在のサイトの割り当てデータ
   availability: {}, // 勤務可能従業員IDのデータ
-  listeners: { employees: null, sites: null, availability: null }, // リスナーの参照を保持
+  listeners: {
+    employees: null,
+    sites: null,
+    availability: null,
+    employeeLeaveApplications: null,
+  }, // リスナーの参照を保持
 })
 
 export const getters = {
+  /**
+   * 指定された日付、従業員の休暇申請データを返します。
+   * - 存在しなければ undefined を返します。
+   * @param {string} data - YYYY-MM-DD 形式の日付文字列
+   * @param {string} employeeId - 対象の従業員ID
+   * @returns
+   */
+  getEmployeeLeaveApplication:
+    (state, getters, rootState, rootGetters) => (date, employeeId) => {
+      /* [権限トラップ] Manager 権限にのみ機能更改 */
+      const isManager = rootGetters['auth/roles'].includes('manager')
+      if (!isManager) return false
+      /****************************/
+      return state.employeeLeaveApplications.find(
+        (app) => app.date === date && app.employeeId === employeeId
+      )
+    },
+
   /**
    * 現場の配置割り当てデータを { id, siteId, workShift } の配列に変換して返します。
    * @returns {Array<{id:string, siteId:string, workShift:string}>} - 変換後の配列
@@ -171,6 +196,20 @@ export const mutations = {
   SET_EMPLOYEES(state, data) {
     state.employees = data
   },
+
+  SET_EMPLOYEE_LEAVE_APPLICATION(state, doc) {
+    const result = state.employeeLeaveApplications
+    const index = result.findIndex(({ docId }) => docId === doc.docId)
+    if (index === -1) result.push(doc)
+    if (index !== -1) result.splice(index, 1, doc)
+  },
+
+  REMOVE_EMPLOYEE_LEAVE_APPLICATION(state, doc) {
+    const result = state.employeeLeaveApplications
+    const index = result.findIndex(({ docId }) => docId === doc.docId)
+    if (index !== -1) result.splice(index, 1)
+  },
+
   SET_SITES(state, data) {
     state.sites = data
   },
@@ -179,16 +218,24 @@ export const mutations = {
   },
   SET_LISTENERS(
     state,
-    { employeesListener, sitesListener, availabilityListener }
+    {
+      employeesListener,
+      sitesListener,
+      availabilityListener,
+      employeeLeaveApplicationsListener,
+    }
   ) {
     state.listeners.employees = employeesListener
     state.listeners.sites = sitesListener
     state.listeners.availability = availabilityListener
+    state.listeners.employeeLeaveApplications =
+      employeeLeaveApplicationsListener
   },
   RESET_DATA(state) {
     state.employees = {}
     state.sites = {}
     state.availability = {}
+    state.employeeLeaveApplications.splice(0)
   },
 }
 
@@ -225,6 +272,13 @@ export const actions = {
         endAt(to)
       )
 
+      // 従業員休暇申請ドキュメントのクエリをセットアップ
+      const employeeLeaveApplicationsQuery = q(
+        collection(firestore, 'EmployeeLeaveApplications'),
+        where('date', '>=', from),
+        where('date', '<=', to)
+      )
+
       // 従業員データ用のリアルタイムリスナーを設定
       const employeesListener = onValue(employeesQuery, (snapshot) => {
         const data = snapshot.val()
@@ -243,11 +297,27 @@ export const actions = {
         commit('SET_AVAILABILITY', data && typeof data === 'object' ? data : {})
       })
 
+      // 従業員休暇申請ドキュメント用のリアルタイムリスナーを設定
+      const employeeLeaveApplicationsListener = onSnapshot(
+        employeeLeaveApplicationsQuery,
+        (snapshot) => {
+          snapshot.docChanges().forEach((change) => {
+            const item = change.doc.data()
+            if (change.type === 'added' || change.type === 'modified') {
+              commit('SET_EMPLOYEE_LEAVE_APPLICATION', item)
+            } else {
+              commit('REMOVE_EMPLOYEE_LEAVE_APPLICATION', item)
+            }
+          })
+        }
+      )
+
       // リスナーを保存しておく
       commit('SET_LISTENERS', {
         employeesListener,
         sitesListener,
         availabilityListener,
+        employeeLeaveApplicationsListener,
       })
     } catch (error) {
       // eslint-disable-next-line no-console

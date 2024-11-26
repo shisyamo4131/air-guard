@@ -5,11 +5,11 @@ import {
   getFunctions,
   httpsCallable,
 } from 'firebase/functions'
-import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 import GChartSales from '~/components/atoms/charts/GChartSales.vue'
 import DailySale from '~/models/DailySale'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
+import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -19,7 +19,12 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GDialogMonthPicker, GChartSales, GTemplateDefault, GDataTable },
+  components: {
+    GChartSales,
+    GTemplateDefault,
+    GDataTable,
+    GTextFieldSearchMonth,
+  },
 
   /***************************************************************************
    * DATA
@@ -200,20 +205,7 @@ export default {
     <v-container>
       <v-card outlined>
         <v-toolbar flat>
-          <g-dialog-month-picker v-model="month">
-            <template #activator="{ attrs, on }">
-              <v-text-field
-                v-bind="attrs"
-                class="center-input"
-                style="max-width: 120px"
-                flat
-                dense
-                hide-details
-                :disabled="isCalculating"
-                v-on="on"
-              />
-            </template>
-          </g-dialog-month-picker>
+          <g-text-field-search-month v-model="month" />
           <v-toolbar-items>
             <v-btn
               color="primary"

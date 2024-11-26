@@ -41,7 +41,7 @@ export default {
     customFilter: { type: Function, default: undefined, required: false },
     includeExpired: { type: Boolean, default: false, required: false },
     items: { type: Array, default: () => [], required: false },
-    maxWidth: { type: [String, Number], default: 360, required: false },
+    maxWidth: { type: [String, Number], default: 420, required: false },
     value: { type: Boolean, default: false, required: false },
   },
 
@@ -239,6 +239,7 @@ export default {
             <template v-for="(item, index) of props.items">
               <v-list-item
                 :key="`item-${index}`"
+                three-line
                 @click="props.select(item, !props.isSelected(item))"
               >
                 <v-list-item-action>
@@ -247,6 +248,7 @@ export default {
                     color="primary"
                   ></v-checkbox>
                 </v-list-item-action>
+                <slot name="prepend" v-bind="{ item }" />
                 <v-list-item-content>
                   <v-list-item-title>
                     {{ item.abbr }}
@@ -262,6 +264,7 @@ export default {
                   </v-list-item-subtitle>
                   <slot name="third-line" v-bind="{ item }" />
                 </v-list-item-content>
+                <slot name="append" v-bind="{ item }" />
               </v-list-item>
               <v-divider :key="`div-${index}`" />
             </template>

@@ -13,6 +13,7 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import Employee from '~/models/Employee'
+import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -25,6 +26,7 @@ export default {
     GSelect,
     GComboboxDate,
     GCardInputForm,
+    GCheckboxDeleteData,
   },
   /***************************************************************************
    * MIXINS
@@ -212,6 +214,7 @@ export default {
       />
       <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
+    <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
   </g-card-input-form>
 </template>
 

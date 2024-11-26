@@ -173,7 +173,6 @@ export default {
           this.loadingEmployee = false
         }
       },
-      immediate: true,
     },
 
     /**

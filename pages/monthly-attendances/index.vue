@@ -14,7 +14,6 @@ import {
   httpsCallable,
 } from 'firebase/functions'
 import 'dayjs/locale/ja'
-import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 import GDataTableMonthlyAttendances from '~/components/molecules/tables/GDataTableMonthlyAttendances.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import MonthlyAttendance from '~/models/MonthlyAttendance'
@@ -25,6 +24,7 @@ import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GInputLeaveRecord from '~/components/molecules/inputs/GInputLeaveRecord.vue'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
 import LeaveRecord from '~/models/LeaveRecord'
+import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
 
 export default {
   /***************************************************************************
@@ -37,13 +37,13 @@ export default {
    ***************************************************************************/
   components: {
     GTemplateIndex,
-    GDialogMonthPicker,
     GDataTableMonthlyAttendances,
     GCalendarDailyAttendances,
     GBtnCancelIcon,
     GDataTableOperationWorkResults,
     GDialogInput,
     GInputLeaveRecord,
+    GTextFieldSearchMonth,
   },
 
   /***************************************************************************
@@ -261,23 +261,13 @@ export default {
 </script>
 
 <template>
-  <g-template-index :items="items" :hide-pagination="isCalculating">
+  <g-template-index
+    label="従業員勤怠"
+    :items="items"
+    :hide-pagination="isCalculating"
+  >
     <template #search>
-      <g-dialog-month-picker v-model="month">
-        <template #activator="{ attrs, on }">
-          <v-text-field
-            v-bind="attrs"
-            class="center-input"
-            style="max-width: 120px"
-            flat
-            solo-inverted
-            dense
-            hide-details
-            :disabled="isCalculating"
-            v-on="on"
-          />
-        </template>
-      </g-dialog-month-picker>
+      <g-text-field-search-month v-model="month" />
       <v-btn
         color="primary"
         :disabled="isCalculating || loading"

@@ -233,7 +233,7 @@ export default {
 </script>
 
 <template>
-  <g-template-index :items="filteredItems">
+  <g-template-index label="交通費申請・精算" :items="filteredItems">
     <template #prepend-search>
       <g-select-search
         v-model="status"

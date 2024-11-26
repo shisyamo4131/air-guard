@@ -71,18 +71,30 @@ export default {
    ***************************************************************************/
   computed: {
     /**
+     * 従業員の休暇申請データを Vuex から取得して返します。
+     */
+    leaveApplication() {
+      if (!this.employeeId) return false
+      return this.$store.getters['assignments/getEmployeeLeaveApplication'](
+        this.placement.date,
+        this.employeeId
+      )
+    },
+
+    /**
      * コンポーネントの外枠の色を定義する css を返します。
      * - props.showError が true の場合、外枠の色は赤になります。
      * - それ以外の場合は props.status に応じた色になります。
      */
     cardStyle() {
-      const color = this.isDuplicateAssignment
-        ? 'red'
-        : this.color
-        ? getComputedStyle(document.documentElement)
-            .getPropertyValue(`--v-${this.color}-base`)
-            .trim()
-        : 'lightgrey'
+      const color =
+        this.isDuplicateAssignment || this.leaveApplication
+          ? 'red'
+          : this.color
+          ? getComputedStyle(document.documentElement)
+              .getPropertyValue(`--v-${this.color}-base`)
+              .trim()
+          : 'lightgrey'
       return {
         border: `2px solid ${color}`,
         position: 'relative',
@@ -359,14 +371,27 @@ export default {
           >
             <v-icon small>mdi-close</v-icon>
           </v-btn>
+
           <!-- エラーアイコン -->
           <v-icon v-if="isDuplicateAssignment" left color="error" small>
             mdi-alert-circle
           </v-icon>
+
           <!-- 連勤アイコン -->
           <v-icon v-else-if="isContinuousAssignment" left small color="warning">
             mdi-star
           </v-icon>
+
+          <!-- 休暇申請存在アイコン & ツールチップ -->
+          <v-tooltip v-if="leaveApplication" top>
+            <template #activator="{ attrs, on }">
+              <v-icon v-bind="attrs" color="error" left small v-on="on"
+                >mdi-account-off</v-icon
+              >
+            </template>
+            <span>{{ leaveApplication.remarks }}</span>
+          </v-tooltip>
+
           <!-- 名前 -->
           <div class="d-flex flex-grow-1 overflow-hidden">
             <h4

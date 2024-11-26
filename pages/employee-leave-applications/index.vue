@@ -1,62 +1,60 @@
 <script>
 /**
- * ## pages.EquipmentsIndex
- *
- * 制服・装備品情報の一覧ページです。
- *
+ * 従業員休暇申請管理の一覧ページです。
  * @author shisyamo4131
- * @version 1.0.0
- * @updates
- * - version 1.0.0 - 2024-09-06 - 初版作成
  */
-import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
-import GInputEquipment from '~/components/molecules/inputs/GInputEquipment.vue'
+import GInputEmployeeLeaveApplication from '~/components/molecules/inputs/GInputEmployeeLeaveApplication.vue'
+import GDataTableEmployeeLeaveApplications from '~/components/molecules/tables/GDataTableEmployeeLeaveApplications.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
-import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
-import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
-import GDataTableEquipments from '~/components/molecules/tables/GDataTableEquipments.vue'
-import Equipment from '~/models/Equipment'
+import EmployeeLeaveApplication from '~/models/EmployeeLeaveApplication'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
+import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
+import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
 export default {
   /***************************************************************************
    * NAME
    ***************************************************************************/
-  name: 'EquipmentsIndex',
+  name: 'EmployeeLeaveApplicationsIndex',
+
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GBtnRegistIcon,
-    GInputEquipment,
+    GInputEmployeeLeaveApplication,
     GTemplateIndex,
+    GDataTableEmployeeLeaveApplications,
     GDialogInput,
-    GSwitch,
-    GDataTableEquipments,
+    GBtnRegistIcon,
+    GTextFieldSearchMonth,
   },
+
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
   mixins: [GEditModeMixin],
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
       dialog: false,
-      instance: new Equipment(),
-      includeExpired: false,
+      instance: new EmployeeLeaveApplication(),
+      items: [],
+      month: this.$dayjs().format('YYYY-MM'),
     }
   },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
-    items() {
-      return this.$store.getters['employees/items'].filter(({ status }) => {
-        return this.includeExpired || status === 'active'
-      })
+    filteredItems() {
+      return this.items
     },
   },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/
@@ -67,15 +65,31 @@ export default {
         this.editMode = this.CREATE
       }
     },
+    month: {
+      handler(newVal, oldVal) {
+        if (newVal === oldVal) return
+        const constraints = [['where', 'month', '==', newVal]]
+        this.items = this.instance.subscribeDocs(constraints)
+      },
+      immediate: true,
+    },
   },
+
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.instance.unsubscribe()
+  },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    async onClickRow(item) {
+    onClickRow(item) {
       // 詳細ページが出来上がったらこちらを適用
       // this.$router.push(`/customers/${item.docId}`)
-      await this.instance.fetch(item.docId)
+      this.instance.initialize(item)
       this.editMode = this.UPDATE
       this.dialog = true
     },
@@ -84,33 +98,30 @@ export default {
 </script>
 
 <template>
-  <g-template-index label="制服・装備品管理" :items="items">
+  <g-template-index label="従業員休暇申請管理" :items="filteredItems">
+    <template #search>
+      <g-text-field-search-month v-model="month" />
+      <v-spacer />
+    </template>
     <template #append-search>
-      <g-dialog-input v-model="dialog">
+      <g-dialog-input v-model="dialog" max-width="600">
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
         </template>
         <template #default="{ attrs, on }">
-          <g-input-equipment
+          <g-input-employee-leave-application
             v-bind="attrs"
             :edit-mode="editMode"
             :instance="instance"
+            tile
             v-on="on"
           />
         </template>
       </g-dialog-input>
     </template>
-    <template #nav>
-      <g-switch
-        v-model="includeExpired"
-        label="使用終了を含める"
-        hide-details
-      />
-    </template>
-    <template #default="{ attrs, on, search }">
-      <g-data-table-equipments
+    <template #default="{ attrs, on }">
+      <g-data-table-employee-leave-applications
         v-bind="attrs"
-        :search="search"
         @click:row="onClickRow"
         v-on="on"
       />

@@ -1,17 +1,7 @@
 <script>
 /**
- * ## GAutocompleteEmployee
- *
  * 従業員選択用のAutocompleteコンポーネントです。
- *
- * - `multiple`オプションは使用できません。
- *
  * @author shisyamo4131
- * @version 2.0.0
- * @updates
- * - version 2.0.0 - 2024-10-01 - Vuexがインデックスデータを管理するようになったことによる修正。
- * - version 1.1.0 - 2024-09-18 - `computed.items`に存在しない値が`$attrs.value`にセットされた場合に対応。
- * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
 import GAutocomplete from './GAutocomplete.vue'
 export default {
@@ -19,6 +9,14 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: { GAutocomplete },
+
+  /***************************************************************************
+   * PROPS
+   ***************************************************************************/
+  props: {
+    label: { type: String, default: '従業員', required: false },
+  },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
@@ -36,6 +34,7 @@ export default {
     item-text="fullName"
     item-value="docId"
     :items="items"
+    :label="label"
     :multiple="false"
     v-on="$listeners"
   >
