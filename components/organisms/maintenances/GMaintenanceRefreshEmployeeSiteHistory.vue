@@ -10,7 +10,7 @@ import {
   getFunctions,
   httpsCallable,
 } from 'firebase/functions'
-import GAutocompleteEmployee from '~/components/atoms/inputs/GAutocompleteEmployee.vue'
+import GAutocompleteEmployee from '~/components/molecules/inputs/GAutocompleteEmployee.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 
 const firebaseApp = getApp()

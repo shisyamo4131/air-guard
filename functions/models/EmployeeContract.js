@@ -1,10 +1,12 @@
 import { getFirestore } from 'firebase-admin/firestore'
+import { getDatabase } from 'firebase-admin/database'
 import { logger } from 'firebase-functions/v2'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/EmployeeContract.js'
 import { EmployeeForEmployeeContract } from './Employee.js'
 import WorkRegulation from './WorkRegulation.js'
 const firestore = getFirestore()
+const database = getDatabase()
 
 /**
  * EmployeeContractsドキュメントデータモデル
@@ -111,6 +113,146 @@ export default class EmployeeContract extends FireModel {
     } catch (error) {
       const message = `[getEmployeeContracts] 従業員の雇用契約情報の取得時にエラーが発生しました。`
       logger.error(message, { employeeId, from, to, error })
+      throw error
+    }
+  }
+}
+
+/**
+ * 他のドキュメントで不要になるプロパティを排除した EmployeeContract クラスです。
+ */
+export class EmployeeContractMinimal extends EmployeeContract {
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item)
+
+    delete this.tokenMap
+    delete this.createAt
+    delete this.updateAt
+    delete this.uid
+    delete this.remarks
+  }
+}
+
+/**
+ * 従業員別の最新の雇用契約情報を管理するために、更に不要なプロパティを排除した
+ * EmployeeContract クラスです。
+ * - Realtime Database の従業員別最新雇用契約データを管理するために使用されます。
+ */
+export class EmployeeContractLatest extends EmployeeContractMinimal {
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item)
+
+    // クラスで必要になるプロパティリスト
+    const keepProps = [
+      'docId',
+      'employeeId',
+      'startDate',
+      'hasPeriod',
+      'expiredDate',
+    ]
+
+    // 不要なプロパティを削除
+    Object.keys(this).forEach((key) => {
+      if (!keepProps.includes(key)) delete this[key]
+    })
+  }
+
+  /****************************************************************************
+   * 指定された従業員の、従業員別最新雇用契約データを削除します。
+   * @param {string} employeeId - 対象の従業員ID
+   ****************************************************************************/
+  static async remove(employeeId) {
+    const contractRef = database.ref(`EmployeeContractLatest/${employeeId}`)
+    try {
+      await contractRef.remove()
+      logger.log(
+        `従業員別最新雇用契約データを削除しました。従業員ID: ${employeeId}`
+      )
+    } catch (error) {
+      logger.error(
+        `従業員別最新雇用契約データの削除処理に失敗しました。従業員ID: ${employeeId}`
+      )
+    }
+  }
+
+  /****************************************************************************
+   * 指定された従業員の最新の雇用契約ドキュメントを Firestore から取得します。
+   * @param {string} employeeId - 対象の従業員ID
+   * @returns
+   ****************************************************************************/
+  static async fetchLatest(employeeId) {
+    try {
+      const snapshot = await firestore
+        .collection('EmployeeContracts')
+        .where('employeeId', '==', employeeId)
+        .orderBy('startDate', 'desc')
+        .limit(1)
+        .get()
+      return snapshot.empty ? null : snapshot.docs[0].data()
+    } catch (error) {
+      logger.error(
+        `従業員の最新雇用契約ドキュメントの取得に失敗しました。従業員ID: ${employeeId}`
+      )
+    }
+  }
+
+  /****************************************************************************
+   * 指定された従業員の最新の雇用契約を取得し、Realtime Database に保存します。
+   * - 対象の従業員が退職済みであった場合、または該当する雇用契約情報が存在しなかった場合
+   *   Realtime Database からデータが削除されます。
+   * @param {string} employeeId - 従業員ID
+   ****************************************************************************/
+  static async sync(employeeId) {
+    const contractRef = database.ref(`EmployeeContractLatest/${employeeId}`)
+
+    try {
+      // 指定された従業員ドキュメントを取得
+      const employeeSnapshot = await firestore
+        .collection('Employees')
+        .doc(employeeId)
+        .get()
+
+      // 従業員ドキュメントが存在しなかった場合は警告を出力してデータを削除、終了
+      if (!employeeSnapshot.exists) {
+        logger.warn(
+          `Employees コレクションに対象のドキュメントが存在しません。従業員ID: ${employeeId}`
+        )
+        await this.remove(employeeId)
+        return
+      }
+
+      // 在職中でない場合はデータを削除して終了
+      const status = employeeSnapshot.data().status
+      if (status !== 'active') {
+        await this.remove(employeeId)
+        return
+      }
+
+      // 最新の雇用契約ドキュメントを取得
+      const latestContract = await this.fetchLatest(employeeId)
+
+      // 雇用契約ドキュメントが存在しなければデータを削除して数量
+      if (!latestContract) {
+        await this.remove(employeeId)
+        return
+      }
+
+      // 最新の雇用契約情報を Realtime Database に保存
+      const instance = new this(latestContract)
+      await contractRef.set(instance.toObject ? instance.toObject() : instance)
+    } catch (error) {
+      logger.error(
+        `従業員（ID: ${employeeId}）の最新の雇用契約情報同期処理に失敗しました。`,
+        {
+          error,
+        }
+      )
       throw error
     }
   }

@@ -27,6 +27,7 @@ export default class EmployeeIndex {
     this.contractType = item.contractType ?? ''
     this.designation = item.designation ?? ''
     this.sync = item.sync ?? false
+    this.hasSecurityRegistration = item.hasSecurityRegistration ?? false
   }
 
   /****************************************************************************
@@ -56,7 +57,6 @@ export default class EmployeeIndex {
       const indexData = new this(docSnapshot.data())
 
       await dbRef.set(indexData)
-      // logger.info(`[create] インデックスが作成されました。`, { employeeId })
     } catch (error) {
       logger.error(`[create] インデックスの作成処理でエラーが発生しました。`, {
         employeeId,
@@ -74,9 +74,6 @@ export default class EmployeeIndex {
 
     try {
       await dbRef.remove()
-      // logger.info(`[delete] インデックスが削除されました。`, {
-      //   employeeId,
-      // })
     } catch (error) {
       logger.error(`[delete] インデックスの削除処理でエラーが発生しました。`, {
         employeeId,

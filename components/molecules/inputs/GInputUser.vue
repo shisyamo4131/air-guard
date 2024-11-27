@@ -12,7 +12,7 @@ import GTextField from '../../atoms/inputs/GTextField.vue'
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import User from '~/models/User'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
-import GAutocompleteEmployee from '~/components/atoms/inputs/GAutocompleteEmployee.vue'
+import GAutocompleteEmployee from '~/components/molecules/inputs/GAutocompleteEmployee.vue'
 import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 

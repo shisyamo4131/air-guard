@@ -1,5 +1,6 @@
 import { FireModel } from 'air-firebase'
-import { classProps } from './propsDefinition/Employee'
+import { accessor, classProps } from './propsDefinition/Employee'
+import SecurityRegistration from './SecurityRegistration'
 
 /**
  * 従業員データモデル
@@ -36,27 +37,21 @@ export default class Employee extends FireModel {
   ]
 
   /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    securityRegistration: SecurityRegistration,
+  }
+
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
     super(item)
     Object.defineProperties(this, {
-      fullName: {
-        enumerable: true,
-        get() {
-          if (!this.lastName || !this.firstName) return ''
-          return `${this.lastName} ${this.firstName}`
-        },
-        set(v) {},
-      },
-      fullNameKana: {
-        enumerable: true,
-        get() {
-          if (!this.lastNameKana || !this.firstNameKana) return ''
-          return `${this.lastNameKana} ${this.firstNameKana}`
-        },
-        set(v) {},
-      },
+      fullName: accessor.fullName,
+      fullNameKana: accessor.fullNameKana,
+      hasSecurityRegistration: accessor.hasSecurityRegistration,
     })
   }
 

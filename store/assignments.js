@@ -39,16 +39,11 @@ export const getters = {
    * @param {string} employeeId - 対象の従業員ID
    * @returns
    */
-  getEmployeeLeaveApplication:
-    (state, getters, rootState, rootGetters) => (date, employeeId) => {
-      /* [権限トラップ] Manager 権限にのみ機能更改 */
-      const isManager = rootGetters['auth/roles'].includes('manager')
-      if (!isManager) return false
-      /****************************/
-      return state.employeeLeaveApplications.find(
-        (app) => app.date === date && app.employeeId === employeeId
-      )
-    },
+  getEmployeeLeaveApplication: (state) => (date, employeeId) => {
+    return state.employeeLeaveApplications.find(
+      (app) => app.date === date && app.employeeId === employeeId
+    )
+  },
 
   /**
    * 現場の配置割り当てデータを { id, siteId, workShift } の配列に変換して返します。

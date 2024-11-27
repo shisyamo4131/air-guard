@@ -15,7 +15,7 @@ import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
-import GAutocompleteEmployee from '~/components/atoms/inputs/GAutocompleteEmployee.vue'
+import GAutocompleteEmployee from '~/components/molecules/inputs/GAutocompleteEmployee.vue'
 import EmployeeMedicalCheckup from '~/models/EmployeeMedicalCheckup'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 export default {

@@ -23,6 +23,11 @@ export const getters = {
     return !!state.user
   },
   // Returns if the user is developer or not.
+  isAdmin(state) {
+    const roles = state.user?.roles || []
+    return roles.includes('admin')
+  },
+  // Returns if the user is developer or not.
   isDeveloper(state) {
     const roles = state.user?.roles || []
     return roles.includes('developer')

@@ -1,3 +1,4 @@
+import SecurityRegistration from '../SecurityRegistration'
 import { generateVueProps, generateClassProps } from './propsUtil'
 
 const propsDefinition = {
@@ -15,6 +16,12 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+  fullName: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
   lastNameKana: {
     type: String,
     default: '',
@@ -22,6 +29,12 @@ const propsDefinition = {
     requiredByClass: true,
   },
   firstNameKana: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+  fullNameKana: {
     type: String,
     default: '',
     required: false,
@@ -173,9 +186,63 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
+  /**
+   * 警備員登録有無
+   */
+  hasSecurityRegistration: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
+
+  /**
+   * 警備員登録情報
+   */
+  securityRegistration: {
+    type: Object,
+    default: () => new SecurityRegistration().toObject(),
+    required: false,
+    requiredByClass: false,
+  },
 }
 
 const vueProps = generateVueProps(propsDefinition)
 const classProps = generateClassProps(propsDefinition)
 
-export { vueProps, classProps }
+/*****************************************************************************
+ * ACCESSOR
+ *****************************************************************************/
+const fullName = {
+  configurable: true,
+  enumerable: true,
+  get() {
+    if (!this.lastName || !this.firstName) return ''
+    return `${this.lastName} ${this.firstName}`
+  },
+  set(v) {},
+}
+
+const fullNameKana = {
+  configurable: true,
+  enumerable: true,
+  get() {
+    if (!this.lastNameKana || !this.firstNameKana) return ''
+    return `${this.lastNameKana} ${this.firstNameKana}`
+  },
+  set(v) {},
+}
+
+const hasSecurityRegistration = {
+  configurable: true,
+  enumerable: true,
+  get() {
+    return !!this.securityRegistration.registrationDate
+  },
+  set(v) {},
+}
+
+const accessor = { fullName, fullNameKana, hasSecurityRegistration }
+
+export { vueProps, classProps, accessor }

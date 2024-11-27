@@ -1,3 +1,4 @@
+import SecurityRegistration from '../SecurityRegistration.js'
 import { generateVueProps, generateClassProps } from './propsUtil.js'
 
 const propsDefinition = {
@@ -182,6 +183,26 @@ const propsDefinition = {
   designation: {
     type: String,
     default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  /**
+   * 警備員登録有無
+   */
+  hasSecurityRegistration: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
+
+  /**
+   * 警備員登録情報
+   */
+  securityRegistration: {
+    type: Object,
+    default: () => new SecurityRegistration().toObject(),
     required: false,
     requiredByClass: false,
   },

@@ -73,6 +73,40 @@
             </v-card-actions>
           </v-card>
         </v-col>
+        <v-col
+          v-if="
+            $store.getters['auth/isAdmin'] && nearingExpiredContracts.length > 0
+          "
+          cols="12"
+        >
+          <v-card
+            :tile="$vuetify.breakpoint.mobile"
+            :flat="$vuetify.breakpoint.mobile"
+          >
+            <v-card-text>
+              <v-alert type="error" text class="mb-0 text-subtitle-2" dense>
+                以下の従業員の雇用契約が間もなく満了となります。
+              </v-alert>
+              <v-list v-if="nearingExpiredContracts.length > 0">
+                <v-list-item-group>
+                  <v-list-item
+                    v-for="(contract, index) in nearingExpiredContracts"
+                    :key="index"
+                  >
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ contract.employee.fullName }}
+                      </v-list-item-title>
+                      <v-list-item-subtitle>
+                        契約満了日: {{ contract.expiredDate }}
+                      </v-list-item-subtitle>
+                    </v-list-item-content>
+                  </v-list-item>
+                </v-list-item-group>
+              </v-list>
+            </v-card-text>
+          </v-card>
+        </v-col>
       </v-row>
       <v-alert class="my-0 my-md-4" type="info" text>
         少しずつ機能を追加しながら実装しています。メニューの色や配置は変更される可能性があります。
@@ -103,6 +137,25 @@ export default {
     return {}
   },
 
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
+  computed: {
+    // Vuexのgettersを使って満了間近の契約情報を取得
+    nearingExpiredContracts() {
+      return this.$store.getters['employee-contracts/nearingExpired'].map(
+        (contract) => {
+          const employee = this.$store.getters['employees/get'](
+            contract.employeeId
+          )
+          return {
+            ...contract,
+            employee,
+          }
+        }
+      )
+    },
+  },
   /***************************************************************************
    * METHODS
    ***************************************************************************/

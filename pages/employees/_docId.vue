@@ -20,6 +20,8 @@ import Employee from '~/models/Employee'
 import EmployeeMedicalCheckup from '~/models/EmployeeMedicalCheckup'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GInputSecurityRegistration from '~/components/molecules/inputs/GInputSecurityRegistration.vue'
+import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -35,6 +37,8 @@ export default {
     GInputEmployee,
     GEmployeeContractsManager,
     GDialogInput,
+    GInputSecurityRegistration,
+    GBtnEditIcon,
   },
   /***************************************************************************
    * MIXINS
@@ -117,10 +121,61 @@ export default {
           :medical-checkups="items.medicalCheckups"
         />
       </v-col>
-      <v-col cols="12">
+      <v-col v-if="$store.getters['auth/isAdmin']" cols="12" lg="6">
         <g-employee-contracts-manager :employee-id="listeners.employee.docId" />
       </v-col>
-      <v-col cols="12" md="5">
+      <v-col cols="12" lg="6">
+        <v-card>
+          <v-card-title class="g-card__title justify-space-between">
+            <div>警備員登録情報</div>
+            <g-dialog-input>
+              <template #activator="{ attrs, on }">
+                <g-btn-edit-icon v-bind="attrs" color="primary" v-on="on" />
+              </template>
+              <template #default="{ attrs, on }">
+                <g-input-security-registration
+                  v-bind="attrs"
+                  edit-mode="UPDATE"
+                  :instance="listeners.employee"
+                  v-on="on"
+                />
+              </template>
+            </g-dialog-input>
+          </v-card-title>
+          <v-card-text v-if="!listeners.employee.hasSecurityRegistration">
+            <v-alert class="mb-0" type="info" text>
+              警備員登録はありません。
+            </v-alert>
+          </v-card-text>
+          <v-simple-table v-else>
+            <tbody>
+              <tr>
+                <td>警備員登録日</td>
+                <td style="text-align: right">
+                  {{ listeners.employee.securityRegistration.registrationDate }}
+                </td>
+              </tr>
+              <tr>
+                <td>警備経験開始日</td>
+                <td style="text-align: right">
+                  {{
+                    listeners.employee.securityRegistration.securityStartDate
+                  }}
+                </td>
+              </tr>
+              <tr>
+                <td>ブランク</td>
+                <td style="text-align: right">
+                  {{
+                    `${listeners.employee.securityRegistration.blankMonths} ヶ月`
+                  }}
+                </td>
+              </tr>
+            </tbody>
+          </v-simple-table>
+        </v-card>
+      </v-col>
+      <v-col cols="12">
         <g-card-map
           :value="listeners.employee.address1"
           outlined

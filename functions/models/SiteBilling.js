@@ -112,10 +112,13 @@ export default class SiteBilling extends FireModel {
 
         // closingDate を基準に OperationResults ドキュメントを取得
         const operationResultInstance = new OperationResult()
-        const operationResultsAll = await operationResultInstance.fetchDocs([
+        let operationResultsAll = await operationResultInstance.fetchDocs([
           ['where', 'closingDate', '>=', from],
           ['where', 'closingDate', '<=', to],
         ])
+        operationResultsAll = operationResultsAll.filter(
+          (result) => !result.site.customer.isInternal
+        )
 
         // siteId, closingDate の組み合わせをオブジェクト形式で作成（重複なし）
         const docIds = [

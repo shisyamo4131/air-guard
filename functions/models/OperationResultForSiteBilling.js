@@ -21,18 +21,7 @@ export default class OperationResultForSiteBilling extends FireModel {
   constructor(item = {}) {
     super(item)
 
-    delete this.create
-    delete this.update
-    delete this.delete
-
     delete this.tokenMap
-  }
-
-  /****************************************************************************
-   * INITIALIZE
-   ****************************************************************************/
-  initialize(item = {}) {
-    super.initialize(item)
 
     delete this.site
     delete this.workers
@@ -42,8 +31,32 @@ export default class OperationResultForSiteBilling extends FireModel {
     delete this.remarks
     delete this.siteContract
     delete this.siteContractId
+  }
+
+  /****************************************************************************
+   * 更新系メソッドは使用不可
+   ****************************************************************************/
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
+  }
+
+  update() {
+    return Promise.reject(new Error('このクラスの update は使用できません。'))
+  }
+
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
+  }
+
+  /****************************************************************************
+   * INITIALIZE
+   ****************************************************************************/
+  initialize(item = {}) {
+    super.initialize(item)
 
     this.securityType = item?.securityType || item?.site?.securityType || ''
     this.customerId = item?.customerId || item?.site?.customer?.docId || ''
+    this.isInternal =
+      item?.isInternal || item?.site?.customer?.isInternal || false
   }
 }

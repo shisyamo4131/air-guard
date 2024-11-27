@@ -155,6 +155,11 @@ export default {
       onlyUnplaced: false,
 
       /**
+       * 従業員選択画面で警備員登録がある従業員のみで絞り込みを行うかどうかのフラグです。
+       */
+      onlySecurityGuard: true,
+
+      /**
        * 外注先の配置情報編集用変数です。
        */
       outsourcerPlacementEditor: {
@@ -297,9 +302,17 @@ export default {
         return { ...employee, isPlaced, hasLeaveApplication }
       })
 
-      return result.filter(
-        (item) => !this.onlyUnplaced || item.isPlaced === false
-      )
+      // 警備員登録有無でフィルタリングするための関数
+      const isSecurityGuardFilter = (item) => {
+        return !this.onlySecurityGuard || item.hasSecurityRegistration
+      }
+
+      // 未配置のみでフィルタリングするための関数
+      const isUnplacedFilter = (item) => {
+        return !this.onlyUnplaced || !item.isPlaced
+      }
+
+      return result.filter(isSecurityGuardFilter).filter(isUnplacedFilter)
     },
 
     /**
@@ -806,19 +819,28 @@ export default {
       :items="selectableEmployees"
       @click:submit="addEmployeesInBulk"
     >
-      <template #filter>
-        <div class="text-subtitle-2 grey--text text--darken-2">
+      <template #append-title>
+        <v-spacer />
+        <span class="text-body-2">
           {{
             `未配置: ${
               selectableEmployees.filter(({ isPlaced }) => !isPlaced).length
             } / ${selectableEmployees.length}`
           }}
-        </div>
+        </span>
+      </template>
+      <template #filter>
         <v-spacer />
         <g-switch
           v-model="onlyUnplaced"
           class="mt-0 pt-0"
           label="未配置のみ表示"
+          hide-details
+        />
+        <g-switch
+          v-model="onlySecurityGuard"
+          class="mt-0 pt-0 ml-2"
+          label="警備員登録のみ"
           hide-details
         />
       </template>

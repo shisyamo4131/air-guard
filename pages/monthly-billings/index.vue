@@ -1,64 +1,3 @@
-<template>
-  <g-template-default>
-    <v-container>
-      <v-card outlined>
-        <v-toolbar flat>
-          <g-text-field-search-month v-model="month" />
-          <v-btn
-            color="primary"
-            class="ml-4"
-            :disabled="isCalculating || loading"
-            :loading="isCalculating || loading"
-            @click="recalc"
-            >実績更新</v-btn
-          >
-        </v-toolbar>
-        <v-container>
-          <v-row>
-            <v-col cols="12">
-              <v-card outlined>
-                <g-data-table
-                  :headers="[
-                    { text: '取引先', value: 'code' },
-                    { text: '税抜金額', value: 'amount', align: 'right' },
-                    {
-                      text: '消費税額',
-                      value: 'consumptionTax',
-                      align: 'right',
-                    },
-                    { text: '請求額', value: 'billingTotal', align: 'right' },
-                    {
-                      text: 'PDF',
-                      value: 'action',
-                      align: 'right',
-                      sortable: false,
-                    },
-                  ]"
-                  :items="billingsByCustomer"
-                  sort-by="code"
-                >
-                  <template #[`item.amount`]="{ item }">
-                    {{ item.amount.toLocaleString() }}
-                  </template>
-                  <template #[`item.consumptionTax`]="{ item }">
-                    {{ item.consumptionTax.toLocaleString() }}
-                  </template>
-                  <template #[`item.billingTotal`]="{ item }">
-                    {{ item.billingTotal.toLocaleString() }}
-                  </template>
-                  <template #[`item.action`]="{ item }">
-                    <v-icon @click="generatePdf(item)">mdi-file-pdf-box</v-icon>
-                  </template>
-                </g-data-table>
-              </v-card>
-            </v-col>
-          </v-row>
-        </v-container>
-      </v-card>
-    </v-container>
-  </g-template-default>
-</template>
-
 <script>
 import { getApp } from 'firebase/app'
 import {
@@ -67,15 +6,15 @@ import {
   httpsCallable,
 } from 'firebase/functions'
 import ja from 'dayjs/locale/ja'
-import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import SiteBilling from '~/models/SiteBilling'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import Customer from '~/models/Customer'
 import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
+import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
 
 export default {
   name: 'MonthlyBillings',
-  components: { GTemplateDefault, GDataTable, GTextFieldSearchMonth },
+  components: { GDataTable, GTextFieldSearchMonth, GTemplateFixed },
   data() {
     return {
       items: [],
@@ -97,6 +36,14 @@ export default {
     }
   },
   computed: {
+    status() {
+      const lastExecutedAt =
+        this.$store.state.systems?.calcSiteBillings?.lastExecutedAt || null
+      if (!lastExecutedAt) return null
+      const result = this.$dayjs(lastExecutedAt).format('YYYY-MM-DD HH:mm:ss')
+      return result
+    },
+
     isCalculating() {
       return this.$store.state.systems.calcSiteBillings?.status !== 'ready'
     },
@@ -533,5 +480,72 @@ export default {
   },
 }
 </script>
+
+<template>
+  <g-template-fixed v-slot="{ height }">
+    <v-sheet class="d-flex flex-column overflow-y-hidden" :height="height">
+      <v-toolbar class="flex-grow-0" color="secondary" flat dense dark>
+        <v-icon left>mdi-currency-jpy</v-icon>
+        <v-toolbar-title>月次請求</v-toolbar-title>
+        <v-spacer />
+        <v-toolbar-items>
+          <v-btn
+            :disabled="isCalculating || loading"
+            :loading="isCalculating || loading"
+            text
+            @click="recalc"
+            ><v-icon left>mdi-update</v-icon>実績更新</v-btn
+          >
+        </v-toolbar-items>
+      </v-toolbar>
+      <v-toolbar class="flex-grow-0" flat>
+        <g-text-field-search-month v-model="month" />
+        <v-spacer />
+        <div class="flex-grow-0 px-4 text-right text-subtitle-2 grey--text">
+          <div>最終更新:</div>
+          <div>{{ status }}</div>
+        </div>
+      </v-toolbar>
+      <v-divider />
+      <v-container class="d-flex flex-grow-1 overflow-y-hidden">
+        <g-data-table
+          class="flex-table"
+          :headers="[
+            { text: '取引先', value: 'code' },
+            { text: '税抜金額', value: 'amount', align: 'right' },
+            {
+              text: '消費税額',
+              value: 'consumptionTax',
+              align: 'right',
+            },
+            { text: '請求額', value: 'billingTotal', align: 'right' },
+            {
+              text: 'PDF',
+              value: 'action',
+              align: 'right',
+              sortable: false,
+            },
+          ]"
+          :items="billingsByCustomer"
+          :items-per-page="-1"
+          sort-by="code"
+        >
+          <template #[`item.amount`]="{ item }">
+            {{ item.amount.toLocaleString() }}
+          </template>
+          <template #[`item.consumptionTax`]="{ item }">
+            {{ item.consumptionTax.toLocaleString() }}
+          </template>
+          <template #[`item.billingTotal`]="{ item }">
+            {{ item.billingTotal.toLocaleString() }}
+          </template>
+          <template #[`item.action`]="{ item }">
+            <v-icon @click="generatePdf(item)">mdi-file-pdf-box</v-icon>
+          </template>
+        </g-data-table>
+      </v-container>
+    </v-sheet>
+  </g-template-fixed>
+</template>
 
 <style></style>

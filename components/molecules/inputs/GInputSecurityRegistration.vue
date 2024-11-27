@@ -1,20 +1,19 @@
 <script>
 /**
- * NewUsersドキュメント入力コンポーネント
- *
+ * 従業員警備員登録情報入力コンポーネント
+ * - Employee クラスの securityRegistration プロパティを編集するためのコンポーネントです。
  * @author shisyamo4131
  */
-import GTextField from '../../atoms/inputs/GTextField.vue'
 import GCardInputForm from '../cards/GCardInputForm.vue'
-import NewUser from '~/models/NewUser'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
-import GAutocompleteEmployee from '~/components/molecules/inputs/GAutocompleteEmployee.vue'
-
+import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
+import Employee from '~/models/Employee'
+import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextField, GCardInputForm, GAutocompleteEmployee },
+  components: { GNumeric, GCardInputForm, GComboboxDate },
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
@@ -27,7 +26,7 @@ export default {
       type: Object,
       required: true,
       validator(instance) {
-        return instance instanceof NewUser
+        return instance instanceof Employee
       },
     },
   },
@@ -36,7 +35,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      editModel: new NewUser(),
+      editModel: new Employee(),
     }
   },
 }
@@ -45,31 +44,29 @@ export default {
 <template>
   <g-card-input-form
     v-bind="$attrs"
-    label="新規ユーザー情報入力"
+    label="警備員登録情報"
     :edit-mode="editMode"
     :loading="loading"
     @click:submit="submit"
     v-on="$listeners"
   >
     <v-form @submit.prevent>
-      <g-text-field
-        v-model="editModel.email"
-        label="email"
-        required
-        input-type="email"
-      />
-      <g-text-field
-        v-model="editModel.password"
-        label="password"
-        required
-        type="password"
-      />
-      <g-autocomplete-employee
-        v-model="editModel.employeeId"
-        label="従業員"
+      <g-combobox-date
+        v-model="editModel.securityRegistration.registrationDate"
+        label="警備員登録日"
         required
       />
-      <g-text-field v-model="editModel.displayName" label="表示名" required />
+      <g-combobox-date
+        v-model="editModel.securityRegistration.securityStartDate"
+        label="警備経験開始日"
+        required
+      />
+      <g-numeric
+        v-model="editModel.securityRegistration.blankMonths"
+        label="ブランク"
+        required
+        suffix="ヶ月"
+      />
     </v-form>
   </g-card-input-form>
 </template>

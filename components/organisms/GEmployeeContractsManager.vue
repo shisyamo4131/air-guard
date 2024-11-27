@@ -154,6 +154,7 @@ export default {
      */
     employeeId: {
       async handler(v) {
+        if (!v) return
         this.loadingEmployee = true
         this.errorMessage = null
         try {
@@ -164,6 +165,8 @@ export default {
           }
           this.items = this.contractInstance.subscribeDocs([
             ['where', 'employeeId', '==', v],
+            ['orderBy', 'startDate', 'desc'],
+            ['limit', 3],
           ])
         } catch (err) {
           // eslint-disable-next-line no-console
@@ -173,6 +176,7 @@ export default {
           this.loadingEmployee = false
         }
       },
+      immediate: true,
     },
 
     /**
@@ -243,7 +247,7 @@ export default {
 <template>
   <v-card v-bind="$attrs" v-on="$listeners">
     <v-card-title class="g-card__title justify-space-between">
-      <div>雇用契約</div>
+      <div>雇用契約（直近3件）</div>
       <g-dialog-input v-model="dialog">
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon

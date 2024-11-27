@@ -9,7 +9,7 @@ import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import EmployeeLeaveApplication from '~/models/EmployeeLeaveApplication'
 import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
-import GAutocompleteEmployee from '~/components/atoms/inputs/GAutocompleteEmployee.vue'
+import GAutocompleteEmployee from '~/components/molecules/inputs/GAutocompleteEmployee.vue'
 export default {
   /***************************************************************************
    * COMPONENTS

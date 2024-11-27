@@ -21,6 +21,7 @@ import {
 } from '../modules/utils.js'
 import { EmployeeForEmployeeContract } from '../models/Employee.js'
 import EmployeeIndex from '../models/EmployeeIndex.js'
+import { EmployeeContractLatest } from '../models/EmployeeContract.js'
 
 /****************************************************************************
  * ドキュメントが作成されたときにトリガーされる関数。
@@ -64,6 +65,8 @@ export const onCreate = onDocumentCreated(
 export const onUpdate = onDocumentUpdated(
   'Employees/{docId}',
   async (event) => {
+    const employeeId = event.params.docId
+
     try {
       // ドキュメントに変更がなければ処理を終了
       if (!isDocumentChanged(event)) return
@@ -90,6 +93,13 @@ export const onUpdate = onDocumentUpdated(
        */
       await EmployeeForEmployeeContract.sync(event)
       logger.info(`EmployeeContractsコレクションとの同期処理完了`)
+
+      /**
+       * status 更新された場合は最新の雇用契約情報を同期
+       */
+      if (event.data.before.data().status !== event.data.after.data().status) {
+        await EmployeeContractLatest.sync(employeeId)
+      }
     } catch (err) {
       // エラーハンドリング
       logger.error(

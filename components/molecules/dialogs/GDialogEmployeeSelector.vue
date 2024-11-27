@@ -42,6 +42,7 @@ export default {
     includeExpired: { type: Boolean, default: false, required: false },
     items: { type: Array, default: () => [], required: false },
     maxWidth: { type: [String, Number], default: 420, required: false },
+    singleSelect: { type: Boolean, default: false, required: false },
     value: { type: Boolean, default: false, required: false },
   },
 
@@ -207,9 +208,11 @@ export default {
     </template>
     <v-card :tile="$vuetify.breakpoint.mobile">
       <v-toolbar class="flex-grow-0" color="primary" dark dense flat>
-        <v-toolbar-title
-          ><v-icon>mdi-account</v-icon>従業員選択</v-toolbar-title
-        >
+        <v-icon left>mdi-account</v-icon>
+        <v-toolbar-title>
+          <slot name="title"> 従業員選択 </slot>
+        </v-toolbar-title>
+        <slot name="append-title" />
       </v-toolbar>
       <v-divider />
       <v-toolbar dense flat class="flex-grow-0">
@@ -234,6 +237,7 @@ export default {
           item-key="docId"
           :mobile-breakpoint="0"
           hide-default-footer
+          :single-select="singleSelect"
         >
           <template #default="props">
             <template v-for="(item, index) of props.items">

@@ -33,8 +33,8 @@
               <span v-if="!$vuetify.breakpoint.mobile">確認モード</span>
             </v-btn>
 
-            <!-- [権限トラップ] 未上番抽出スイッチ -->
-            <div v-if="$store.getters['auth/roles'].includes('manager')">
+            <!-- 未上番抽出スイッチ（非公開） -->
+            <div v-if="false">
               <g-switch
                 v-show="mode === 'confirmation'"
                 v-model="onlyNonArrival"

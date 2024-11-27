@@ -55,19 +55,19 @@ export default class Employee extends FireModel {
    * - AirGuardからのインポート処理を想定した初期化処理を追加しています。
    * @param {Object} item
    ****************************************************************************/
-  initialize(item = {}) {
-    // isForeigner が Boolean かどうかチェックし、文字列 '1' の場合には true に変換
-    if (typeof item.isForeigner !== 'boolean') {
-      item.isForeigner = item.isForeigner === '1' // '1' ならば true に変換
-    }
+  // initialize(item = {}) {
+  //   // isForeigner が Boolean かどうかチェックし、文字列 '1' の場合には true に変換
+  //   if (typeof item.isForeigner !== 'boolean') {
+  //     item.isForeigner = item.isForeigner === '1' // '1' ならば true に変換
+  //   }
 
-    // hasSendAddress が Boolean かどうかチェックし、文字列 '2' の場合には true に変換
-    if (typeof item.hasSendAddress !== 'boolean') {
-      item.hasSendAddress = item.hasSendAddress === '2' // '2' ならば true に変換
-    }
+  //   // hasSendAddress が Boolean かどうかチェックし、文字列 '2' の場合には true に変換
+  //   if (typeof item.hasSendAddress !== 'boolean') {
+  //     item.hasSendAddress = item.hasSendAddress === '2' // '2' ならば true に変換
+  //   }
 
-    super.initialize(item)
-  }
+  //   super.initialize(item)
+  // }
 
   /****************************************************************************
    * Realtime Database の `AirGuard/Employees` の内容で、 Firestore の
@@ -76,6 +76,7 @@ export default class Employee extends FireModel {
    *   Employees ドキュメントを更新します。
    * - Firestore の更新はトランザクションを使用して安全に行います。
    * - `docId` が存在しない場合や、データが存在しない場合はエラーが発生します。
+   * - Realtime Database から取得したデータの一部を、Firestore ドキュメント用に編集しています。
    * @param {string} code - Realtime Database 内 の Employees データを識別するコード
    * @returns {Promise<void>} - 同期が正常に完了した場合は、解決されたPromiseを返します
    ****************************************************************************/
@@ -120,6 +121,15 @@ export default class Employee extends FireModel {
           ...docSnapshot.data(),
           ...newData,
           sync: true,
+          // 以下、Employee モデルに合わせて編集
+          isForeigner: newData.isForeigner === '1',
+          hasSendAddress: newData.hasSendAddress === '2',
+          hasSecurityRegistration: !!newData.registrationDate,
+          securityRegistration: {
+            registrationDate: newData.registrationDate ?? '',
+            securityStartDate: newData.securityStartDate ?? '',
+            blankMonths: parseInt(newData.blankMonths ?? 0),
+          },
         })
 
         // ドキュメントを更新

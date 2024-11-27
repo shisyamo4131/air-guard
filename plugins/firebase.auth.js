@@ -48,6 +48,7 @@ export default (context) => {
         await context.store.dispatch('employees/subscribe')
         await context.store.dispatch('outsourcers/subscribe')
         await context.store.dispatch('equipments/subscribe')
+        await context.store.dispatch('employee-contracts/subscribe')
       } else if (!user && DISACTIVATE) {
         await context.store.dispatch(DISACTIVATE)
         await context.store.dispatch('systems/unsubscribe')
@@ -57,6 +58,7 @@ export default (context) => {
         await context.store.dispatch('employees/unsubscribe')
         await context.store.dispatch('outsourcers/unsubscribe')
         await context.store.dispatch('equipments/unsubscribe')
+        await context.store.dispatch('employee-contracts/unsubscribe')
       }
       resolve()
     })

@@ -10,6 +10,7 @@ import * as sites from './triggers/sites.js'
 import * as siteContracts from './triggers/site-contracts.js'
 import * as siteOperationSchedules from './triggers/site-operation-schedules.js'
 import * as employees from './triggers/employees.js'
+import * as employeeContracts from './triggers/employee-contracts.js'
 import * as workRegulations from './triggers/work-regulations.js'
 import * as operationResults from './triggers/operation-results.js'
 import * as operationWorkResults from './triggers/operation-work-results.js'
@@ -33,6 +34,7 @@ export {
   siteContracts,
   siteOperationSchedules,
   employees,
+  employeeContracts,
   workRegulations,
   operationResults,
   operationWorkResults,
