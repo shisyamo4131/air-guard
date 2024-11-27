@@ -594,8 +594,8 @@ export default class FireModel {
     const customClassMap = this.constructor.customClassMap || {}
 
     Object.keys(customClassMap).forEach((key) => {
-      if (!(key in item)) {
-        // Firestoreのドキュメントにプロパティが存在しない場合でもカスタムクラスを初期化
+      if (!(key in item) && !Array.isArray(this[key])) {
+        // Firestoreのドキュメントにプロパティが存在せず、かつ現在の値が配列でない場合にのみ初期化
         this[key] = new customClassMap[key]()
       }
     })
