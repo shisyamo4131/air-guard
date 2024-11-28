@@ -6,12 +6,9 @@ import { classProps as addProps } from './propsDefinition/OperationWorkResult.js
 const firestore = getFirestore()
 
 /**
- * ## OperationWorkResults
- *
- * @version 1.0.0
+ * Cloud Functions で Firestore の OperationWorkResults ドキュメントを操作するためのクラスです。
+ * FireMode を継承していますが、更新系のメソッドは利用できません。
  * @author shisyamo4131
- * @updates
- * - version 1.0.0 - 2024-10-11 - 初版作成
  */
 export default class OperationWorkResult extends FireModel {
   /****************************************************************************
@@ -21,13 +18,18 @@ export default class OperationWorkResult extends FireModel {
   static classProps = { ...classProps, ...addProps }
 
   /****************************************************************************
-   * CONSTRUCTOR
+   * 更新系メソッドは使用不可
    ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
-    delete this.create
-    delete this.update
-    delete this.delete
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
+  }
+
+  update() {
+    return Promise.reject(new Error('このクラスの update は使用できません。'))
+  }
+
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
   }
 
   /****************************************************************************
@@ -83,5 +85,22 @@ export default class OperationWorkResult extends FireModel {
       logger.error(message, { from, to, employeeId, error })
       throw new Error(message)
     }
+  }
+}
+
+/**
+ * OperationWorkResult クラスからカスタムクラス用に不要なプロパティを削除したクラスです。
+ */
+export class OperationWorkResultMinimal extends OperationWorkResult {
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item)
+
+    delete this.createAt
+    delete this.updateAt
+    delete this.remarks
+    delete this.tokenMap
   }
 }

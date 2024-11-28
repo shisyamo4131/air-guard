@@ -1,4 +1,3 @@
-import SecurityRegistration from '../SecurityRegistration.js'
 import { generateVueProps, generateClassProps } from './propsUtil.js'
 
 const propsDefinition = {
@@ -202,7 +201,7 @@ const propsDefinition = {
    */
   securityRegistration: {
     type: Object,
-    default: () => new SecurityRegistration().toObject(),
+    default: () => ({}),
     required: false,
     requiredByClass: false,
   },

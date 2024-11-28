@@ -11,6 +11,8 @@
  */
 import { ref, update } from 'firebase/database'
 import { database } from 'air-firebase/dist/firebase.init'
+import employeeAbbr from '~/assets/abbr.json' // 従業員の略称を強制変換するためのJSON
+
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -147,7 +149,20 @@ export default {
           this.processingText = `${collectionId}をインポートしています。`
           const updates = csvData.reduce((acc, i) => {
             Object.keys(i).forEach((key) => {
-              acc[`/AirGuard/${collectionId}/${i.code}/${key}`] = i[key]
+              /**
+               * 従業員の略称を強制的に変換
+               * - 2024-11-28 - 従業員マスタを刷新しようとすると略称が書き換えられてしまい不都合がある
+               */
+              // acc[`/AirGuard/${collectionId}/${i.code}/${key}`] = i[key]
+              if (collectionId === 'Employees' && key === 'abbr') {
+                const abbr = employeeAbbr[i.code]?.abbr ?? i[key]
+                acc[`/AirGuard/${collectionId}/${i.code}/${key}`] = abbr
+                const abbrKana =
+                  employeeAbbr[i.code]?.abbrKana ?? i.lastNameKana
+                acc[`/AirGuard/${collectionId}/${i.code}/abbrKana`] = abbrKana
+              } else {
+                acc[`/AirGuard/${collectionId}/${i.code}/${key}`] = i[key]
+              }
             })
             return acc
           }, {})

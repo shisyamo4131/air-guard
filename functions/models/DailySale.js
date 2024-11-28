@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore.js'
 import { logger } from 'firebase-functions/v2'
 import FireModel from './FireModel.js'
-import OperationResultForDailySale from './OperationResultForDailySale.js'
+import { OperationResultForDailySale } from './OperationResult.js'
 import { accessor, classProps } from './propsDefinition/DailySale.js'
 dayjs.extend(isSameOrBefore)
 

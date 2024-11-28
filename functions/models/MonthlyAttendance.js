@@ -7,7 +7,7 @@ import updateLocale from 'dayjs/plugin/updateLocale.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/MonthlyAttendance.js'
 import Employee from './Employee.js'
-import DailyAttendanceForMonthlyAttendance from './DailyAttendanceForMonthlyAttendance.js'
+import { DailyAttendanceForMonthlyAttendance } from './DailyAttendance.js'
 dayjs.extend(isSameOrBefore)
 dayjs.extend(isoWeek)
 dayjs.extend(updateLocale)

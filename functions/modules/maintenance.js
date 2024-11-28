@@ -6,14 +6,14 @@ import { getDatabase } from 'firebase-admin/database'
 import { getFirestore } from 'firebase-admin/firestore'
 import { onCall } from 'firebase-functions/v2/https'
 import { https, logger } from 'firebase-functions/v2'
-import EmployeeIndex from '../models/EmployeeIndex.js'
-import SiteIndex from '../models/SiteIndex.js'
-import CustomerIndex from '../models/CustomerIndex.js'
 import System from '../models/System.js'
 import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory.js'
 import { SiteEmployeeHistory } from '../models/SiteEmployeeHistory.js'
 import Placement from '../models/Placement.js'
-import OutsourcerIndex from '../models/OutsourcerIndex.js'
+import { OutsourcerIndex } from '../models/Outsourcer.js'
+import { CustomerIndex } from '../models/Customer.js'
+import { EmployeeIndex } from '../models/Employee.js'
+import { SiteIndex } from '../models/Site.js'
 
 const database = getDatabase()
 const firestore = getFirestore()

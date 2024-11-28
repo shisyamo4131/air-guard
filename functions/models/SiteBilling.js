@@ -2,15 +2,16 @@ import { logger } from 'firebase-functions/v2'
 import { getFirestore } from 'firebase-admin/firestore'
 import { dateIsValid } from '../modules/utils.js'
 import FireModel from './FireModel.js'
-import OperationResultForSiteBilling from './OperationResultForSiteBilling.js'
 import { accessor, classProps } from './propsDefinition/SiteBilling.js'
-import OperationResult from './OperationResult.js'
+import OperationResult, {
+  OperationResultForSiteBilling,
+} from './OperationResult.js'
 const firestore = getFirestore()
 const BATCH_LIMIT = 500
 
 /**
- * SiteBillingsドキュメントデータモデル
- *
+ * Cloud Functions で Firestore の SiteBillings ドキュメントを操作するためのクラスです。
+ * SiteBillings ドキュメントは Cloud Functions で管理されます。
  * @author shisyamo4131
  */
 export default class SiteBilling extends FireModel {

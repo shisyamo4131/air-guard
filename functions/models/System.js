@@ -15,11 +15,9 @@ dayjs.extend(updateLocale)
 dayjs.updateLocale('en', { weekStart: 1 })
 
 /**
- * ## Systems ドキュメントデータモデル
- *
- * - システムの状態を表す Firestore ドキュメントのデータモデルです。
- * - ドキュメントを削除することはないため、 delete メソッドは削除しています。
- *
+ * Cloud Functions で Firestore の Systems ドキュメントを操作するためのクラスです。
+ * - ドキュメントはアプリ側で作成されるため create メソッドは利用できません。
+ * - ドキュメントを削除することはないため delete メソッドは利用できません。
  * @author shisyamo4131
  */
 export default class System extends FireModel {
@@ -47,7 +45,17 @@ export default class System extends FireModel {
     super(item)
 
     delete this.tokenMap
-    delete this.delete
+  }
+
+  /****************************************************************************
+   * create, delete は使用不可
+   ****************************************************************************/
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
+  }
+
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
   }
 
   /****************************************************************************
@@ -498,13 +506,12 @@ export default class System extends FireModel {
     }
   }
 
-  /**
+  /****************************************************************************
    * 指定された ExecuteStatus の status を executing に更新します。
    * - status は 'executing' に設定されます。
-   *
    * @param {string} type 更新対象のキー（例: 'refreshEmployeeSiteHistory'）
    * @throws {Error} 必要なプロパティが存在しない場合にエラーをスローします。
-   */
+   ****************************************************************************/
   async updateToExecute(type) {
     // 必要なプロパティがすべて存在するかチェック
     const requiredProps = ['status']
@@ -521,15 +528,14 @@ export default class System extends FireModel {
     await this.update()
   }
 
-  /**
-   * 指定された ExecuteStatus を更新します。
+  /****************************************************************************
+   * 指定された ExecuteStatus を `success` に更新します。
    * - status は 'ready' になります。
    * - lastExecutedAt は指定された引数がセットされます。
    * - executeStatus は 'success' になります。
-   *
    * @param {string} type 更新対象のキー。例えば 'refreshEmployeeSiteHistory' など
    * @param {Date} lastExecutedAt 最後に実行された日時
-   */
+   ****************************************************************************/
   async updateToSuccess(type, lastExecutedAt) {
     // 必要なプロパティがすべて存在するかチェック
     const requiredProps = ['status', 'executeStatus', 'lastExecutedAt']
@@ -550,16 +556,15 @@ export default class System extends FireModel {
     await this.update()
   }
 
-  /**
-   * 指定された ExecuteStatus を更新します。
+  /****************************************************************************
+   * 指定された ExecuteStatus を `error` に更新します。
    * - status は 'ready' になります。
    * - executeStatus は 'error' になります。
    * - error は指定された message がセットされます。
    * - lastExecutedAt は更新されません。
-   *
    * @param {string} type 更新対象のキー。例えば 'refreshEmployeeSiteHistory' など
    * @param {string} message エラーの内容
-   */
+   ****************************************************************************/
   async updateToError(type, message) {
     // 必要なプロパティがすべて存在するかチェック
     const requiredProps = ['status', 'executeStatus', 'error']

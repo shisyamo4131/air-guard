@@ -16,10 +16,13 @@ import {
 } from 'firebase-functions/v2/firestore'
 import { logger } from 'firebase-functions/v2'
 import {
+  extractDiffsFromDocUpdatedEvent,
   isDocumentChanged,
   removeDependentDocuments,
 } from '../modules/utils.js'
-import Site from '../models/Site.js'
+import { SiteIndex } from '../models/Site.js'
+import SiteContract from '../models/SiteContract.js'
+import OperationResult from '../models/OperationResult.js'
 
 /****************************************************************************
  * ドキュメントが作成されたときにトリガーされる関数。
@@ -38,7 +41,7 @@ export const onCreate = onDocumentCreated('Sites/{docId}', async (event) => {
 
   try {
     // Realtime Databaseにインデックスを作成
-    await Site.syncIndex(docId)
+    await SiteIndex.create(docId)
   } catch (err) {
     // エラーハンドリング
     logger.error(
@@ -70,14 +73,24 @@ export const onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
       `Sitesドキュメントが更新されました。ドキュメントID: ${event.params.docId}`
     )
 
-    // Realtime Databaseにインデックスを作成
-    await Site.syncIndex(event.params.docId)
+    // Realtime Databaseにインデックスを更新
+    const isChangedAsIndex = extractDiffsFromDocUpdatedEvent({
+      event,
+      ComparisonClass: SiteIndex,
+    })
+    if (isChangedAsIndex.length > 0) {
+      await SiteIndex.create(event.params.docId)
+    }
 
     // SiteContractsドキュメントのsiteプロパティを同期
-    await Site.syncToSiteContracts(event.params.docId)
+    logger.log(`SiteContracts ドキュメントとの同期処理を開始します。`)
+    await SiteContract.refreshSite(event)
+    logger.log(`SiteContracts ドキュメントとの同期処理が完了しました。`)
 
     // OperationResultsドキュメントのsiteプロパティを同期
-    await Site.syncToOperationResults(event.params.docId)
+    logger.log(`OperationResults ドキュメントとの同期処理を開始します。`)
+    await OperationResult.refreshSite(event)
+    logger.log(`OperationResults ドキュメントとの同期処理が完了しました。`)
   } catch (err) {
     // エラーハンドリング
     logger.error(
@@ -105,7 +118,7 @@ export const onDelete = onDocumentDeleted('Sites/{docId}', async (event) => {
 
   try {
     // Realtime Databaseインデックスを削除
-    await Site.syncIndex(docId, true)
+    await SiteIndex.remove(docId)
 
     // 従属する現場取極め, 現場稼働予定を削除
     await removeDependentDocuments(

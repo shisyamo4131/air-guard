@@ -27,8 +27,12 @@ export default {
   computed: {
     items() {
       return this.$store.getters['employees/items']
-        .slice()
-        .sort((a, b) => a.abbrKana.localeCompare(b.abbrKana))
+        .slice() // コピーを作成
+        .sort((a, b) => {
+          const kanaA = a.abbrKana || '' // abbrKanaがない場合は空文字列にする
+          const kanaB = b.abbrKana || '' // abbrKanaがない場合は空文字列にする
+          return kanaA.localeCompare(kanaB)
+        })
     },
   },
 

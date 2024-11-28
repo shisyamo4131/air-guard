@@ -25,15 +25,16 @@ const database = getDatabase()
  * - 従業員稼働実績ドキュメントの削除に対する処理のみ、削除トリガーを使用しています。
  */
 export class SiteEmployeeHistory {
-  /**
-   * 指定された siteId、employeeId、date, operationResultId に基づいて最深部の firstDate や lastDate を更新します。
+  /****************************************************************************
+   * 指定された siteId、employeeId、date, operationResultId に基づいて
+   * firstDate や lastDate を更新します。
    * @param {Object} params
    * @param {string} params.employeeId - 従業員の ID
    * @param {string} params.date - 稼働日 (YYYY-MM-DD 形式)
    * @param {string} params.siteId - 現場の ID
    * @param {string} params.operationResultId - 稼働実績ドキュメントID
    * @returns {Promise<void>} - 更新処理の結果を返す
-   */
+   ****************************************************************************/
   static async update({ siteId, employeeId, date, operationResultId }) {
     try {
       // 更新用オブジェクト
@@ -78,17 +79,16 @@ export class SiteEmployeeHistory {
     }
   }
 
-  /**
+  /****************************************************************************
    * 指定された現場の従業員入場履歴を強制的に更新します。
    * - 従業員稼働実績ドキュメントを使用します。
    * - 従業員稼働実績ドキュメントが削除された時に従業員入場履歴を更新するために使用するほか、
    *   バグなどの理由で従業員入場履歴が正常に記録されていなかった場合の強制的な処理です。
    * - 大量のデータ、ドキュメントを読み込む可能性があるため、必要な時にだけ実行してください。
    * - 従業員IDが指定された場合、対象の従業員のみで強制更新します。
-   *
    * @param {string} siteId 現場ID
    * @param {string} employeeId 従業員ID（オプション）
-   */
+   ****************************************************************************/
   static async updateBySiteId({ siteId, employeeId }) {
     try {
       // 処理開始ログを出力
@@ -155,12 +155,12 @@ export class SiteEmployeeHistory {
     }
   }
 
-  /**
+  /****************************************************************************
    * 引数で与えられた日時以降に作成または更新された従業員稼働実績ドキュメントを
    * もとに、現場の従業員入場履歴を更新します。
    * @param {Date} timestamp 基準とする日時（Dateオブジェクト）
    * @returns
-   */
+   ****************************************************************************/
   static async updateByTimestamp(timestamp) {
     // 引数のチェック
     if (!timestamp || !(timestamp instanceof Date)) {

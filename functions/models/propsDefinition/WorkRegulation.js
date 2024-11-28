@@ -18,6 +18,15 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+
+  // 所定労働時間（分）
+  scheduledWorkMinutes: {
+    type: Number,
+    default: null,
+    required: false,
+    requiredByClass: true,
+  },
+
   legalHoliday: {
     type: String,
     default: 'sun',

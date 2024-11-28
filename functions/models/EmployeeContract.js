@@ -4,12 +4,15 @@ import { logger } from 'firebase-functions/v2'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/EmployeeContract.js'
 import { EmployeeForEmployeeContract } from './Employee.js'
-import WorkRegulation from './WorkRegulation.js'
+import WorkRegulation, {
+  WorkRegulationForDailyAttendance,
+} from './WorkRegulation.js'
 const firestore = getFirestore()
 const database = getDatabase()
 
 /**
- * EmployeeContractsドキュメントデータモデル
+ * Cloud Functions で Firestore の EmployeeContracts ドキュメントを操作するためのクラスです。
+ * FireMode を継承していますが、更新系のメソッドは利用できません。
  * @author shisyamo4131
  */
 export default class EmployeeContract extends FireModel {
@@ -25,13 +28,6 @@ export default class EmployeeContract extends FireModel {
   static customClassMap = {
     employee: EmployeeForEmployeeContract,
     workRegulation: WorkRegulation,
-  }
-
-  /****************************************************************************
-   * CONSTRUCTOR
-   ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
   }
 
   /****************************************************************************
@@ -255,5 +251,26 @@ export class EmployeeContractLatest extends EmployeeContractMinimal {
       )
       throw error
     }
+  }
+}
+
+/**
+ * DailyAttendance クラスのカスタムクラス用 EmployeeContract クラスです。
+ * - Minimal クラスから更に employee プロパティを削除しています。
+ */
+export class EmployeeContractForDailyAttendance extends EmployeeContractMinimal {
+  /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    workRegulation: WorkRegulationForDailyAttendance,
+  }
+
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item)
+    delete this.employee
   }
 }

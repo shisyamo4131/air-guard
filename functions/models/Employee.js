@@ -1,18 +1,22 @@
-import { getDatabase } from 'firebase-admin/database'
 import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import {
   extractDiffsFromDocUpdatedEvent,
   syncDependentDocuments,
 } from '../modules/utils.js'
+import {
+  createIndex,
+  removeIndex,
+  syncToFirestoreFromAirGuard,
+} from '../modules/database.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/Employee.js'
-const database = getDatabase()
+import SecurityRegistration from './SecurityRegistration.js'
 const firestore = getFirestore()
 
 /**
- * 従業員情報を管理するデータモデルです。
- * - データの更新系メソッドを利用することはできません。
+ * Cloud Functions で Firestore の Employees ドキュメントを操作するためのクラスです。
+ * FireMode を継承していますが、更新系のメソッドは利用できません。
  * @author shisyamo4131
  */
 export default class Employee extends FireModel {
@@ -23,10 +27,10 @@ export default class Employee extends FireModel {
   static classProps = classProps
 
   /****************************************************************************
-   * CONSTRUCTOR
+   * CUSTOM CLASS MAPPING
    ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
+  static customClassMap = {
+    securityRegistration: SecurityRegistration,
   }
 
   /****************************************************************************
@@ -51,107 +55,33 @@ export default class Employee extends FireModel {
   }
 
   /****************************************************************************
-   * initializeメソッドをオーバーライドします。
-   * - AirGuardからのインポート処理を想定した初期化処理を追加しています。
-   * @param {Object} item
-   ****************************************************************************/
-  // initialize(item = {}) {
-  //   // isForeigner が Boolean かどうかチェックし、文字列 '1' の場合には true に変換
-  //   if (typeof item.isForeigner !== 'boolean') {
-  //     item.isForeigner = item.isForeigner === '1' // '1' ならば true に変換
-  //   }
-
-  //   // hasSendAddress が Boolean かどうかチェックし、文字列 '2' の場合には true に変換
-  //   if (typeof item.hasSendAddress !== 'boolean') {
-  //     item.hasSendAddress = item.hasSendAddress === '2' // '2' ならば true に変換
-  //   }
-
-  //   super.initialize(item)
-  // }
-
-  /****************************************************************************
-   * Realtime Database の `AirGuard/Employees` の内容で、 Firestore の
-   * Employees ドキュメントを更新します。
-   * - Realtime Database からデータを取得し、そのデータに基づいて Firestore 内の
-   *   Employees ドキュメントを更新します。
-   * - Firestore の更新はトランザクションを使用して安全に行います。
-   * - `docId` が存在しない場合や、データが存在しない場合はエラーが発生します。
-   * - Realtime Database から取得したデータの一部を、Firestore ドキュメント用に編集しています。
-   * @param {string} code - Realtime Database 内 の Employees データを識別するコード
+   * Realtime Databaseの`AirGuard/Employees`の内容で、FirestoreのEmployeesドキュメントを更新します。
+   * @param {string} code - Realtime Database内のEmployeesデータを識別するコード
    * @returns {Promise<void>} - 同期が正常に完了した場合は、解決されたPromiseを返します
    ****************************************************************************/
   static async syncFromAirGuard(code) {
     try {
-      // Realtime Databaseから Employees データをロード
-      const dbRef = database.ref(`AirGuard/Employees/${code}`)
-      const data = await dbRef.get()
-
-      // データが存在しない場合はエラーを投げる
-      if (!data.exists()) {
-        const message = `Realtime Database に同期元の Employees データが見つかりません。`
-        logger.error(`[syncFromAirGuard] ${message}`, { code })
-        throw new Error(message)
-      }
-
-      const newData = data.val()
-      const docId = newData.docId
-
-      // docIdが存在しない場合はエラーを投げる
-      if (!docId) {
-        const message = `Employees データに docId が設定されていません。`
-        logger.error(`[syncFromAirGuard] ${message}`, { code })
-        throw new Error(message)
-      }
-
-      // Firestoreドキュメントをトランザクションで同期
-      await firestore.runTransaction(async (transaction) => {
-        const docRef = firestore.collection('Employees').doc(docId)
-        const docSnapshot = await transaction.get(docRef)
-
-        // ドキュメントが存在しない場合はエラーを投げる
-        if (!docSnapshot.exists) {
-          const message = `Firestore に同期先の Employees ドキュメントが見つかりません。`
-          logger.error(`[syncFromAirGuard] ${message}`, { code, docId })
-          throw new Error(message)
-        }
-
-        // 既存データと新しいデータをマージし、インスタンスを作成
-        // AirGuardとの同期設定済みであることを表す `sync` プロパティを true にする
-        const instance = new this({
-          ...docSnapshot.data(),
-          ...newData,
-          sync: true,
-          // 以下、Employee モデルに合わせて編集
-          isForeigner: newData.isForeigner === '1',
-          hasSendAddress: newData.hasSendAddress === '2',
-          hasSecurityRegistration: !!newData.registrationDate,
+      const converter = (item) => {
+        return {
+          ...item,
+          isForeigner: item.isForeigner === '1',
+          hasSendAddress: item.hasSendAddress === '2',
+          hasSecurityRegistration: !!item.registrationDate,
           securityRegistration: {
-            registrationDate: newData.registrationDate ?? '',
-            securityStartDate: newData.securityStartDate ?? '',
-            blankMonths: parseInt(newData.blankMonths ?? 0),
+            registrationDate: item.registrationDate ?? '',
+            securityStartDate: item.securityStartDate ?? '',
+            blankMonths: parseInt(item.blankMonths ?? 0),
           },
-        })
-
-        // ドキュメントを更新
-        transaction.update(docRef, instance.toObject())
-      })
-
-      // 同期完了メッセージ
-      logger.info(
-        `[syncFromAirGuard] Realtime Database の Employees データが Firestore の Employees ドキュメントと正常に同期されました。`,
-        { code, docId }
-      )
+        }
+      }
+      await syncToFirestoreFromAirGuard(code, 'Employees', this, converter)
     } catch (err) {
-      // エラー処理を一元化し、詳細なログを出力
-      logger.error(
-        `[syncFromAirGuard] 同期処理でエラーが発生しました: ${err.message}`,
-        { code, err }
-      )
+      logger.error(err, { code })
       throw err
     }
   }
 
-  /**
+  /****************************************************************************
    * Firestore の 'Employees' コレクションから指定された期間内に在職していた従業員ドキュメントを返します。
    *
    * @param {Object} options - オプションのフィルタ条件を含むオブジェクト。
@@ -160,7 +90,7 @@ export default class Employee extends FireModel {
    * @param {Object|null} options.transaction - 任意のトランザクションオブジェクト。指定がある場合はトランザクション内でクエリを実行します。
    * @returns {Promise<Array<Object>>} Firestore のデータを持つ従業員インスタンスの配列を返します。
    * @throws {Error} Firestore のクエリが失敗した場合、詳細を含むエラーがスローされます。
-   */
+   ****************************************************************************/
   static async getExistingEmployees({ from, to, transaction = null } = {}) {
     // 引数のチェック
     if (!from || !to) {
@@ -210,6 +140,68 @@ export default class Employee extends FireModel {
     } catch (error) {
       const message = `[getExistingEmployees] 不明なエラーが発生しました。`
       logger.error(message, { from, to, error })
+      throw error
+    }
+  }
+}
+
+/**
+ * Realtime Database で管理する Employee インデックス用のクラスです。
+ */
+export class EmployeeIndex extends Employee {
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item)
+
+    // インデックスに必要なプロパティを定義
+    const keepProps = [
+      'code',
+      'fullName',
+      'fullNameKana',
+      'abbr',
+      'abbrKana',
+      'address1',
+      'address2',
+      'mobile',
+      'status',
+      'contractType',
+      'designation',
+      'sync',
+      'hasSecurityRegistration',
+    ]
+
+    // Customer クラスから不要なプロパティを削除
+    Object.keys(this).forEach((key) => {
+      if (!keepProps.includes(key)) delete this[key]
+    })
+  }
+
+  /****************************************************************************
+   * Realtime Database にインデックスを作成します。
+   * @param {string} EmployeeId - インデックス作成対象の取引先ID
+   ****************************************************************************/
+  static async create(EmployeeId) {
+    const functionName = 'create'
+    try {
+      await createIndex('Employees', EmployeeId, this)
+    } catch (error) {
+      logger.error(`[${functionName}] ${error.message}`, { EmployeeId })
+      throw error
+    }
+  }
+
+  /****************************************************************************
+   * Realtime Database からインデックスを削除します。
+   * @param {string} customerId - インデックス削除対象の取引先ID
+   ****************************************************************************/
+  static async remove(customerId) {
+    const functionName = 'remove'
+    try {
+      await removeIndex('Employees', customerId)
+    } catch (error) {
+      logger.error(`[${functionName}] ${error.message}`, { customerId })
       throw error
     }
   }

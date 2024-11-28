@@ -6,9 +6,9 @@ import isoWeek from 'dayjs/plugin/isoWeek.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/DailyAttendance.js'
 import Employee from './Employee.js'
-import EmployeeContractForDailyAttendance from './EmployeeContractForDailyAttendance.js'
-import OperationWorkResultForDailyAttendance from './OperationWorkResultForDailyAttendance.js'
-import LeaveRecord from './LeaveRecord.js'
+import { EmployeeContractForDailyAttendance } from './EmployeeContract.js'
+import { LeaveRecordMinimal } from './LeaveRecord.js'
+import { OperationWorkResultMinimal } from './OperationWorkResult.js'
 dayjs.extend(isSameOrBefore)
 dayjs.extend(isoWeek)
 const firestore = getFirestore()
@@ -42,8 +42,8 @@ export default class DailyAttendance extends FireModel {
    ****************************************************************************/
   static customClassMap = {
     employeeContracts: EmployeeContractForDailyAttendance,
-    operationWorkResults: OperationWorkResultForDailyAttendance,
-    leaveRecord: LeaveRecord,
+    operationWorkResults: OperationWorkResultMinimal,
+    leaveRecord: LeaveRecordMinimal,
   }
 
   /****************************************************************************
@@ -732,7 +732,7 @@ export default class DailyAttendance extends FireModel {
       const operationWorkResults = (
         await Promise.all(
           employeeIds.map((employeeId) =>
-            OperationWorkResultForDailyAttendance.getOperationWorkResults({
+            OperationWorkResultMinimal.getOperationWorkResults({
               employeeId,
               from,
               to,
@@ -742,7 +742,7 @@ export default class DailyAttendance extends FireModel {
       ).flat()
 
       // 休暇記録を取得
-      const leaveRecordInstance = new LeaveRecord()
+      const leaveRecordInstance = new LeaveRecordMinimal()
       const getLeaveRecords = async (employeeId) => {
         const queryRef = firestore
           .collection('LeaveRecords')
@@ -1117,5 +1117,36 @@ export default class DailyAttendance extends FireModel {
     }
 
     return weeklyRanges
+  }
+}
+
+/**
+ * MonthlyAttendance クラス専用の DailyAttendance クラスです。
+ * - DailyAttendance クラスから、MonthlyAttendance クラスに必要なプロパティのみを抽出したクラスです。
+ * - 勤務時間などのプロパティが Object.defineProperty で計算されてしまうため、DailyAttendance クラスを
+ *   継承するのではなく、FireModel 継承し、propsDefinition.DailyAttendance でプロパティ定義をしています。
+ * @author shisyamo4131
+ */
+export class DailyAttendanceForMonthlyAttendance extends FireModel {
+  /****************************************************************************
+   * STATIC
+   ****************************************************************************/
+  static collectionPath = 'DailyAttendances'
+  static classProps = classProps
+
+  /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    operationWorkResults: OperationWorkResultMinimal,
+    leaveRecord: LeaveRecordMinimal,
+  }
+
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item)
+    delete this.employeeContracts
   }
 }

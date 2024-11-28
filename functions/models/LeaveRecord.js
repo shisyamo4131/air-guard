@@ -1,12 +1,9 @@
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/LeaveRecord.js'
 /**
- * LeaveRecordsドキュメントデータモデル【物理削除】
- *
- * @version 1.0.0
+ * Cloud Functions で Firestore の LeaveRecords ドキュメントを操作するためのクラスです。
+ * FireMode を継承していますが、更新系のメソッドは利用できません。
  * @author shisyamo4131
- * @updates
- * - version 1.0.0 - 2024-10-16 - 初版作成
  */
 export default class LeaveRecord extends FireModel {
   /****************************************************************************
@@ -16,13 +13,34 @@ export default class LeaveRecord extends FireModel {
   static classProps = classProps
 
   /****************************************************************************
+   * 更新系メソッドは使用不可
+   ****************************************************************************/
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
+  }
+
+  update() {
+    return Promise.reject(new Error('このクラスの update は使用できません。'))
+  }
+
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
+  }
+}
+
+/**
+ * LeaveRecord クラスからカスタムクラス用に不要なプロパティを削除したクラスです。
+ */
+export class LeaveRecordMinimal extends LeaveRecord {
+  /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
     super(item)
-    delete this.create
-    delete this.update
-    delete this.delete
+
+    delete this.createAt
+    delete this.updateAt
+    delete this.remarks
     delete this.tokenMap
   }
 }

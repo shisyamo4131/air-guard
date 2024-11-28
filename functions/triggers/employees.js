@@ -19,8 +19,10 @@ import {
   extractDiffsFromDocUpdatedEvent,
   isDocumentChanged,
 } from '../modules/utils.js'
-import { EmployeeForEmployeeContract } from '../models/Employee.js'
-import EmployeeIndex from '../models/EmployeeIndex.js'
+import {
+  EmployeeForEmployeeContract,
+  EmployeeIndex,
+} from '../models/Employee.js'
 import { EmployeeContractLatest } from '../models/EmployeeContract.js'
 
 /****************************************************************************
@@ -130,7 +132,7 @@ export const onDelete = onDocumentDeleted(
       /**
        * Realtime Database からインデックスを削除します。
        */
-      await EmployeeIndex.delete(docId)
+      await EmployeeIndex.remove(docId)
       logger.info(`Employeeインデックスとの同期完了`)
     } catch (err) {
       // エラーハンドリング

@@ -15,8 +15,12 @@ import {
   onDocumentUpdated,
 } from 'firebase-functions/v2/firestore'
 import { logger } from 'firebase-functions/v2'
-import { isDocumentChanged } from '../modules/utils.js'
-import Customer from '../models/Customer.js'
+import {
+  extractDiffsFromDocUpdatedEvent,
+  isDocumentChanged,
+} from '../modules/utils.js'
+import { CustomerIndex } from '../models/Customer.js'
+import Site from '../models/Site.js'
 
 /****************************************************************************
  * ドキュメントが作成されたときにトリガーされる関数。
@@ -37,7 +41,7 @@ export const onCreate = onDocumentCreated(
 
     try {
       // Realtime Databaseにインデックスを作成
-      await Customer.syncIndex(docId)
+      await CustomerIndex.create(docId)
     } catch (err) {
       // エラーハンドリング
       logger.error(
@@ -72,10 +76,16 @@ export const onUpdate = onDocumentUpdated(
         `Customersドキュメントが更新されました。ドキュメントID: ${event.params.docId}`
       )
       // Realtime Databaseにインデックスを更新
-      await Customer.syncIndex(event.params.docId)
+      const isChangedAsIndex = extractDiffsFromDocUpdatedEvent({
+        event,
+        ComparisonClass: CustomerIndex,
+      })
+      if (isChangedAsIndex.length > 0) {
+        await CustomerIndex.create(event.params.docId)
+      }
 
       // Siteドキュメントのcustomerプロパティを同期
-      await Customer.syncToSite(event.params.docId)
+      await Site.refreshCustomer(event)
     } catch (err) {
       // エラーハンドリング
       logger.error(
@@ -106,7 +116,7 @@ export const onDelete = onDocumentDeleted(
 
     try {
       // Realtime Databaseインデックスを削除
-      await Customer.syncIndex(docId, true)
+      await CustomerIndex.remove(docId)
     } catch (err) {
       // エラーハンドリング
       logger.error(

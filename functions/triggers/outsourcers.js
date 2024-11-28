@@ -15,8 +15,11 @@ import {
   onDocumentUpdated,
 } from 'firebase-functions/v2/firestore'
 import { logger } from 'firebase-functions/v2'
-import { isDocumentChanged } from '../modules/utils.js'
-import Outsourcer from '../models/Outsourcer.js'
+import {
+  extractDiffsFromDocUpdatedEvent,
+  isDocumentChanged,
+} from '../modules/utils.js'
+import { OutsourcerIndex } from '../models/Outsourcer.js'
 
 /****************************************************************************
  * ドキュメントが作成されたときにトリガーされる関数。
@@ -37,7 +40,7 @@ export const onCreate = onDocumentCreated(
 
     try {
       // Realtime Databaseにインデックスを作成
-      await Outsourcer.syncIndex(docId)
+      await OutsourcerIndex.create(docId)
     } catch (err) {
       // エラーハンドリング
       logger.error(
@@ -72,7 +75,13 @@ export const onUpdate = onDocumentUpdated(
         `Outsourcersドキュメントが更新されました。ドキュメントID: ${event.params.docId}`
       )
       // Realtime Databaseにインデックスを更新
-      await Outsourcer.syncIndex(event.params.docId)
+      const isChangedAsIndex = extractDiffsFromDocUpdatedEvent({
+        event,
+        ComparisonClass: OutsourcerIndex,
+      })
+      if (isChangedAsIndex.length > 0) {
+        await OutsourcerIndex.create(event.params.docId)
+      }
     } catch (err) {
       // エラーハンドリング
       logger.error(
@@ -103,7 +112,7 @@ export const onDelete = onDocumentDeleted(
 
     try {
       // Realtime Databaseインデックスを削除
-      await Outsourcer.syncIndex(docId, true)
+      await OutsourcerIndex.remove(docId)
     } catch (err) {
       // エラーハンドリング
       logger.error(

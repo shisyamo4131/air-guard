@@ -96,17 +96,6 @@ export default {
         }, {})
       )
     },
-    /**
-     * 集計対象の年月
-     */
-    months() {
-      const currentDate = this.month
-        ? this.$dayjs(`${this.month}-01`)
-        : this.$dayjs().startOf('month')
-      return [...Array(3)].map((_, i) =>
-        currentDate.subtract(3 - (i + 1), 'month').format('YYYY-MM')
-      )
-    },
   },
   watch: {
     month: {
@@ -119,7 +108,7 @@ export default {
   methods: {
     subscribe() {
       this.items = this.listener.subscribeDocs([
-        ['where', 'month', 'in', this.months],
+        ['where', 'month', '==', this.month],
       ])
     },
     unsubscribe() {

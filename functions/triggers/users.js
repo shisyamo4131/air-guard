@@ -74,17 +74,26 @@ export const onUpdate = onDocumentUpdated(`Users/{docId}`, async (event) => {
   }
 })
 
-/**
+/****************************************************************************
  * Users コレクションドキュメントが削除された時の処理です。
  * - docId ( = uid ) に該当する Authentications ユーザーアカウントを無効化します。
- */
+ * - Authentications でユーザーアカウントが削除されると Users ドキュメントも削除されます。
+ *   該当するユーザーアカウントが見つからなかった場合はログを出力して終了します。
+ ****************************************************************************/
 export const onDelete = onDocumentDeleted(`Users/{docId}`, async (event) => {
   const uid = event.params.docId
   try {
-    // uid に該当するユーザーアカウントを無効にする
+    logger.log(`Users ドキュメントが削除されました。`)
+
+    logger.log(`Authentications ユーザーアカウントの無効化処理を開始します。`)
     await auth.updateUser(uid, { disabled: true })
+    logger.log(`Authentications ユーザーアカウントの無効化処理が完了しました。`)
   } catch (error) {
-    const message = 'Auth ユーザーアカウントの無効化処理に失敗しました。'
-    logger.error(message, { uid, error })
+    if (error.code === 'auth/user-not-found') {
+      logger.log(`該当するユーザーアカウントが存在しませんでした。`, { uid })
+    } else {
+      const message = 'Auth ユーザーアカウントの無効化処理に失敗しました。'
+      logger.error(message, { uid, error })
+    }
   }
 })

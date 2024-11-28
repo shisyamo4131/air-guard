@@ -1,244 +1,128 @@
-import { getDatabase } from 'firebase-admin/database'
-import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+import {
+  createIndex,
+  removeIndex,
+  syncToFirestoreFromAirGuard,
+} from '../modules/database.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/Customer.js'
-import CustomerIndex from './CustomerIndex.js'
-const database = getDatabase()
-const firestore = getFirestore()
 
 /**
- * Customersドキュメントデータモデル【論理削除】
- *
- * @version 2.0.0
+ * Cloud Functions で Firestore の Customers ドキュメントを操作するためのクラスです。
+ * FireMode を継承していますが、更新系のメソッドは利用できません。
  * @author shisyamo4131
- * @updates
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class Customer extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
   static collectionPath = 'Customers'
-  static useAutonumber = true
-  static logicalDelete = true
   static classProps = classProps
-  static tokenFields = ['abbr', 'abbrKana']
-  static hasMany = [
-    {
-      collection: 'Sites',
-      field: 'customer.docId',
-      condition: '==',
-      type: 'collection',
-    },
-  ]
 
   /****************************************************************************
-   * CONSTRUCTOR
+   * 更新系メソッドは使用不可
    ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
-    delete this.create
-    delete this.update
-    delete this.delete
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
   }
 
-  /****************************************************************************
-   * initializeメソッドをオーバーライドします。
-   * - AirGuardからのインポート処理を想定した初期化処理を追加しています。
-   * @param {Object} item
-   ****************************************************************************/
-  initialize(item = {}) {
-    item.depositMonth = parseInt(item.depositMonth)
-    super.initialize(item)
+  update() {
+    return Promise.reject(new Error('このクラスの update は使用できません。'))
   }
 
-  /****************************************************************************
-   * Realtime DatabaseのCustomersインデックスを更新します。
-   * - 指定された `customerId ` に該当する `Customers` ドキュメントを取得します。
-   * - 取得したドキュメントから必要なデータを抽出してインデックスを更新します。
-   * - `isDeleted` が true の場合、無条件にインデックスを削除して終了します。
-   * @param {string} customerId - 更新するCustomersインデックスのドキュメントID
-   * @param {boolean} isDeleted - true の場合、インデックスを削除します。
-   * @throws {Error} インデックスの更新に失敗した場合、エラーをスローします。
-   ****************************************************************************/
-  static async syncIndex(customerId, isDeleted = false) {
-    // Create reference to index in Realtime Database.
-    const dbRef = database.ref(`Customers/${customerId}`)
-
-    try {
-      // インデックスの削除処理
-      if (isDeleted) {
-        await dbRef.remove()
-        logger.info(`[syncIndex] インデックスが削除されました。`, {
-          customerId,
-        })
-        return
-      }
-
-      // Firestore から Customer ドキュメントを取得
-      const docRef = firestore.collection('Customers').doc(customerId)
-      const docSnapshot = await docRef.get()
-
-      // ドキュメントが存在しない場合のエラーハンドリング
-      if (!docSnapshot.exists) {
-        const message = `該当する Customers ドキュメントが取得できませんでした。`
-        logger.error(`[syncIndex] ${message}`, { customerId })
-        throw new Error(message)
-      }
-
-      // インデックスデータの作成
-      const indexData = new CustomerIndex(docSnapshot.data())
-
-      // インデックスを更新
-      await dbRef.set(indexData)
-      logger.info(`[syncIndex] インデックスが更新されました。`, { customerId })
-    } catch (error) {
-      // 修正: catchブロックで関数の引数のみをログ出力
-      logger.error(
-        `[syncIndex] インデックスの同期処理でエラーが発生しました。`,
-        { customerId }
-      )
-      throw error
-    }
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
   }
 
   /****************************************************************************
    * Realtime Databaseの`AirGuard/Customers`の内容で、FirestoreのCustomersドキュメントを更新します。
-   * - Realtime Databaseからデータを取得し、そのデータに基づいてFirestore内の
-   *   Customersドキュメントを更新します。
-   * - Firestoreの更新はトランザクションを使用して安全に行います。
-   * - `docId`が存在しない場合や、データが存在しない場合はエラーが発生します。
-   *
    * @param {string} code - Realtime Database内のCustomersデータを識別するコード
    * @returns {Promise<void>} - 同期が正常に完了した場合は、解決されたPromiseを返します
    ****************************************************************************/
   static async syncFromAirGuard(code) {
     try {
-      // Realtime DatabaseからCustomerデータをロード
-      const dbRef = database.ref(`AirGuard/Customers/${code}`)
-      const data = await dbRef.get()
-
-      // データが存在しない場合はエラーを投げる
-      if (!data.exists()) {
-        const message = `Realtime Database に同期元の Customers データが見つかりません。`
-        logger.error(`[syncFromAirGuard] ${message}`, { code })
-        throw new Error(message)
+      const converter = (item) => {
+        return { ...item, depositMonth: parseInt(item.depositMonth) }
       }
-
-      const newData = data.val()
-      const docId = newData.docId
-
-      // docIdが存在しない場合はエラーを投げる
-      if (!docId) {
-        const message = `Customers データに docId が設定されていません。`
-        logger.error(`[syncFromAirGuard] ${message}`, { code })
-        throw new Error(message)
-      }
-
-      // Firestoreドキュメントをトランザクションで同期
-      await firestore.runTransaction(async (transaction) => {
-        const docRef = firestore.collection('Customers').doc(docId)
-        const docSnapshot = await transaction.get(docRef)
-
-        // ドキュメントが存在しない場合はエラーを投げる
-        if (!docSnapshot.exists) {
-          const message = `Firestore に同期先の Customers ドキュメントが見つかりません。`
-          logger.error(`[syncFromAirGuard] ${message}`, { code, docId })
-          throw new Error(message)
-        }
-
-        // 既存データと新しいデータをマージし、インスタンスを作成
-        // AirGuardとの同期設定済みであることを表す `sync` プロパティを true にする
-        const instance = new this({
-          ...docSnapshot.data(),
-          ...newData,
-          sync: true,
-        })
-
-        // ドキュメントを更新
-        transaction.update(docRef, instance.toObject())
-      })
-
-      // 同期完了メッセージ
-      logger.info(
-        `[syncFromAirGuard] Realtime Database の Customers データが Firestore の Customers ドキュメントと正常に同期されました。`,
-        { code, docId }
-      )
+      await syncToFirestoreFromAirGuard(code, 'Customers', this, converter)
     } catch (err) {
-      // エラー処理を一元化し、詳細なログを出力
-      logger.error(
-        `[syncFromAirGuard] 同期処理でエラーが発生しました: ${err.message}`,
-        { code, err }
-      )
+      logger.error(err, { code })
       throw err
+    }
+  }
+}
+
+/**
+ * Realtime Database で管理する Customer インデックス用のクラスです。
+ */
+export class CustomerIndex extends Customer {
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item)
+
+    // インデックスに必要なプロパティを定義
+    const keepProps = [
+      'code',
+      'name1',
+      'name2',
+      'abbr',
+      'abbrKana',
+      'address1',
+      'status',
+      'sync',
+      'inInternal',
+    ]
+
+    // Customer クラスから不要なプロパティを削除
+    Object.keys(this).forEach((key) => {
+      if (!keepProps.includes(key)) delete this[key]
+    })
+  }
+
+  /****************************************************************************
+   * Realtime Database にインデックスを作成します。
+   * @param {string} customerId - インデックス作成対象の取引先ID
+   ****************************************************************************/
+  static async create(customerId) {
+    const functionName = 'create'
+    try {
+      await createIndex('Customers', customerId, this)
+    } catch (error) {
+      logger.error(`[${functionName}] ${error.message}`, { customerId })
+      throw error
     }
   }
 
   /****************************************************************************
-   * 指定された `customerId` に基づき、`Sites` ドキュメントの `customer` プロパティを同期します。
-   * - `Sites` ドキュメントはバッチ処理で同期されます。
-   * - `batchLimit` の数でバッチのサイズを指定し、`batchDelay` ミリ秒でバッチごとの遅延を指定します。
-   * @param {string} customerId - 同期対象の `Customers` ドキュメントの ID
-   * @param {Object} [param1] - オプション引数
-   * @param {number} [param1.batchLimit=500] - 一度に処理するドキュメントの数
-   * @param {number} [param1.batchDelay=100] - バッチごとの遅延時間 (ミリ秒)
-   * @returns {Promise<void>}
+   * Realtime Database からインデックスを削除します。
+   * @param {string} customerId - インデックス削除対象の取引先ID
    ****************************************************************************/
-  static async syncToSite(
-    customerId,
-    { batchLimit = 500, batchDelay = 100 } = {}
-  ) {
+  static async remove(customerId) {
+    const functionName = 'remove'
     try {
-      const docRef = firestore.collection('Customers').doc(customerId)
-      const docSnapshot = await docRef.get()
-      if (!docSnapshot.exists) {
-        const message = `Customers ドキュメントが存在しません。`
-        logger.error(`[syncToSite] ${message}`, { customerId })
-        throw new Error(message)
-      }
-
-      const customer = docSnapshot.data()
-
-      const queryRef = firestore
-        .collection('Sites')
-        .where('customerId', '==', customerId)
-      const querySnapshot = await queryRef.get()
-      if (querySnapshot.empty) {
-        const message = `同期対象の Sites ドキュメントが存在しませんでした。`
-        logger.info(`[syncToSite] ${message}`, { customerId })
-        return
-      }
-      const docCount = querySnapshot.docs.length
-      const message = `${docCount} 件の Sites ドキュメントを更新します。`
-      logger.info(`[syncToSite] ${message}`, { customerId })
-
-      const batchArray = []
-      for (let i = 0; i < docCount; i++) {
-        if (i % batchLimit === 0) batchArray.push(firestore.batch())
-        const currentBatch = batchArray[batchArray.length - 1]
-        const doc = querySnapshot.docs[i]
-        currentBatch.update(doc.ref, { customer })
-      }
-
-      // Commit each batch with delay
-      for (const batch of batchArray) {
-        await batch.commit()
-        if (batchDelay > 0) {
-          await new Promise((resolve) => setTimeout(resolve, batchDelay))
-        }
-      }
-
-      logger.info(`[syncToSite] Sites ドキュメントの同期処理が完了しました。`, {
-        customerId,
-      })
-    } catch (err) {
-      // エラー処理を一元化し、詳細なログを出力
-      logger.error(
-        `[syncToSite] 同期処理でエラーが発生しました: ${err.message}`,
-        { customerId, err }
-      )
-      throw err
+      await removeIndex('Customers', customerId)
+    } catch (error) {
+      logger.error(`[${functionName}] ${error.message}`, { customerId })
+      throw error
     }
+  }
+}
+
+/**
+ * Customer クラスからカスタムクラス用に不要なプロパティを削除したクラスです。
+ */
+export class CustomerMinimal extends Customer {
+  /****************************************************************************
+   * CONSTRUCTOR
+   ****************************************************************************/
+  constructor(item = {}) {
+    super(item)
+
+    delete this.createAt
+    delete this.updateAt
+    delete this.remarks
+    delete this.tokenMap
   }
 }
