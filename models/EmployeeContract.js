@@ -1,7 +1,7 @@
 import { FireModel } from 'air-firebase'
 import { EmployeeMinimal } from './Employee'
 import { classProps } from './propsDefinition/EmployeeContract'
-import WorkRegulation from './WorkRegulation'
+import { WorkRegulationMinimal } from './WorkRegulation'
 
 /**
  * 従業員の雇用契約情報を管理するデータモデルです。
@@ -19,7 +19,7 @@ export default class EmployeeContract extends FireModel {
    ****************************************************************************/
   static customClassMap = {
     employee: EmployeeMinimal,
-    workRegulation: WorkRegulation,
+    workRegulation: WorkRegulationMinimal,
   }
 
   /****************************************************************************
@@ -45,14 +45,25 @@ export default class EmployeeContract extends FireModel {
     if (existingContract) {
       throw new Error('同一契約日の雇用契約が既に登録されています。')
     }
-    if (!this.hasPeriod) this.expiredDate = ''
     try {
+      // 従業員情報の取得とセット
       const employee = await new EmployeeMinimal().fetchDoc(this.employeeId)
       if (!employee) {
         throw new Error('従業員情報が取得できませんでした。')
       }
       this.employee = employee
+
+      // 契約期間の定めがなければ契約満了日に空文字列をセット
       if (!this.hasPeriod) this.expiredDate = ''
+
+      // 就業規則情報の取得とセット
+      const workRegulation = await new WorkRegulationMinimal().fetchDoc(
+        this.workRegulationId
+      )
+      if (!workRegulation) {
+        throw new Error('就業規則情報が取得できませんでした。')
+      }
+      this.workRegulation = workRegulation
       await super.beforeCreate()
     } catch (err) {
       // eslint-disable-next-line
@@ -80,7 +91,20 @@ export default class EmployeeContract extends FireModel {
     if (employeeId !== this.employeeId || startDate !== this.startDate) {
       throw new Error('従業員、契約日は変更できません。')
     }
+
+    // 契約期間の定めがなければ契約満了日に空文字列をセット
     if (!this.hasPeriod) this.expiredDate = ''
+
+    // 就業規則が変更されていれば就業規則情報を取得してセット
+    if (this.workRegulationId !== this.workRegulation.docId) {
+      const workRegulation = await WorkRegulationMinimal().fetchDoc(
+        this.workRegulationId
+      )
+      if (!workRegulation) {
+        throw new Error('就業規則情報が取得できませんでした。')
+      }
+      this.workRegulation = workRegulation
+    }
     await super.beforeUpdate()
   }
 

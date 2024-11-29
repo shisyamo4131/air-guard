@@ -41,14 +41,13 @@ module.exports = {
 
   // 設定・管理
   'admin-users': ['admin', 'developer'],
+  holidays: ['admin', 'developer'],
   'admin-autonumbers': ['admin', 'developer'],
   'admin-import-masters': ['admin', 'developer'],
   'admin-import-transactions': ['admin', 'developer'],
   'admin-work-regulations': ['admin', 'developer'],
   'admin-work-regulations-docId': ['admin', 'developer'],
   'admin-maintenance': ['admin', 'developer'],
-
-  'leave-applications-unapproved': ['admin', 'developer'],
 
   // 以下、開発用ページ
   'developments-model-input': ['admin', 'developer'],

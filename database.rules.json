@@ -54,6 +54,10 @@
         }
       }
     },
+    "Holidays": {
+      ".read": "auth !== null",
+      ".write": "auth !== null"
+    },
     "Outsourcers": {
       ".read": "auth !== null",
       ".write": false,

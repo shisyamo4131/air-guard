@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import { generateVueProps, generateClassProps } from './propsUtil'
 
 const propsDefinition = {
@@ -18,6 +19,15 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+
+  // 所定労働時間（分）
+  scheduledWorkMinutes: {
+    type: Number,
+    default: null,
+    required: false,
+    requiredByClass: true,
+  },
+
   legalHoliday: {
     type: String,
     default: 'sun',
@@ -91,4 +101,41 @@ const propsDefinition = {
 const vueProps = generateVueProps(propsDefinition)
 const classProps = generateClassProps(propsDefinition)
 
-export { vueProps, classProps }
+/*****************************************************************************
+ * ACCESSOR
+ *****************************************************************************/
+const scheduledWorkMinutes = {
+  configurable: true,
+  enumerable: true,
+  get() {
+    // 始業・終業時刻が無効な場合、0を返す
+    if (!this.startTime || !this.endTime) return 0
+    const [sHour, sMinute] = this.startTime.split(':')
+    const [eHour, eMinute] = this.endTime.split(':')
+
+    // 始業・終業時刻のフォーマットが不正な場合、0を返す
+    if (
+      sHour === undefined ||
+      sMinute === undefined ||
+      eHour === undefined ||
+      eMinute === undefined
+    )
+      return 0
+
+    // 始業時刻と終業時刻をdayjsで扱う
+    const from = dayjs().hour(Number(sHour)).minute(Number(sMinute))
+    const to = dayjs().hour(Number(eHour)).minute(Number(eMinute))
+    const diff = to.diff(from, 'minute')
+
+    // 休憩時間を差し引いた所定労働時間を返す
+    return diff - (this.breakMinutes || 0)
+  },
+  set() {
+    // setterは使用されないため、何もしない
+  },
+}
+
+const accessor = {
+  scheduledWorkMinutes,
+}
+export { vueProps, classProps, accessor }

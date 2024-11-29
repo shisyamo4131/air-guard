@@ -1,18 +1,7 @@
 <script>
 /**
- * ### GInputEmployeeContract
- *
  * 従業員の雇用契約情報編集用コンポーネントです。
- *
  * @author shisayamo4131
- * @version 1.2.0
- *
- * @updates
- * - version 1.2.0 - 2024-10-08 - `disableStartDate` プロパティを実装。
- * ‐ version 1.1.0 - 2024-10-07 - `disableEdit` プロパティを実装。true の場合は編集・削除不可能に。
- *                              - `GDatePicker` に対する `allowedDates` プロパティを実装。
- * - version 1.0.1 - 2024-07-24 - 追加モード以外では契約日を編集不可に。
- * - version 1.0.0 - 2024-07-18 - 初版作成
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
@@ -25,7 +14,7 @@ import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import EmployeeContract from '~/models/EmployeeContract'
 import GDate from '~/components/atoms/inputs/GDate.vue'
 import GAutocomplete from '~/components/atoms/inputs/GAutocomplete.vue'
-import WorkRegulation from '~/models/WorkRegulation'
+import { WorkRegulationMinimal } from '~/models/WorkRegulation'
 import { isValidDateFormat } from '~/utils/utility'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
@@ -66,15 +55,44 @@ export default {
     },
     hideEmployee: { type: Boolean, default: false, required: false },
   },
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
+      dayOfWeek: {
+        mon: '月',
+        tue: '火',
+        wed: '水',
+        thu: '木',
+        fri: '金',
+        sat: '土',
+        sun: '日',
+      },
       editModel: new EmployeeContract(),
       workRegulations: [],
     }
   },
+
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
+  computed: {
+    selectedWorkRegulation() {
+      return this.workRegulations.find(
+        ({ docId }) => docId === this.editModel.workRegulationId
+      )
+    },
+    scheduledWorkDays() {
+      return this.selectedWorkRegulation?.scheduledWorkDays ?? []
+    },
+    scheduledWorkHoursPerWeek() {
+      if (!this.selectedWorkRegulation) return 0
+      return this.selectedWorkRegulation.scheduledWorkHoursPerWeek
+    },
+  },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/
@@ -83,7 +101,7 @@ export default {
       async handler(v) {
         if (!v || !isValidDateFormat(v)) return
         const year = v.slice(0, 4)
-        this.workRegulations = await new WorkRegulation().fetchDocs([
+        this.workRegulations = await new WorkRegulationMinimal().fetchDocs([
           ['where', 'year', '>=', year],
         ])
       },
@@ -114,7 +132,7 @@ export default {
         :disabled="editMode !== CREATE"
       />
       <v-row dense>
-        <v-col cols="12" md="3">
+        <v-col cols="12" sm="4">
           <g-dialog-date-picker
             v-model="editModel.startDate"
             :allowed-dates="allowedDates"
@@ -131,14 +149,14 @@ export default {
             </template>
           </g-dialog-date-picker>
         </v-col>
-        <v-col cols="12" md="9">
+        <v-col cols="12" sm="4">
           <g-checkbox
             v-model="editModel.hasPeriod"
             class="mt-1"
             label="期間の定め"
           />
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col cols="12" sm="4">
           <g-dialog-date-picker v-model="editModel.expiredDate">
             <template #activator="{ attrs, on }">
               <g-date
@@ -152,19 +170,57 @@ export default {
             </template>
           </g-dialog-date-picker>
         </v-col>
-        <v-col cols="12" md="9">
-          <g-autocomplete
-            v-model="editModel.workRegulation"
-            label="就業規則"
-            :items="workRegulations"
-            item-key="docId"
-            :item-text="(item) => `${item.name}(${item.year})`"
+        <v-col cols="12" sm="4">
+          <g-select
+            v-model="editModel.contractType"
+            label="雇用形態"
+            :items="$CONTRACT_TYPE_ARRAY"
             required
-            return-object
             attach
           />
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col cols="12" sm="8">
+          <g-autocomplete
+            v-model="editModel.workRegulationId"
+            label="就業規則"
+            :items="workRegulations"
+            item-value="docId"
+            :item-text="(item) => `${item.name}(${item.year})`"
+            required
+            attach
+          />
+        </v-col>
+      </v-row>
+
+      <!-- 就業規則カードコンポーネントにしたい -->
+      <div v-if="false">
+        <v-expand-transition>
+          <v-card v-show="!!selectedWorkRegulation" class="mb-8" outlined>
+            <v-card-text>
+              <h4>所定労働日</h4>
+              <div class="d-flex" style="gap: 16px">
+                <g-checkbox
+                  v-for="day of Object.entries(dayOfWeek).map(
+                    ([key, value]) => ({
+                      key,
+                      value,
+                    })
+                  )"
+                  :key="day.key"
+                  class="mt-0"
+                  :label="day.value"
+                  :input-value="scheduledWorkDays.includes(day.key)"
+                  readonly
+                />
+              </div>
+              <h4>週所定労働時間</h4>
+              {{ `${scheduledWorkHoursPerWeek} 時間` }}
+            </v-card-text>
+          </v-card>
+        </v-expand-transition>
+      </div>
+      <v-row dense>
+        <v-col cols="12" sm="4">
           <g-select
             v-model="editModel.paymentType"
             label="支給形態"
@@ -176,7 +232,7 @@ export default {
             attach
           />
         </v-col>
-        <v-col cols="12" md="9">
+        <v-col cols="12" sm="8">
           <g-numeric
             v-model="editModel.basicWage"
             class="center-input"
@@ -194,6 +250,24 @@ export default {
                 ? '支給する'
                 : '支給しない'
             }`"
+          />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <g-checkbox
+            v-model="editModel.isHealthInsuranceRequired"
+            label="健康保険加入"
+          />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <g-checkbox
+            v-model="editModel.isPensionRequired"
+            label="厚生年金加入"
+          />
+        </v-col>
+        <v-col cols="12" sm="4">
+          <g-checkbox
+            v-model="editModel.isEmploymentInsuranceRequired"
+            label="雇用保険加入"
           />
         </v-col>
       </v-row>

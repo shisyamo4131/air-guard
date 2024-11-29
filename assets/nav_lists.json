@@ -90,6 +90,11 @@
         "icon": "mdi-account"
       },
       {
+        "name": "祝日設定",
+        "to": "/holidays",
+        "icon": "mdi-flag"
+      },
+      {
         "name": "就業規則",
         "to": "/admin/work-regulations"
       },
