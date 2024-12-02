@@ -5,6 +5,7 @@
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
+import GCardWorkRegulation from '../cards/GCardWorkRegulation.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
@@ -34,11 +35,14 @@ export default {
     GAutocomplete,
     GSwitch,
     GCheckboxDeleteData,
+    GCardWorkRegulation,
   },
+
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
   mixins: [GInputSubmitMixin],
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -71,6 +75,7 @@ export default {
         sun: '日',
       },
       editModel: new EmployeeContract(),
+      showWorkRegulation: false,
       workRegulations: [],
     }
   },
@@ -183,42 +188,36 @@ export default {
           <g-autocomplete
             v-model="editModel.workRegulationId"
             label="就業規則"
-            :items="workRegulations"
-            item-value="docId"
-            :item-text="(item) => `${item.name}(${item.year})`"
-            required
             attach
+            :items="workRegulations"
+            :item-text="(item) => `${item.name}(${item.year})`"
+            item-value="docId"
+            required
           />
         </v-col>
       </v-row>
-
-      <!-- 就業規則カードコンポーネントにしたい -->
-      <div v-if="false">
-        <v-expand-transition>
-          <v-card v-show="!!selectedWorkRegulation" class="mb-8" outlined>
-            <v-card-text>
-              <h4>所定労働日</h4>
-              <div class="d-flex" style="gap: 16px">
-                <g-checkbox
-                  v-for="day of Object.entries(dayOfWeek).map(
-                    ([key, value]) => ({
-                      key,
-                      value,
-                    })
-                  )"
-                  :key="day.key"
-                  class="mt-0"
-                  :label="day.value"
-                  :input-value="scheduledWorkDays.includes(day.key)"
-                  readonly
-                />
-              </div>
-              <h4>週所定労働時間</h4>
-              {{ `${scheduledWorkHoursPerWeek} 時間` }}
-            </v-card-text>
-          </v-card>
-        </v-expand-transition>
+      <div class="text-right mb-6">
+        <v-btn
+          color="primary"
+          :disabled="!editModel.workRegulationId"
+          outlined
+          x-small
+          @click="showWorkRegulation = !showWorkRegulation"
+        >
+          {{ `就業規則の詳細を${showWorkRegulation ? '閉じる' : '開く'}` }}
+        </v-btn>
       </div>
+
+      <!-- 就業規則カード -->
+      <v-expand-transition>
+        <g-card-work-regulation
+          v-show="showWorkRegulation"
+          class="mb-8"
+          outlined
+          :doc-id="editModel.workRegulationId"
+        />
+      </v-expand-transition>
+
       <v-row dense>
         <v-col cols="12" sm="4">
           <g-select
@@ -252,25 +251,32 @@ export default {
             }`"
           />
         </v-col>
-        <v-col cols="12" sm="4">
-          <g-checkbox
-            v-model="editModel.isHealthInsuranceRequired"
-            label="健康保険加入"
-          />
-        </v-col>
-        <v-col cols="12" sm="4">
-          <g-checkbox
-            v-model="editModel.isPensionRequired"
-            label="厚生年金加入"
-          />
-        </v-col>
-        <v-col cols="12" sm="4">
-          <g-checkbox
-            v-model="editModel.isEmploymentInsuranceRequired"
-            label="雇用保険加入"
-          />
-        </v-col>
       </v-row>
+      <v-card class="mb-8" outlined>
+        <v-subheader>社会保険</v-subheader>
+        <v-card-text class="py-0">
+          <v-row dense>
+            <v-col cols="12" sm="4">
+              <g-checkbox
+                v-model="editModel.isHealthInsuranceRequired"
+                label="健康保険加入"
+              />
+            </v-col>
+            <v-col cols="12" sm="4">
+              <g-checkbox
+                v-model="editModel.isPensionRequired"
+                label="厚生年金加入"
+              />
+            </v-col>
+            <v-col cols="12" sm="4">
+              <g-checkbox
+                v-model="editModel.isEmploymentInsuranceRequired"
+                label="雇用保険加入"
+              />
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
       <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
     <g-checkbox-delete-data

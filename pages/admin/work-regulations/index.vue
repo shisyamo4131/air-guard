@@ -1,13 +1,7 @@
 <script>
 /**
- * ## pages.WorkRegulationsIndex
- *
  * 就業規則情報の一覧ページです。
- *
  * @author shisyamo4131
- * @version 1.0.0
- * @updates
- * - version 1.0.0 - 2024-09-13 - 初版作成
  */
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputWorkRegulation from '~/components/molecules/inputs/GInputWorkRegulation.vue'
@@ -17,11 +11,15 @@ import WorkRegulation from '~/models/WorkRegulation'
 import GEditModeMixin from '~/mixins/GEditModeMixin'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
+import GDialogConfirm from '~/components/molecules/dialogs/GDialogConfirm.vue'
+import GSnackbarError from '~/components/atoms/snackbars/GSnackbarError.vue'
+import GDialogMessage from '~/components/molecules/dialogs/GDialogMessage.vue'
 export default {
   /***************************************************************************
    * NAME
    ***************************************************************************/
   name: 'WorkRegulationsIndex',
+
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
@@ -32,23 +30,34 @@ export default {
     GTemplateIndex,
     GDialogInput,
     GSelect,
+    GDialogConfirm,
+    GSnackbarError,
+    GDialogMessage,
   },
+
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
   mixins: [GEditModeMixin],
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
       dialog: false,
+      error: {
+        snackbar: false,
+        message: null,
+      },
       instance: new WorkRegulation(),
       items: [],
       listener: new WorkRegulation(),
+      loading: false,
       selectedYear: `${new Date().getFullYear()}`,
     }
   },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
@@ -69,6 +78,7 @@ export default {
       return years
     },
   },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/
@@ -95,12 +105,14 @@ export default {
       immediate: true,
     },
   },
+
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
   destroyed() {
     this.listener.unsubscribe()
   },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/
@@ -116,6 +128,7 @@ export default {
       this.editMode = this.UPDATE
       this.dialog = true
     },
+
     /**
      * `data.selectedYear`をクエリ条件として`data.listener`のsubscribeDocsを実行します。
      */
@@ -124,12 +137,54 @@ export default {
         ['where', 'year', '==', this.selectedYear],
       ])
     },
+
+    /**
+     * 翌年度の就業規則を一括作成します。
+     */
+    async createNextWorkRegulations() {
+      this.$refs['error-snackbar'].initialize()
+      this.loading = true
+      try {
+        this.selectedYear = await WorkRegulation.createNextYear(
+          this.selectedYear
+        )
+        this.$refs['create-next-work-regulations-dialog'].close()
+        this.$refs['create-next-work-regulations-complete'].open()
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error(err)
+        this.error.message = err.message
+        this.error.snackbar = true
+      } finally {
+        this.loading = false
+      }
+    },
   },
 }
 </script>
 
 <template>
   <g-template-index label="就業規則管理" :items="items">
+    <template #append-label>
+      <v-spacer />
+      <v-toolbar-items>
+        <g-dialog-confirm
+          ref="create-next-work-regulations-dialog"
+          :loading="loading"
+          @submit="createNextWorkRegulations"
+        >
+          <template #activator="{ attrs, on }">
+            <v-btn v-bind="attrs" :disabled="!items.length" text v-on="on"
+              >年度更新</v-btn
+            >
+          </template>
+          現在表示されている就業規則の年度更新（翌年度作成処理）を行います。よろしいですか？
+        </g-dialog-confirm>
+        <g-dialog-message ref="create-next-work-regulations-complete">
+          翌年度の就業規則を作成しました。月平均所定労働日数など、年度に合わせた更新処理を行ってください。
+        </g-dialog-message>
+      </v-toolbar-items>
+    </template>
     <template #prepend-search>
       <g-select
         v-model="selectedYear"
@@ -164,6 +219,12 @@ export default {
         sort-desc
         @click:row="onClickRow"
         v-on="on"
+      />
+      <g-snackbar-error
+        ref="error-snackbar"
+        v-model="error.snackbar"
+        :message.sync="error.message"
+        top
       />
     </template>
   </g-template-index>

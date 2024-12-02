@@ -3,8 +3,14 @@ import { generateVueProps, generateClassProps } from './propsUtil'
 
 const propsDefinition = {
   docId: { type: String, default: '', required: false, requiredByClass: false },
+
+  // 年（YYYY）
   year: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 就業規則名
   name: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 雇用形態
   contractType: {
     type: String,
     default: 'full-time',
@@ -13,6 +19,8 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+
+  // 所定労働日
   scheduledWorkDays: {
     type: Array,
     default: () => ['mon', 'tue', 'wed', 'thu', 'fri'],
@@ -28,6 +36,7 @@ const propsDefinition = {
     requiredByClass: true,
   },
 
+  // 法定休日
   legalHoliday: {
     type: String,
     default: 'sun',
@@ -36,60 +45,80 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+
+  // 祝日を所定労働日とするか
   isHolidayWorkDay: {
     type: Boolean,
     default: true,
     required: false,
     requiredByClass: false,
   },
+
+  // 始業時刻
   startTime: {
     type: String,
     default: '08:00',
     required: false,
     requiredByClass: true,
   },
+
+  // 終業時刻
   endTime: {
     type: String,
     default: '17:00',
     required: false,
     requiredByClass: true,
   },
+
+  // 休憩時間（分）
   breakMinutes: {
     type: Number,
     default: 60,
     required: false,
     requiredByClass: true,
   },
+
+  // 備考
   remarks: {
     type: String,
     default: '',
     required: false,
     requiredByClass: false,
   },
+
+  // 時間外割増率
   overtimePayRate: {
     type: Number,
     default: 25,
     required: false,
     requiredByClass: true,
   },
+
+  // 休日労働割増率
   holidayPayRate: {
     type: Number,
     default: 35,
     required: false,
     requiredByClass: true,
   },
+
+  // 賞与支給
   bonusEligibility: {
     type: Boolean,
     default: true,
     required: false,
     requiredByClass: false,
   },
+
+  // 月平均所定労働日数
   averageMonthlyScheduledWorkDays: {
     type: Number,
     default: null,
     required: false,
     requiredByClass: true,
   },
+
+  // 祝日（当該就業規則に適用する祝日）
   holidays: {
     type: Array,
     default: () => [],

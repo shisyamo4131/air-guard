@@ -27,6 +27,29 @@ export default class WorkRegulation extends FireModel {
   delete() {
     return Promise.reject(new Error('このクラスの delete は使用できません。'))
   }
+
+  /****************************************************************************
+   * 週所定労働日数を返します。
+   ****************************************************************************/
+  get scheduledWorkDaysCount() {
+    return this.scheduledWorkDays.length
+  }
+
+  /****************************************************************************
+   * 所定労働時間（時間）を返します。
+   ****************************************************************************/
+  get scheduledWorkHoursPerDay() {
+    const scheduledWorkMinutes = this.scheduledWorkMinutes ?? 0
+    const MINUTES_PER_HOUR = 60
+    return scheduledWorkMinutes / MINUTES_PER_HOUR
+  }
+
+  /****************************************************************************
+   * 週所定労働時間（時間）を返します。
+   ****************************************************************************/
+  get scheduledWorkHoursPerWeek() {
+    return this.scheduledWorkHoursPerDay * this.scheduledWorkDaysCount
+  }
 }
 
 /**

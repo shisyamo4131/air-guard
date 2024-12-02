@@ -54,6 +54,11 @@ export default {
             { text: '適用年度', value: 'year' },
             { text: '就業規則名', value: 'name' },
             { text: '所定労働日', value: 'scheduledWorkDays' },
+            {
+              text: '月平均所定労働日数',
+              value: 'averageMonthlyScheduledWorkDays',
+              align: 'center',
+            },
             { text: '法定休日', value: 'legalHoliday', align: 'center' },
             { text: '時間外', value: 'overtimePayRate', align: 'center' },
             { text: '休日', value: 'holidayPayRate', align: 'center' },

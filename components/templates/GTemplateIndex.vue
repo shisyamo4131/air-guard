@@ -151,6 +151,7 @@ export default {
     </v-navigation-drawer>
     <v-toolbar class="flex-grow-0" color="secondary" dark dense flat>
       <v-toolbar-title>{{ label }}</v-toolbar-title>
+      <slot name="append-label" />
     </v-toolbar>
     <!-- HEADER -->
     <v-toolbar class="flex-grow-0" flat>

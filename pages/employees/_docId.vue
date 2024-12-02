@@ -1,15 +1,7 @@
 <script>
 /**
- * ### pages.EmployeeDetail
- *
  * 従業員の詳細画面です。
- *
  * @author shisyamo4131
- * @version 1.0.0
- *
- * @updates
- * - version 1.0.0 - 2024-09-12 - 初版作成
- *
  */
 import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GCardEmployee from '~/components/molecules/cards/GCardEmployee.vue'
@@ -27,6 +19,7 @@ export default {
    * NAME
    ***************************************************************************/
   name: 'EmployeeDetail',
+
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
@@ -40,10 +33,12 @@ export default {
     GInputSecurityRegistration,
     GBtnEditIcon,
   },
+
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
   mixins: [GEditModeMixin],
+
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -60,6 +55,7 @@ export default {
     items.medicalCheckups = listeners.medicalCheckup.subscribeDocs()
     return { docId, listeners, items }
   },
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -68,6 +64,7 @@ export default {
       dialog: false,
     }
   },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
@@ -83,6 +80,7 @@ export default {
       ]
     },
   },
+
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
@@ -91,6 +89,7 @@ export default {
       this.listeners[key].unsubscribe()
     })
   },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/
@@ -122,10 +121,13 @@ export default {
         />
       </v-col>
       <v-col v-if="$store.getters['auth/isAdmin']" cols="12" lg="6">
-        <g-employee-contracts-manager :employee-id="listeners.employee.docId" />
+        <g-employee-contracts-manager
+          height="100%"
+          :employee-id="listeners.employee.docId"
+        />
       </v-col>
       <v-col cols="12" lg="6">
-        <v-card>
+        <v-card height="100%">
           <v-card-title class="g-card__title justify-space-between">
             <div>警備員登録情報</div>
             <g-dialog-input>
