@@ -30,7 +30,7 @@ export default class Employee extends FireModel {
     },
     {
       collection: 'OperationResults',
-      field: 'employeeId',
+      field: 'employeeIds',
       condition: 'array-contains',
       type: 'collection',
     },
