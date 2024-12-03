@@ -321,6 +321,18 @@ const OUTSOURCER_STATUS_ARRAY = [
   { value: 'expired', text: '契約終了' },
 ]
 
+/**
+ * 支給形態
+ */
+const PAYMENT_TYPE = {
+  daily: '日給',
+  monthly: '月給',
+}
+
+const PAYMENT_TYPE_ARRAY = Object.entries(PAYMENT_TYPE).map(([key, value]) => {
+  return { value: key, text: value }
+})
+
 const SECURITY_TYPE = {
   'newly-training': '新任教育',
   traffic: '交通誘導警備',
@@ -424,6 +436,8 @@ export default (context, inject) => {
   inject('LEAVE_APPLICATION_TYPE_ARRAY', LEAVE_APPLICATION_TYPE_ARRAY)
   inject('OUTSOURCER_STATUS', OUTSOURCER_STATUS)
   inject('OUTSOURCER_STATUS_ARRAY', OUTSOURCER_STATUS_ARRAY)
+  inject('PAYMENT_TYPE', PAYMENT_TYPE)
+  inject('PAYMENT_TYPE_ARRAY', PAYMENT_TYPE_ARRAY)
   inject('SECURITY_TYPE', SECURITY_TYPE)
   inject('SECURITY_TYPE_ARRAY', SECURITY_TYPE_ARRAY)
   inject('SITE_STATUS', SITE_STATUS)
