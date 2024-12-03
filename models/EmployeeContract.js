@@ -57,7 +57,8 @@ export default class EmployeeContract extends FireModel {
       if (!this.hasPeriod) this.expiredDate = ''
 
       // 就業規則情報の取得とセット
-      const workRegulation = await new WorkRegulationMinimal().fetchDoc(
+      const workRegulationInstance = new WorkRegulationMinimal()
+      const workRegulation = await workRegulationInstance.fetchDoc(
         this.workRegulationId
       )
       if (!workRegulation) {
@@ -97,7 +98,8 @@ export default class EmployeeContract extends FireModel {
 
     // 就業規則が変更されていれば就業規則情報を取得してセット
     if (this.workRegulationId !== this.workRegulation.docId) {
-      const workRegulation = await WorkRegulationMinimal().fetchDoc(
+      const workRegulationInstance = new WorkRegulationMinimal()
+      const workRegulation = await workRegulationInstance.fetchDoc(
         this.workRegulationId
       )
       if (!workRegulation) {
