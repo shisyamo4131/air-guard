@@ -19,6 +19,7 @@ import { WorkRegulationMinimal } from '~/models/WorkRegulation'
 import { isValidDateFormat } from '~/utils/utility'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
+import GAutocompletePaymentType from '~/components/atoms/inputs/GAutocompletePaymentType.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -36,6 +37,7 @@ export default {
     GSwitch,
     GCheckboxDeleteData,
     GCardWorkRegulation,
+    GAutocompletePaymentType,
   },
 
   /***************************************************************************
@@ -220,13 +222,8 @@ export default {
 
       <v-row dense>
         <v-col cols="12" sm="4">
-          <g-select
+          <g-autocomplete-payment-type
             v-model="editModel.paymentType"
-            label="支給形態"
-            :items="[
-              { text: '月給', value: 'monthly' },
-              { text: '日給', value: 'daily' },
-            ]"
             required
             attach
           />
