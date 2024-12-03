@@ -325,8 +325,8 @@ const OUTSOURCER_STATUS_ARRAY = [
  * 支給形態
  */
 const PAYMENT_TYPE = {
-  daily: '日給',
-  monthly: '月給',
+  monthly: '1:月給',
+  daily: '2:日給',
 }
 
 const PAYMENT_TYPE_ARRAY = Object.entries(PAYMENT_TYPE).map(([key, value]) => {
