@@ -32,6 +32,7 @@ module.exports = {
   'outsourcers-docId': ['admin', 'developer'],
   equipments: ['admin', 'developer'],
   'equipments-docId': ['admin', 'developer'],
+  allowances: ['admin', 'developer'],
 
   // 同期設定
   'synchronize-customers': ['admin', 'developer'],
