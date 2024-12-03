@@ -119,6 +119,22 @@ const propsDefinition = {
     requiredByClass: false,
   },
 
+  // 手当 ID の配列
+  allowanceIds: {
+    type: Array,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 手当
+  allowances: {
+    type: Array,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
+  },
+
   // 備考
   remarks: {
     type: String,
@@ -131,4 +147,22 @@ const propsDefinition = {
 const vueProps = generateVueProps(propsDefinition)
 const classProps = generateClassProps(propsDefinition)
 
-export { vueProps, classProps }
+/*****************************************************************************
+ * ACCESSOR
+ *****************************************************************************/
+
+// 従業員IDS
+const allowanceIds = {
+  enumerable: true,
+  configurable: true,
+  get() {
+    return this.allowances.map(({ docId }) => docId)
+  },
+  set(v) {},
+}
+
+const accessor = {
+  allowanceIds,
+}
+
+export { vueProps, classProps, accessor }

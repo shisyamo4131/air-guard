@@ -210,9 +210,9 @@ export const syncDependentDocuments = async (
   data
 ) => {
   const BATCH_SIZE = 500
-  // logger.info(
-  //   `${collectionId} コレクション内のドキュメントと同期を開始します。`
-  // )
+  logger.info(
+    `${collectionId} コレクション内のドキュメントと同期を開始します。`
+  )
 
   if (!collectionId || typeof collectionId !== 'string') {
     throw new TypeError('collectionId は非空の文字列である必要があります。')
@@ -267,9 +267,123 @@ export const syncDependentDocuments = async (
       })
     )
 
-    // logger.info(
-    //   `同期処理が正常に完了しました: コミットされたバッチ数=${batchArray.length}`
-    // )
+    logger.info(
+      `同期処理が正常に完了しました: コミットされたバッチ数=${batchArray.length}`
+    )
+
+    return docCount // 同期されたドキュメント数を返す
+  } catch (err) {
+    logger.error('syncDependentDocuments でエラーが発生しました。', {
+      message: err.message,
+      stack: err.stack,
+    })
+    throw err
+  }
+}
+
+/**
+ * 非正規化されたドキュメントデータを同期させます。
+ *
+ * 指定されたコレクション内のドキュメントを特定のフィールドで一致するデータと同期します。
+ * `updateProp` フィールドが配列である場合、`afterData.docId` と一致する要素を見つけて更新し、
+ * 配列でない場合は、該当フィールドを直接上書きします。
+ *
+ * @param {string} collectionId - 同期対象のコレクションID。
+ * @param {string} updateProp - 更新対象のフィールド名。
+ * @param {object} afterData - 同期するデータオブジェクト（例：{ docId: '123', ... }）。
+ * @param {Array} conditions - クエリ条件を指定するための条件配列（例：[['where', 'props', '==', 'value']]）。
+ * @param {number} [batchSize=500] - バッチコミットのサイズ。デフォルトは500。
+ *
+ * @returns {Promise<number>} - 同期されたドキュメントの数。
+ */
+export const syncDependentDocumentsV2 = async ({
+  collectionId,
+  updateProp,
+  afterData,
+  conditions,
+  batchSize = 500, // バッチサイズを外部から指定できるようにする
+}) => {
+  logger.info(
+    `${collectionId} コレクション内のドキュメントと同期を開始します。`
+  )
+
+  if (!collectionId || typeof collectionId !== 'string') {
+    throw new TypeError('collectionId は非空の文字列である必要があります。')
+  }
+  if (!updateProp || typeof updateProp !== 'string') {
+    throw new TypeError('updateProp は非空の文字列である必要があります。')
+  }
+  if (!afterData || typeof afterData !== 'object' || !afterData.docId) {
+    throw new TypeError(
+      'afterData は有効なオブジェクトであり、docId プロパティが必要です。'
+    )
+  }
+
+  try {
+    const colRef = firestore.collection(collectionId)
+    let query = colRef
+    conditions.forEach((condition) => {
+      query = query.where(...condition)
+    })
+    const querySnapshot = await query.get()
+
+    if (querySnapshot.empty) {
+      logger.info(
+        `同期対象のドキュメントはありませんでした: collectionId=${collectionId}`
+      )
+      return 0
+    }
+
+    const docCount = querySnapshot.docs.length
+    const batchArray = []
+    querySnapshot.docs.forEach((doc, index) => {
+      if (index % batchSize === 0) batchArray.push(firestore.batch())
+
+      const currentData = doc.data()
+      const updateData = {}
+
+      if (Array.isArray(currentData[updateProp])) {
+        // updateProp が配列の場合、afterData.docId と一致する要素を置換
+        const updatedArray = currentData[updateProp].map((item) =>
+          item.docId === afterData.docId ? { ...item, ...afterData } : item
+        )
+
+        // 配列に変更があった場合にのみ更新
+        if (
+          JSON.stringify(updatedArray) !==
+          JSON.stringify(currentData[updateProp])
+        ) {
+          updateData[updateProp] = updatedArray
+        }
+      } else {
+        // updateProp が配列でない場合、そのまま上書き
+        updateData[updateProp] = afterData
+      }
+
+      if (Object.keys(updateData).length > 0) {
+        batchArray[batchArray.length - 1].update(doc.ref, updateData)
+      }
+    })
+
+    // バッチコミットの実行
+    await Promise.all(
+      batchArray.map(async (batch, index) => {
+        try {
+          await batch.commit()
+          logger.info(`バッチ ${index + 1} が正常にコミットされました。`)
+        } catch (error) {
+          logger.error(`バッチ ${index + 1} のコミットに失敗しました。`, {
+            message: error.message,
+            stack: error.stack,
+          })
+          throw error
+        }
+      })
+    )
+
+    logger.info(
+      `同期処理が正常に完了しました: コミットされたバッチ数=${batchArray.length}`
+    )
 
     return docCount // 同期されたドキュメント数を返す
   } catch (err) {
