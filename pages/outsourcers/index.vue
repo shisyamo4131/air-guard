@@ -15,7 +15,7 @@ import GDataTableOutsourcers from '~/components/molecules/tables/GDataTableOutso
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import Outsourcer from '~/models/Outsourcer'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 export default {
   /***************************************************************************
@@ -36,7 +36,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * DATA
    ***************************************************************************/

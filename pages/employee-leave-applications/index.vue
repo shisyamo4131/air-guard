@@ -7,7 +7,7 @@ import GInputEmployeeLeaveApplication from '~/components/molecules/inputs/GInput
 import GDataTableEmployeeLeaveApplications from '~/components/molecules/tables/GDataTableEmployeeLeaveApplications.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import EmployeeLeaveApplication from '~/models/EmployeeLeaveApplication'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
@@ -32,7 +32,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * DATA

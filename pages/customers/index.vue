@@ -15,7 +15,7 @@ import GDataTableCustomers from '~/components/molecules/tables/GDataTableCustome
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import Customer from '~/models/Customer'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 export default {
   /***************************************************************************
@@ -36,7 +36,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * DATA
    ***************************************************************************/

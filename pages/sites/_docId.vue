@@ -13,7 +13,7 @@ import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GCardSite from '~/components/molecules/cards/GCardSite.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import Site from '~/models/Site'
 import GSiteOperationScheduleManager from '~/components/organisms/GSiteOperationScheduleManager.vue'
 import GSiteContractsManager from '~/components/organisms/GSiteContractsManager.vue'
@@ -37,7 +37,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/

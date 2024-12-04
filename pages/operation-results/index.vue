@@ -13,7 +13,7 @@ import GInputOperationResult from '~/components/molecules/inputs/GInputOperation
 import GDataTableOperationResults from '~/components/molecules/tables/GDataTableOperationResults.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import OperationResult from '~/models/OperationResult'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
@@ -36,7 +36,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * DATA
    ***************************************************************************/

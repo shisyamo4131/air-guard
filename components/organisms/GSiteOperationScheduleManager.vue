@@ -19,7 +19,7 @@ import GDialogInput from '../molecules/dialogs/GDialogInput.vue'
 import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
 import GCardSiteOperationScheduleHistories from '../molecules/cards/GCardSiteOperationScheduleHistories.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -35,7 +35,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * PROPS
    ***************************************************************************/

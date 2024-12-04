@@ -2,7 +2,7 @@ import { FireModel } from 'air-firebase'
 import { EmployeeMinimal } from './Employee'
 import { accessor, classProps } from './propsDefinition/EmployeeContract'
 import { WorkRegulationMinimal } from './WorkRegulation'
-import { AllowanceMinimal } from './Allowance'
+import EmployeeAllowance from './EmployeeAllowance'
 
 /**
  * 従業員の雇用契約情報を管理するデータモデルです。
@@ -21,7 +21,7 @@ export default class EmployeeContract extends FireModel {
   static customClassMap = {
     employee: EmployeeMinimal,
     workRegulation: WorkRegulationMinimal,
-    allowances: AllowanceMinimal,
+    allowances: EmployeeAllowance,
   }
 
   /****************************************************************************

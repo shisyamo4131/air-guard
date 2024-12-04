@@ -24,6 +24,11 @@ export default {
    ****************************************************************************/
   props: {
     /**
+     * 当該就業規則を編集不可能にします。
+     */
+    disableEdit: { type: Boolean, default: false, required: false },
+
+    /**
      * 就業規則ドキュメントID
      * - 指定された ID に該当するドキュメントを Firestore から取得します。
      * - ID が指定された場合 props.instance は無視されます。
@@ -39,11 +44,6 @@ export default {
       validator: (instance) => instance instanceof WorkRegulation,
       required: false,
     },
-
-    /**
-     * タイトルを非表示にします。
-     */
-    noTitle: { type: Boolean, default: false, required: false },
   },
 
   /****************************************************************************
@@ -200,30 +200,29 @@ export default {
 
 <template>
   <v-card v-bind="$attrs">
-    <v-card-title v-if="!noTitle">
-      <div class="d-flex align-center overflow-hidden">
-        <div class="text-truncate">{{ title }}</div>
-        <g-dialog-input>
-          <template #activator="{ attrs, on }">
-            <g-btn-edit-icon
-              v-if="!error.message && docId"
-              v-bind="attrs"
-              small
-              v-on="on"
-            />
-          </template>
-          <template #default="{ attrs, on }">
-            <g-input-work-regulation
-              v-bind="attrs"
-              :instance="internalInstance"
-              edit-mode="UPDATE"
-              v-on="on"
-            />
-          </template>
-        </g-dialog-input>
-      </div>
-    </v-card-title>
-    <v-card-text>
+    <v-toolbar dense flat>
+      <v-toolbar-title class="text-subtitle-1">{{ title }}</v-toolbar-title>
+      <v-spacer />
+      <g-dialog-input>
+        <template #activator="{ attrs, on }">
+          <g-btn-edit-icon
+            v-if="!error.message && docId && !disableEdit"
+            v-bind="attrs"
+            color="primary"
+            v-on="on"
+          />
+        </template>
+        <template #default="{ attrs, on }">
+          <g-input-work-regulation
+            v-bind="attrs"
+            :instance="internalInstance"
+            edit-mode="UPDATE"
+            v-on="on"
+          />
+        </template>
+      </g-dialog-input>
+    </v-toolbar>
+    <v-card-text class="pt-0">
       <v-card class="mb-3" outlined>
         <v-card-text class="pa-2">
           <h4>■所定労働日</h4>

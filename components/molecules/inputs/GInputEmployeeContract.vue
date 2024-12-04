@@ -6,6 +6,7 @@
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
 import GCardWorkRegulation from '../cards/GCardWorkRegulation.vue'
+import GCardEmployeeAllowances from '../cards/GCardEmployeeAllowances.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
@@ -38,6 +39,7 @@ export default {
     GCheckboxDeleteData,
     GCardWorkRegulation,
     GAutocompletePaymentType,
+    GCardEmployeeAllowances,
   },
 
   /***************************************************************************
@@ -215,6 +217,7 @@ export default {
         <g-card-work-regulation
           v-show="showWorkRegulation"
           class="mb-8"
+          disable-edit
           outlined
           :doc-id="editModel.workRegulationId"
         />
@@ -250,7 +253,9 @@ export default {
         </v-col>
       </v-row>
       <v-card class="mb-8" outlined>
-        <v-subheader>社会保険</v-subheader>
+        <v-toolbar dense flat>
+          <v-toolbar-title class="text-subtitle-1">社会保険</v-toolbar-title>
+        </v-toolbar>
         <v-card-text class="py-0">
           <v-row dense>
             <v-col cols="12" sm="4">
@@ -274,6 +279,12 @@ export default {
           </v-row>
         </v-card-text>
       </v-card>
+      <!-- 支給手当 -->
+      <g-card-employee-allowances
+        v-model="editModel.allowances"
+        outlined
+        class="mb-8"
+      />
       <g-textarea v-model="editModel.remarks" label="備考" hide-details />
     </v-form>
     <g-checkbox-delete-data

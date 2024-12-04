@@ -18,7 +18,7 @@ import GInputOperationResultWorker from './GInputOperationResultWorker.vue'
 import GInputOperationResultOutsourcer from './GInputOperationResultOutsourcer.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import OperationResultWorker from '~/models/OperationResultWorker'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import OperationResultOutsourcer from '~/models/OperationResultOutsourcer'
 export default {
   /***************************************************************************
@@ -34,7 +34,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * PROPS
    ***************************************************************************/

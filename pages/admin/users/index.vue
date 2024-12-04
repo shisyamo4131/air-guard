@@ -14,7 +14,7 @@ import GInputUser from '~/components/molecules/inputs/GInputUser.vue'
 import GDataTableUsers from '~/components/molecules/tables/GDataTableUsers.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import User from '~/models/User'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import NewUser from '~/models/NewUser'
 import GInputNewUser from '~/components/molecules/inputs/GInputNewUser.vue'
@@ -41,7 +41,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * DATA
    ***************************************************************************/

@@ -136,7 +136,9 @@ export default {
           }
         }
         this.$emit('submit:complete', {
-          instance: this.editModel.clone(),
+          instance: this.editModel.clone
+            ? this.editModel.clone()
+            : new this.editModel.constructor(this.editModel),
           editMode: this.forceDelete ? this.DELETE : this.editMode,
         })
         this.forceDelete = false

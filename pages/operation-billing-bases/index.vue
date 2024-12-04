@@ -11,7 +11,7 @@
  */
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import OperationBillingBasis from '~/models/OperationBillingBasis'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GDataTableOperationBillingBases from '~/components/molecules/tables/GDataTableOperationBillingBases.vue'
@@ -36,7 +36,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * DATA
    ***************************************************************************/

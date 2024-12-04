@@ -24,7 +24,7 @@ import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GInputSiteOperationSchedule from '~/components/molecules/inputs/GInputSiteOperationSchedule.vue'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
 import GSosRequiredWorkersChip from '~/components/organisms/site-operation-schedules/GSosRequiredWorkersChip.vue'
 import GSiteOrderManager from '~/components/organisms/GSiteOrderManager.vue'
@@ -51,7 +51,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * ASYNCDATA

@@ -1,7 +1,7 @@
 import { EDIT_MODES } from '~/utils/EDIT_MODES'
 
 /**
- * GEditModeMixin
+ * GMixinEditModeProvider
  *
  * コンポーネントに`data.editMode`を実装するためのミックスインです。
  *

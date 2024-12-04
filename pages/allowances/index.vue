@@ -8,7 +8,7 @@ import GInputAllowance from '~/components/molecules/inputs/GInputAllowance.vue'
 import GDataTableAllowances from '~/components/molecules/tables/GDataTableAllowances.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import Allowance from '~/models/Allowance'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 export default {
   /***************************************************************************
@@ -28,7 +28,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * DATA
    ***************************************************************************/

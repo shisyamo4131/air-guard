@@ -7,7 +7,7 @@ import GCardSiteContract from '../molecules/cards/GCardSiteContract.vue'
 import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
 import GInputSiteContract from '../molecules/inputs/GInputSiteContract.vue'
 import GDialogInput from '../molecules/dialogs/GDialogInput.vue'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import Site from '~/models/Site'
 import SiteContract from '~/models/SiteContract'
 export default {
@@ -23,7 +23,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * PROPS
    ***************************************************************************/

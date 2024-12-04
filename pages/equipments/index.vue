@@ -16,7 +16,7 @@ import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GDataTableEquipments from '~/components/molecules/tables/GDataTableEquipments.vue'
 import Equipment from '~/models/Equipment'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 export default {
   /***************************************************************************
    * NAME
@@ -36,7 +36,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * DATA
    ***************************************************************************/

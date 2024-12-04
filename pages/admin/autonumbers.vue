@@ -2,7 +2,7 @@
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputAutonumber from '~/components/molecules/inputs/GInputAutonumber.vue'
 import Autonumber from '~/models/Autonumber'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GDataTableAutonumbers from '~/components/molecules/tables/GDataTableAutonumbers.vue'
@@ -24,7 +24,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * DATA
    ***************************************************************************/

@@ -151,7 +151,7 @@ const classProps = generateClassProps(propsDefinition)
  * ACCESSOR
  *****************************************************************************/
 
-// 従業員IDS
+// 手当 IDS
 const allowanceIds = {
   enumerable: true,
   configurable: true,

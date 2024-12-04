@@ -1,17 +1,13 @@
 import { getFirestore } from 'firebase-admin/firestore'
 import { getDatabase } from 'firebase-admin/database'
 import { logger } from 'firebase-functions/v2'
-import {
-  extractDiffsFromDocUpdatedEvent,
-  syncDependentDocumentsV2,
-} from '../modules/utils.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/EmployeeContract.js'
 import { EmployeeForEmployeeContract } from './Employee.js'
 import WorkRegulation, {
   WorkRegulationForDailyAttendance,
 } from './WorkRegulation.js'
-import { AllowanceMinimal } from './Allowance.js'
+import EmployeeAllowance from './EmployeeAllowance.js'
 const firestore = getFirestore()
 const database = getDatabase()
 
@@ -33,7 +29,7 @@ export default class EmployeeContract extends FireModel {
   static customClassMap = {
     employee: EmployeeForEmployeeContract,
     workRegulation: WorkRegulation,
-    allowances: AllowanceMinimal,
+    allowances: EmployeeAllowance,
   }
 
   /****************************************************************************
@@ -117,33 +113,6 @@ export default class EmployeeContract extends FireModel {
       logger.error(message, { employeeId, from, to, error })
       throw error
     }
-  }
-
-  /****************************************************************************
-   * EmployeeContracts ドキュメントの allowances プロパティを更新します。
-   * - 引数 event は Firestore の更新トリガーオブジェクトを受け取ります。
-   * - event の before, after を比較し、更新が不要な場合は処理をスキップします。
-   * @param {Object} event - Firestore の更新トリガーオブジェクト
-   ****************************************************************************/
-  static async refreshAllowance(event) {
-    const isChanged = extractDiffsFromDocUpdatedEvent({
-      event,
-      ComparisonClass: EmployeeContract.customClassMap.allowances,
-    })
-    if (isChanged.length === 0) return
-
-    const collectionId = EmployeeContract.collectionPath
-    const updateProp = 'allowances'
-    const afterData = event.data.after.data()
-    const docId = event.params.docId
-    const conditions = [['where', 'allowanceIds', 'array-contains', docId]]
-
-    await syncDependentDocumentsV2({
-      collectionId,
-      updateProp,
-      afterData,
-      conditions,
-    })
   }
 }
 

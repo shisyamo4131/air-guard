@@ -8,7 +8,7 @@ import GInputWorkRegulation from '~/components/molecules/inputs/GInputWorkRegula
 import GDataTableWorkRegulations from '~/components/molecules/tables/GDataTableWorkRegulations.vue'
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import WorkRegulation from '~/models/WorkRegulation'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GDialogConfirm from '~/components/molecules/dialogs/GDialogConfirm.vue'
@@ -38,7 +38,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * DATA

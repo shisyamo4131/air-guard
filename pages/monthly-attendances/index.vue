@@ -22,7 +22,7 @@ import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 import GDataTableOperationWorkResults from '~/components/molecules/tables/GDataTableOperationWorkResults.vue'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GInputLeaveRecord from '~/components/molecules/inputs/GInputLeaveRecord.vue'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import LeaveRecord from '~/models/LeaveRecord'
 import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
 
@@ -49,7 +49,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * DATA

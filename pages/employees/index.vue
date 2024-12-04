@@ -14,7 +14,7 @@ import GDataTableEmployees from '~/components/molecules/tables/GDataTableEmploye
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import Employee from '~/models/Employee'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 export default {
@@ -36,7 +36,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * DATA
    ***************************************************************************/

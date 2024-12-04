@@ -73,9 +73,9 @@
 </template>
 
 <script>
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 export default {
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   data() {
     return {
       inputComponent: null,

@@ -17,7 +17,7 @@ import GPlacementSiteOperationSchedulesDialog from './GPlacementSiteOperationSch
 import GDialogEmployeeSelector from '~/components/molecules/dialogs/GDialogEmployeeSelector.vue'
 import GDialogOutsourcerSelector from '~/components/molecules/dialogs/GDialogOutsourcerSelector.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import { PlacedEmployee, PlacedOutsourcer } from '~/models/Placement'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
@@ -41,7 +41,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * PROPS

@@ -11,7 +11,7 @@ import GEmployeeContractsManager from '~/components/organisms/GEmployeeContracts
 import Employee from '~/models/Employee'
 import EmployeeMedicalCheckup from '~/models/EmployeeMedicalCheckup'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GInputSecurityRegistration from '~/components/molecules/inputs/GInputSecurityRegistration.vue'
 import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
 export default {
@@ -37,7 +37,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * ASYNCDATA

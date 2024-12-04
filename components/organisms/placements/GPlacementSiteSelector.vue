@@ -12,7 +12,7 @@ import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GRadioGroupWorkShift from '~/components/molecules/inputs/GRadioGroupWorkShift.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import Site from '~/models/Site'
 export default {
   /***************************************************************************
@@ -32,7 +32,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * DATA
    ***************************************************************************/

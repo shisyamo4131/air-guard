@@ -16,7 +16,7 @@
  */
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GInputSiteOperationSchedule from '~/components/molecules/inputs/GInputSiteOperationSchedule.vue'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 
 export default {
@@ -31,7 +31,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * PROPS

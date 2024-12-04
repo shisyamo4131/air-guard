@@ -16,7 +16,7 @@ import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 // import GSitesManager from '~/components/organisms/GSitesManager.vue'
 import Customer from '~/models/Customer'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 export default {
   /***************************************************************************
@@ -37,7 +37,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/

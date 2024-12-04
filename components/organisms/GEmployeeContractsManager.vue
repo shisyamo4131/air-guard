@@ -8,7 +8,7 @@ import GInputEmployeeContract from '../molecules/inputs/GInputEmployeeContract.v
 import GDataTableEmployeeContracts from '../molecules/tables/GDataTableEmployeeContracts.vue'
 import GDialogInput from '../molecules/dialogs/GDialogInput.vue'
 import EmployeeContract from '~/models/EmployeeContract'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import Employee from '~/models/Employee'
 export default {
   /***************************************************************************
@@ -23,7 +23,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * PROPS
    ***************************************************************************/

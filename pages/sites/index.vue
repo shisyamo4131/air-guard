@@ -18,7 +18,7 @@ import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GDataTableSites from '~/components/molecules/tables/GDataTableSites.vue'
 import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
 import Site from '~/models/Site'
-import GEditModeMixin from '~/mixins/GEditModeMixin'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 export default {
@@ -41,7 +41,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GEditModeMixin],
+  mixins: [GMixinEditModeProvider],
   /***************************************************************************
    * DATA
    ***************************************************************************/
