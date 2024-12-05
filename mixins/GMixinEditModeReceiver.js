@@ -1,9 +1,7 @@
 import { EDIT_MODES } from '~/utils/EDIT_MODES'
-
 /**
- * コンポーネントが editMode, loading を受け付けるようにするミックスインです。
+ * コンポーネントが editMode を受け付けるようにするミックスインです。
  * - 編集モードを示す props.editMode が実装されます。必須で受け付けます。
- * - 通信中であることを示す props.loading が実装されます。
  * @author shisyamo4131
  */
 export default {
@@ -16,7 +14,6 @@ export default {
       validator: (v) => ['CREATE', 'UPDATE', 'DELETE'].includes(v),
       required: true,
     },
-    loading: { type: Boolean, default: false, required: false },
   },
   /***************************************************************************
    * COMPUTED

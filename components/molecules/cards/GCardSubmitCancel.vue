@@ -45,7 +45,7 @@
  */
 import GBtnCancelIcon from '../../atoms/btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '../../atoms/btns/GBtnSubmitIcon.vue'
-import EditMode from '~/mixins/GMixinEditMode'
+import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
 
 export default {
   /***************************************************************************
@@ -55,7 +55,7 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [EditMode],
+  mixins: [GMixinEditModeReceiver],
   /***************************************************************************
    * PROPS
    ***************************************************************************/

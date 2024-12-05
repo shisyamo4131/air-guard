@@ -2,7 +2,6 @@
 /**
  * INPUT コンポーネントのラッパーとなるカードコンポーネントです。
  * submit ボタンと cancel ボタンを備えています。
- * - GMixinEditModeReceiver により, editMode, loading を受け付けます。
  * - `submit`ボタンがクリックされると`click:submit`イベントをemitします。
  * - `cancel`ボタンがクリックされると`click:cancel`イベントをemitします。
  * @author shisyamo4131
@@ -26,8 +25,10 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
-    label: { type: String, required: true },
+    disabled: { type: Boolean, default: false, required: false },
     disableSubmit: { type: Boolean, default: false, required: false },
+    label: { type: String, required: true },
+    loading: { type: Boolean, default: false, required: false },
   },
 }
 </script>
@@ -40,16 +41,21 @@ export default {
       <g-btn-cancel-icon :disabled="loading" @click="$emit('click:cancel')" />
     </v-toolbar>
     <v-card-text class="pt-5">
-      <v-form @submit.prevent>
-        <slot name="default" v-bind="{ attrs: { editMode, label, loading } }" />
+      <v-form :disabled="disabled" @submit.prevent>
+        <slot
+          name="default"
+          v-bind="{
+            attrs: { editMode, label, loading, CREATE, UPDATE, DELETE },
+          }"
+        />
+        <g-checkbox
+          v-if="editMode !== CREATE"
+          label="このデータを削除する"
+          :true-value="DELETE"
+          :false-value="UPDATE"
+          @change="$emit('update:editMode', $event)"
+        />
       </v-form>
-      <g-checkbox
-        v-if="editMode !== CREATE"
-        label="このデータを削除する"
-        :true-value="DELETE"
-        :false-value="UPDATE"
-        @change="$emit('update:editMode', $event)"
-      />
     </v-card-text>
     <v-card-actions class="justify-end">
       <g-btn-submit-icon

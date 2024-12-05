@@ -11,7 +11,7 @@
  * - version 1.0.0 - 2024-08-14 - 初版作成
  */
 import { props } from '~/models/TransportationCostApplication'
-import EditMode from '~/mixins/GMixinEditMode'
+import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -20,7 +20,7 @@ export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  mixins: [props, EditMode],
+  mixins: [props, GMixinEditModeReceiver],
 }
 </script>
 

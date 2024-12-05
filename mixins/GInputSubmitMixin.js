@@ -1,4 +1,4 @@
-import GInputEditModeMixin from '~/mixins/GInputEditModeMixin'
+import GMixinEditModeReceiver from './GMixinEditModeReceiver'
 import GInputValidationMixin from '~/mixins/GInputValidationMixin'
 import GInputInitializeMixin from '~/mixins/GInputInitializeMixin'
 
@@ -10,9 +10,9 @@ import GInputInitializeMixin from '~/mixins/GInputInitializeMixin'
  *
  * インポートされる他の Mixins について:
  *
- * - `GInputEditModeMixin`:
+ * - `GMixinEditModeReceiver`:
  *   - 編集モード (`CREATE`, `UPDATE`, `DELETE`) の管理機能を提供します。
- *   - `editMode` と `loading` プロパティを使用してフォームの操作状態を制御します。
+ *   - `editMode` プロパティを使用してフォームの操作状態を制御します。
  *
  * - `GInputInitializeMixin`:
  *   - `editModel` プロパティを初期化し、`props.instance` の複製を管理します。
@@ -24,7 +24,7 @@ import GInputInitializeMixin from '~/mixins/GInputInitializeMixin'
  *   - `resetValidation` メソッドを提供して、バリデーションの状態をリセットします。
  *
  * 機能詳細:
- * - `GInputEditModeMixin`により、`props.editMode`と`props.loading`を親コンポーネントから受け取ります。
+ * - `GMixinEditModeReceiver`により、`props.editMode`と`props.loading`を親コンポーネントから受け取ります。
  * - `GInputInitializeMixin`により、`props.instance`を複製したインスタンスが`data.editModel`に設定されます。
  * - `data.submitType`の値が`toParent`の場合、`submit:complete`イベントがemitされます。
  * - `data.submitType`の値が`toFirestore`の場合、`props.editMode`に応じて`data.editModel`のcreate()、update()、またはdelete()が呼び出され、処理が完了すると`submit:complete`イベントがemitされます。
@@ -82,7 +82,11 @@ export default {
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GInputEditModeMixin, GInputValidationMixin, GInputInitializeMixin],
+  mixins: [
+    GMixinEditModeReceiver,
+    GInputValidationMixin,
+    GInputInitializeMixin,
+  ],
   /***************************************************************************
    * DATA
    ***************************************************************************/

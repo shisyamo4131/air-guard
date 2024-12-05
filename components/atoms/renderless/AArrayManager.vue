@@ -51,9 +51,29 @@ export default {
     allowDuplicates: { type: Boolean, default: false, required: false },
 
     /**
+     * 登録モードでダイアログが開くときに editModel が初期化されます。
+     */
+    defaultValue: { type: Object, default: () => ({}), required: false },
+
+    /**
      * 編集モードでダイアログを開くトリガーとなるイベント名です。
      */
     eventEdit: { type: String, default: 'click:row', required: false },
+
+    /**
+     * 追加モードでダイアログを開いた直後にコールされる関数です。
+     */
+    openedAsCreate: { type: Function, default: undefined, required: false },
+
+    /**
+     * 編集モードでダイアログを開いた直後にコールされる関数です。
+     */
+    openedAsEdit: { type: Function, default: undefined, required: false },
+
+    /**
+     * 削除モードでダイアログを開いた直後にコールされる関数です。
+     */
+    openedAsDelete: { type: Function, default: undefined, required: false },
 
     /**
      * 管理対象の配列要素を一意に識別するためのプロパティ名です。
@@ -103,6 +123,7 @@ export default {
     dialog() {
       return {
         attrs: {
+          eager: true,
           value: this.isEditing,
         },
         on: {
@@ -146,11 +167,24 @@ export default {
   watch: {
     /**
      * ダイアログの開閉状態を監視します。
+     * - ダイアログが追加モードで開くとき、data.editModel を初期化します。
+     *   props.defaultValue が指定されている場合の反映
+     * - 編集モードに合わせたコールバックを実行します。
      * - ダイアログが終了したら当該コンポーネントの初期化処理を実行します。
      */
     isEditing(v) {
-      if (v) return
-      this.initialize()
+      if (v) {
+        if (this.editMode === this.CREATE) {
+          this.editModel.initialize(this.defaultValue)
+          if (this.openedAsCreate) this.openedAsCreate(this.editModel)
+        } else if (this.editMode === this.UPDATE) {
+          if (this.openedAsEdit) this.openedAsEdit(this.editModel)
+        } else if (this.editMode === this.DELETE) {
+          if (this.opendAsDelete) this.openedAsDelete(this.editModel)
+        }
+      } else {
+        this.initialize()
+      }
     },
   },
 
@@ -299,13 +333,23 @@ export default {
      * - INPUT コンポーネント内の VForm コンポーネントへの参照を取得します。
      */
     setInputComponentRef(el) {
+      /**
+       * NOTE:
+       * Vue の仕様で, props で定義されていないプロパティなど, $attrs によって提供している値に
+       * 変更が生じた場合に, DOM が再描画（アンマウント -> マウント）される模様。
+       * 結果, el に null が引き渡された後に新しい参照が引き渡される動きになる。
+       * 当該コンポーネントの場合, editMode を `UPDATE` に切り替えたとき。
+       * よって el が null の場合はそのまま処理を終了することとする。
+       */
+      if (!el) return
+
       // INPUT コンポーネントへの参照を取得
       this.inputRef = el
-      if (!this.inputRef) {
-        // eslint-disable-next-line no-console
-        console.warn(`INPUT コンポーネントへの参照が取得できませんでした。`)
-        return
-      }
+      // if (!this.inputRef) {
+      //   // eslint-disable-next-line no-console
+      //   console.warn(`INPUT コンポーネントへの参照が取得できませんでした。`)
+      //   return
+      // }
 
       this.editModel = this.inputRef.editModel || undefined
       if (!this.editModel) {

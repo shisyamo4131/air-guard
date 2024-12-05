@@ -83,7 +83,7 @@ export default class WorkRegulation extends FireModel {
   /****************************************************************************
    * 指定された年度の就業規則ドキュメントをもとに、翌年度の就業規則ドキュメントを作成します。
    * @param {string} year - 作成元となる就業規則の年度（YYYY 形式）
-   * @return {string} - 作成された翌年度の年度（YYYY 形式）
+   * @return {Promise<string>} - 作成された翌年度の年度（YYYY 形式）
    ****************************************************************************/
   static async createNextYear(year) {
     if (!year || typeof year !== 'string' || !/^\d{4}$/.test(year)) {
