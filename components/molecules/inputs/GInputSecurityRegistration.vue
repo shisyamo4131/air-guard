@@ -50,24 +50,22 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form @submit.prevent>
-      <g-combobox-date
-        v-model="editModel.securityRegistration.registrationDate"
-        label="警備員登録日"
-        required
-      />
-      <g-combobox-date
-        v-model="editModel.securityRegistration.securityStartDate"
-        label="警備経験開始日"
-        required
-      />
-      <g-numeric
-        v-model="editModel.securityRegistration.blankMonths"
-        label="ブランク"
-        required
-        suffix="ヶ月"
-      />
-    </v-form>
+    <g-combobox-date
+      v-model="editModel.securityRegistration.registrationDate"
+      label="警備員登録日"
+      required
+    />
+    <g-combobox-date
+      v-model="editModel.securityRegistration.securityStartDate"
+      label="警備経験開始日"
+      required
+    />
+    <g-numeric
+      v-model="editModel.securityRegistration.blankMonths"
+      label="ブランク"
+      required
+      suffix="ヶ月"
+    />
   </g-card-input-form>
 </template>
 

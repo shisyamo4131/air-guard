@@ -40,16 +40,7 @@
  *     }
  *   }
  * }
- *
- * @version 1.1.0
  * @creator shisyamo4131
- * @updates
- * - version 1.1.0 - GInputSubmitMixin に実装していた data.forceDelete を当該コンポーネントに移動
- *                   -> initialize メソッドを持つこのコンポーネントが本来持つべきものだった。
- * - version 1.0.3 - afterInitializeメソッドを実装。
- * - version 1.0.2 - `props.value`を`props.instance`に変更
- * - version 1.0.1 - 特定のクラスに依存する場合のオーバーライド方法に関するコメントを追加
- * - version 1.0.0 - 初版作成
  */
 
 export default {
@@ -68,7 +59,6 @@ export default {
   data() {
     return {
       editModel: new this.instance.constructor(), // `instance` オブジェクトを複製
-      forceDelete: false,
     }
   },
   /***************************************************************************
@@ -116,7 +106,6 @@ export default {
         this.editModel.initialize(this.instance)
       }
 
-      this.forceDelete = false
       this.afterInitialize()
     },
     /**

@@ -1,17 +1,7 @@
 <script>
 /**
  * OperationResultsドキュメント入力コンポーネント
- *
  * @author shisyamo4131
- * @version 1.3.0
- * @updates
- * - version 1.3.0 - 2024-10-04 - Use `GCheckboxDeleteData` instead of `GCheckbox`.
- *                              - Use `GDialogEmployeeSelector` and `GDialogOutsourcerSelector`.
- *                              - Fixed that submit is not possible if isLocked property is true.
- * - version 1.2.0 - 2024-10-03 - `GInputOperationResultDetails` の仕様変更に対応。
- * - version 1.1.0 - 2024-09-18 - 現場選択コンポーネントに`return-object`を設定。
- *                                `site`に現場オブジェクトをセットするように変更。
- * - version 1.0.0 - 2024-xx-xx - 初版作成
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
@@ -29,7 +19,6 @@ import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import { getDayType, isValidDateFormat } from '~/utils/utility'
 import Site from '~/models/Site'
 import OperationResultOutsourcer from '~/models/OperationResultOutsourcer'
-import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -45,7 +34,6 @@ export default {
     GDialogDatePicker,
     GDialogEmployeeSelector,
     GDialogOutsourcerSelector,
-    GCheckboxDeleteData,
   },
   /***************************************************************************
    * MIXINS
@@ -313,114 +301,101 @@ export default {
     :disable-submit="noContract || editModel.isLocked"
     :edit-mode="editMode"
     :loading="loading"
+    :disabled="editModel.isLocked"
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form :disabled="editModel.isLocked" @submit.prevent>
-      <v-row>
-        <v-col cols="12" sm="4">
-          <g-text-field v-model="editModel.code" label="CODE" disabled />
-          <g-autocomplete-site
-            v-model="editModel.siteId"
-            required
-            @change="onSiteChanged"
-          />
-          <g-dialog-date-picker
-            v-model="editModel.date"
-            @change="onDateChanged"
-          >
-            <template #activator="{ attrs, on }">
-              <g-date v-bind="attrs" label="日付" required v-on="on" />
-            </template>
-          </g-dialog-date-picker>
-          <v-row dense>
-            <v-col cols="6" sm="12">
-              <g-select
-                v-model="editModel.dayDiv"
-                label="曜日区分"
-                :items="$DAY_DIV_ARRAY"
-                required
+    <v-row>
+      <v-col cols="12" sm="4">
+        <g-text-field v-model="editModel.code" label="CODE" disabled />
+        <g-autocomplete-site
+          v-model="editModel.siteId"
+          required
+          @change="onSiteChanged"
+        />
+        <g-dialog-date-picker v-model="editModel.date" @change="onDateChanged">
+          <template #activator="{ attrs, on }">
+            <g-date v-bind="attrs" label="日付" required v-on="on" />
+          </template>
+        </g-dialog-date-picker>
+        <v-row dense>
+          <v-col cols="6" sm="12">
+            <g-select
+              v-model="editModel.dayDiv"
+              label="曜日区分"
+              :items="$DAY_DIV_ARRAY"
+              required
+            />
+          </v-col>
+          <v-col cols="6" sm="12">
+            <g-select
+              v-model="editModel.workShift"
+              label="勤務区分"
+              :items="$WORK_SHIFT_ARRAY"
+              required
+              @change="onWorkShiftChanged"
+            />
+          </v-col>
+        </v-row>
+        <g-dialog-date-picker v-model="editModel.closingDate">
+          <template #activator="{ attrs, on }">
+            <g-date v-bind="attrs" label="締日" required v-on="on" />
+          </template>
+        </g-dialog-date-picker>
+        <g-textarea v-model="editModel.remarks" label="備考" />
+      </v-col>
+      <v-col cols="12" sm="8">
+        <v-alert v-show="editModel.isLocked" type="info" dense text>
+          ロックされているため、更新・削除できません。
+        </v-alert>
+        <v-input>
+          <div class="d-flex flex-column flex-grow-1">
+            <v-card outlined>
+              <g-input-operation-result-details
+                :disable-edit="editModel.isLocked"
+                :value="editModel.workers.concat(editModel.outsourcers)"
+                @changeWorker="changeWorker($event)"
+                @removeWorker="removeWorker($event)"
+                @changeOutsourcer="changeOutsourcer($event)"
+                @removeOutsourcer="removeOutsourcer($event)"
               />
-            </v-col>
-            <v-col cols="6" sm="12">
-              <g-select
-                v-model="editModel.workShift"
-                label="勤務区分"
-                :items="$WORK_SHIFT_ARRAY"
-                required
-                @change="onWorkShiftChanged"
-              />
-            </v-col>
-          </v-row>
-          <g-dialog-date-picker v-model="editModel.closingDate">
-            <template #activator="{ attrs, on }">
-              <g-date v-bind="attrs" label="締日" required v-on="on" />
-            </template>
-          </g-dialog-date-picker>
-          <g-textarea v-model="editModel.remarks" label="備考" />
-        </v-col>
-        <v-col cols="12" sm="8">
-          <v-alert v-show="editModel.isLocked" type="info" dense text>
-            ロックされているため、更新・削除できません。
-          </v-alert>
-          <v-input>
-            <div class="d-flex flex-column flex-grow-1">
-              <v-card outlined>
-                <g-input-operation-result-details
-                  :disable-edit="editModel.isLocked"
-                  :value="editModel.workers.concat(editModel.outsourcers)"
-                  @changeWorker="changeWorker($event)"
-                  @removeWorker="removeWorker($event)"
-                  @changeOutsourcer="changeOutsourcer($event)"
-                  @removeOutsourcer="removeOutsourcer($event)"
-                />
-              </v-card>
-              <div class="text-right mt-2">
-                <g-dialog-employee-selector
-                  :items="selectableEmployees"
-                  @click:submit="addWorker"
-                >
-                  <template #activator="{ attrs, on }">
-                    <v-btn
-                      v-bind="attrs"
-                      :disabled="
-                        !isValidDate || noContract || editModel.isLocked
-                      "
-                      small
-                      color="primary"
-                      v-on="on"
-                      >従業員を追加</v-btn
-                    >
-                  </template>
-                </g-dialog-employee-selector>
-                <g-dialog-outsourcer-selector
-                  :items="selectableOutsourcers"
-                  @click:submit="addOutsourcer"
-                >
-                  <template #activator="{ attrs, on }">
-                    <v-btn
-                      v-bind="attrs"
-                      :disabled="
-                        !isValidDate || noContract || editModel.isLocked
-                      "
-                      small
-                      color="secondary"
-                      v-on="on"
-                      >外注先を追加</v-btn
-                    >
-                  </template>
-                </g-dialog-outsourcer-selector>
-              </div>
+            </v-card>
+            <div class="text-right mt-2">
+              <g-dialog-employee-selector
+                :items="selectableEmployees"
+                @click:submit="addWorker"
+              >
+                <template #activator="{ attrs, on }">
+                  <v-btn
+                    v-bind="attrs"
+                    :disabled="!isValidDate || noContract || editModel.isLocked"
+                    small
+                    color="primary"
+                    v-on="on"
+                    >従業員を追加</v-btn
+                  >
+                </template>
+              </g-dialog-employee-selector>
+              <g-dialog-outsourcer-selector
+                :items="selectableOutsourcers"
+                @click:submit="addOutsourcer"
+              >
+                <template #activator="{ attrs, on }">
+                  <v-btn
+                    v-bind="attrs"
+                    :disabled="!isValidDate || noContract || editModel.isLocked"
+                    small
+                    color="secondary"
+                    v-on="on"
+                    >外注先を追加</v-btn
+                  >
+                </template>
+              </g-dialog-outsourcer-selector>
             </div>
-          </v-input>
-        </v-col>
-      </v-row>
-    </v-form>
-    <g-checkbox-delete-data
-      v-if="editMode !== CREATE"
-      v-model="forceDelete"
-      :disabled="editModel.isLocked"
-    />
+          </div>
+        </v-input>
+      </v-col>
+    </v-row>
     <v-snackbar :value="noContract" timeout="-1" tile color="red accent-2"
       >適用可能な取極めが登録されていません。</v-snackbar
     >

@@ -14,7 +14,6 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
-import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 
 export default {
   /***************************************************************************
@@ -27,7 +26,6 @@ export default {
     GAutocompleteCustomer,
     GTextarea,
     GCardInputForm,
-    GCheckboxDeleteData,
   },
   /***************************************************************************
    * MIXINS
@@ -89,72 +87,69 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form @submit.prevent>
-      <g-autocomplete-customer
-        v-if="!editModel.hideCustomer"
-        v-model="editModel.customerId"
-        label="取引先"
-        required
-        @blur="setFuzzySearchItems"
-      />
-      <g-text-field
-        v-model="editModel.name"
-        label="現場名"
-        required
-        @change="editModel.abbr = editModel.name"
-        @blur="setFuzzySearchItems"
-      />
+    <g-autocomplete-customer
+      v-if="!editModel.hideCustomer"
+      v-model="editModel.customerId"
+      label="取引先"
+      required
+      @blur="setFuzzySearchItems"
+    />
+    <g-text-field
+      v-model="editModel.name"
+      label="現場名"
+      required
+      @change="editModel.abbr = editModel.name"
+      @blur="setFuzzySearchItems"
+    />
 
-      <v-expand-transition>
-        <v-alert
-          v-show="!!fuzzySeachItems.length"
-          type="info"
-          dense
-          text
-          class="text-subtitle-2"
-        >
-          類似した既登録現場があります。<br />重複登録に注意してください。
-          <ul>
-            <li v-for="(item, index) of fuzzySeachItems" :key="index">
-              {{ `${item.name} (略称: ${item.abbr})` }}
-            </li>
-          </ul>
-        </v-alert>
-      </v-expand-transition>
-      <g-text-field
-        v-model="editModel.abbr"
-        label="略称"
-        required
-        hint="検索に使用されます"
-        ignore-surrogate-pair
-      />
-      <g-text-field
-        v-model="editModel.abbrKana"
-        label="略称カナ"
-        required
-        hint="検索に使用されます"
-        ignore-surrogate-pair
-        input-type="katakana"
-      />
-      <g-text-field v-model="editModel.abbrNumber" label="略称番号" />
-      <g-text-field v-model="editModel.address" label="住所" required />
-      <v-row>
-        <v-col cols="6">
-          <g-date v-model="editModel.startAt" label="開始日" />
-        </v-col>
-        <v-col cols="6">
-          <g-date v-model="editModel.endAt" label="終了日" />
-        </v-col>
-      </v-row>
-      <g-select
-        v-model="editModel.securityType"
-        label="警備種別"
-        :items="$SECURITY_TYPE_ARRAY"
-        required
-      />
-      <g-textarea v-model="editModel.remarks" label="備考" hide-details />
-    </v-form>
-    <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
+    <v-expand-transition>
+      <v-alert
+        v-show="!!fuzzySeachItems.length"
+        type="info"
+        dense
+        text
+        class="text-subtitle-2"
+      >
+        類似した既登録現場があります。<br />重複登録に注意してください。
+        <ul>
+          <li v-for="(item, index) of fuzzySeachItems" :key="index">
+            {{ `${item.name} (略称: ${item.abbr})` }}
+          </li>
+        </ul>
+      </v-alert>
+    </v-expand-transition>
+    <g-text-field
+      v-model="editModel.abbr"
+      label="略称"
+      required
+      hint="検索に使用されます"
+      ignore-surrogate-pair
+    />
+    <g-text-field
+      v-model="editModel.abbrKana"
+      label="略称カナ"
+      required
+      hint="検索に使用されます"
+      ignore-surrogate-pair
+      input-type="katakana"
+    />
+    <g-text-field v-model="editModel.abbrNumber" label="略称番号" />
+    <g-text-field v-model="editModel.address" label="住所" required />
+    <v-row>
+      <v-col cols="6">
+        <g-date v-model="editModel.startAt" label="開始日" />
+      </v-col>
+      <v-col cols="6">
+        <g-date v-model="editModel.endAt" label="終了日" />
+      </v-col>
+    </v-row>
+    <g-select
+      v-model="editModel.securityType"
+      label="警備種別"
+      :items="$SECURITY_TYPE_ARRAY"
+      required
+    />
+    <g-textarea v-model="editModel.remarks" label="備考" hide-details />
   </g-card-input-form>
 </template>
 

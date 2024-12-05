@@ -160,7 +160,7 @@ export default {
           <g-input-site-contract
             v-bind="attrs"
             :instance="editModel"
-            :edit-mode="editMode"
+            :edit-mode.sync="editMode"
             hide-site
             v-on="on"
           />

@@ -3,7 +3,7 @@
  * 従業員支給手当情報入力コンポーネント
  * @author shisyamo4131
  */
-import GCardInputFormV2 from '../cards/GCardInputFormV2.vue'
+import GCardInputForm from '../cards/GCardInputForm.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import EmployeeAllowance from '~/models/EmployeeAllowance'
 import GAutocomplete from '~/components/atoms/inputs/GAutocomplete.vue'
@@ -11,7 +11,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GNumeric, GCardInputFormV2, GAutocomplete },
+  components: { GNumeric, GCardInputForm, GAutocomplete },
 
   /***************************************************************************
    * DATA
@@ -25,7 +25,7 @@ export default {
 </script>
 
 <template>
-  <g-card-input-form-v-2 v-bind="$attrs" label="支給手当情報" v-on="$listeners">
+  <g-card-input-form v-bind="$attrs" label="支給手当情報" v-on="$listeners">
     <g-autocomplete
       v-model="editModel.docId"
       label="手当"
@@ -41,7 +41,7 @@ export default {
       required
       suffix="円"
     />
-  </g-card-input-form-v-2>
+  </g-card-input-form>
 </template>
 
 <style></style>

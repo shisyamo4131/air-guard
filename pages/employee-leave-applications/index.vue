@@ -111,7 +111,7 @@ export default {
         <template #default="{ attrs, on }">
           <g-input-employee-leave-application
             v-bind="attrs"
-            :edit-mode="editMode"
+            :edit-mode.sync="editMode"
             :instance="instance"
             tile
             v-on="on"

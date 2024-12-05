@@ -1,37 +1,35 @@
 <script>
 /**
- * GCardInputForm
- *
- * `submit`ボタンと`cancel`ボタンを備えたCardコンポーネントです。
- * `GInputEditMode`ミックスインを使用しています。
- *
- * - `props.editMode`を受け付けます。
- * - `props.loading`を受け付けます。
+ * INPUT コンポーネントのラッパーとなるカードコンポーネントです。
+ * submit ボタンと cancel ボタンを備えています。
  * - `submit`ボタンがクリックされると`click:submit`イベントをemitします。
  * - `cancel`ボタンがクリックされると`click:cancel`イベントをemitします。
- * - `props.loading`にtrueが与えられると、`submit`ボタンが操作不可になります。
- *
+ * - 削除チェックボックスを切り替えると editMode に対する update イベントを emit します。
  * @author shisyamo4131
  */
 import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
 import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
+import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GBtnCancelIcon, GBtnSubmitIcon },
+  components: { GBtnCancelIcon, GBtnSubmitIcon, GCheckbox },
+
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
   mixins: [GMixinEditModeReceiver],
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
+    disabled: { type: Boolean, default: false, required: false },
+    disableSubmit: { type: Boolean, default: false, required: false },
     label: { type: String, required: true },
     loading: { type: Boolean, default: false, required: false },
-    disableSubmit: { type: Boolean, default: false, required: false },
   },
 }
 </script>
@@ -44,7 +42,21 @@ export default {
       <g-btn-cancel-icon :disabled="loading" @click="$emit('click:cancel')" />
     </v-toolbar>
     <v-card-text class="pt-5">
-      <slot name="default" v-bind="{ attrs: { editMode, label, loading } }" />
+      <v-form :disabled="disabled" @submit.prevent>
+        <slot
+          name="default"
+          v-bind="{
+            attrs: { editMode, label, loading, CREATE, UPDATE, DELETE },
+          }"
+        />
+        <g-checkbox
+          v-if="editMode !== CREATE"
+          label="このデータを削除する"
+          :true-value="DELETE"
+          :false-value="UPDATE"
+          @change="$emit('update:editMode', $event)"
+        />
+      </v-form>
     </v-card-text>
     <v-card-actions class="justify-end">
       <g-btn-submit-icon

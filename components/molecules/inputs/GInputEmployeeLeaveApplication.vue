@@ -8,7 +8,6 @@ import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import EmployeeLeaveApplication from '~/models/EmployeeLeaveApplication'
-import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 import GAutocompleteEmployee from '~/components/molecules/inputs/GAutocompleteEmployee.vue'
 export default {
   /***************************************************************************
@@ -18,7 +17,6 @@ export default {
     GTextarea,
     GComboboxDate,
     GCardInputForm,
-    GCheckboxDeleteData,
     GAutocompleteEmployee,
   },
 
@@ -73,24 +71,21 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form @submit.prevent>
-      <g-autocomplete-employee
-        v-if="!hideEmployee"
-        v-model="editModel.employeeId"
-        required
-        :disabled="editMode !== CREATE"
-      />
-      <g-combobox-date
-        v-if="!hideDate"
-        v-model="date"
-        label="日付"
-        :multiple="editMode === CREATE"
-        required
-        :disabled="editMode !== CREATE"
-      />
-      <g-textarea v-model="editModel.remarks" label="備考" required />
-    </v-form>
-    <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
+    <g-autocomplete-employee
+      v-if="!hideEmployee"
+      v-model="editModel.employeeId"
+      required
+      :disabled="editMode !== CREATE"
+    />
+    <g-combobox-date
+      v-if="!hideDate"
+      v-model="date"
+      label="日付"
+      :multiple="editMode === CREATE"
+      required
+      :disabled="editMode !== CREATE"
+    />
+    <g-textarea v-model="editModel.remarks" label="備考" required />
   </g-card-input-form>
 </template>
 

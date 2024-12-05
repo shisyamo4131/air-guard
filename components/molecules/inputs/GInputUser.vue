@@ -13,7 +13,6 @@ import GCardInputForm from '../cards/GCardInputForm.vue'
 import User from '~/models/User'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GAutocompleteEmployee from '~/components/molecules/inputs/GAutocompleteEmployee.vue'
-import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 
 export default {
@@ -24,7 +23,6 @@ export default {
     GTextField,
     GCardInputForm,
     GAutocompleteEmployee,
-    GCheckboxDeleteData,
     GCheckbox,
   },
   /***************************************************************************
@@ -63,27 +61,24 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form @submit.prevent>
-      <g-text-field
-        v-model="editModel.docId"
-        label="uid"
-        readonly
-        hint="読み取り専用"
-        persistent-hint
-      />
-      <g-text-field v-model="editModel.displayName" label="表示名" required />
-      <g-text-field v-model="editModel.email" label="email" required />
-      <g-autocomplete-employee v-model="editModel.employeeId" label="従業員" />
-      <g-checkbox
-        v-model="editModel.isAdmin"
-        class="mt-0"
-        label="アドミニストレータ"
-        hide-details
-      />
-      <g-checkbox v-model="editModel.isDeveloper" label="開発者" hide-details />
-      <g-checkbox v-model="editModel.isManager" label="管理者" hide-details />
-    </v-form>
-    <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
+    <g-text-field
+      v-model="editModel.docId"
+      label="uid"
+      readonly
+      hint="読み取り専用"
+      persistent-hint
+    />
+    <g-text-field v-model="editModel.displayName" label="表示名" required />
+    <g-text-field v-model="editModel.email" label="email" required />
+    <g-autocomplete-employee v-model="editModel.employeeId" label="従業員" />
+    <g-checkbox
+      v-model="editModel.isAdmin"
+      class="mt-0"
+      label="アドミニストレータ"
+      hide-details
+    />
+    <g-checkbox v-model="editModel.isDeveloper" label="開発者" hide-details />
+    <g-checkbox v-model="editModel.isManager" label="管理者" hide-details />
   </g-card-input-form>
 </template>
 

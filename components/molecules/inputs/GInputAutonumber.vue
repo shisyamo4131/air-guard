@@ -56,29 +56,27 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form @submit.prevent>
-      <!-- 追加モード時以外は編集不可 -->
-      <g-text-field
-        v-model="editModel.collectionId"
-        label="コレクション名"
-        required
-        :disabled="editMode !== CREATE"
-        hint="コレクション名は変更できません。"
-        :persistent-hint="editMode !== CREATE"
-      />
-      <g-numeric
-        v-model="editModel.current"
-        label="現在値"
-        required
-        :decimal-places="0"
-      />
-      <g-numeric v-model="editModel.length" label="桁数" required />
-      <g-text-field v-model="editModel.field" label="フィールド名" required />
-      <g-switch
-        v-model="editModel.status"
-        :label="`状態：${editModel.status ? '有効' : '無効'}`"
-      />
-    </v-form>
+    <!-- 追加モード時以外は編集不可 -->
+    <g-text-field
+      v-model="editModel.collectionId"
+      label="コレクション名"
+      required
+      :disabled="editMode !== CREATE"
+      hint="コレクション名は変更できません。"
+      :persistent-hint="editMode !== CREATE"
+    />
+    <g-numeric
+      v-model="editModel.current"
+      label="現在値"
+      required
+      :decimal-places="0"
+    />
+    <g-numeric v-model="editModel.length" label="桁数" required />
+    <g-text-field v-model="editModel.field" label="フィールド名" required />
+    <g-switch
+      v-model="editModel.status"
+      :label="`状態：${editModel.status ? '有効' : '無効'}`"
+    />
   </g-card-input-form>
 </template>
 

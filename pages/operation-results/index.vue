@@ -120,7 +120,7 @@ export default {
         <template #default="{ attrs, on }">
           <g-input-operation-result
             v-bind="attrs"
-            :edit-mode="editMode"
+            :edit-mode.sync="editMode"
             :instance="instance"
             tile
             v-on="on"

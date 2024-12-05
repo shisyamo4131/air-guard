@@ -12,7 +12,6 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
-import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
 export default {
   /***************************************************************************
@@ -25,7 +24,6 @@ export default {
     GCheckbox,
     GCardInputForm,
     GSelect,
-    GCheckboxDeleteData,
     GDatePicker,
   },
   /***************************************************************************
@@ -132,177 +130,174 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form @submit.prevent>
-      <v-row dense>
-        <v-col cols="12" md="3">
-          <g-text-field
-            v-model="editModel.year"
-            class="center-input"
-            label="適用年度"
-            :rules="[(v) => !v || v.length === 4 || '西暦で入力']"
-            required
-            suffix="年"
-            @change="onChangedYear"
-          />
-        </v-col>
+    <v-row dense>
+      <v-col cols="12" md="3">
+        <g-text-field
+          v-model="editModel.year"
+          class="center-input"
+          label="適用年度"
+          :rules="[(v) => !v || v.length === 4 || '西暦で入力']"
+          required
+          suffix="年"
+          @change="onChangedYear"
+        />
+      </v-col>
 
-        <v-col cols="12" md="9">
-          <g-text-field
-            v-model="editModel.name"
-            label="就業規則名"
-            required
-            hint="'正社員'、'契約社員'など"
-            persistent-hint
-          />
-        </v-col>
-        <v-col cols="12">
-          <g-select
-            v-model="editModel.contractType"
-            label="雇用形態"
-            :items="$CONTRACT_TYPE_ARRAY"
-            required
-            attach
-          />
-        </v-col>
-        <v-col cols="12" sm="4">
-          <g-text-field
-            v-model="editModel.startTime"
-            class="center-input"
-            label="始業時刻"
-            required
-            input-type="time"
-          />
-        </v-col>
-        <v-col cols="12" sm="4">
-          <g-text-field
-            v-model="editModel.endTime"
-            class="center-input"
-            label="終業時刻"
-            required
-            input-type="time"
-          />
-        </v-col>
-        <v-col cols="12" sm="4">
-          <g-numeric
-            v-model="editModel.breakMinutes"
-            class="center-input"
-            label="休憩時間"
-            required
-            suffix="分"
-          />
-        </v-col>
-        <v-col cols="12">
-          <v-card outlined class="flex-grow-1 mb-4">
-            <v-card-text>
-              <h4>所定労働日</h4>
-              <v-input
-                ref="scheduledWorkDays"
-                v-model="editModel.scheduledWorkDays"
-                :rules="[rules.length, rules.overTime, rules.allDays]"
-                hint="必ず就業する曜日を選択します"
-                persistent-hint
-              >
-                <v-chip-group
-                  v-model="editModel.scheduledWorkDays"
-                  active-class="primary--text"
-                  column
-                  multiple
-                  @change="onInputScheduledWorkingDays"
-                >
-                  <v-chip
-                    v-for="day of days"
-                    :key="day.value"
-                    :value="day.value"
-                    outlined
-                    small
-                  >
-                    {{ day.text }}
-                  </v-chip>
-                </v-chip-group>
-              </v-input>
-              <g-checkbox
-                v-model="editModel.isHolidayWorkDay"
-                label="祝日を所定労働日とする"
-              />
-              <h4>法定休日</h4>
+      <v-col cols="12" md="9">
+        <g-text-field
+          v-model="editModel.name"
+          label="就業規則名"
+          required
+          hint="'正社員'、'契約社員'など"
+          persistent-hint
+        />
+      </v-col>
+      <v-col cols="12">
+        <g-select
+          v-model="editModel.contractType"
+          label="雇用形態"
+          :items="$CONTRACT_TYPE_ARRAY"
+          required
+          attach
+        />
+      </v-col>
+      <v-col cols="12" sm="4">
+        <g-text-field
+          v-model="editModel.startTime"
+          class="center-input"
+          label="始業時刻"
+          required
+          input-type="time"
+        />
+      </v-col>
+      <v-col cols="12" sm="4">
+        <g-text-field
+          v-model="editModel.endTime"
+          class="center-input"
+          label="終業時刻"
+          required
+          input-type="time"
+        />
+      </v-col>
+      <v-col cols="12" sm="4">
+        <g-numeric
+          v-model="editModel.breakMinutes"
+          class="center-input"
+          label="休憩時間"
+          required
+          suffix="分"
+        />
+      </v-col>
+      <v-col cols="12">
+        <v-card outlined class="flex-grow-1 mb-4">
+          <v-card-text>
+            <h4>所定労働日</h4>
+            <v-input
+              ref="scheduledWorkDays"
+              v-model="editModel.scheduledWorkDays"
+              :rules="[rules.length, rules.overTime, rules.allDays]"
+              hint="必ず就業する曜日を選択します"
+              persistent-hint
+            >
               <v-chip-group
-                v-model="editModel.legalHoliday"
+                v-model="editModel.scheduledWorkDays"
                 active-class="primary--text"
                 column
-                mandatory
+                multiple
+                @change="onInputScheduledWorkingDays"
               >
                 <v-chip
                   v-for="day of days"
                   :key="day.value"
                   :value="day.value"
-                  :disabled="editModel.scheduledWorkDays.includes(day.value)"
                   outlined
                   small
                 >
                   {{ day.text }}
                 </v-chip>
               </v-chip-group>
-            </v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12" sm="4">
-          <g-numeric
-            v-model="editModel.averageMonthlyScheduledWorkDays"
-            class="center-input"
-            label="月平均所定日数"
-            required
-            decimal-places="2"
-            suffix="日／月"
-          />
-        </v-col>
-        <v-col cols="12" sm="4">
-          <g-numeric
-            v-model="editModel.overtimePayRate"
-            class="center-input"
-            label="時間外割増"
-            required
-            suffix="％"
-          />
-        </v-col>
-        <v-col cols="12" sm="4">
-          <g-numeric
-            v-model="editModel.holidayPayRate"
-            class="center-input"
-            label="休日割増"
-            required
-            suffix="％"
-          />
-        </v-col>
-        <v-col cols="12">
-          <g-checkbox
-            v-model="editModel.bonusEligibility"
-            class="mt-0"
-            label="賞与対象"
-          />
-        </v-col>
-        <v-col cols="12">
-          <v-expand-transition>
-            <div v-show="!editModel.isHolidayWorkDay">
-              <h4>祝日登録</h4>
-              <!-- editModel.year 以外の日付は選択不可 -->
-              <g-date-picker
-                v-model="editModel.holidays"
-                :allowed-dates="
-                  (val) => editModel.year && val.slice(0, 4) === editModel.year
-                "
-                multiple
-                no-title
-                :picker-date.sync="pickerDate"
-              />
-            </div>
-          </v-expand-transition>
-        </v-col>
-        <v-col cols="12">
-          <g-textarea v-model="editModel.remarks" label="備考" hide-details />
-        </v-col>
-      </v-row>
-    </v-form>
-    <g-checkbox-delete-data v-if="editMode !== CREATE" v-model="forceDelete" />
+            </v-input>
+            <g-checkbox
+              v-model="editModel.isHolidayWorkDay"
+              label="祝日を所定労働日とする"
+            />
+            <h4>法定休日</h4>
+            <v-chip-group
+              v-model="editModel.legalHoliday"
+              active-class="primary--text"
+              column
+              mandatory
+            >
+              <v-chip
+                v-for="day of days"
+                :key="day.value"
+                :value="day.value"
+                :disabled="editModel.scheduledWorkDays.includes(day.value)"
+                outlined
+                small
+              >
+                {{ day.text }}
+              </v-chip>
+            </v-chip-group>
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col cols="12" sm="4">
+        <g-numeric
+          v-model="editModel.averageMonthlyScheduledWorkDays"
+          class="center-input"
+          label="月平均所定日数"
+          required
+          decimal-places="2"
+          suffix="日／月"
+        />
+      </v-col>
+      <v-col cols="12" sm="4">
+        <g-numeric
+          v-model="editModel.overtimePayRate"
+          class="center-input"
+          label="時間外割増"
+          required
+          suffix="％"
+        />
+      </v-col>
+      <v-col cols="12" sm="4">
+        <g-numeric
+          v-model="editModel.holidayPayRate"
+          class="center-input"
+          label="休日割増"
+          required
+          suffix="％"
+        />
+      </v-col>
+      <v-col cols="12">
+        <g-checkbox
+          v-model="editModel.bonusEligibility"
+          class="mt-0"
+          label="賞与対象"
+        />
+      </v-col>
+      <v-col cols="12">
+        <v-expand-transition>
+          <div v-show="!editModel.isHolidayWorkDay">
+            <h4>祝日登録</h4>
+            <!-- editModel.year 以外の日付は選択不可 -->
+            <g-date-picker
+              v-model="editModel.holidays"
+              :allowed-dates="
+                (val) => editModel.year && val.slice(0, 4) === editModel.year
+              "
+              multiple
+              no-title
+              :picker-date.sync="pickerDate"
+            />
+          </div>
+        </v-expand-transition>
+      </v-col>
+      <v-col cols="12">
+        <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+      </v-col>
+    </v-row>
   </g-card-input-form>
 </template>
 

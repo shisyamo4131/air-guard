@@ -30,8 +30,6 @@ import GInputInitializeMixin from '~/mixins/GInputInitializeMixin'
  * - `data.submitType`の値が`toFirestore`の場合、`props.editMode`に応じて`data.editModel`のcreate()、update()、またはdelete()が呼び出され、処理が完了すると`submit:complete`イベントがemitされます。
  * - `data.submitType`の既定値は`toFirestore`です。書き換える場合はオーバーライドします。
  * - `submit:complete`イベントでは`instance`として`data.editModel`を、`editMode`として`props.editMode`を受け取ることができます。
- * - `data.forceDelete`の値が true の場合、editModeを無視して削除処理が行われます。
- * - 削除の指示をユーザーから受け付けるようにする場合、`data.forceDelete`をtrueにするためのUIを用意してください。
  *
  * @method submit - フォーム送信処理を実行します。`editMode` や `validate` が未定義の場合は警告を出し、処理を中止します。
  *                  フォーム送信が成功した場合は `submit:complete` イベントを、失敗した場合は `submit:failed` イベントを emit します。
@@ -63,19 +61,7 @@ import GInputInitializeMixin from '~/mixins/GInputInitializeMixin'
  * };
  * </script>
  *
- * @version 1.10.0
  * @creator shisyamo4131
- * @updates
- * - version 1.10.0 - `data.forceDelete` を GInputInitializeMixin に移動
- * - version 1.9.0 - `data.forceDelete` を追加。
- * - version 1.8.0 - `data.loading`を追加。
- *                 - `submit`処理で`data.loading`の状態を制御するように修正
- * - version 1.7.0 - `GInputInitializeMixin`の`data.clone`を`data.editModel`に変更したことに伴う修正。
- *                 - `submit`処理での`input`イベントのemitを削除。
- *                 - `data.submitType`を実装。
- *                 - `data.submitType`が`toFirestore`の場合、`submit`処理でインスタンスの更新メソッドをコールするように修正。
- *                 - `data.submitType`が`toParent`の場合、`submit`処理でインスタンスを伴った`submit:complete`イベントをemitするように修正。
- * - version 1.6.1 - 各種 Mixin の機能に関するコメントを追加し、コードの説明を改善。
  */
 
 export default {
@@ -115,7 +101,7 @@ export default {
         return
       }
 
-      if (this.editMode !== this.DELETE && !this.forceDelete) {
+      if (this.editMode !== this.DELETE) {
         if (typeof this.validate !== 'function') {
           // eslint-disable-next-line no-console
           console.warn('Validation method not found. Submit action aborted.')
@@ -131,7 +117,7 @@ export default {
       try {
         this.loading = true
         if (this.submitType === 'toFirestore') {
-          if (this.editMode === this.DELETE || this.forceDelete) {
+          if (this.editMode === this.DELETE) {
             await this.editModel.delete()
           } else if (this.editMode === this.UPDATE) {
             await this.editModel.update()
@@ -143,9 +129,8 @@ export default {
           instance: this.editModel.clone
             ? this.editModel.clone()
             : new this.editModel.constructor(this.editModel),
-          editMode: this.forceDelete ? this.DELETE : this.editMode,
+          editMode: this.editMode,
         })
-        this.forceDelete = false
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('Submit failed:', error)

@@ -60,46 +60,44 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form @submit.prevent>
-      <g-autocomplete-employee
-        v-if="!hideEmployee"
-        v-model="editModel.employeeId"
-        label="従業員"
-        required
-        :disabled="editMode !== CREATE"
-      />
-      <v-row dense>
-        <v-col cols="12" md="6">
-          <g-combobox-date v-model="editModel.date" label="受診日" required />
-        </v-col>
-        <v-col cols="12" md="6">
-          <g-select
-            v-model="editModel.type"
-            label="受診区分"
-            :items="[
-              { text: '入社時', value: 'entry' },
-              { text: '法定検診', value: 'regular' },
-            ]"
-            required
-            attach
-          />
-        </v-col>
-        <v-col cols="12">
-          <g-text-field v-model="editModel.agency" label="受診機関" required />
-        </v-col>
-        <v-col cols="12" md="6">
-          <g-numeric v-model="editModel.bloodTop" label="血圧（上）" required />
-        </v-col>
-        <v-col cols="12" md="6">
-          <g-numeric
-            v-model="editModel.bloodBottom"
-            label="血圧（下）"
-            required
-          />
-        </v-col>
-      </v-row>
-      <g-textarea v-model="editModel.remarks" label="備考" hide-details />
-    </v-form>
+    <g-autocomplete-employee
+      v-if="!hideEmployee"
+      v-model="editModel.employeeId"
+      label="従業員"
+      required
+      :disabled="editMode !== CREATE"
+    />
+    <v-row dense>
+      <v-col cols="12" md="6">
+        <g-combobox-date v-model="editModel.date" label="受診日" required />
+      </v-col>
+      <v-col cols="12" md="6">
+        <g-select
+          v-model="editModel.type"
+          label="受診区分"
+          :items="[
+            { text: '入社時', value: 'entry' },
+            { text: '法定検診', value: 'regular' },
+          ]"
+          required
+          attach
+        />
+      </v-col>
+      <v-col cols="12">
+        <g-text-field v-model="editModel.agency" label="受診機関" required />
+      </v-col>
+      <v-col cols="12" md="6">
+        <g-numeric v-model="editModel.bloodTop" label="血圧（上）" required />
+      </v-col>
+      <v-col cols="12" md="6">
+        <g-numeric
+          v-model="editModel.bloodBottom"
+          label="血圧（下）"
+          required
+        />
+      </v-col>
+    </v-row>
+    <g-textarea v-model="editModel.remarks" label="備考" hide-details />
   </g-card-input-form>
 </template>
 

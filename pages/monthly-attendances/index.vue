@@ -338,7 +338,7 @@ export default {
                   :allowe-dates-for-substitute="allowedDatesForSubstitute"
                   hide-employee
                   hide-date
-                  :edit-mode="editMode"
+                  :edit-mode.sync="editMode"
                   :instance="instance"
                   v-on="props.on"
                 />

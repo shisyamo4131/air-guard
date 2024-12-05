@@ -263,7 +263,7 @@ export default {
             :allowed-dates="allowedDates"
             :disable-edit="hasNewContract"
             :disable-start-date="hasPriorContractWithPeriod || !items.length"
-            :edit-mode="editMode"
+            :edit-mode.sync="editMode"
             hide-employee
             :instance="editModel"
             v-on="on"

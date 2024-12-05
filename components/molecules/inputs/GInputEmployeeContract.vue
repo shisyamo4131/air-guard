@@ -19,7 +19,6 @@ import GAutocomplete from '~/components/atoms/inputs/GAutocomplete.vue'
 import { WorkRegulationMinimal } from '~/models/WorkRegulation'
 import { isValidDateFormat } from '~/utils/utility'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
-import GCheckboxDeleteData from '~/components/atoms/inputs/GCheckboxDeleteData.vue'
 import GAutocompletePaymentType from '~/components/atoms/inputs/GAutocompletePaymentType.vue'
 export default {
   /***************************************************************************
@@ -36,7 +35,6 @@ export default {
     GDate,
     GAutocomplete,
     GSwitch,
-    GCheckboxDeleteData,
     GCardWorkRegulation,
     GAutocompletePaymentType,
     GCardEmployeeAllowances,
@@ -126,172 +124,166 @@ export default {
     label="雇用契約情報編集"
     :edit-mode="editMode"
     :loading="loading"
+    :disabled="disableEdit"
     @click:submit="submit"
     v-on="$listeners"
   >
     <v-alert v-if="disableEdit" type="info" dense text>
       新しい雇用契約が登録されているため、編集・削除できません。
     </v-alert>
-    <v-form :disabled="disableEdit" @submit.prevent>
-      <g-autocomplete-employee
-        v-if="!hideEmployee"
-        v-model="editModel.employeeId"
-        label="従業員"
-        required
-        :disabled="editMode !== CREATE"
-      />
-      <v-row dense>
-        <v-col cols="12" sm="4">
-          <g-dialog-date-picker
-            v-model="editModel.startDate"
-            :allowed-dates="allowedDates"
-          >
-            <template #activator="{ attrs, on }">
-              <g-date
-                class="center-input"
-                v-bind="attrs"
-                label="契約日"
-                required
-                :disabled="editMode !== CREATE || disableStartDate"
-                v-on="on"
-              />
-            </template>
-          </g-dialog-date-picker>
-        </v-col>
-        <v-col cols="12" sm="4">
-          <g-checkbox
-            v-model="editModel.hasPeriod"
-            class="mt-1"
-            label="期間の定め"
-          />
-        </v-col>
-        <v-col cols="12" sm="4">
-          <g-dialog-date-picker v-model="editModel.expiredDate">
-            <template #activator="{ attrs, on }">
-              <g-date
-                class="center-input"
-                v-bind="attrs"
-                label="契約満了日"
-                :required="editModel.hasPeriod"
-                :disabled="!editModel.hasPeriod"
-                v-on="on"
-              />
-            </template>
-          </g-dialog-date-picker>
-        </v-col>
-        <v-col cols="12" sm="4">
-          <g-select
-            v-model="editModel.contractType"
-            label="雇用形態"
-            :items="$CONTRACT_TYPE_ARRAY"
-            required
-            attach
-          />
-        </v-col>
-        <v-col cols="12" sm="8">
-          <g-autocomplete
-            v-model="editModel.workRegulationId"
-            label="就業規則"
-            attach
-            :items="workRegulations"
-            :item-text="(item) => `${item.name}(${item.year})`"
-            item-value="docId"
-            required
-          />
-        </v-col>
-      </v-row>
-      <div class="text-right mb-6">
-        <v-btn
-          color="primary"
-          :disabled="!editModel.workRegulationId"
-          outlined
-          x-small
-          @click="showWorkRegulation = !showWorkRegulation"
-        >
-          {{ `就業規則の詳細を${showWorkRegulation ? '閉じる' : '開く'}` }}
-        </v-btn>
-      </div>
-
-      <!-- 就業規則カード -->
-      <v-expand-transition>
-        <g-card-work-regulation
-          v-show="showWorkRegulation"
-          class="mb-8"
-          disable-edit
-          outlined
-          :doc-id="editModel.workRegulationId"
-        />
-      </v-expand-transition>
-
-      <v-row dense>
-        <v-col cols="12" sm="4">
-          <g-autocomplete-payment-type
-            v-model="editModel.paymentType"
-            required
-            attach
-          />
-        </v-col>
-        <v-col cols="12" sm="8">
-          <g-numeric
-            v-model="editModel.basicWage"
-            class="center-input"
-            label="基本給"
-            required
-            suffix="円"
-          />
-        </v-col>
-        <v-col cols="12">
-          <g-switch
-            v-model="editModel.providesTransportationAllowance"
-            class="mt-1"
-            :label="`交通費: ${
-              editModel.providesTransportationAllowance
-                ? '支給する'
-                : '支給しない'
-            }`"
-          />
-        </v-col>
-      </v-row>
-      <v-card class="mb-8" outlined>
-        <v-toolbar dense flat>
-          <v-toolbar-title class="text-subtitle-1">社会保険</v-toolbar-title>
-        </v-toolbar>
-        <v-card-text class="py-0">
-          <v-row dense>
-            <v-col cols="12" sm="4">
-              <g-checkbox
-                v-model="editModel.isHealthInsuranceRequired"
-                label="健康保険加入"
-              />
-            </v-col>
-            <v-col cols="12" sm="4">
-              <g-checkbox
-                v-model="editModel.isPensionRequired"
-                label="厚生年金加入"
-              />
-            </v-col>
-            <v-col cols="12" sm="4">
-              <g-checkbox
-                v-model="editModel.isEmploymentInsuranceRequired"
-                label="雇用保険加入"
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-      <!-- 支給手当 -->
-      <g-card-employee-allowances
-        v-model="editModel.allowances"
-        outlined
-        class="mb-8"
-      />
-      <g-textarea v-model="editModel.remarks" label="備考" hide-details />
-    </v-form>
-    <g-checkbox-delete-data
-      v-if="editMode !== CREATE"
-      v-model="forceDelete"
-      :disabled="disableEdit"
+    <g-autocomplete-employee
+      v-if="!hideEmployee"
+      v-model="editModel.employeeId"
+      label="従業員"
+      required
+      :disabled="editMode !== CREATE"
     />
+    <v-row dense>
+      <v-col cols="12" sm="4">
+        <g-dialog-date-picker
+          v-model="editModel.startDate"
+          :allowed-dates="allowedDates"
+        >
+          <template #activator="{ attrs, on }">
+            <g-date
+              class="center-input"
+              v-bind="attrs"
+              label="契約日"
+              required
+              :disabled="editMode !== CREATE || disableStartDate"
+              v-on="on"
+            />
+          </template>
+        </g-dialog-date-picker>
+      </v-col>
+      <v-col cols="12" sm="4">
+        <g-checkbox
+          v-model="editModel.hasPeriod"
+          class="mt-1"
+          label="期間の定め"
+        />
+      </v-col>
+      <v-col cols="12" sm="4">
+        <g-dialog-date-picker v-model="editModel.expiredDate">
+          <template #activator="{ attrs, on }">
+            <g-date
+              class="center-input"
+              v-bind="attrs"
+              label="契約満了日"
+              :required="editModel.hasPeriod"
+              :disabled="!editModel.hasPeriod"
+              v-on="on"
+            />
+          </template>
+        </g-dialog-date-picker>
+      </v-col>
+      <v-col cols="12" sm="4">
+        <g-select
+          v-model="editModel.contractType"
+          label="雇用形態"
+          :items="$CONTRACT_TYPE_ARRAY"
+          required
+          attach
+        />
+      </v-col>
+      <v-col cols="12" sm="8">
+        <g-autocomplete
+          v-model="editModel.workRegulationId"
+          label="就業規則"
+          attach
+          :items="workRegulations"
+          :item-text="(item) => `${item.name}(${item.year})`"
+          item-value="docId"
+          required
+        />
+      </v-col>
+    </v-row>
+    <div class="text-right mb-6">
+      <v-btn
+        color="primary"
+        :disabled="!editModel.workRegulationId"
+        outlined
+        x-small
+        @click="showWorkRegulation = !showWorkRegulation"
+      >
+        {{ `就業規則の詳細を${showWorkRegulation ? '閉じる' : '開く'}` }}
+      </v-btn>
+    </div>
+
+    <!-- 就業規則カード -->
+    <v-expand-transition>
+      <g-card-work-regulation
+        v-show="showWorkRegulation"
+        class="mb-8"
+        disable-edit
+        outlined
+        :doc-id="editModel.workRegulationId"
+      />
+    </v-expand-transition>
+
+    <v-row dense>
+      <v-col cols="12" sm="4">
+        <g-autocomplete-payment-type
+          v-model="editModel.paymentType"
+          required
+          attach
+        />
+      </v-col>
+      <v-col cols="12" sm="8">
+        <g-numeric
+          v-model="editModel.basicWage"
+          class="center-input"
+          label="基本給"
+          required
+          suffix="円"
+        />
+      </v-col>
+      <v-col cols="12">
+        <g-switch
+          v-model="editModel.providesTransportationAllowance"
+          class="mt-1"
+          :label="`交通費: ${
+            editModel.providesTransportationAllowance
+              ? '支給する'
+              : '支給しない'
+          }`"
+        />
+      </v-col>
+    </v-row>
+    <v-card class="mb-8" outlined>
+      <v-toolbar dense flat>
+        <v-toolbar-title class="text-subtitle-1">社会保険</v-toolbar-title>
+      </v-toolbar>
+      <v-card-text class="py-0">
+        <v-row dense>
+          <v-col cols="12" sm="4">
+            <g-checkbox
+              v-model="editModel.isHealthInsuranceRequired"
+              label="健康保険加入"
+            />
+          </v-col>
+          <v-col cols="12" sm="4">
+            <g-checkbox
+              v-model="editModel.isPensionRequired"
+              label="厚生年金加入"
+            />
+          </v-col>
+          <v-col cols="12" sm="4">
+            <g-checkbox
+              v-model="editModel.isEmploymentInsuranceRequired"
+              label="雇用保険加入"
+            />
+          </v-col>
+        </v-row>
+      </v-card-text>
+    </v-card>
+    <!-- 支給手当 -->
+    <g-card-employee-allowances
+      v-model="editModel.allowances"
+      outlined
+      class="mb-8"
+    />
+    <g-textarea v-model="editModel.remarks" label="備考" hide-details />
   </g-card-input-form>
 </template>
 

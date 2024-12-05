@@ -51,26 +51,24 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form @submit.prevent>
-      <g-text-field
-        v-model="editModel.email"
-        label="email"
-        required
-        input-type="email"
-      />
-      <g-text-field
-        v-model="editModel.password"
-        label="password"
-        required
-        type="password"
-      />
-      <g-autocomplete-employee
-        v-model="editModel.employeeId"
-        label="従業員"
-        required
-      />
-      <g-text-field v-model="editModel.displayName" label="表示名" required />
-    </v-form>
+    <g-text-field
+      v-model="editModel.email"
+      label="email"
+      required
+      input-type="email"
+    />
+    <g-text-field
+      v-model="editModel.password"
+      label="password"
+      required
+      type="password"
+    />
+    <g-autocomplete-employee
+      v-model="editModel.employeeId"
+      label="従業員"
+      required
+    />
+    <g-text-field v-model="editModel.displayName" label="表示名" required />
   </g-card-input-form>
 </template>
 

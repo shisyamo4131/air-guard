@@ -466,7 +466,7 @@ export default {
               <g-input-site-operation-schedule
                 v-bind="attrs"
                 :instance="instance"
-                :edit-mode="editMode"
+                :edit-mode.sync="editMode"
                 v-on="on"
               />
             </template>

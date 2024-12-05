@@ -88,7 +88,7 @@ export default {
         <template #default="{ attrs, on }">
           <g-input-autonumber
             v-bind="attrs"
-            :edit-mode="editMode"
+            :edit-mode.sync="editMode"
             :instance="instance"
             v-on="on"
           />

@@ -51,17 +51,15 @@ export default {
     @click:submit="submit"
     v-on="$listeners"
   >
-    <v-form @submit.prevent>
-      <g-combobox-date v-model="editModel.date" label="入庫日" />
-      <g-select
-        v-model="editModel.transactionType"
-        label="区分"
-        :items="['in', 'out']"
-        required
-      />
-      <g-numeric v-model="editModel.amount" label="数量" required />
-      <g-textarea v-model="editModel.remarks" label="備考" hide-details />
-    </v-form>
+    <g-combobox-date v-model="editModel.date" label="入庫日" />
+    <g-select
+      v-model="editModel.transactionType"
+      label="区分"
+      :items="['in', 'out']"
+      required
+    />
+    <g-numeric v-model="editModel.amount" label="数量" required />
+    <g-textarea v-model="editModel.remarks" label="備考" hide-details />
   </g-card-input-form>
 </template>
 
