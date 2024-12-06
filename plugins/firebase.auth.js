@@ -24,6 +24,7 @@ export default (context) => {
       if (user && ACTIVATE) {
         await context.store.dispatch(ACTIVATE, user)
         await context.store.dispatch('systems/subscribe')
+        await context.store.dispatch('company-info/subscribe')
         await context.store.dispatch('users/subscribe')
         await context.store.dispatch('customers/subscribe')
         await context.store.dispatch('sites/subscribe')
@@ -35,6 +36,7 @@ export default (context) => {
       } else if (!user && DISACTIVATE) {
         await context.store.dispatch(DISACTIVATE)
         await context.store.dispatch('systems/unsubscribe')
+        await context.store.dispatch('company-info/unsubscribe')
         await context.store.dispatch('users/unsubscribe')
         await context.store.dispatch('customers/unsubscribe')
         await context.store.dispatch('sites/unsubscribe')

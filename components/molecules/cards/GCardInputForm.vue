@@ -27,6 +27,7 @@ export default {
    ***************************************************************************/
   props: {
     disabled: { type: Boolean, default: false, required: false },
+    disableDelete: { type: Boolean, default: false, required: false },
     disableSubmit: { type: Boolean, default: false, required: false },
     label: { type: String, required: true },
     loading: { type: Boolean, default: false, required: false },
@@ -50,7 +51,7 @@ export default {
           }"
         />
         <g-checkbox
-          v-if="editMode !== CREATE"
+          v-if="editMode !== CREATE && !disableDelete"
           label="このデータを削除する"
           :true-value="DELETE"
           :false-value="UPDATE"

@@ -41,6 +41,7 @@ module.exports = {
   'synchronize-outsourcers': ['admin', 'developer'],
 
   // 設定・管理
+  settings: ['admin', 'developer'],
   'admin-users': ['admin', 'developer'],
   holidays: ['admin', 'developer'],
   'admin-autonumbers': ['admin', 'developer'],

@@ -86,6 +86,11 @@
     "icon": "mdi-wrench-cog",
     "lists": [
       {
+        "name": "アプリ設定",
+        "to": "/settings",
+        "icon": "mdi-wrench-cog"
+      },
+      {
         "name": "ユーザー管理",
         "to": "/admin/users",
         "icon": "mdi-account"

@@ -1,8 +1,5 @@
 /**
- * ## Vuex.systems.js
- *
  * システム情報の Vuex です。
- *
  * @author shisyamo4131
  */
 import { firestore } from 'air-firebase'
@@ -13,7 +10,7 @@ import System from '~/models/System'
  * STATE
  ******************************************************************/
 export const state = () => ({
-  APP_VERSION: '0.7.5', // アプリのバージョン -> Firestore のシステムバージョンとの比較に使用
+  APP_VERSION: '0.7.6', // アプリのバージョン -> Firestore のシステムバージョンとの比較に使用
   calcAttendance: null,
   calcMonthlySales: null,
   calcSiteBillings: null,
