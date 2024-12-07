@@ -157,7 +157,17 @@ export default {
     <v-toolbar class="flex-grow-0" flat>
       <div class="d-flex align-center flex-grow-1" style="gap: 8px">
         <!-- slot: prepend-search -->
-        <slot name="prepend-search" />
+        <slot
+          name="prepend-search"
+          v-bind="{
+            attrs: {
+              outlined: false,
+              hideDetails: true,
+              soloInverted: true,
+              flat: true,
+            },
+          }"
+        />
         <slot name="search">
           <g-text-field-search
             v-model="internalSearch"
@@ -166,7 +176,17 @@ export default {
           />
         </slot>
         <!-- slot: append-search -->
-        <slot name="append-search" />
+        <slot
+          name="append-search"
+          v-bind="{
+            attrs: {
+              outlined: false,
+              hideDetails: true,
+              soloInverted: true,
+              flat: true,
+            },
+          }"
+        />
         <v-btn icon class="ml-auto">
           <v-icon color="primary" @click="drawer = !drawer">mdi-filter</v-icon>
         </v-btn>
