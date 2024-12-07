@@ -170,7 +170,7 @@ export default {
             const getWorkRegulations = async () => {
               const instance = new WorkRegulation()
               const result = await instance.fetchDocs([
-                ['where', 'year', '==', '2024'],
+                ['where', 'year', '>=', '2024'],
               ])
               return result
             }
@@ -187,12 +187,14 @@ export default {
                 item.employee = getEmployee(item.employeeCode)
                 item.employeeId = item.employee?.docId || undefined
                 const workRegulation = workRegulations.find(
-                  ({ contractType }) => contractType === item.contractType
+                  ({ contractType, year }) =>
+                    contractType === item.contractType &&
+                    item.startDate.slice(0, 4) === year
                 )
                 if (!workRegulation) {
                   throw new Error(`就業規則が取得できませんでした。`)
                 }
-                item.workRegulation = workRegulation
+                item.workRegulationId = workRegulation.docId
                 item.providesTransportationAllowance =
                   item.contractType !== 'part-time' &&
                   item.basicWage !== '10000'
