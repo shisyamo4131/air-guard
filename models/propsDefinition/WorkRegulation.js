@@ -4,6 +4,14 @@ import { generateVueProps, generateClassProps } from './propsUtil'
 const propsDefinition = {
   docId: { type: String, default: '', required: false, requiredByClass: false },
 
+  // 複製元のドキュメントID
+  sourceDocId: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
   // 年（YYYY）
   year: { type: String, default: '', required: false, requiredByClass: true },
 
@@ -78,6 +86,14 @@ const propsDefinition = {
     requiredByClass: true,
   },
 
+  // 所定時間外労働の有無
+  hasOvertime: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: true,
+  },
+
   // 備考
   remarks: {
     type: String,
@@ -122,6 +138,38 @@ const propsDefinition = {
   holidays: {
     type: Array,
     default: () => [],
+    required: false,
+    requiredByClass: false,
+  },
+
+  // [労働条件通知書] 就業場所（雇い入れ直後）
+  initialWorkLocation: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  // [労働条件通知書] 就業場所（変更の範囲）
+  locationChangeScope: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  // [労働条件通知書] 従事すべき業務の内容（雇い入れ直後）
+  initialJob: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  // [労働条件通知書] 従事すべき業務の内容（変更の範囲）
+  jobChangeScope: {
+    type: String,
+    default: '',
     required: false,
     requiredByClass: false,
   },

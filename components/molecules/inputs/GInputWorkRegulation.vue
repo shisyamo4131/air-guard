@@ -161,6 +161,34 @@ export default {
           attach
         />
       </v-col>
+      <v-col cols="12">
+        <g-text-field
+          v-model="editModel.initialWorkLocation"
+          label="就業場所（雇い入れ直後）"
+          required
+        />
+      </v-col>
+      <v-col cols="12">
+        <g-text-field
+          v-model="editModel.locationChangeScope"
+          label="就業場所（変更の範囲）"
+          required
+        />
+      </v-col>
+      <v-col cols="12">
+        <g-text-field
+          v-model="editModel.initialJob"
+          label="従事すべき業務の内容（雇い入れ直後）"
+          required
+        />
+      </v-col>
+      <v-col cols="12">
+        <g-text-field
+          v-model="editModel.jobChangeScope"
+          label="従事すべき業務の内容（変更の範囲）"
+          required
+        />
+      </v-col>
       <v-col cols="12" sm="4">
         <g-text-field
           v-model="editModel.startTime"
@@ -186,6 +214,13 @@ export default {
           label="休憩時間"
           required
           suffix="分"
+        />
+      </v-col>
+      <v-col cols="12">
+        <g-checkbox
+          v-model="editModel.hasOvertime"
+          class="mt-0"
+          label="所定時間外労働の有無"
         />
       </v-col>
       <v-col cols="12">

@@ -82,6 +82,8 @@ export default class WorkRegulation extends FireModel {
 
   /****************************************************************************
    * 指定された年度の就業規則ドキュメントをもとに、翌年度の就業規則ドキュメントを作成します。
+   * - 翌年度の就業規則ドキュメントは祝日が初期化されます。
+   * - 翌年度の就業規則ドキュメントは複製元である今年度のドキュメントIDを保有します。
    * @param {string} year - 作成元となる就業規則の年度（YYYY 形式）
    * @return {Promise<string>} - 作成された翌年度の年度（YYYY 形式）
    ****************************************************************************/
@@ -113,7 +115,12 @@ export default class WorkRegulation extends FireModel {
       // トランザクションを使って翌年度のドキュメントを作成
       await runTransaction(firestore, (transaction) => {
         const promises = currentYearDocs.map((doc) => {
-          const newInstance = new this({ ...doc, year: nextYear, holidays: [] })
+          const newInstance = new this({
+            ...doc,
+            sourceDocId: doc.docId,
+            year: nextYear,
+            holidays: [],
+          })
           return newInstance.create({ transaction }) // Promiseを返すようにする
         })
 
