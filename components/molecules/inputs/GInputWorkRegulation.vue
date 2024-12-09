@@ -57,7 +57,6 @@ export default {
         { text: '日曜日', value: 'sun' },
       ],
       editModel: new WorkRegulation(),
-      pickerDate: null,
       /**
        * 所定労働に関するルールです。
        * - 所定労働日は1つ以上選択されていなければなりません。
@@ -102,20 +101,12 @@ export default {
       )
       this.editModel.scheduledWorkDays = result
     },
-    onChangedYear() {
-      this.pickerDate = this.editModel.year
-        ? this.$dayjs(`${this.editModel.year}-01-01`).format('YYYY-MM-DD')
-        : null
-      this.refreshHolidays()
-    },
+
+    /**
+     * 設定されている祝日を初期化します。
+     */
     refreshHolidays() {
-      if (!this.editModel.year) {
-        this.editModel.holidays.splice(0)
-      } else {
-        this.editModel.holidays = this.editModel.holidays.filter((date) => {
-          return date.slice(0, 4) === this.editModel.year
-        })
-      }
+      this.editModel.holidays.splice(0)
     },
   },
 }
@@ -140,7 +131,7 @@ export default {
           :rules="[(v) => !v || v.length === 4 || '西暦で入力']"
           required
           suffix="年"
-          @change="onChangedYear"
+          @change="refreshHolidays"
         />
       </v-col>
 
