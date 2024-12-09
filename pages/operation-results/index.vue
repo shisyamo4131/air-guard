@@ -47,8 +47,8 @@ export default {
       instance: new OperationResult(),
       items: [],
       month: this.$dayjs().format('YYYY-MM'),
-      selectedCustomerId: '',
-      selectedSiteId: '',
+      selectedCustomerId: null,
+      selectedSiteId: null,
     }
   },
 
@@ -86,7 +86,18 @@ export default {
      * - 取引先IDで絞り込まれているケースに対応しています。
      */
     siteIds() {
-      return [...new Set(this.filteredItems.map((item) => item.site.docId))]
+      return [
+        ...new Set(
+          this.items
+            .filter((item) => {
+              return (
+                !this.selectedCustomerId ||
+                item.site.customer.docId === this.selectedCustomerId
+              )
+            })
+            .map((item) => item.site.docId)
+        ),
+      ]
     },
   },
 
@@ -107,6 +118,10 @@ export default {
         this.items = this.instance.subscribeDocs(constraints)
       },
       immediate: true,
+    },
+
+    selectedCustomerId(v) {
+      this.selectedSiteId = null
     },
   },
 
@@ -137,9 +152,14 @@ export default {
     <template #nav>
       <g-autocomplete-customer
         v-model="selectedCustomerId"
+        clearable
         :doc-ids="customerIds"
       />
-      <g-autocomplete-site v-model="selectedSiteId" :doc-ids="siteIds" />
+      <g-autocomplete-site
+        v-model="selectedSiteId"
+        clearable
+        :doc-ids="siteIds"
+      />
     </template>
     <template #search="{ attrs }">
       <g-text-field-month v-model="month" :options="attrs" />
