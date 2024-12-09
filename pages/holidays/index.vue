@@ -2,11 +2,11 @@
 import { database } from 'air-firebase'
 import { onValue, ref } from 'firebase/database'
 import GCalendar from '~/components/atoms/calendars/GCalendar.vue'
-import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
+import GTextFieldMonth from '~/components/molecules/inputs/GTextFieldMonth.vue'
 export default {
   name: 'HolidaysIndex',
-  components: { GTemplateFixed, GTextFieldSearchMonth, GCalendar },
+  components: { GTemplateFixed, GCalendar, GTextFieldMonth },
   data() {
     return {
       data: null,
@@ -72,7 +72,15 @@ export default {
           </v-toolbar-items>
         </v-toolbar>
         <v-toolbar class="flex-grow-0" flat>
-          <g-text-field-search-month v-model="month" />
+          <g-text-field-month
+            v-model="month"
+            :options="{
+              outlined: false,
+              soloInverted: true,
+              hideDetails: true,
+              flat: true,
+            }"
+          />
         </v-toolbar>
         <v-card-text class="pa-0 pa-md-4 flex-grow-1">
           <g-calendar :events="events" />

@@ -24,7 +24,7 @@ import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GInputLeaveRecord from '~/components/molecules/inputs/GInputLeaveRecord.vue'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import LeaveRecord from '~/models/LeaveRecord'
-import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
+import GTextFieldMonth from '~/components/molecules/inputs/GTextFieldMonth.vue'
 
 export default {
   /***************************************************************************
@@ -43,7 +43,7 @@ export default {
     GDataTableOperationWorkResults,
     GDialogInput,
     GInputLeaveRecord,
-    GTextFieldSearchMonth,
+    GTextFieldMonth,
   },
 
   /***************************************************************************
@@ -266,8 +266,8 @@ export default {
     :items="items"
     :hide-pagination="isCalculating"
   >
-    <template #search>
-      <g-text-field-search-month v-model="month" />
+    <template #search="{ attrs }">
+      <g-text-field-month v-model="month" :options="attrs" />
       <v-btn
         color="primary"
         :disabled="isCalculating || loading"

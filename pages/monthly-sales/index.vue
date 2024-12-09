@@ -7,9 +7,9 @@ import {
 } from 'firebase/functions'
 import GChartSales from '~/components/atoms/charts/GChartSales.vue'
 import DailySale from '~/models/DailySale'
-import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
 import GDataTableMonthlySalesByCustomer from '~/components/molecules/tables/GDataTableMonthlySalesByCustomer.vue'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
+import GTextFieldMonth from '~/components/molecules/inputs/GTextFieldMonth.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -21,9 +21,9 @@ export default {
    ***************************************************************************/
   components: {
     GChartSales,
-    GTextFieldSearchMonth,
     GDataTableMonthlySalesByCustomer,
     GTemplateFixed,
+    GTextFieldMonth,
   },
 
   /***************************************************************************
@@ -135,7 +135,15 @@ export default {
         </v-toolbar-items>
       </v-toolbar>
       <v-toolbar class="flex-grow-0" flat>
-        <g-text-field-search-month v-model="month" />
+        <g-text-field-month
+          v-model="month"
+          :options="{
+            outlined: false,
+            soloInverted: true,
+            hideDetails: true,
+            flat: true,
+          }"
+        />
         <v-spacer />
         <div class="flex-grow-0 px-4 text-right text-subtitle-2 grey--text">
           <div>最終更新:</div>

@@ -9,12 +9,12 @@ import ja from 'dayjs/locale/ja'
 import SiteBilling from '~/models/SiteBilling'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import Customer from '~/models/Customer'
-import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
+import GTextFieldMonth from '~/components/molecules/inputs/GTextFieldMonth.vue'
 
 export default {
   name: 'MonthlyBillings',
-  components: { GDataTable, GTextFieldSearchMonth, GTemplateFixed },
+  components: { GDataTable, GTemplateFixed, GTextFieldMonth },
   data() {
     return {
       items: [],
@@ -488,7 +488,15 @@ export default {
         </v-toolbar-items>
       </v-toolbar>
       <v-toolbar class="flex-grow-0" flat>
-        <g-text-field-search-month v-model="month" />
+        <g-text-field-month
+          v-model="month"
+          :options="{
+            outlined: false,
+            soloInverted: true,
+            hideDetails: true,
+            flat: true,
+          }"
+        />
         <v-spacer />
         <div class="flex-grow-0 px-4 text-right text-subtitle-2 grey--text">
           <div>最終更新:</div>

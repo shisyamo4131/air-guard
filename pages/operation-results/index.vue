@@ -16,7 +16,7 @@ import OperationResult from '~/models/OperationResult'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
-import GTextFieldSearchMonth from '~/components/molecules/inputs/GTextFieldSearchMonth.vue'
+import GTextFieldMonth from '~/components/molecules/inputs/GTextFieldMonth.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -31,7 +31,7 @@ export default {
     GDataTableOperationResults,
     GDialogInput,
     GBtnRegistIcon,
-    GTextFieldSearchMonth,
+    GTextFieldMonth,
   },
   /***************************************************************************
    * MIXINS
@@ -108,8 +108,8 @@ export default {
 
 <template>
   <g-template-index label="稼働実績管理" :items="filteredItems">
-    <template #search>
-      <g-text-field-search-month v-model="month" />
+    <template #search="{ attrs }">
+      <g-text-field-month v-model="month" :options="attrs" />
       <v-spacer />
     </template>
     <template #append-search>
