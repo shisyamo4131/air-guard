@@ -203,6 +203,56 @@ export default class Employee extends FireModel {
       throw new Error(message)
     }
   }
+
+  /****************************************************************************
+   * Firestore の 'Employees' コレクションから指定された期間内に在職していた従業員ドキュメントを返します。
+   *
+   * @param {Object} options - オプションのフィルタ条件を含むオブジェクト。
+   * @param {string | null} options.from - 期間開始日です。
+   * @param {string | null} options.to - 期間終了日です。
+   * @returns {Promise<Array<Object>>} Firestore のデータを持つ従業員インスタンスの配列を返します。
+   * @throws {Error} Firestore のクエリが失敗した場合、詳細を含むエラーがスローされます。
+   ****************************************************************************/
+  static async getExistingEmployees({ from, to }) {
+    // 引数のチェック
+    if (!from || !to) {
+      const message = `[getExistingEmployees] 必要な引数が指定されていません。`
+      // eslint-disable-next-line no-console
+      console.error(message, { from, to })
+      throw new Error(`${message}`)
+    }
+
+    const instance = new this()
+
+    try {
+      /**
+       * 期間中に在籍していた従業員ドキュメントを取得
+       * - 条件1) 処理時点で hireDate が to 以前、かつ leaveDate が設定されていない -> 現在在職中で、期間終了日以前に雇い入れられた従業員
+       * - 条件2) 処理時点で hireDate が to 以前、かつ leaveDate が from 以降 -> 現在退職済みだが、退職日が期間開始日以降
+       * 上記それぞれの条件で取得した ドキュメント を結合すると期間中に在籍していた従業員リストになる。
+       */
+      const [activeEmployees, leaveEmployees] = await Promise.all([
+        // 条件1)
+        instance.fetchDocs([
+          ['where', 'hireDate', '<=', to],
+          ['where', 'leaveDate', '==', ''],
+        ]),
+        // 条件2)
+        instance.fetchDocs([
+          ['where', 'hireDate', '<=', to],
+          ['where', 'leaveDate', '>=', from],
+        ]),
+      ])
+
+      // 結合して返す
+      return activeEmployees.concat(leaveEmployees)
+    } catch (error) {
+      const message = `[getExistingEmployees] 不明なエラーが発生しました。`
+      // eslint-disable-next-line no-console
+      console.error(message, { from, to, error })
+      throw error
+    }
+  }
 }
 
 /**

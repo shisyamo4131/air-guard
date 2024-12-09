@@ -179,4 +179,45 @@ export default class EmployeeContract extends FireModel {
       throw err
     }
   }
+
+  /****************************************************************************
+   * 指定された`employeeId`に該当する最新の雇用契約ドキュメントを返します。
+   * - date が指定された場合, date 以前の最新の1件を返します。
+   * - 該当するものがない場合は null を返します。
+   *
+   * @param {Object} params - パラメータオブジェクト
+   * @param {string} params.employeeId - 取得対象のemployeeId
+   * @param {string|null} [params.date=null] - 指定された場合、その日付以前の最新のドキュメントを取得
+   * @returns {Promise<Object|null>} - 一致するドキュメント、またはnullを返すPromise
+   * @throws {Error} ドキュメント取得中にエラーが発生した場合にエラーをスローします
+   ****************************************************************************/
+  static async getLatest({ employeeId, date = null }) {
+    if (!employeeId) {
+      throw new Error(
+        '[getLatest] 必須の引数 employeeId が指定されていません。'
+      )
+    }
+
+    const instance = new this()
+
+    try {
+      const conditions = [
+        ['where', 'employeeId', '==', employeeId],
+        ['orderBy', 'startDate', 'desc'],
+        ['limit', 1],
+      ]
+
+      if (date) {
+        conditions.splice(1, 0, ['where', 'startDate', '<=', date])
+      }
+
+      const result = await instance.fetchDocs(conditions)
+      return result.length ? result[0] : null
+    } catch (err) {
+      const message = '[getLatest] ドキュメント取得中にエラーが発生しました。'
+      // eslint-disable-next-line no-console
+      console.error(message, { employeeId, date, error: err })
+      throw err
+    }
+  }
 }
