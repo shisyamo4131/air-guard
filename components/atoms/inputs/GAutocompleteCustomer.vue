@@ -12,6 +12,16 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: { GAutocomplete },
+
+  /***************************************************************************
+   * PROPS
+   ***************************************************************************/
+  props: {
+    itemText: { type: String, default: 'abbr' },
+    itemValue: { type: String, default: 'docId' },
+    label: { type: String, default: '取引先' },
+  },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
@@ -27,9 +37,7 @@ export default {
 
 <template>
   <g-autocomplete
-    v-bind="$attrs"
-    item-text="abbr"
-    item-value="docId"
+    v-bind="{ ...$props, ...$attrs }"
     :items="items"
     v-on="$listeners"
   >
