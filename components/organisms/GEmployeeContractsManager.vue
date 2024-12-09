@@ -98,41 +98,6 @@ export default {
         ({ startDate }) => startDate > this.editModel.startDate
       )
     },
-    /**
-     * `editMode` が `CREATE` の際に影響するプロパティです。
-     * `editModel` の `startDate` よりも前に契約された直近の雇用契約に期間の定めがあるかどうか (`hasPeriod` が true か) を返します。
-     *
-     * 期間の定めがある直近の雇用契約が既に登録されている場合、`methods.initializeForRegist` で `editModel.startDate` が
-     * 契約満了日である `expiredDate` の翌日に設定されます。
-     * 従業員の雇用契約は必ず連続した状態でなければならず、新しい雇用契約を作成する際に `editModel.startDate` が
-     * ユーザーにより編集されてしまうことを避けなければなりません。
-     *
-     * 尚、EmployeeContracts ドキュメントの docId は `${employeeId}-${startDate}` で固定されるため、編集時に `startDate` は変更できません。
-     *
-     * - `editModel.startDate` または `items` が存在しない場合は `false` を返します。
-     * - `items` の中から、`editModel.startDate` よりも前に開始された契約を
-     *   `reduce` を使ってループし、最も開始日が近い契約を見つけます。
-     * - 見つかった契約 (`recent`) が存在し、かつ `hasPeriod` が true の場合に `true` を返します。
-     *
-     * @returns {boolean} `editModel.startDate` より前に期間の定めがある契約が存在する場合は `true`、そうでなければ `false`
-     */
-    hasPriorContractWithPeriod() {
-      // editModel の startDate または items がない場合は false を返す
-      if (!this.editModel.startDate || !this.items.length) return false
-
-      // 最も直近の契約を取得 (startDate が editModel.startDate よりも前)
-      const recent = this.items.reduce(
-        (last, item) =>
-          item.startDate < this.editModel.startDate &&
-          (!last || item.startDate > last.startDate)
-            ? item
-            : last,
-        null
-      )
-
-      // recent が存在し、かつ hasPeriod が true の場合に true を返す
-      return recent && recent.hasPeriod
-    },
   },
   /***************************************************************************
    * WATCH
@@ -236,6 +201,7 @@ export default {
 
       // editModelにemployeeIdとstartDateを初期化して設定
       this.editModel.initialize({
+        ...(recent || {}),
         employeeId: this.employeeInstance.docId,
         startDate,
       })
@@ -262,7 +228,6 @@ export default {
             v-bind="attrs"
             :allowed-dates="allowedDates"
             :disable-edit="hasNewContract"
-            :disable-start-date="hasPriorContractWithPeriod || !items.length"
             :edit-mode.sync="editMode"
             hide-employee
             :instance="editModel"
