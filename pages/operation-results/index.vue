@@ -136,6 +136,11 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    onClickSearchClear() {
+      this.selectedCustomerId = null
+      this.selectedSiteId = null
+    },
+
     onClickRow(item) {
       // 詳細ページが出来上がったらこちらを適用
       // this.$router.push(`/customers/${item.docId}`)
@@ -148,7 +153,11 @@ export default {
 </script>
 
 <template>
-  <g-template-index label="稼働実績管理" :items="filteredItems">
+  <g-template-index
+    label="稼働実績管理"
+    :items="filteredItems"
+    @click:clear="onClickSearchClear"
+  >
     <template #nav>
       <g-autocomplete-customer
         v-model="selectedCustomerId"
