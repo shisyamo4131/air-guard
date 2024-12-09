@@ -136,6 +136,7 @@ export default {
           v-model="editModel.year"
           class="center-input"
           label="適用年度"
+          :disabled="editMode !== CREATE"
           :rules="[(v) => !v || v.length === 4 || '西暦で入力']"
           required
           suffix="年"
@@ -324,7 +325,11 @@ export default {
               "
               multiple
               no-title
-              :picker-date.sync="pickerDate"
+              :picker-date="
+                editModel.year
+                  ? `${editModel.year}-01-01`
+                  : `${$dayjs().format('YYYY-MM-DD')}`
+              "
             />
           </div>
         </v-expand-transition>
