@@ -2,7 +2,8 @@
 /**
  * 取引先選択用のAutocompleteコンポーネントです。
  *
- * - `multiple`オプションは使用できません。
+ * - 選択可能なアイテムは Vuex から取得します。
+ * - props.docIds で指定された取引先 ID のみに絞り込むことが可能です。
  *
  * @author shisyamo4131
  */
@@ -17,8 +18,8 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    docIds: { type: Array, default: () => [], required: false },
     itemText: { type: String, default: 'abbr' },
-    itemValue: { type: String, default: 'docId' },
     label: { type: String, default: '取引先' },
   },
 
@@ -26,8 +27,13 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
-    items() {
-      return this.$store.getters['customers/items'].slice().sort((a, b) => {
+    internalItems() {
+      const filteredItems = this.$store.getters['customers/items'].filter(
+        (item) => {
+          return !this.docIds.length || this.docIds.includes(item.docId)
+        }
+      )
+      return filteredItems.sort((a, b) => {
         return a.abbrKana.localeCompare(b.abbrKana)
       })
     },
@@ -38,7 +44,8 @@ export default {
 <template>
   <g-autocomplete
     v-bind="{ ...$props, ...$attrs }"
-    :items="items"
+    :items="internalItems"
+    item-value="docId"
     v-on="$listeners"
   >
     <template #item="{ item }">

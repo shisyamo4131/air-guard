@@ -1,14 +1,13 @@
 <script>
 /**
- * ## GAutocompleteSite
- *
  * 現場選択用のAutocompleteコンポーネントです。
- * - items には Vuex の sites が読み込まれます。
+ *
+ * - 選択可能なアイテムは Vuex から取得します。
+ * - props.docIds で指定された現場IDのみに絞り込むことが可能です。
  *
  * @author shisyamo4131
  */
 import GAutocomplete from './GAutocomplete.vue'
-
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -19,8 +18,8 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    docIds: { type: Array, default: () => [], required: false },
     itemText: { type: String, default: 'abbr' },
-    itemValue: { type: String, default: 'docId' },
     label: { type: String, default: '現場' },
   },
 
@@ -28,8 +27,15 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
-    items() {
-      return this.$store.getters['sites/items']
+    internalItems() {
+      const filteredItems = this.$store.getters['sites/items'].filter(
+        (item) => {
+          return !this.docIds.length || this.docIds.includes(item.docId)
+        }
+      )
+      return filteredItems.sort((a, b) => {
+        return a.abbrKana.localeCompare(b.abbrKana)
+      })
     },
     status() {
       return this.$SITE_STATUS || {}
@@ -41,7 +47,8 @@ export default {
 <template>
   <g-autocomplete
     v-bind="{ ...$props, ...$attrs }"
-    :items="items"
+    :items="internalItems"
+    item-value="docId"
     v-on="$listeners"
   >
     <template #item="{ item }">

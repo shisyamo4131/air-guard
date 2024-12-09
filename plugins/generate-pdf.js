@@ -71,6 +71,15 @@ const generatePdf = async ({
       ...options,
     }
 
+    // 外部オプションにdefaultStyleが指定されている場合、フォントの設定を維持
+    if (options.defaultStyle) {
+      docDefinition.defaultStyle = {
+        ...docDefinition.defaultStyle,
+        ...options.defaultStyle,
+        font: 'NotoSansJP', // フォントを上書きで固定
+      }
+    }
+
     if (download) {
       // PDF を生成してブラウザでダウンロード
       pdfMake.createPdf(docDefinition).download('sample.pdf')

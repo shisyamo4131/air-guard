@@ -50,6 +50,7 @@ export default {
     './plugins/generate-pdf.js',
     './plugins/holiday.js',
     './plugins/placement-sheet.js',
+    './plugins/pdf/labor-terms-generator.js',
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components

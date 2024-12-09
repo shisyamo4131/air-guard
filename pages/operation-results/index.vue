@@ -1,13 +1,7 @@
 <script>
 /**
- * ## pages.OperationResultsIndex
- *
  * 稼働実績情報の一覧ページです。
- *
  * @author shisyamo4131
- * @version 1.0.0
- * @updates
- * - version 1.0.0 - 2024-09-06 - 初版作成
  */
 import GInputOperationResult from '~/components/molecules/inputs/GInputOperationResult.vue'
 import GDataTableOperationResults from '~/components/molecules/tables/GDataTableOperationResults.vue'
@@ -17,11 +11,14 @@ import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GTextFieldMonth from '~/components/molecules/inputs/GTextFieldMonth.vue'
+import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
+import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
 export default {
   /***************************************************************************
    * NAME
    ***************************************************************************/
   name: 'OperationResultsIndex',
+
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
@@ -32,40 +29,67 @@ export default {
     GDialogInput,
     GBtnRegistIcon,
     GTextFieldMonth,
+    GAutocompleteCustomer,
+    GAutocompleteSite,
   },
+
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
   mixins: [GMixinEditModeProvider],
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      customerId: '',
-      siteId: '',
       dialog: false,
       instance: new OperationResult(),
       items: [],
       month: this.$dayjs().format('YYYY-MM'),
+      selectedCustomerId: '',
+      selectedSiteId: '',
     }
   },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
+    /**
+     * 読み込まれた稼働実績ドキュメントを返します。
+     * - 取引先ID, 現場IDでの絞り込みを行います。
+     */
     filteredItems() {
       return this.items
         .filter((item) => {
-          return this.customerId
-            ? item.site.customer.docId === this.customerId
+          return this.selectedCustomerId
+            ? item.site.customer.docId === this.selectedCustomerId
             : true
         })
         .filter((item) => {
-          return this.siteId ? item.site.docId === this.siteId : true
+          return this.selectedSiteId
+            ? item.site.docId === this.selectedSiteId
+            : true
         })
     },
+
+    /**
+     * 読み込まれた稼働実績ドキュメントの取引先IDの配列を返します。
+     */
+    customerIds() {
+      return [...new Set(this.items.map((item) => item.site.customerId))]
+    },
+
+    /**
+     * 読み込まれた稼働実績ドキュメントの現場IDの配列を返します。
+     * - 取引先IDで絞り込まれているケースに対応しています。
+     */
+    siteIds() {
+      return [...new Set(this.filteredItems.map((item) => item.site.docId))]
+    },
   },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/
@@ -76,21 +100,23 @@ export default {
         this.editMode = this.CREATE
       }
     },
+
     month: {
-      handler(newVal, oldVal) {
-        if (newVal === oldVal) return
-        const constraints = [['where', 'month', '==', newVal]]
+      handler(v) {
+        const constraints = [['where', 'month', '==', v]]
         this.items = this.instance.subscribeDocs(constraints)
       },
       immediate: true,
     },
   },
+
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
   destroyed() {
     this.instance.unsubscribe()
   },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/
@@ -108,6 +134,13 @@ export default {
 
 <template>
   <g-template-index label="稼働実績管理" :items="filteredItems">
+    <template #nav>
+      <g-autocomplete-customer
+        v-model="selectedCustomerId"
+        :doc-ids="customerIds"
+      />
+      <g-autocomplete-site v-model="selectedSiteId" :doc-ids="siteIds" />
+    </template>
     <template #search="{ attrs }">
       <g-text-field-month v-model="month" :options="attrs" />
       <v-spacer />

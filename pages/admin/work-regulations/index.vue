@@ -10,10 +10,10 @@ import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import WorkRegulation from '~/models/WorkRegulation'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
-import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GDialogConfirm from '~/components/molecules/dialogs/GDialogConfirm.vue'
 import GSnackbarError from '~/components/atoms/snackbars/GSnackbarError.vue'
 import GDialogMessage from '~/components/molecules/dialogs/GDialogMessage.vue'
+import GSelectYear from '~/components/atoms/inputs/GSelectYear.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -29,10 +29,10 @@ export default {
     GDataTableWorkRegulations,
     GTemplateIndex,
     GDialogInput,
-    GSelect,
     GDialogConfirm,
     GSnackbarError,
     GDialogMessage,
+    GSelectYear,
   },
 
   /***************************************************************************
@@ -185,15 +185,11 @@ export default {
         </g-dialog-message>
       </v-toolbar-items>
     </template>
-    <template #prepend-search>
-      <g-select
+    <template #prepend-search="{ attrs }">
+      <g-select-year
         v-model="selectedYear"
         style="max-width: 120px"
-        :outlined="false"
-        hide-details
-        :items="yearList"
-        solo-inverted
-        flat
+        v-bind="attrs"
       />
     </template>
     <template #append-search>
