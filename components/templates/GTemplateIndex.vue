@@ -168,7 +168,17 @@ export default {
             },
           }"
         />
-        <slot name="search">
+        <slot
+          name="search"
+          v-bind="{
+            attrs: {
+              outlined: false,
+              hideDetails: true,
+              soloInverted: true,
+              flat: true,
+            },
+          }"
+        >
           <g-text-field-search
             v-model="internalSearch"
             :delay="delay"
