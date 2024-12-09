@@ -25,6 +25,9 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    disableNext: { type: Boolean, default: false, required: false },
+    disablePrev: { type: Boolean, default: false, required: false },
+    hideCurrentMonth: { type: Boolean, default: false, required: false },
     value: { type: String, default: undefined, required: false },
   },
   /***************************************************************************
@@ -78,6 +81,7 @@ export default {
 <template>
   <div class="d-flex align-center" style="column-gap: 4px">
     <v-btn
+      v-if="!hideCurrentMonth"
       color="primary"
       small
       outlined
@@ -85,11 +89,11 @@ export default {
     >
       今月
     </v-btn>
-    <v-btn icon @click="$emit('click:prev')">
+    <v-btn :disabled="disablePrev" icon @click="$emit('click:prev')">
       <g-icon-prev />
     </v-btn>
     <span>{{ month }}</span>
-    <v-btn icon @click="$emit('click:next')">
+    <v-btn :disabled="disableNext" icon @click="$emit('click:next')">
       <g-icon-next />
     </v-btn>
   </div>
