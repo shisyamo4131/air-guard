@@ -142,8 +142,15 @@ export default {
     <v-navigation-drawer v-model="drawer" fixed right temporary>
       <v-container>
         <slot name="nav" />
-      </v-container>
-      <v-container>
+        <v-btn
+          class="mb-6"
+          block
+          color="primary"
+          small
+          depressed
+          @click="$emit('click:clear')"
+          >クリア</v-btn
+        >
         <v-btn block color="primary" small depressed @click="drawer = false"
           >閉じる</v-btn
         >
