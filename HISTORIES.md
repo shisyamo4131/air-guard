@@ -35,7 +35,7 @@
   - ADocumentManager として実装可能だが、影響範囲が大きいため後回し。
 - Cloud Functions の syncDependentDocumentsV2 をテスト（非正規化ドキュメントの同期処理について配列にも対応したバージョン）
 
-## xxxx-xx-xx - ver 0.7.6
+## 2024-12-10 - ver 0.7.6
 
 ### 追加: 自社情報管理
 
