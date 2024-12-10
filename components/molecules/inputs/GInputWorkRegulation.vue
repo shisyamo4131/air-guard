@@ -5,6 +5,7 @@
  * @author shisayamo4131
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
+import GDivMonthChooser from '../divs/GDivMonthChooser.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import WorkRegulation from '~/models/WorkRegulation'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
@@ -12,7 +13,7 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
-import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
+import GCalendar from '~/components/atoms/calendars/GCalendar.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -24,7 +25,8 @@ export default {
     GCheckbox,
     GCardInputForm,
     GSelect,
-    GDatePicker,
+    GCalendar,
+    GDivMonthChooser,
   },
   /***************************************************************************
    * MIXINS
@@ -47,6 +49,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      calendarDate: null,
       days: [
         { text: '月曜日', value: 'mon' },
         { text: '火曜日', value: 'tue' },
@@ -74,16 +77,41 @@ export default {
       },
     }
   },
+
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
+  computed: {
+    calendarMonth() {
+      return this.calendarDate
+        ? this.$dayjs(this.calendarDate).format('MM')
+        : null
+    },
+  },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/
   watch: {
+    /**
+     * 適用年度が変更されたらカレンダーの日付を変更する
+     */
+    'editModel.year': {
+      handler(v) {
+        const date = this.$dayjs(`${v}-01-01`)
+        this.calendarDate = date.isValid ? date.format('YYYY-MM-DD') : undefined
+      },
+      immediate: true,
+    },
+
     startTime(v) {
       this.$refs.scheduledWorkDays.validate()
     },
+
     endTime(v) {
       this.$refs.scheduledWorkDays.validate()
     },
+
     breakMinutes(v) {
       this.$refs.scheduledWorkDays.validate()
     },
@@ -216,7 +244,7 @@ export default {
         />
       </v-col>
       <v-col cols="12">
-        <v-card outlined class="flex-grow-1 mb-4">
+        <v-card outlined class="flex-grow-1 mb-6">
           <v-card-text>
             <h4>所定労働日</h4>
             <v-input
@@ -309,19 +337,27 @@ export default {
           <div v-show="!editModel.isHolidayWorkDay">
             <h4>祝日登録</h4>
             <!-- editModel.year 以外の日付は選択不可 -->
-            <g-date-picker
-              v-model="editModel.holidays"
-              :allowed-dates="
-                (val) => editModel.year && val.slice(0, 4) === editModel.year
-              "
-              multiple
-              no-title
-              :picker-date="
-                editModel.year
-                  ? `${editModel.year}-01-01`
-                  : `${$dayjs().format('YYYY-MM-DD')}`
-              "
+            <g-div-month-chooser
+              v-model="calendarDate"
+              hide-current-month
+              :disable-prev="!calendarMonth || calendarMonth === '01'"
+              :disable-next="!calendarMonth || calendarMonth === '12'"
+              @click:prev="$refs.calendar.prev()"
+              @click:next="$refs.calendar.next()"
             />
+            <v-sheet class="mb-6" height="480">
+              <g-calendar
+                ref="calendar"
+                v-model="calendarDate"
+                :events="
+                  editModel.holidays.map((date) => ({
+                    start: date,
+                    name: '祝日',
+                    color: 'error',
+                  }))
+                "
+              />
+            </v-sheet>
           </div>
         </v-expand-transition>
       </v-col>
