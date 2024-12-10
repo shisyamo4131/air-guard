@@ -23,6 +23,7 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: { GCalendar },
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -62,18 +63,6 @@ export default {
    ***************************************************************************/
   methods: {
     /**
-     * Calendarコンポーネントのprevメソッドです。
-     */
-    prev() {
-      this.$refs.calendar.prev()
-    },
-    /**
-     * Calendarコンポーネントのnextメソッドです。
-     */
-    next() {
-      this.$refs.calendar.next()
-    },
-    /**
      * Calendarコンポーネントのイベントラベルがクリックされた時の処理です。
      * - date、workShiftを受け取り、`props.items`から該当する現場稼働予定データを抽出
      * - 抽出した現場稼働予定データを`click:edit`イベントともにemitします。
@@ -97,6 +86,9 @@ export default {
 
 <template>
   <g-calendar v-bind="$attrs" ref="calendar" v-on="$listeners">
+    <template #append-toolbar>
+      <slot name="append-toolbar" />
+    </template>
     <template #day="{ date }">
       <div class="d-flex flex-wrap pa-1" style="gap: 4px">
         <div style="height: 16px; width: 100%">

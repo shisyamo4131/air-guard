@@ -13,7 +13,7 @@ import {
 } from 'firebase/database'
 import { database } from 'air-firebase'
 import GInputSiteOperationSchedule from '../molecules/inputs/GInputSiteOperationSchedule.vue'
-import GDivMonthChooser from '../molecules/divs/GDivMonthChooser.vue'
+// import GDivMonthChooser from '../molecules/divs/GDivMonthChooser.vue'
 import GCalendarSiteOperationSchedules from '../molecules/calendars/GCalendarSiteOperationSchedules.vue'
 import GDialogInput from '../molecules/dialogs/GDialogInput.vue'
 import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
@@ -26,7 +26,7 @@ export default {
    ***************************************************************************/
   components: {
     GInputSiteOperationSchedule,
-    GDivMonthChooser,
+    // GDivMonthChooser,
     GCalendarSiteOperationSchedules,
     GDialogInput,
     GBtnRegistIcon,
@@ -154,38 +154,31 @@ export default {
 
 <template>
   <div class="d-flex" style="height: 596px">
-    <div class="flex-grow-1">
-      <div>
-        <v-toolbar dense flat>
-          <g-div-month-chooser
-            v-model="currentDate"
-            @click:prev="$refs.calendar.prev()"
-            @click:next="$refs.calendar.next()"
-          />
-          <v-spacer />
-          <g-dialog-input v-model="dialog" max-width="480">
-            <template #activator="{ attrs, on }">
-              <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
-            </template>
-            <template #default="{ attrs, on }">
-              <g-input-site-operation-schedule
-                v-bind="attrs"
-                :instance="editModel"
-                :edit-mode.sync="editMode"
-                hide-site
-                v-on="on"
-              />
-            </template>
-          </g-dialog-input>
-        </v-toolbar>
-        <g-calendar-site-operation-schedules
-          ref="calendar"
-          v-model="currentDate"
-          :items="items.schedules"
-          @click:edit="onClickEdit"
-        />
-      </div>
-    </div>
+    <g-calendar-site-operation-schedules
+      ref="calendar"
+      v-model="currentDate"
+      class="flex-grow-1"
+      :items="items.schedules"
+      @click:edit="onClickEdit"
+    >
+      <template #append-toolbar>
+        <v-spacer />
+        <g-dialog-input v-model="dialog" max-width="480">
+          <template #activator="{ attrs, on }">
+            <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
+          </template>
+          <template #default="{ attrs, on }">
+            <g-input-site-operation-schedule
+              v-bind="attrs"
+              :instance="editModel"
+              :edit-mode.sync="editMode"
+              hide-site
+              v-on="on"
+            />
+          </template>
+        </g-dialog-input>
+      </template>
+    </g-calendar-site-operation-schedules>
     <div
       v-if="$vuetify.breakpoint.mdAndUp"
       class="flex-grow-1"

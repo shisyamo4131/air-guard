@@ -1,17 +1,16 @@
 <script>
 import { database } from 'air-firebase'
 import { onValue, ref } from 'firebase/database'
-import GCalendar from '~/components/atoms/calendars/GCalendar.vue'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
-import GTextFieldMonth from '~/components/molecules/inputs/GTextFieldMonth.vue'
+import GCalendar from '~/components/atoms/calendars/GCalendar.vue'
 export default {
   name: 'HolidaysIndex',
-  components: { GTemplateFixed, GCalendar, GTextFieldMonth },
+  components: { GTemplateFixed, GCalendar },
   data() {
     return {
       data: null,
+      date: this.$dayjs().format('YYYY-MM-DD'),
       listener: null,
-      month: this.$dayjs().format('YYYY-MM'),
     }
   },
   computed: {
@@ -25,8 +24,11 @@ export default {
         }
       })
     },
+    month() {
+      return this.date.slice(0, 7)
+    },
     year() {
-      return this.$dayjs(`${this.month}-01`).format('YYYY')
+      return this.date.slice(0, 4)
     },
   },
   watch: {
@@ -71,19 +73,8 @@ export default {
             <v-btn text @click="refresh">更新</v-btn>
           </v-toolbar-items>
         </v-toolbar>
-        <v-toolbar class="flex-grow-0" flat>
-          <g-text-field-month
-            v-model="month"
-            :options="{
-              outlined: false,
-              soloInverted: true,
-              hideDetails: true,
-              flat: true,
-            }"
-          />
-        </v-toolbar>
         <v-card-text class="pa-0 pa-md-4 flex-grow-1">
-          <g-calendar :events="events" />
+          <g-calendar v-model="date" style="height: 100%" :events="events" />
         </v-card-text>
       </v-card>
     </v-container>

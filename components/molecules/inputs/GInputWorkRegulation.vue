@@ -4,8 +4,10 @@
  *
  * @author shisayamo4131
  */
+import { get, ref } from 'firebase/database'
+import { database } from 'air-firebase'
 import GCardInputForm from '../cards/GCardInputForm.vue'
-import GDivMonthChooser from '../divs/GDivMonthChooser.vue'
+import GCalendar from '../../atoms/calendars/GCalendar.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import WorkRegulation from '~/models/WorkRegulation'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
@@ -13,7 +15,6 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
-import GCalendar from '~/components/atoms/calendars/GCalendar.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -26,7 +27,6 @@ export default {
     GCardInputForm,
     GSelect,
     GCalendar,
-    GDivMonthChooser,
   },
   /***************************************************************************
    * MIXINS
@@ -135,6 +135,25 @@ export default {
      */
     refreshHolidays() {
       this.editModel.holidays.splice(0)
+    },
+
+    /**
+     * Realtime Database から現在の年度の祝日を取得し、
+     * editModel.holidays にセットします。
+     */
+    async syncHolidayFromDatabase() {
+      const dbRef = ref(database, `/Holidays/${this.editModel.year}`)
+      const snapshot = await get(dbRef)
+      this.editModel.holidays = snapshot.exists()
+        ? Object.values(snapshot.val()).flatMap((monthData) =>
+            Object.values(monthData).map((entry) => {
+              return {
+                date: entry.date,
+                name: entry.name,
+              }
+            })
+          )
+        : []
     },
   },
 }
@@ -337,27 +356,29 @@ export default {
           <div v-show="!editModel.isHolidayWorkDay">
             <h4>祝日登録</h4>
             <!-- editModel.year 以外の日付は選択不可 -->
-            <g-div-month-chooser
+            <g-calendar
+              ref="calendar"
               v-model="calendarDate"
-              hide-current-month
+              style="height: 480px"
+              class="mb-6"
               :disable-prev="!calendarMonth || calendarMonth === '01'"
               :disable-next="!calendarMonth || calendarMonth === '12'"
-              @click:prev="$refs.calendar.prev()"
-              @click:next="$refs.calendar.next()"
-            />
-            <v-sheet class="mb-6" height="480">
-              <g-calendar
-                ref="calendar"
-                v-model="calendarDate"
-                :events="
-                  editModel.holidays.map((date) => ({
-                    start: date,
-                    name: '祝日',
-                    color: 'error',
-                  }))
-                "
-              />
-            </v-sheet>
+              :events="
+                editModel.holidays.map((holiday) => ({
+                  start: holiday.date || holiday,
+                  name: holiday.name || 'N/A',
+                  color: 'error',
+                }))
+              "
+              hide-today-btn
+            >
+              <template #append-toolbar>
+                <v-spacer />
+                <v-btn color="primary" small @click="syncHolidayFromDatabase"
+                  >祝日設定から引用</v-btn
+                >
+              </template>
+            </g-calendar>
           </div>
         </v-expand-transition>
       </v-col>

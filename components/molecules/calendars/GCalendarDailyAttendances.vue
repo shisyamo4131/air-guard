@@ -1,13 +1,11 @@
 <script>
 /**
+ * 従業員勤怠実績のカレンダーコンポーネントです。
  * @author shisyamo4131
- * @version 1.0.0
- * @updates
- * - version 1.0.0 - 2024-10-14 - 初版作成
  */
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
-import GCalendar from '~/components/atoms/calendars/GCalendar.vue'
+import GCalendar from '../../atoms/calendars/GCalendar.vue'
 import GChipDayType from '~/components/atoms/chips/GChipDayType.vue'
 dayjs.extend(utc)
 
@@ -15,7 +13,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GCalendar, GChipDayType },
+  components: { GChipDayType, GCalendar },
 
   /***************************************************************************
    * PROPS
@@ -48,6 +46,7 @@ export default {
   <g-calendar
     v-bind="$attrs"
     id="g-calendar-daily-attendances"
+    hide-default-header
     v-on="$listeners"
   >
     <template #day="{ date }">
