@@ -18,12 +18,12 @@ import * as maintenance from './modules/maintenance.js'
 import * as outsourcers from './triggers/outsourcers.js'
 import * as newUsers from './triggers/new-users.js'
 import * as users from './triggers/users.js'
+import * as system from './modules/system.js'
 
 /**
- * 2024-11-07
- * Pub/Sub のテストを行うためのインポート
+ * APIによる同期処理
  */
-import * as system from './modules/system.js'
+import * as access from './access/accessApi.js'
 
 export {
   auth,
@@ -43,4 +43,5 @@ export {
   newUsers,
   users,
   system,
+  access,
 }
