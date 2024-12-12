@@ -281,13 +281,8 @@ export default {
 </script>
 
 <template>
-  <g-template-fixed v-slot="{ height }">
-    <v-card
-      outlined
-      :height="height"
-      class="d-flex flex-column"
-      max-width="800"
-    >
+  <g-template-fixed>
+    <v-card height="100%" outlined class="d-flex flex-column">
       <v-card-title> 現場情報同期設定 </v-card-title>
       <v-card-text> 現場情報の同期設定を行います。 </v-card-text>
       <v-window v-model="step" style="height: 100%">

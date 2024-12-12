@@ -15,7 +15,16 @@
         >
           <template #activator>
             <v-list-item-content>
-              <v-list-item-title>{{ nav_list.name }}</v-list-item-title>
+              <v-list-item-title>
+                <v-icon
+                  v-if="shouldShowAlert(nav_list)"
+                  color="error"
+                  small
+                  left
+                  >mdi-alert-circle</v-icon
+                >
+                {{ nav_list.name }}
+              </v-list-item-title>
             </v-list-item-content>
           </template>
           <v-list-item
@@ -25,11 +34,13 @@
             exact
           >
             <v-list-item-content>
-              <v-list-item-title>{{ list.name }}</v-list-item-title>
+              <v-list-item-title>
+                <v-icon v-if="shouldShowAlert(list)" color="error" small left
+                  >mdi-alert-circle</v-icon
+                >
+                {{ list.name }}
+              </v-list-item-title>
             </v-list-item-content>
-            <v-list-item-icon>
-              <v-icon>{{ list.icon }}</v-icon>
-            </v-list-item-icon>
           </v-list-item>
         </v-list-group>
         <v-list-item v-else :key="`item-${index}`" :to="nav_list.to">
@@ -37,7 +48,9 @@
             <v-icon>{{ nav_list.icon }}</v-icon>
           </v-list-item-icon>
           <v-list-item-content>
-            <v-list-item-title>{{ nav_list.name }}</v-list-item-title>
+            <v-list-item-title>
+              {{ nav_list.name }}
+            </v-list-item-title>
           </v-list-item-content>
         </v-list-item>
       </template>
@@ -61,7 +74,8 @@
 </template>
 
 <script>
-import AllNavLists from '~/assets/nav_lists.json'
+import { mapGetters } from 'vuex'
+import { allNavList } from '~/assets/nav_lists.js'
 import pagePermissions from '~/assets/pagePermissions'
 export default {
   /***************************************************************************
@@ -69,16 +83,22 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      allNavLists: AllNavLists,
+      allNavList,
     }
   },
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
+    ...mapGetters('air-guard', [
+      'hasCustomerAlerts',
+      'hasSiteAlerts',
+      'hasEmployeeAlerts',
+      'hasAnyAlerts',
+    ]),
     menuList() {
       // トップレベルのtoプロパティを基準に絞り込み
-      const topFilteredLists = this.allNavLists.filter((list) => {
+      const topFilteredLists = this.allNavList.filter((list) => {
         if ('to' in list) {
           return this.hasPermission(list)
         } else {
@@ -105,6 +125,12 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    shouldShowAlert(list) {
+      if (list.alertGetter && this[list.alertGetter] !== undefined) {
+        return this[list.alertGetter]
+      }
+      return false
+    },
     /**
      * 引数で受け取ったlistが、userのroleでアクセス可能なtoを持っているかを判断します。
      * listがtoプロパティを持っていなければ無条件にtrueを返します。

@@ -20,7 +20,7 @@ export default {
    ***************************************************************************/
   computed: {
     containerHeight() {
-      return this.templateHeight
+      return this.templateHeight - 24
     },
     /**
      * テンプレートの高さを計算して返します。
@@ -39,7 +39,7 @@ export default {
 
 <template>
   <v-container
-    class="overflow-y-auto pa-0"
+    class="overflow-y-auto"
     :style="{ height: `${templateHeight}px` }"
   >
     <slot name="default" v-bind="{ height: containerHeight }"> </slot>

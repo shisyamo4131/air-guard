@@ -33,6 +33,7 @@ export default (context) => {
         await context.store.dispatch('equipments/subscribe')
         await context.store.dispatch('employee-contracts/subscribe')
         await context.store.dispatch('allowances/subscribe')
+        await context.store.dispatch('air-guard/subscribe')
       } else if (!user && DISACTIVATE) {
         await context.store.dispatch(DISACTIVATE)
         await context.store.dispatch('systems/unsubscribe')
@@ -45,6 +46,7 @@ export default (context) => {
         await context.store.dispatch('equipments/unsubscribe')
         await context.store.dispatch('employee-contracts/unsubscribe')
         await context.store.dispatch('allowances/unsubscribe')
+        await context.store.dispatch('air-guard/unsubscribe')
       }
       resolve()
     })

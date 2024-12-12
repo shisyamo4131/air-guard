@@ -250,8 +250,9 @@ export default {
                 disable-sort
                 :headers="[
                   { text: 'CODE', value: 'code' },
-                  { text: '取引先名1', value: 'name1' },
-                  { text: '取引先名2', value: 'name2' },
+                  { text: '取引先名', value: 'name1' },
+                  { text: '住所', value: 'address1' },
+                  { text: '電話番号', value: 'tel' },
                 ]"
                 :items="items.airGuard"
                 item-key="code"
@@ -259,7 +260,12 @@ export default {
                 :single-select="!multiple"
                 :page.sync="page.airGuard"
                 @page-count="pageCount.airGuard = $event"
-              />
+              >
+                <template #[`item.name1`]="{ item }">
+                  <div>{{ item.name1 }}</div>
+                  <div>{{ item.name2 }}</div>
+                </template>
+              </g-data-table>
             </v-card>
             <v-container class="text-center">
               <v-pagination

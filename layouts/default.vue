@@ -1,8 +1,19 @@
 <template>
   <v-app :style="{ background: $vuetify.theme.themes.light.background }">
-    <g-navigation-drawer v-model="drawer" app fixed temporary touchless />
+    <g-navigation-drawer
+      v-model="drawer"
+      app
+      dark
+      fixed
+      :temporary="$vuetify.breakpoint.smAndDown"
+      touchless
+      :permanent="!$vuetify.breakpoint.smAndDown"
+    />
     <v-app-bar app color="primary" dark dense fixed flat>
-      <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
+      <v-app-bar-nav-icon
+        v-if="$vuetify.breakpoint.smAndDown"
+        @click.stop="drawer = !drawer"
+      />
       <v-toolbar-title>
         Air Guard
         <span class="text-subtitle-2 ml-2">{{
