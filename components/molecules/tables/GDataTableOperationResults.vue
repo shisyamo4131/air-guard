@@ -27,7 +27,7 @@ export default {
   computed: {
     headers() {
       const result = [
-        { text: '日付', value: 'dayJp', width: 108 },
+        { text: '日付', value: 'dayJp', width: 144 },
         {
           text: '曜日区分',
           value: 'dayDiv',
@@ -70,7 +70,9 @@ export default {
 
     internalItems() {
       return this.items.map((item) => {
-        const dayJp = this.$dayjs(item.date).locale(ja).format('DD日（ddd）')
+        const dayJp = this.$dayjs(item.date)
+          .locale(ja)
+          .format('MM月DD日（ddd）')
         return { ...item, dayJp }
       })
     },

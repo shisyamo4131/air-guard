@@ -17,6 +17,7 @@ import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import Site from '~/models/Site'
 import GSiteOperationScheduleManager from '~/components/organisms/GSiteOperationScheduleManager.vue'
 import GSiteContractsManager from '~/components/organisms/GSiteContractsManager.vue'
+import GCardSiteOperationResultsViewer from '~/components/molecules/cards/GCardSiteOperationResultsViewer.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -33,6 +34,7 @@ export default {
     GDialogInput,
     GSiteOperationScheduleManager,
     GSiteContractsManager,
+    GCardSiteOperationResultsViewer,
   },
   /***************************************************************************
    * MIXINS
@@ -120,10 +122,17 @@ export default {
     <v-container>
       <v-card outlined>
         <!-- TABS -->
-        <v-tabs v-model="tab" background-color="primary" center-active dark>
+        <v-tabs
+          v-model="tab"
+          background-color="primary"
+          center-active
+          dark
+          show-arrows
+        >
           <v-tab>稼働予定</v-tab>
           <v-tab>所在地</v-tab>
           <v-tab>取極め</v-tab>
+          <v-tab>稼働実績</v-tab>
         </v-tabs>
 
         <!-- TABS ITEMS -->
@@ -147,9 +156,16 @@ export default {
               <g-site-contracts-manager :site-id="listener.docId" />
             </v-container>
           </v-tab-item>
+          <v-tab-item>
+            <g-card-site-operation-results-viewer
+              :site-id="listener.docId"
+              flat
+            />
+          </v-tab-item>
         </v-tabs-items>
       </v-card>
     </v-container>
+
     <!-- editor -->
     <g-dialog-input v-model="dialog" @submit:complete="onSubmitComplete">
       <template #default="{ attrs, on }">
