@@ -141,6 +141,20 @@
       ]
     },
     {
+      "collectionGroup": "OperationResults",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "siteId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "OperationWorkResults",
       "queryScope": "COLLECTION",
       "fields": [

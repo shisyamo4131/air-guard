@@ -96,6 +96,7 @@ export default {
      * 現場データの編集画面を開きます。
      */
     onClickEdit() {
+      this.editMode = this.UPDATE
       this.dialog = true
     },
     onSubmitComplete(event) {
@@ -171,7 +172,7 @@ export default {
       <template #default="{ attrs, on }">
         <g-input-site
           v-bind="attrs"
-          :edit-mode="UPDATE"
+          :edit-mode.sync="editMode"
           :instance="listener"
           v-on="on"
         />

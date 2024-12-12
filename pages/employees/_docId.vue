@@ -95,6 +95,7 @@ export default {
    ***************************************************************************/
   methods: {
     onClickEdit() {
+      this.editMode = this.UPDATE
       this.dialog = true
     },
     onSubmitComplete(event) {
@@ -197,7 +198,7 @@ export default {
       <template #default="{ attrs, on }">
         <g-input-employee
           v-bind="attrs"
-          :edit-mode="UPDATE"
+          :edit-mode.sync="editMode"
           :instance="listeners.employee"
           v-on="on"
         />
