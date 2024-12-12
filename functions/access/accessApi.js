@@ -10,7 +10,7 @@ import { mapFieldsToEnglish, mapTableToCollection } from './mapFields.js'
 const database = getDatabase()
 
 // 許可するデータの種類（日本語のテーブル名）
-const allowedTypes = ['t_取引先']
+const allowedTypes = ['t_取引先', 't_現場', 't_従業員']
 
 // 許可するアクションの種類
 const allowedActions = ['create', 'update', 'delete']
@@ -106,6 +106,12 @@ export const handleAccessData = onValueCreated(
         case 'Customers':
           await handleCustomersData(record)
           break
+        case 'Sites':
+          await handleSitesData(record)
+          break
+        case 'Employees':
+          await handleEmployeesData(record)
+          break
         default:
           logger.error(
             `Invalid type for id: ${id}, type: ${type}, action: ${action}`
@@ -146,5 +152,37 @@ const createNumericKey = () => {
 const handleCustomersData = async (record) => {
   // AirGuard ノードへの反映
   const dbRef = database.ref(`/AirGuard/Customers/${record.code}`)
+  await dbRef.update(record)
+}
+
+/**
+ * Sitesコレクションへの反映を行う関数
+ * - Realtime Database の AirGuard ノードにデータを反映させます。
+ * - 以降、CSVデータのインポート処理と同じ流れで Firestore ドキュメントに同期されます。
+ * NOTE:
+ * codeをキーにしてFirestoreドキュメントを検索し、見つかったdocIdを更に反映させることで
+ * 同期処理まで自動化することを検討しましたが、Web版で先に登録されていたドキュメントと
+ * Access版で登録したレコードが異なるものであった場合に、codeの一致のみで同期させることは
+ * リスクがあるため断念しました。
+ */
+const handleSitesData = async (record) => {
+  // AirGuard ノードへの反映
+  const dbRef = database.ref(`/AirGuard/Sites/${record.code}`)
+  await dbRef.update(record)
+}
+
+/**
+ * Employeesコレクションへの反映を行う関数
+ * - Realtime Database の AirGuard ノードにデータを反映させます。
+ * - 以降、CSVデータのインポート処理と同じ流れで Firestore ドキュメントに同期されます。
+ * NOTE:
+ * codeをキーにしてFirestoreドキュメントを検索し、見つかったdocIdを更に反映させることで
+ * 同期処理まで自動化することを検討しましたが、Web版で先に登録されていたドキュメントと
+ * Access版で登録したレコードが異なるものであった場合に、codeの一致のみで同期させることは
+ * リスクがあるため断念しました。
+ */
+const handleEmployeesData = async (record) => {
+  // AirGuard ノードへの反映
+  const dbRef = database.ref(`/AirGuard/Employees/${record.code}`)
   await dbRef.update(record)
 }
