@@ -74,9 +74,18 @@ export default {
       class="g-card__title d-block text-truncate"
       >{{ instance.fullName }}</v-card-title
     >
-    <v-card-subtitle v-if="!isMobile">{{
-      instance.fullNameKana
-    }}</v-card-subtitle>
+    <v-card-subtitle v-if="!isMobile">
+      {{ instance.fullNameKana }}
+    </v-card-subtitle>
+    <v-toolbar dense flat>
+      <v-spacer />
+      <v-btn disabled icon>
+        <v-icon>mdi-printer</v-icon>
+      </v-btn>
+      <v-btn disabled icon>
+        <v-icon>mdi-pencil</v-icon>
+      </v-btn>
+    </v-toolbar>
     <v-container fluid>
       <v-row>
         <v-col cols="12" sm="4" md="4" lg="3">

@@ -170,6 +170,32 @@ export const mappingDefinitions = {
         },
       },
       ブランク: { mappedTo: 'blankMonths' },
+      本籍地: { mappedTo: 'honseki' },
+      緊急連絡先氏名: { mappedTo: 'emergencyContactName' },
+      緊急連絡先続柄: {
+        mappedTo: 'emergencyContactRelation',
+        transformation: (data) => {
+          switch (data['緊急連絡先続柄']) {
+            case 0:
+              return 'spouse'
+            case 1:
+              return 'parent'
+            case 2:
+              return 'child'
+            case 3:
+              return 'brother'
+            case 4:
+              return 'sister'
+            case 5:
+              return 'other'
+            default:
+              return ''
+          }
+        },
+      },
+      緊急連絡先続柄詳細: { mappedTo: 'emergencyContactRelationDetail' },
+      緊急連絡先住所: { mappedTo: 'emergencyContactAddress' },
+      緊急連絡先電話番号: { mappedTo: 'emergencyContactTel' },
     },
   },
   hooks: {

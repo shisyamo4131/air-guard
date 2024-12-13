@@ -1,4 +1,5 @@
-import { FireModel } from 'air-firebase'
+import { database, FireModel } from 'air-firebase'
+import { get, ref } from 'firebase/database'
 import Customer from './Customer'
 import { classProps } from './propsDefinition/Site'
 
@@ -87,6 +88,29 @@ export default class Site extends FireModel {
         )
         throw err
       }
+    }
+  }
+
+  /****************************************************************************
+   * beforeDeleteをオーバーライドします。
+   * - 配置管理で使用されている場合はエラーを返します。
+   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
+   * @throws {Error} - 配置管理で使用されている場合にエラーをスローします。
+   ****************************************************************************/
+  async beforeDelete() {
+    try {
+      const dbRef = ref(database, `/Placements/siteOrder`)
+      const snapshot = await get(dbRef)
+      if (snapshot.exists() && snapshot.val().includes(this.docId)) {
+        throw new Error(`配置管理で使用されているため削除できません。`)
+      }
+      await super.beforeDelete()
+    } catch (err) {
+      // eslint-disable-next-line
+      console.error(
+        `[Site.js beforeDelete] Error fetching siteOrder.: ${err.message}`
+      )
+      throw err
     }
   }
 

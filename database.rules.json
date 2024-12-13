@@ -50,7 +50,7 @@
         "$siteId": {
           ".read": "auth !== null",
           ".write": false,
-          ".indexOn": ["date"]
+          ".indexOn": ["date", "docId"]
         }
       }
     },

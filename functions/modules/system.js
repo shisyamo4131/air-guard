@@ -1,12 +1,19 @@
 import { onSchedule } from 'firebase-functions/scheduler'
 import { logger } from 'firebase-functions/v2'
 import dayjs from 'dayjs'
+import { getFirestore } from 'firebase-admin/firestore'
 import System from '../models/System.js'
 import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory.js'
 import { SiteEmployeeHistory } from '../models/SiteEmployeeHistory.js'
 import Placement from '../models/Placement.js'
 
+const firestore = getFirestore()
+
+// 配置管理情報の保存期間（日）
 const PLACEMENTS_KEEP_DAYS = 7
+
+// 現場稼働予定ドキュメントの保存期間（日）
+const SITE_OPERATION_SCHEDULES_KEEP_DAYS = 90
 
 // 毎日 0 時に実行される Cloud Function
 export const runDailyTask = onSchedule(
@@ -27,7 +34,15 @@ export const runDailyTask = onSchedule(
 
       logger.log(`[runDailyTask] 不要な配置情報データを削除します。`)
       await cleanUpPlacements()
-      logger.log(`[runDailyTask] 不要な配置情報データを削除します。`)
+      logger.log(`[runDailyTask] 不要な配置情報データを削除しました。`)
+
+      logger.log(
+        `[runDailyTask] 保存期間を超過した稼働予定ドキュメントを削除します。`
+      )
+      await cleanUpSiteOperationSchedules()
+      logger.log(
+        `[runDailyTask] 保存期間を超過した稼働予定ドキュメントの削除処理が完了しました。`
+      )
     } catch (error) {
       logger.error('[runDailyTask] Error executing scheduled function:', error)
     }
@@ -128,6 +143,9 @@ const updateSiteEmployeeHistory = async () => {
   }
 }
 
+/**
+ * 保存期間を超過した配置管理データを削除します。
+ */
 const cleanUpPlacements = async () => {
   const deadline = dayjs()
     .subtract(PLACEMENTS_KEEP_DAYS, 'day')
@@ -141,6 +159,110 @@ const cleanUpPlacements = async () => {
       message: error.message,
       stack: error.stack,
     })
+    throw error // 必要に応じて再スロー
+  }
+}
+
+/**
+ * 保存期間を超過した稼働予定ドキュメントを削除します。
+ * - 稼働予定ドキュメントを削除するとCloud Functionsによって削除した履歴がRealtime Databaseに作成されてしまうため
+ *   対象のドキュメントを一旦アーカイブドキュメントとして作成し、保存期間+1日を超過したものを削除しています。
+ * - Realtime Databaseに保存されている稼働予定ドキュメントのCUD履歴はアーカイブドキュメントの削除トリガーで削除されます。
+ */
+const cleanUpSiteOperationSchedules = async () => {
+  const deadline = dayjs()
+    .subtract(SITE_OPERATION_SCHEDULES_KEEP_DAYS, 'day')
+    .utcOffset(9)
+    .format('YYYY-MM-DD')
+
+  const deadlineArchive = dayjs()
+    .subtract(SITE_OPERATION_SCHEDULES_KEEP_DAYS + 1, 'day')
+    .utcOffset(9)
+    .format('YYYY-MM-DD')
+
+  const BATCH_LIMIT = 300
+
+  // バッチ処理を汎用化
+  const processInBatches = async (docs, operation) => {
+    const batchArray = docs.reduce((batches, doc, index) => {
+      if (index % BATCH_LIMIT === 0) {
+        batches.push(firestore.batch())
+      }
+      const currentBatch = batches[batches.length - 1]
+      operation(currentBatch, doc)
+      return batches
+    }, [])
+
+    await Promise.all(batchArray.map((batch) => batch.commit()))
+  }
+
+  // Firestoreからクエリのスナップショットを取得する関数
+  const getSnapshot = async (collection, deadline) => {
+    const colRef = firestore.collection(collection)
+    const queryRef = colRef.where('date', '<', deadline)
+    return await queryRef.get()
+  }
+
+  try {
+    // 1. 保存期間を超過した稼働予定ドキュメントを取得
+    const siteOperationSchedulesSnapshot = await getSnapshot(
+      'SiteOperationSchedules',
+      deadline
+    )
+
+    if (siteOperationSchedulesSnapshot.empty) {
+      logger.info(
+        '[cleanUpSiteOperationSchedules] 保存期間を超過した稼働予定ドキュメントは存在しませんでした。'
+      )
+      return
+    }
+
+    // 2. アーカイブドキュメントの作成
+    await processInBatches(
+      siteOperationSchedulesSnapshot.docs,
+      (batch, doc) => {
+        const archiveDocRef = firestore
+          .collection('SiteOperationSchedules_archive')
+          .doc(doc.id)
+        batch.set(archiveDocRef, doc.data())
+      }
+    )
+
+    // 3. 元の稼働予定ドキュメントを削除
+    await processInBatches(
+      siteOperationSchedulesSnapshot.docs,
+      (batch, doc) => {
+        batch.delete(doc.ref)
+      }
+    )
+
+    // 4. 保存期間を超過したアーカイブドキュメントを取得
+    const archiveSnapshot = await getSnapshot(
+      'SiteOperationSchedules_archive',
+      deadlineArchive
+    )
+
+    if (archiveSnapshot.empty) {
+      logger.info(
+        '[cleanUpSiteOperationSchedules] 保存期間を超過したアーカイブドキュメントは存在しませんでした。'
+      )
+      return
+    }
+
+    // 5. アーカイブドキュメントを削除
+    await processInBatches(archiveSnapshot.docs, (batch, doc) => {
+      batch.delete(doc.ref)
+    })
+
+    logger.info('[cleanUpSiteOperationSchedules] 処理が正常に完了しました。')
+  } catch (error) {
+    logger.error(
+      '[cleanUpSiteOperationSchedules] 処理中にエラーが発生しました。',
+      {
+        message: error.message,
+        stack: error.stack,
+      }
+    )
     throw error // 必要に応じて再スロー
   }
 }

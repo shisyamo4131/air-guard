@@ -168,7 +168,10 @@ export default {
     </template>
     <!-- ### ACTIONS COLUMN ### -->
     <template #[`item.actions`]="props">
-      <slot name="item.actions" v-bind="props">
+      <slot
+        name="item.actions"
+        v-bind="{ ...props, disableEdit, disableDelete, disableDetail }"
+      >
         <v-btn
           v-if="actions.includes('edit')"
           icon
@@ -194,6 +197,14 @@ export default {
           <g-icon-detail />
         </v-btn>
       </slot>
+      <slot
+        v-for="action of actions.filter(
+          (action) =>
+            action !== 'edit' && action !== 'delete' && action !== 'detail'
+        )"
+        :name="action"
+        v-bind="props"
+      />
     </template>
   </v-data-table>
 </template>

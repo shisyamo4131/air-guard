@@ -146,31 +146,31 @@ const DAY_DIV_ARRAY = Object.entries(DAY_DIV).map(([key, value]) => ({
 }))
 
 const DAY_OF_WEEK_JA = {
-  Sun: {
+  sun: {
     short: '日',
     long: '日曜日',
   },
-  Mon: {
+  mon: {
     short: '月',
     long: '月曜日',
   },
-  Tue: {
+  tue: {
     short: '火',
     long: '火曜日',
   },
-  Wed: {
+  wed: {
     short: '水',
     long: '水曜日',
   },
-  Thu: {
+  thu: {
     short: '木',
     long: '木曜日',
   },
-  Fri: {
+  fri: {
     short: '金',
     long: '金曜日',
   },
-  Sat: {
+  sat: {
     short: '土',
     long: '土曜日',
   },
@@ -333,6 +333,22 @@ const PAYMENT_TYPE_ARRAY = Object.entries(PAYMENT_TYPE).map(([key, value]) => {
   return { value: key, text: value }
 })
 
+/**
+ * 続柄
+ */
+const RELATION = {
+  spouse: '配偶者',
+  parent: '親',
+  child: '子',
+  brother: '兄弟',
+  sister: '姉妹',
+  other: 'その他',
+}
+
+const RELATION_ARRAY = Object.entries(RELATION).map(([key, value]) => {
+  return { value: key, text: value }
+})
+
 const SECURITY_TYPE = {
   'newly-training': '新任教育',
   traffic: '交通誘導警備',
@@ -438,6 +454,8 @@ export default (context, inject) => {
   inject('OUTSOURCER_STATUS_ARRAY', OUTSOURCER_STATUS_ARRAY)
   inject('PAYMENT_TYPE', PAYMENT_TYPE)
   inject('PAYMENT_TYPE_ARRAY', PAYMENT_TYPE_ARRAY)
+  inject('RELATION', RELATION)
+  inject('RELATION_ARRAY', RELATION_ARRAY)
   inject('SECURITY_TYPE', SECURITY_TYPE)
   inject('SECURITY_TYPE_ARRAY', SECURITY_TYPE_ARRAY)
   inject('SITE_STATUS', SITE_STATUS)

@@ -1,47 +1,48 @@
 <script>
 /**
- * 就業規則情報を表示・編集する Card コンポーネントです。
- * - props.docId を指定すると就業規則ドキュメントを読み込んで表示します。
- * - props.instance に就業規則インスタンスを渡すことでも表示が可能です。
+ * 従業員の警備員登録情報を表示・管理するコンポーネントです。
+ * - props.docId を指定すると従業員ドキュメントを読み込んで表示します。
+ * - props.instance に従業員インスタンスを渡すことでも表示が可能です。
  * - props.docId は props.instance よりも優先されます。
  * - props.docId が指定されている場合のみ編集が可能です。
  *   -> インスタンスが Minimal などであった場合に情報が欠落してしまう為
  * @author shisyamo4131
  */
+import ja from 'dayjs/locale/ja'
 import GDialogInput from '../dialogs/GDialogInput.vue'
-import GInputWorkRegulation from '../inputs/GInputWorkRegulation.vue'
+import GInputSecurityRegistration from '../inputs/GInputSecurityRegistration.vue'
 import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
-import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
-import WorkRegulation from '~/models/WorkRegulation'
+import Employee from '~/models/Employee'
+
 export default {
   /****************************************************************************
    * COMPONENTS
    ****************************************************************************/
-  components: { GCheckbox, GBtnEditIcon, GDialogInput, GInputWorkRegulation },
+  components: { GDialogInput, GBtnEditIcon, GInputSecurityRegistration },
 
   /****************************************************************************
    * PROPS
    ****************************************************************************/
   props: {
     /**
-     * 当該就業規則を編集不可能にします。
+     * 当該警備員登録情報を編集不可能にします。
      */
     disableEdit: { type: Boolean, default: false, required: false },
 
     /**
-     * 就業規則ドキュメントID
+     * 従業員ドキュメントID
      * - 指定された ID に該当するドキュメントを Firestore から取得します。
      * - ID が指定された場合 props.instance は無視されます。
      */
     docId: { type: String, default: undefined, required: false },
 
     /**
-     * 就業規則インスタンスを受け取ります。
+     * 従業員インスタンスを受け取ります。
      */
     instance: {
       type: Object,
-      default: () => new WorkRegulation(),
-      validator: (instance) => instance instanceof WorkRegulation,
+      default: () => new Employee(),
+      validator: (instance) => instance instanceof Employee,
       required: false,
     },
   },
@@ -51,20 +52,11 @@ export default {
    ****************************************************************************/
   data() {
     return {
-      dayOfWeek: {
-        mon: '月',
-        tue: '火',
-        wed: '水',
-        thu: '木',
-        fri: '金',
-        sat: '土',
-        sun: '日',
-      },
       error: {
         message: null,
         snackbar: false,
       },
-      editModel: new WorkRegulation(),
+      editModel: new Employee(),
       loading: false,
       snackbar: true,
     }
@@ -76,61 +68,70 @@ export default {
   computed: {
     items() {
       const {
-        scheduledWorkHoursPerWeek,
-        scheduledWorkHoursPerDay,
-        legalHoliday,
-        isHolidayWorkDay,
-        averageMonthlyScheduledWorkDays,
-        startTime,
-        endTime,
-        breakMinutes,
-        overtimePayRate,
-        holidayPayRate,
-      } = this.editModel
+        registrationDate,
+        securityStartDate,
+        blankMonths,
+        honseki,
+        emergencyContactName,
+        emergencyContactRelation,
+        emergencyContactRelationDetail,
+        emergencyContactAddress,
+        emergencyContactTel,
+      } = this.editModel.securityRegistration
       return [
         {
-          title: '週所定労働時間',
+          title: '警備員登録日',
           value: this.error.message
             ? '-'
-            : `${scheduledWorkHoursPerWeek} 時間（1日 ${scheduledWorkHoursPerDay} 時間）`,
+            : `${this.$dayjs(registrationDate)
+                .locale(ja)
+                .format('YYYY年MM月DD日（ddd）')}`,
         },
         {
-          title: '法定休日',
+          title: '警備経験開始日',
           value: this.error.message
             ? '-'
-            : `${this.dayOfWeek[legalHoliday]}曜日`,
+            : `${this.$dayjs(securityStartDate)
+                .locale(ja)
+                .format('YYYY年MM月DD日（ddd）')}`,
         },
         {
-          title: '祝日の取り扱い',
-          value: this.error.message
-            ? '-'
-            : `${isHolidayWorkDay ? '労働日' : '休日'}`,
+          title: 'ブランク',
+          value: this.error.message ? '-' : `${blankMonths}ヶ月`,
         },
         {
-          title: '月平均所定労働日数',
-          value: this.error.message
-            ? '-'
-            : `${averageMonthlyScheduledWorkDays} 日/月`,
+          title: '本籍地',
+          value: this.error.message || !honseki ? '-' : `${honseki}`,
         },
         {
-          title: '就業時間（休憩時間）',
-          value: this.error.message
-            ? '-'
-            : `${startTime} - ${endTime}（${breakMinutes} 分）`,
+          title: '緊急連絡先氏名',
+          value:
+            this.error.message || !emergencyContactName
+              ? '-'
+              : `${emergencyContactName}`,
         },
         {
-          title: '割増賃金',
-          value: this.error.message
-            ? '-'
-            : `時間外: ${overtimePayRate} % / 休日労働: ${holidayPayRate} %`,
+          title: '緊急連絡先続柄',
+          value:
+            this.error.message || !emergencyContactRelation
+              ? '-'
+              : `${emergencyContactRelationDetail} (${this.$RELATION[emergencyContactRelation]})`,
+        },
+        {
+          title: '緊急連絡先住所',
+          value:
+            this.error.message || !emergencyContactAddress
+              ? '-'
+              : `${emergencyContactAddress}`,
+        },
+        {
+          title: '緊急連絡先電話番号',
+          value:
+            this.error.message || !emergencyContactTel
+              ? '-'
+              : `${emergencyContactTel}`,
         },
       ]
-    },
-
-    title() {
-      if (this.error.message) return 'N/A'
-      const { name, year } = this.editModel
-      return `${name}（${year} 年）`
     },
   },
 
@@ -139,7 +140,7 @@ export default {
    ****************************************************************************/
   watch: {
     /**
-     * 指定された就業規則 ID のドキュメントの購読を開始します。
+     * 指定された従業員 ID のドキュメントの購読を開始します。
      */
     docId: {
       handler(v) {
@@ -161,7 +162,6 @@ export default {
       immediate: true,
     },
   },
-
   /****************************************************************************
    * METHODS
    ****************************************************************************/
@@ -178,50 +178,34 @@ export default {
 </script>
 
 <template>
-  <v-card v-bind="$attrs">
-    <v-toolbar dense flat>
-      <v-toolbar-title class="text-subtitle-1">{{ title }}</v-toolbar-title>
-      <v-spacer />
-      <g-dialog-input>
+  <v-card v-bind="$attrs" v-on="$listeners">
+    <v-card-title class="g-card__title justify-space-between">
+      <div>警備員登録情報</div>
+      <g-dialog-input max-width="480">
         <template #activator="{ attrs, on }">
           <g-btn-edit-icon
-            v-if="!error.message && docId && !disableEdit"
+            :disabled="error.message || !docId || disableEdit"
             v-bind="attrs"
             color="primary"
             v-on="on"
           />
         </template>
         <template #default="{ attrs, on }">
-          <g-input-work-regulation
+          <g-input-security-registration
             v-bind="attrs"
-            :instance="editModel"
             edit-mode="UPDATE"
+            :instance="editModel"
             v-on="on"
           />
         </template>
       </g-dialog-input>
-    </v-toolbar>
-    <v-card-text class="pt-0">
-      <v-card class="mb-3" outlined>
-        <v-card-text class="pa-2">
-          <h4>■所定労働日</h4>
-          <div v-if="error.message">-</div>
-          <div v-else class="d-flex flex-wrap" style="gap: 12px">
-            <g-checkbox
-              v-for="day of Object.entries(dayOfWeek).map(([key, value]) => ({
-                key,
-                value,
-              }))"
-              :key="day.key"
-              class="mt-0"
-              :label="day.value"
-              :input-value="editModel.scheduledWorkDays.includes(day.key)"
-              readonly
-              hide-details
-            />
-          </div>
-        </v-card-text>
-      </v-card>
+    </v-card-title>
+    <v-card-text v-if="instance.hasSecurityRegistration">
+      <v-alert class="mb-0" type="info" text>
+        警備員登録はありません。
+      </v-alert>
+    </v-card-text>
+    <v-card-text v-else>
       <div class="d-flex flex-column flex-sm-row flex-wrap" style="gap: 12px">
         <v-card
           v-for="(item, index) of items"

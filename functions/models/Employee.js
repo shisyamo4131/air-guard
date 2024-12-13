@@ -68,9 +68,33 @@ export default class Employee extends FireModel {
           hasSendAddress: item.hasSendAddress === '2',
           hasSecurityRegistration: !!item.registrationDate,
           securityRegistration: {
+            // 警備員登録日
             registrationDate: item.registrationDate ?? '',
+
+            // 警備経験開始日
             securityStartDate: item.securityStartDate ?? '',
+
+            // ブランク
             blankMonths: parseInt(item.blankMonths ?? 0),
+
+            // 本籍地
+            honseki: item.honseki ?? '',
+
+            // 緊急連絡先氏名
+            emergencyContactName: item.emergencyContactName ?? '',
+
+            // 緊急連絡先続柄
+            emergencyContactRelation: item.emergencyContactRelation ?? '',
+
+            // 緊急連絡先続柄詳細
+            emergencyContactRelationDetail:
+              item.emergencyContactRelationDetail ?? '',
+
+            // 緊急連絡先住所
+            emergencyContactAddress: item.emergencyContactAddress ?? '',
+
+            // 緊急連絡先電話番号
+            emergencyContactTel: item.emergencyContactTel ?? '',
           },
         }
       }

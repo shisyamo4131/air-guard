@@ -70,7 +70,7 @@ export default {
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    if (this.listener.companyInfo) this.listener.companyInfo()
+    if (this.listener.companyInfo) this.listener.companyInfo.unsubscribe()
   },
 
   /***************************************************************************

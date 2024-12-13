@@ -206,6 +206,10 @@ export default {
         startDate,
       })
     },
+
+    printLaborTerms(item) {
+      this.$GENERATE_LABOR_TERMS(item.docId, { download: false })
+    },
   },
 }
 </script>
@@ -242,10 +246,16 @@ export default {
       }}</v-alert>
       <g-data-table-employee-contracts
         v-else
-        :actions="['edit']"
+        :actions="['edit', 'print']"
         :items="items"
         @click:edit="onClickEdit"
-      />
+      >
+        <template #print="{ item }">
+          <v-btn icon @click="printLaborTerms(item)"
+            ><v-icon>mdi-printer</v-icon></v-btn
+          >
+        </template>
+      </g-data-table-employee-contracts>
     </v-container>
   </v-card>
 </template>
