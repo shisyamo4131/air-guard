@@ -178,6 +178,7 @@ export default {
                 :items="items"
                 :month="month"
                 type="top5"
+                :mobile-breakpoint="0"
               />
             </v-card>
           </v-col>
@@ -192,6 +193,7 @@ export default {
               <g-data-table-monthly-sales-by-customer
                 :items="items"
                 :month="month"
+                :mobile-breakpoint="0"
               />
             </v-card>
           </v-col>
