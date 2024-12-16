@@ -29,6 +29,9 @@ export default {
     <slot v-bind="{ message }">
       {{ message }}
     </slot>
+    <template #action="{ attrs }">
+      <slot name="action" v-bind="{ attrs }" />
+    </template>
   </v-snackbar>
 </template>
 
