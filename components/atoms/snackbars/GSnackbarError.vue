@@ -26,7 +26,9 @@ export default {
 
 <template>
   <v-snackbar v-bind="$attrs" :value="value" color="error" v-on="$listeners">
-    {{ message }}
+    <slot v-bind="{ message }">
+      {{ message }}
+    </slot>
   </v-snackbar>
 </template>
 
