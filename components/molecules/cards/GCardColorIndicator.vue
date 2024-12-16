@@ -43,7 +43,7 @@ export default {
     /**
      * item オブジェクトのテキストプロパティ名です。既定値は `text` です。
      */
-    itemText: { type: String, default: 'label', required: false },
+    itemText: { type: String, default: 'text', required: false },
   },
 
   /****************************************************************************
