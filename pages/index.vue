@@ -92,6 +92,7 @@
                   <v-list-item
                     v-for="(contract, index) in nearingExpiredContracts"
                     :key="index"
+                    :to="`employees/${contract.employee.docId}`"
                   >
                     <v-list-item-content>
                       <v-list-item-title>
