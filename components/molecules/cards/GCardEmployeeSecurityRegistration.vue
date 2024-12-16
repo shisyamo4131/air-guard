@@ -11,6 +11,7 @@
 import ja from 'dayjs/locale/ja'
 import GDialogInput from '../dialogs/GDialogInput.vue'
 import GInputSecurityRegistration from '../inputs/GInputSecurityRegistration.vue'
+import GCardColorIndicator from './GCardColorIndicator.vue'
 import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
 import Employee from '~/models/Employee'
 
@@ -18,7 +19,12 @@ export default {
   /****************************************************************************
    * COMPONENTS
    ****************************************************************************/
-  components: { GDialogInput, GBtnEditIcon, GInputSecurityRegistration },
+  components: {
+    GDialogInput,
+    GBtnEditIcon,
+    GInputSecurityRegistration,
+    GCardColorIndicator,
+  },
 
   /****************************************************************************
    * PROPS
@@ -80,53 +86,53 @@ export default {
       } = this.editModel.securityRegistration
       return [
         {
-          title: '警備員登録日',
-          value: this.error.message
+          label: '警備員登録日',
+          text: this.error.message
             ? '-'
             : `${this.$dayjs(registrationDate)
                 .locale(ja)
                 .format('YYYY年MM月DD日（ddd）')}`,
         },
         {
-          title: '警備経験開始日',
-          value: this.error.message
+          label: '警備経験開始日',
+          text: this.error.message
             ? '-'
             : `${this.$dayjs(securityStartDate)
                 .locale(ja)
                 .format('YYYY年MM月DD日（ddd）')}`,
         },
         {
-          title: 'ブランク',
-          value: this.error.message ? '-' : `${blankMonths}ヶ月`,
+          label: 'ブランク',
+          text: this.error.message ? '-' : `${blankMonths}ヶ月`,
         },
         {
-          title: '本籍地',
-          value: this.error.message || !honseki ? '-' : `${honseki}`,
+          label: '本籍地',
+          text: this.error.message || !honseki ? '-' : `${honseki}`,
         },
         {
-          title: '緊急連絡先氏名',
-          value:
+          label: '緊急連絡先氏名',
+          text:
             this.error.message || !emergencyContactName
               ? '-'
               : `${emergencyContactName}`,
         },
         {
-          title: '緊急連絡先続柄',
-          value:
+          label: '緊急連絡先続柄',
+          text:
             this.error.message || !emergencyContactRelation
               ? '-'
               : `${emergencyContactRelationDetail} (${this.$RELATION[emergencyContactRelation]})`,
         },
         {
-          title: '緊急連絡先住所',
-          value:
+          label: '緊急連絡先住所',
+          text:
             this.error.message || !emergencyContactAddress
               ? '-'
               : `${emergencyContactAddress}`,
         },
         {
-          title: '緊急連絡先電話番号',
-          value:
+          label: '緊急連絡先電話番号',
+          text:
             this.error.message || !emergencyContactTel
               ? '-'
               : `${emergencyContactTel}`,
@@ -162,6 +168,7 @@ export default {
       immediate: true,
     },
   },
+
   /****************************************************************************
    * METHODS
    ****************************************************************************/
@@ -207,18 +214,16 @@ export default {
     </v-card-text>
     <v-card-text v-else>
       <div class="d-flex flex-column flex-sm-row flex-wrap" style="gap: 12px">
-        <v-card
+        <g-card-color-indicator
           v-for="(item, index) of items"
           :key="index"
           style="flex: 1"
           min-width="204"
           outlined
+          :color-index="index"
+          :item="item"
         >
-          <v-card-text class="pa-2">
-            <h4>{{ `■ ${item.title}` }}</h4>
-            <div>{{ item.value }}</div>
-          </v-card-text>
-        </v-card>
+        </g-card-color-indicator>
       </div>
     </v-card-text>
     <v-snackbar v-model="error.snackbar" centered color="error">
