@@ -114,7 +114,8 @@ export default {
   >
     <template #default="{ attrs, on }">
       <g-input-site-operation-schedule
-        v-bind="{ ...$props, editMode, ...attrs }"
+        v-bind="{ ...$props, ...attrs }"
+        :edit-mode.sync="editMode"
         hide-date
         hide-site
         hide-work-shift
