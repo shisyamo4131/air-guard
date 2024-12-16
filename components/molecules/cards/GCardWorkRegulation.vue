@@ -10,6 +10,7 @@
  */
 import GDialogInput from '../dialogs/GDialogInput.vue'
 import GInputWorkRegulation from '../inputs/GInputWorkRegulation.vue'
+import GCardColorIndicator from './GCardColorIndicator.vue'
 import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import WorkRegulation from '~/models/WorkRegulation'
@@ -17,7 +18,13 @@ export default {
   /****************************************************************************
    * COMPONENTS
    ****************************************************************************/
-  components: { GCheckbox, GBtnEditIcon, GDialogInput, GInputWorkRegulation },
+  components: {
+    GCheckbox,
+    GBtnEditIcon,
+    GDialogInput,
+    GInputWorkRegulation,
+    GCardColorIndicator,
+  },
 
   /****************************************************************************
    * PROPS
@@ -89,38 +96,38 @@ export default {
       } = this.editModel
       return [
         {
-          title: '週所定労働時間',
-          value: this.error.message
+          label: '週所定労働時間',
+          text: this.error.message
             ? '-'
             : `${scheduledWorkHoursPerWeek} 時間（1日 ${scheduledWorkHoursPerDay} 時間）`,
         },
         {
-          title: '法定休日',
-          value: this.error.message
+          label: '法定休日',
+          text: this.error.message
             ? '-'
             : `${this.dayOfWeek[legalHoliday]}曜日`,
         },
         {
-          title: '祝日の取り扱い',
-          value: this.error.message
+          label: '祝日の取り扱い',
+          text: this.error.message
             ? '-'
             : `${isHolidayWorkDay ? '労働日' : '休日'}`,
         },
         {
-          title: '月平均所定労働日数',
-          value: this.error.message
+          label: '月平均所定労働日数',
+          text: this.error.message
             ? '-'
             : `${averageMonthlyScheduledWorkDays} 日/月`,
         },
         {
-          title: '就業時間（休憩時間）',
-          value: this.error.message
+          label: '就業時間（休憩時間）',
+          text: this.error.message
             ? '-'
             : `${startTime} - ${endTime}（${breakMinutes} 分）`,
         },
         {
-          title: '割増賃金',
-          value: this.error.message
+          label: '割増賃金',
+          text: this.error.message
             ? '-'
             : `時間外: ${overtimePayRate} % / 休日労働: ${holidayPayRate} %`,
         },
@@ -202,9 +209,14 @@ export default {
       </g-dialog-input>
     </v-toolbar>
     <v-card-text class="pt-0">
-      <v-card class="mb-3" outlined>
-        <v-card-text class="pa-2">
-          <h4>■所定労働日</h4>
+      <g-card-color-indicator
+        class="mb-3"
+        style="flex: 1"
+        :item="{ label: '所定労働日', text: editModel.scheduledWorkDays }"
+        :color-index="0"
+        outlined
+      >
+        <template #default="{ item }">
           <div v-if="error.message">-</div>
           <div v-else class="d-flex flex-wrap" style="gap: 12px">
             <g-checkbox
@@ -215,26 +227,23 @@ export default {
               :key="day.key"
               class="mt-0"
               :label="day.value"
-              :input-value="editModel.scheduledWorkDays.includes(day.key)"
+              :input-value="item.text.includes(day.key)"
               readonly
               hide-details
             />
           </div>
-        </v-card-text>
-      </v-card>
+        </template>
+      </g-card-color-indicator>
       <div class="d-flex flex-column flex-sm-row flex-wrap" style="gap: 12px">
-        <v-card
+        <g-card-color-indicator
           v-for="(item, index) of items"
           :key="index"
           style="flex: 1"
           min-width="204"
           outlined
-        >
-          <v-card-text class="pa-2">
-            <h4>{{ `■ ${item.title}` }}</h4>
-            <div>{{ item.value }}</div>
-          </v-card-text>
-        </v-card>
+          :color-index="index + 1"
+          :item="item"
+        />
       </div>
     </v-card-text>
     <v-snackbar v-model="error.snackbar" centered color="error">
