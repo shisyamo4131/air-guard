@@ -24,13 +24,13 @@ const propsDefinition = {
     type: String,
     default: '',
     required: false,
-    requiredByClass: true,
+    requiredByClass: false,
   },
   endTime: {
     type: String,
     default: '',
     required: false,
-    requiredByClass: true,
+    requiredByClass: false,
   },
   requiredWorkers: {
     type: Number,
