@@ -28,6 +28,8 @@ import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
 import GSosRequiredWorkersChip from '~/components/organisms/site-operation-schedules/GSosRequiredWorkersChip.vue'
 import GSiteOrderManager from '~/components/organisms/GSiteOrderManager.vue'
+import GIconCancel from '~/components/atoms/icons/GIconCancel.vue'
+import GSnackbarError from '~/components/atoms/snackbars/GSnackbarError.vue'
 
 export default {
   /***************************************************************************
@@ -46,6 +48,8 @@ export default {
     GChipWorkShift,
     GSosRequiredWorkersChip,
     GSiteOrderManager,
+    GIconCancel,
+    GSnackbarError,
   },
 
   /***************************************************************************
@@ -98,6 +102,7 @@ export default {
       selectedMonths: 3,
       siteOrder: [],
       siteOrderListener: null,
+      snackbar: false,
     }
   },
 
@@ -123,6 +128,32 @@ export default {
      */
     from() {
       return this.$dayjs(this.currentDate).startOf('month').format('YYYY-MM-DD')
+    },
+
+    /**
+     * 稼働予定があるにも関わらず、サイトオーダーに存在しないオーダーIDの配列を返します。
+     */
+    hiddenOrders() {
+      const requiredOrderIds = [
+        ...this.schedules
+          .map((schedule) => ({
+            id: `${schedule.siteId}-${schedule.workShift}`,
+            siteId: schedule.siteId,
+            workShift: schedule.workShift,
+          }))
+          .reduce((unique, item) => {
+            if (!unique.some((u) => u.id === item.id)) {
+              unique.push(item)
+            }
+            return unique
+          }, []),
+      ]
+
+      const result = requiredOrderIds.filter((idObj) => {
+        return !this.siteOrder.some((order) => order.id === idObj.id)
+      })
+
+      return result
     },
 
     /**
@@ -219,6 +250,20 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    showHiddenOrders() {
+      if (!this.hiddenOrders.length) return
+      this.computedSiteOrder = [...this.siteOrder, ...this.hiddenOrders]
+      this.snackbar = false
+    },
+
+    /**
+     * サイトオーダーから指定されたオーダーを削除します。
+     */
+    async deleteSite(order) {
+      const newOrder = this.siteOrder.filter(({ id }) => id !== order.id)
+      await set(ref(database, `SiteOperationSchedules/siteOrder`), newOrder)
+    },
+
     /**
      * 各月の稼働予定ドキュメントに対するリアルタイムリスナーの購読を解除します。
      */
@@ -404,12 +449,17 @@ export default {
           if (change.type === 'added') {
             this.schedules.push(instance)
             const id = `${instance.siteId}-${instance.workShift}`
-            if (!this.siteOrder.some((order) => order.id === id)) {
-              this.siteOrder.push({
-                id,
-                siteId: instance.siteId,
-                workShift: instance.workShift,
-              })
+
+            // サイトオーダーに存在しないオーダーであれば追加
+            if (!this.computedSiteOrder.some((order) => order.id === id)) {
+              this.computedSiteOrder = [
+                ...this.siteOrder,
+                {
+                  id,
+                  siteId: instance.siteId,
+                  workShift: instance.workShift,
+                },
+              ]
             }
           } else if (change.type === 'modified') {
             this.schedules.splice(index, 1, instance)
@@ -455,7 +505,7 @@ export default {
         </v-toolbar-items>
         <v-spacer />
         <v-toolbar-items>
-          <g-dialog-input v-model="dialog" max-width="840">
+          <g-dialog-input v-model="dialog" max-width="480">
             <template #activator="{ attrs, on }">
               <v-btn v-bind="attrs" color="primary" text v-on="on">
                 <v-icon left>mdi-plus</v-icon>
@@ -511,6 +561,7 @@ export default {
               <tr v-for="(order, index) of siteOrder" :key="index">
                 <td>
                   <div class="site-name">
+                    <g-icon-cancel small @click="deleteSite(order)" />
                     {{
                       $store.getters['sites/get'](order.siteId)?.abbr || 'N/A'
                     }}
@@ -555,6 +606,16 @@ export default {
           </v-simple-table>
         </div>
       </div>
+
+      <!-- スナックバー -->
+      <g-snackbar-error :value="!!hiddenOrders.length" :timeout="-1" centered>
+        <span>表示されていない現場があります。</span>
+        <template #action="{ attrs }">
+          <v-btn v-bind="attrs" outlined small @click="showHiddenOrders">
+            表示
+          </v-btn>
+        </template>
+      </g-snackbar-error>
     </v-card>
   </g-template-default>
 </template>
