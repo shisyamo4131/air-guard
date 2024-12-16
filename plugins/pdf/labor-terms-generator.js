@@ -49,6 +49,33 @@ export default (context, inject) => {
       const employee = new Employee()
       await employee.fetch(employeeId)
 
+      // 角印を取得してBase64に変換
+      const kaku = await fetch('/kaku.png')
+        .then((response) => response.blob())
+        .then(
+          (blob) =>
+            new Promise((resolve, reject) => {
+              const reader = new FileReader()
+              reader.onloadend = () => resolve(reader.result)
+              reader.onerror = reject
+              reader.readAsDataURL(blob)
+            })
+        )
+
+      // 背景（角印）を用意
+      const background = function (currentPage) {
+        if (currentPage === 1) {
+          return {
+            image: kaku,
+            width: 60,
+            opacity: 0.8,
+            absolutePosition: { x: 492, y: 84 },
+          }
+        } else {
+          return null
+        }
+      }
+
       /*************************************************************************
        * 自社情報テーブルを生成して返します。
        *************************************************************************/
@@ -182,6 +209,7 @@ export default (context, inject) => {
       // PDF生成を実行
       context.app.$generatePdf({
         content, // コンテンツを設定
+        background,
         options: {
           styles: {
             header: { fontSize: 16 }, // ヘッダーのフォントスタイル
