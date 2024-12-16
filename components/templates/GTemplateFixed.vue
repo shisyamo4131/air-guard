@@ -20,7 +20,8 @@ export default {
    ***************************************************************************/
   computed: {
     containerHeight() {
-      return this.templateHeight - 24
+      const padding = this.$vuetify.breakpoint.xsOnly ? 0 : 24
+      return this.templateHeight - padding
     },
     /**
      * テンプレートの高さを計算して返します。
@@ -39,7 +40,7 @@ export default {
 
 <template>
   <v-container
-    class="overflow-y-auto"
+    class="pa-0 pa-sm-3 overflow-y-auto"
     :style="{ height: `${templateHeight}px` }"
   >
     <slot name="default" v-bind="{ height: containerHeight }"> </slot>
