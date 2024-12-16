@@ -83,7 +83,11 @@ export default {
         <span :style="{ color: dotColor }">{{ labelPrefix }}</span>
         {{ `${label}` }}
       </h4>
-      <div class="px-2">{{ text }}</div>
+      <div class="px-2">
+        <slot name="default" v-bind="{ item }">
+          {{ text }}
+        </slot>
+      </div>
     </v-card-text>
   </v-card>
 </template>
