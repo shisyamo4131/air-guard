@@ -1,68 +1,98 @@
 <script>
 /**
- * ## GDialogInput
+ * GInput コンポーネント専用のダイアログコンポーネントです。
+ * defaultスロットに GInput コンポーネントを配置して使用します。
  *
- * GInputコンポーネント専用のDialogコンポーネントです。
- * defaultスロットにGInputコンポーネントを配置することで、ダイアログによるデータ編集を実現します。
+ * ### 使用方法
+ * <g-dialog-input :edit-mode.sync="editMode" @submit:complete="someMethod">
+ *    <template #activator="{attrs, on}">
+ *        <v-btn v-bind="attrs" v-on="on">OPEN</v-btn>
+ *    </template>
+ *    <template #default="{ attrs, on }">
+ *        <g-input-sample v-bind="attrs" v-on="on" />
+ *    </template>
+ * </g-dialog-input>
  *
- * - defaultスロットのスロットプロパティ`attrs`、`on`をGInputコンポーネントに適用します。
- * - GInputコンポーネントの`submit:complete`イベントを受け取ると、ダイアログを終了して同一イベントをemitします。
- * - GInputコンポーネントの`click:cancel`イベントを受け取ると、ダイアログを終了して同一イベントをemitします。
- * ‐ ダイアログが終了すると、GInputコンポーネントの初期化メソッドを実行します。
- * - `props.value`を使用することでこのコンポーネントの開閉を制御可能です。
- * - `initialize`メソッドを実行することで、外部からGInputコンポーネントの初期化処理を実行することができます。
- * - GInputコンポーネント内のVCardTextへの参照を取得し、ダイアログが終了したタイミングでスクロール位置を初期化します。
+ * 1. 通常のダイアログコンポーネント同様、activator スロットを利用可能です。
+ * 2. editMode を .sync 修飾子とともにバインドしてください。
+ * 3.`submit:complete` イベントが emit されます。 submit 後に必要な処理があれば適宜定義します。
+ * 4. `click:cancel` イベントが emit されます。 cancel 後に必要な処理があれば適宜定義します。
+ * 5. defaultスロットのスロットプロパティ`attrs`、`on`をGInputコンポーネントに適用します。
+ * 6. ダイアログが終了すると、GInput コンポーネントの初期化メソッドが実行され、スクロール位置も初期化されます。
+ * 7. ダイアログの開閉状態を管理する場合は props.value を使用します。 v-model が使用可能です。
+ * 8. `initialize` メソッドが利用可能です。 GInput コンポーネントが初期化されます。
  *
- * ### 同一イベントをemitする理由
- * GInputコンポーネントの`submitType`が`toParent`であった場合、編集後のデータを親コンポーネントが
- * 受け取る必要があります。
- *
- * このコンポーネントは`props.value`を使用することでその開閉を制御可能です。
+ * - GInput コンポーネントへの参照を取得する都合上、ダイアログの eager プロパティは true を既定値にしています。
+ * - データ編集に使われるコンポーネントを想定しているため、ダイアログの persistent プロパティは true を既定値にしています。
+ * - ダイアログの scrollable プロパティは true を既定値にしています。
+ * - モバイルモード（breakpoint.mobile）の場合、fullScreen が適用されます。
  *
  * @author shisyamo4131
- * @version 1.1.0
- * @updates
- * - version 1.1.0 - 2024-11-15 - default スロットに配置される VCard コンポーネントがモバイル表示の時に tile 設定されるよう修正。
- *                              - モバイル表示の時にフルスクリーンになるように修正
- * - version 1.0.1 - 2024-09-17 - initializeメソッドの実行について、dialogの変更内容にかかわらず実行するように修正。
- * - version 1.0.0 - 2024-09-06 - 初版作成
  */
+import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
 export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
+  mixins: [GMixinEditModeReceiver],
   props: {
+    eager: { type: Boolean, default: true, required: false },
     fullscreen: { type: Boolean, default: false, required: false },
     maxWidth: { type: [String, Number], default: 600, required: false },
+    persistent: { type: Boolean, default: true, required: false },
+    scrollable: { type: Boolean, default: true, required: false },
     value: { type: Boolean, default: false, required: false },
   },
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
+      /**
+       * ダイアログの開閉状態を管理
+       */
       dialog: false,
+
+      /**
+       * GInput コンポーネントへの参照
+       */
       inputRef: null,
+
+      /**
+       * GInput コンポーネント内のスクロールターゲット（VCardText）への参照
+       */
       scrollTargets: [],
     }
   },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
+    /**
+     * default スロットが提供する attrs プロパティ
+     */
     attrs() {
       return {
+        editMode: this.editMode,
         ref: this.setInputRef,
         tile: this.$vuetify.breakpoint.mobile,
       }
     },
+
+    /**
+     * default スロットが提供する on プロパティ
+     */
     on() {
       return {
-        'submit:complete': this.onSubmitComplete,
+        'update:editMode': (event) => this.$emit('update:editMode', event),
         'click:cancel': this.onClickCancel,
+        'submit:complete': this.onSubmitComplete,
       }
     },
   },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/
@@ -76,6 +106,7 @@ export default {
       this.initialize()
       this.$emit('input', newVal)
     },
+
     /**
      * `props.value` を監視します。
      * - 値が変更された場合、`data.dialog` と同期させます。
@@ -87,30 +118,35 @@ export default {
       immediate: true,
     },
   },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
     /**
-     * defaultスロットに配置されたGInputコンポーネントの`submit:complete`イベントを
-     * 自身のイベントとしてemitします。
-     * - GInputコンポーネントの`submitType`が`toParent`であった場合、編集後のデータを
-     *   親コンポーネントに引き渡す必要があります。
-     */
-    onSubmitComplete(event) {
-      this.dialog = false
-      this.$emit('submit:complete', event)
-    },
-    /**
-     * defaultスロットに配置されたGInputコンポーネントの`click:cancel`イベントを
-     * 自身のイベントしてemitします。
+     * default スロットに配置された GInput コンポーネントの `click:cancel` イベントの処理です。
+     * ダイアログを終了するとともに `click:cancel` イベントを emit します。
      */
     onClickCancel() {
       this.dialog = false
       this.$emit('click:cancel')
     },
+
     /**
-     * defaultスロットに配置されたGInputコンポーネントへの参照を自身の`inputRef`にセットします。
+     * defaultスロットに配置された GInput コンポーネントの `submit:complete` イベントの処理です。
+     * ダイアログを終了し、データモデルインスタンスをペイロードに `submit:complete` イベントを emit します。
+     * @param {Object} event - GInput コンポーネントが emit したオブジェクト（データモデルインスタンス）
+     */
+    onSubmitComplete(event) {
+      this.dialog = false
+      this.$emit('submit:complete', event)
+    },
+
+    /**
+     * defaultスロットに配置された GInput コンポーネントへの参照を自身の `inputRef` にセットします。
+     * - el が initialize, resetValidation メソッドのどちらか一方でも保有していない場合、警告を出力します。
+     * - 同時に GInput コンポーネントのスクロールターゲットへの参照を取得して `scrollTargets` にセットします。
+     * @param {Object} el - GInput コンポーネントへの参照
      */
     setInputRef(el) {
       if (!el || !el.$el) {
@@ -133,12 +169,14 @@ export default {
         console.warn('inputRef has no resetValidation method during DOM mount.')
       }
 
-      // GInputコンポーネント内のVCardTextへの参照を取得
+      // GInputコンポーネント内のスクロールターゲット（VCardText）への参照を取得
+      // 複数存在する可能性があり、取得した参照は配列で保存
       this.scrollTargets.splice(0)
       this.scrollTargets = Array.from(el.$el.querySelectorAll('.v-card__text'))
     },
+
     /**
-     * defaultスロットに配置されたGInputコンポーネントの初期化メソッドを呼び出します。
+     * defaultスロットに配置された GInput コンポーネントの初期化メソッドを呼び出します。
      */
     initialize() {
       if (!this.inputRef) {
@@ -171,8 +209,9 @@ export default {
       // VCardTextのスクロール位置を初期化
       this.scrollTo()
     },
+
     /**
-     * defaultスロットに配置されたGInputコンポーネント内に存在するVCardTextについて
+     * defaultスロットに配置された GInput コンポーネント内に存在するスクロールターゲット（VCardText）について
      * スクロール位置を変更します。
      * - 引数を既定値のままにするとTOPに初期化されます。
      */
@@ -187,13 +226,9 @@ export default {
 
 <template>
   <v-dialog
-    v-bind="$attrs"
+    v-bind="{ ...$props, ...$attrs }"
     v-model="dialog"
-    :max-width="maxWidth"
-    eager
     :fullscreen="fullscreen || $vuetify.breakpoint.mobile"
-    persistent
-    scrollable
   >
     <template #activator="props">
       <slot name="activator" v-bind="props" />
