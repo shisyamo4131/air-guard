@@ -2,6 +2,7 @@ import { database } from 'air-firebase'
 import { get, ref } from 'firebase/database'
 import ja from 'dayjs/locale/ja'
 import dayjs from 'dayjs'
+import { generatePDF } from './pdf-generator'
 
 /*****************************************************************************
  * PDFファイルの用紙定義
@@ -349,6 +350,6 @@ export default (context, inject) => {
       return acc
     }, [])
 
-    await context.$generatePdf({ content, options: OPTIONS })
+    await generatePDF({ content, ...OPTIONS })
   })
 }

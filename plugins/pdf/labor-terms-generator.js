@@ -1,3 +1,4 @@
+import { generatePDF } from '../pdf-generator'
 import Employee from '~/models/Employee'
 import EmployeeContract from '~/models/EmployeeContract'
 
@@ -207,18 +208,15 @@ export default (context, inject) => {
       ]
 
       // PDF生成を実行
-      context.app.$generatePdf({
+      await generatePDF({
         content, // コンテンツを設定
         background,
-        options: {
-          styles: {
-            header: { fontSize: 16 }, // ヘッダーのフォントスタイル
-          },
-          defaultStyle: {
-            fontSize: 9, // 全体のフォントサイズを小さく設定
-          },
+        defaultStyle: {
+          fontSize: 9, // 全体のフォントサイズを小さく設定
         },
-        download: options.download, // オプションを渡す
+        styles: {
+          header: { fontSize: 16 }, // ヘッダーのフォントスタイル
+        },
       })
     }
   )

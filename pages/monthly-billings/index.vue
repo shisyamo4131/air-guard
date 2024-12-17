@@ -1,22 +1,31 @@
 <script>
-import { getApp } from 'firebase/app'
-import {
-  connectFunctionsEmulator,
-  getFunctions,
-  httpsCallable,
-} from 'firebase/functions'
 import ja from 'dayjs/locale/ja'
 import SiteBilling from '~/models/SiteBilling'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import Customer from '~/models/Customer'
 import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
 import GTextFieldMonth from '~/components/molecules/inputs/GTextFieldMonth.vue'
+import { generatePDF } from '~/plugins/pdf-generator'
 
 export default {
+  /***************************************************************************
+   * NAME
+   ***************************************************************************/
   name: 'MonthlyBillings',
+
+  /***************************************************************************
+   * COMPONENTS
+   ***************************************************************************/
   components: { GDataTable, GTemplateFixed, GTextFieldMonth },
+
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
   data() {
     return {
+      /**
+       * 現場請求ドキュメントを保存する配列
+       */
       items: [],
       listener: new SiteBilling(),
       loading: false,
@@ -35,18 +44,15 @@ export default {
       ],
     }
   },
-  computed: {
-    status() {
-      const lastExecutedAt =
-        this.$store.state.systems?.calcSiteBillings?.lastExecutedAt || null
-      if (!lastExecutedAt) return null
-      const result = this.$dayjs(lastExecutedAt).format('YYYY-MM-DD HH:mm:ss')
-      return result
-    },
 
-    isCalculating() {
-      return this.$store.state.systems.calcSiteBillings?.status !== 'ready'
-    },
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
+  computed: {
+    /**
+     * 現場請求ドキュメントを取引先別に集計し、取引先IDをキーとしたオブジェクトを返します。
+     * { amount, billingTotal, code, consumptioinTax, consumptionTaxs, customer, customerId, details }
+     */
     billingsByCustomer() {
       return Object.values(
         this.items.reduce((acc, item) => {
@@ -96,38 +102,82 @@ export default {
         }, {})
       )
     },
+
+    /**
+     * 月次請求計算が処理中であれば true, そうでなければ false を返します。
+     */
+    isCalculating() {
+      return this.$store.state.systems.calcSiteBillings?.status !== 'ready'
+    },
+
+    /**
+     * 月次請求計算の最終処理時刻を返します。
+     */
+    lastExecutedAt() {
+      const timestamp =
+        this.$store.state.systems?.calcSiteBillings?.lastExecutedAt
+      return timestamp
+        ? this.$dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss')
+        : null
+    },
   },
+
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
   watch: {
+    /**
+     * data.month を監視します。
+     * - 変更されたら subscribe を実行し、指定された年月の現場請求ドキュメントへの購読を開始します。
+     */
     month: {
-      handler(v) {
+      handler() {
         this.subscribe()
       },
       immediate: true,
     },
   },
+
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.unsubscribe()
+  },
+
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
   methods: {
+    /**
+     * data.month 限定で現場請求ドキュメントへの購読を開始します。
+     */
     subscribe() {
-      this.items = this.listener.subscribeDocs([
-        ['where', 'month', '==', this.month],
-      ])
+      const condition = [['where', 'month', '==', this.month]]
+      this.items = this.listener.subscribeDocs(condition)
     },
+
+    /**
+     * 現場請求ドキュメントへの購読を解除します。
+     */
     unsubscribe() {
       this.listener.unsubscribe()
     },
+
     /**
-     * 月別現場請求額更新処理
+     * 月別現場請求額更新処理を実行します。
      */
     async recalc() {
       this.loading = true
-      this.unsubscribe()
+
       try {
-        const firebaseApp = getApp()
-        const functions = getFunctions(firebaseApp, 'asia-northeast1')
-        if (process.env.NODE_ENV === 'local') {
-          connectFunctionsEmulator(functions, 'localhost', 5001)
-        }
-        const func = httpsCallable(functions, 'maintenance-refreshSiteBillings')
-        const result = await func({ month: this.month })
+        // 処理前に現場稼働ドキュメントへの購読を解除
+        this.unsubscribe()
+
+        // 現場請求ドキュメントの更新処理を実行
+        const result = await SiteBilling.recalc(this.month)
+
+        // 処理結果をログに出力
         console.info(result.data.message) // eslint-disable-line no-console
       } catch (err) {
         console.error('Error calling function:', err) // eslint-disable-line no-console
@@ -136,6 +186,7 @@ export default {
         this.loading = false
       }
     },
+
     /*************************************************************************
      * 請求書 PDF 出力処理
      *************************************************************************/
@@ -233,7 +284,7 @@ export default {
       }
 
       // PDF を生成
-      await this.$generatePdf({ content, background })
+      await generatePDF({ content, background })
     },
     /*************************************************************************
      * 背景画像を生成して返します。
@@ -500,7 +551,7 @@ export default {
         <v-spacer />
         <div class="flex-grow-0 px-4 text-right text-subtitle-2 grey--text">
           <div>最終更新:</div>
-          <div>{{ status }}</div>
+          <div>{{ lastExecutedAt }}</div>
         </div>
       </v-toolbar>
       <v-divider />

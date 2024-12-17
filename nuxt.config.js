@@ -47,7 +47,6 @@ export default {
     './plugins/air-vuetify.js',
     './plugins/constants.js',
     './plugins/vue-papa-parse.js',
-    './plugins/generate-pdf.js',
     './plugins/holiday.js',
     './plugins/placement-sheet.js',
     './plugins/pdf/labor-terms-generator.js',
