@@ -57,6 +57,7 @@ export default {
           label="このデータを削除する"
           :true-value="DELETE"
           :false-value="UPDATE"
+          hide-details
         />
       </v-form>
     </v-card-text>
