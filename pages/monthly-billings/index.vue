@@ -547,8 +547,10 @@ export default {
             :loading="isCalculating || loading"
             text
             @click="recalc"
-            ><v-icon left>mdi-update</v-icon>実績更新</v-btn
           >
+            <v-icon :left="$vuetify.breakpoint.smAndUp">mdi-update</v-icon>
+            <span v-if="$vuetify.breakpoint.smAndUp">実績更新</span>
+          </v-btn>
         </v-toolbar-items>
       </v-toolbar>
       <v-toolbar class="flex-grow-0" flat>
@@ -572,7 +574,8 @@ export default {
         <g-data-table
           class="flex-table"
           :headers="[
-            { text: '取引先', value: 'code' },
+            { text: 'CODE', value: 'code' },
+            { text: '取引先', value: 'customer.abbr' },
             { text: '税抜金額', value: 'amount', align: 'right' },
             {
               text: '消費税額',
