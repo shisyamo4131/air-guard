@@ -85,7 +85,7 @@ export default {
       </h4>
       <div class="px-2">
         <slot name="default" v-bind="{ item }">
-          {{ text }}
+          <span style="white-space: pre-line">{{ text }}</span>
         </slot>
       </div>
     </v-card-text>
