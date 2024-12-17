@@ -51,11 +51,12 @@ export default {
           }"
         />
         <g-checkbox
-          v-if="editMode !== CREATE && !disableDelete"
+          v-if="computedEditMode !== CREATE && !disableDelete"
+          v-model="computedEditMode"
+          color="error"
           label="このデータを削除する"
           :true-value="DELETE"
           :false-value="UPDATE"
-          @change="$emit('update:editMode', $event)"
         />
       </v-form>
     </v-card-text>
