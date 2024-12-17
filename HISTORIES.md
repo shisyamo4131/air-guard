@@ -36,11 +36,24 @@
   - ADocumentManager として実装可能だが、影響範囲が大きいため後回し。
 - Cloud Functions の syncDependentDocumentsV2 をテスト（非正規化ドキュメントの同期処理について配列にも対応したバージョン）
 
-## xxxx-xx-xx - ver 0.0.0
+## 2024-12-17 - ver 0.8.7
 
 ### 修正: 雇用契約書 PDF
 
 - 角印の出力を追加
+
+### その他
+
+- GDialogInput が editMode をプロパティで受け取るようにし、default スロットでこれを提供するように修正。
+- GDialogInput が instance をプロパティで受け取るようにし、default スロットでこれを提供するように修正。
+- 上記に伴って関係するコンポーネントをリファクト。
+- GCard, GDialog に関して不要なファイルを削除, リファクト。
+- GMixinEditModeReceiver に computedEditMode を実装。
+- GCardInputForm の削除用チェックボックスを改修。
+- 郵便番号入力用コンポーネントを新規実装。郵便番号入力のあるコンポーネントをリファクト。
+- GDialogInput が下からスライドインするように修正。
+- GCardInputForm の削除用チェックボックスに hide-details を設定。
+- その他リファクタリングなど。
 
 ## 2024-12-16 - ver 0.8.6
 
