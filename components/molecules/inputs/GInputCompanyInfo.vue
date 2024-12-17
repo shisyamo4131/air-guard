@@ -7,7 +7,7 @@ import GTextField from '../../atoms/inputs/GTextField.vue'
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import CompanyInfo from '~/models/CompanyInfo'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
-import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
+import GTextFieldZipcode from '~/components/atoms/inputs/GTextFieldZipcode.vue'
 
 export default {
   /***************************************************************************
@@ -16,7 +16,7 @@ export default {
   components: {
     GTextField,
     GCardInputForm,
-    ARenderlessZipcode,
+    GTextFieldZipcode,
   },
 
   /***************************************************************************
@@ -58,14 +58,10 @@ export default {
   >
     <g-text-field v-model="editModel.name1" label="会社名1" required />
     <g-text-field v-model="editModel.name2" label="会社名2" />
-    <a-renderless-zipcode
+    <g-text-field-zipcode
       v-model="editModel.zipcode"
       @loaded="editModel.address1 = $event.full"
-    >
-      <template #default="{ attrs, on }">
-        <g-text-field v-bind="attrs" label="郵便番号" v-on="on" />
-      </template>
-    </a-renderless-zipcode>
+    />
     <g-text-field v-model="editModel.address1" label="住所" required />
     <g-text-field v-model="editModel.address2" label="建物名・階数" />
     <v-row dense>

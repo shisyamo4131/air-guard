@@ -8,24 +8,24 @@ import GTextField from '../../atoms/inputs/GTextField.vue'
 import GSelect from '../../atoms/inputs/GSelect.vue'
 import GNumeric from '../../atoms/inputs/GNumeric.vue'
 import GCardInputForm from '../cards/GCardInputForm.vue'
-import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import Customer from '~/models/Customer'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
+import GTextFieldZipcode from '~/components/atoms/inputs/GTextFieldZipcode.vue'
 
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
-    ARenderlessZipcode,
     GTextField,
     GSelect,
     GNumeric,
     GTextarea,
     GSwitch,
     GCardInputForm,
+    GTextFieldZipcode,
   },
   /***************************************************************************
    * MIXINS
@@ -94,20 +94,10 @@ export default {
       ignore-surrogate-pair
       input-type="katakana"
     />
-    <a-renderless-zipcode
+    <g-text-field-zipcode
       v-model="editModel.zipcode"
       @loaded="editModel.address1 = $event.full"
-    >
-      <template #default="{ attrs, on }">
-        <g-text-field
-          class="center-input"
-          style="max-width: 96px"
-          v-bind="attrs"
-          label="郵便番号"
-          v-on="on"
-        />
-      </template>
-    </a-renderless-zipcode>
+    />
     <g-text-field v-model="editModel.address1" label="住所" required />
     <g-text-field v-model="editModel.address2" label="建物名・階数" />
     <v-row dense>
@@ -139,6 +129,7 @@ export default {
       <v-col cols="12" sm="4">
         <g-numeric
           v-model="editModel.depositMonth"
+          class="right-input"
           label="入金月"
           :disabled="editMode !== CREATE"
           suffix="ヶ月後"

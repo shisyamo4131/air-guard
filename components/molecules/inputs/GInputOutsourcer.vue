@@ -5,7 +5,6 @@
  */
 import GTextField from '../../atoms/inputs/GTextField.vue'
 import GCardInputForm from '../cards/GCardInputForm.vue'
-import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
 import Outsourcer from '~/models/Outsourcer'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
@@ -15,7 +14,6 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    ARenderlessZipcode,
     GTextField,
     GTextarea,
     GCardInputForm,
@@ -72,14 +70,10 @@ export default {
       ignore-surrogate-pair
       input-type="katakana"
     />
-    <a-renderless-zipcode
+    <g-text-field-zipcode
       v-model="editModel.zipcode"
       @loaded="editModel.address1 = $event.full"
-    >
-      <template #default="{ attrs, on }">
-        <g-text-field v-bind="attrs" label="郵便番号" v-on="on" />
-      </template>
-    </a-renderless-zipcode>
+    />
     <g-text-field v-model="editModel.address1" label="住所" required />
     <g-text-field v-model="editModel.address2" label="建物名・階数" />
     <g-text-field v-model="editModel.tel" label="電話番号" input-type="tel" />

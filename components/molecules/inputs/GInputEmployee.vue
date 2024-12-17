@@ -10,7 +10,6 @@ import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
-import ARenderlessZipcode from '~/components/atoms/renderless/ARenderlessZipcode.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import Employee from '~/models/Employee'
 export default {
@@ -20,7 +19,6 @@ export default {
   components: {
     GTextField,
     GTextarea,
-    ARenderlessZipcode,
     GSwitch,
     GSelect,
     GComboboxDate,
@@ -168,14 +166,10 @@ export default {
         />
       </v-col>
     </v-row>
-    <a-renderless-zipcode
+    <g-text-field-zipcode
       v-model="editModel.zipcode"
       @loaded="editModel.address1 = $event.full"
-    >
-      <template #default="{ attrs, on }">
-        <g-text-field v-bind="attrs" label="郵便番号" v-on="on" />
-      </template>
-    </a-renderless-zipcode>
+    />
     <g-text-field v-model="editModel.address1" label="住所" required />
     <g-text-field v-model="editModel.address2" label="建物名・階数" />
     <g-text-field v-model="editModel.tel" label="電話番号" input-type="tel" />
