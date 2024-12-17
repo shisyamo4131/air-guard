@@ -270,6 +270,7 @@ export default {
     v-bind="{ ...$props, ...$attrs }"
     v-model="dialog"
     :fullscreen="fullscreen || $vuetify.breakpoint.mobile"
+    transition="dialog-bottom-transition"
   >
     <template #activator="props">
       <slot name="activator" v-bind="props" />
