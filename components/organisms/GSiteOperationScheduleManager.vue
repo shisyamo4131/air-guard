@@ -163,7 +163,11 @@ export default {
     >
       <template #append-toolbar>
         <v-spacer />
-        <g-dialog-input v-model="dialog" max-width="480">
+        <g-dialog-input
+          v-model="dialog"
+          :edit-mode.sync="editMode"
+          max-width="480"
+        >
           <template #activator="{ attrs, on }">
             <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
           </template>
@@ -171,7 +175,6 @@ export default {
             <g-input-site-operation-schedule
               v-bind="attrs"
               :instance="editModel"
-              :edit-mode.sync="editMode"
               hide-site
               v-on="on"
             />

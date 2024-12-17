@@ -331,14 +331,17 @@ export default {
                 </v-card-actions>
               </v-card>
             </v-dialog>
-            <g-dialog-input v-model="dialog.leaveRecord" max-width="360">
+            <g-dialog-input
+              v-model="dialog.leaveRecord"
+              :edit-mode.sync="editMode"
+              max-width="360"
+            >
               <template #default="props">
                 <g-input-leave-record
                   v-bind="props.attrs"
                   :allowe-dates-for-substitute="allowedDatesForSubstitute"
                   hide-employee
                   hide-date
-                  :edit-mode.sync="editMode"
                   :instance="instance"
                   v-on="props.on"
                 />

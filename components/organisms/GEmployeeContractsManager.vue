@@ -218,7 +218,7 @@ export default {
   <v-card v-bind="$attrs" v-on="$listeners">
     <v-card-title class="g-card__title justify-space-between">
       <div>雇用契約（直近3件）</div>
-      <g-dialog-input v-model="dialog">
+      <g-dialog-input v-model="dialog" :edit-mode.sync="editMode">
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon
             v-bind="attrs"
@@ -232,7 +232,6 @@ export default {
             v-bind="attrs"
             :allowed-dates="allowedDates"
             :disable-edit="hasNewContract"
-            :edit-mode.sync="editMode"
             hide-employee
             :instance="editModel"
             v-on="on"

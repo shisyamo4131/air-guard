@@ -126,7 +126,11 @@ export default {
 <template>
   <g-template-index label="ユーザー管理" :items="items">
     <template #append-search>
-      <g-dialog-input v-model="dialog" max-width="360">
+      <g-dialog-input
+        v-model="dialog"
+        :edit-mode.sync="editMode"
+        max-width="360"
+      >
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
         </template>
@@ -134,7 +138,6 @@ export default {
           <component
             :is="component"
             v-bind="attrs"
-            :edit-mode="editMode"
             :instance="instance"
             v-on="on"
           />

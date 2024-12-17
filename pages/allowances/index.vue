@@ -77,17 +77,16 @@ export default {
 <template>
   <g-template-index label="手当マスタ管理" :items="items">
     <template #append-search>
-      <g-dialog-input v-model="dialog" max-width="360">
+      <g-dialog-input
+        v-model="dialog"
+        :edit-mode.sync="editMode"
+        max-width="360"
+      >
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
         </template>
         <template #default="{ attrs, on }">
-          <g-input-allowance
-            v-bind="attrs"
-            :edit-mode.sync="editMode"
-            :instance="instance"
-            v-on="on"
-          />
+          <g-input-allowance v-bind="attrs" :instance="instance" v-on="on" />
         </template>
       </g-dialog-input>
     </template>

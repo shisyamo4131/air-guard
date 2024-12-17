@@ -109,13 +109,13 @@ export default {
   <g-dialog-input
     v-bind="$attrs"
     v-model="dialog"
+    :edit-mode.sync="editMode"
     max-width="360"
     v-on="$listeners"
   >
     <template #default="{ attrs, on }">
       <g-input-site-operation-schedule
         v-bind="{ ...$props, ...attrs }"
-        :edit-mode.sync="editMode"
         hide-date
         hide-site
         hide-work-shift

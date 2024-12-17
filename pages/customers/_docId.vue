@@ -114,14 +114,13 @@ export default {
       </v-col>
     </v-row>
     <!-- editor -->
-    <g-dialog-input v-model="dialog" @submit:complete="onSubmitComplete">
+    <g-dialog-input
+      v-model="dialog"
+      :edit-mode="UPDATE"
+      @submit:complete="onSubmitComplete"
+    >
       <template #default="{ attrs, on }">
-        <g-input-customer
-          v-bind="attrs"
-          :edit-mode="UPDATE"
-          :instance="listener"
-          v-on="on"
-        />
+        <g-input-customer v-bind="attrs" :instance="listener" v-on="on" />
       </template>
     </g-dialog-input>
   </g-template-detail>

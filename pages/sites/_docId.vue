@@ -168,14 +168,13 @@ export default {
     </v-container>
 
     <!-- editor -->
-    <g-dialog-input v-model="dialog" @submit:complete="onSubmitComplete">
+    <g-dialog-input
+      v-model="dialog"
+      :edit-mode.sync="editMode"
+      @submit:complete="onSubmitComplete"
+    >
       <template #default="{ attrs, on }">
-        <g-input-site
-          v-bind="attrs"
-          :edit-mode.sync="editMode"
-          :instance="listener"
-          v-on="on"
-        />
+        <g-input-site v-bind="attrs" :instance="listener" v-on="on" />
       </template>
     </g-dialog-input>
   </g-template-detail>

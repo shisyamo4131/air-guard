@@ -96,11 +96,10 @@ export default {
     <v-container> </v-container>
 
     <!-- editor -->
-    <g-dialog-input v-model="dialog.companyInfo">
+    <g-dialog-input v-model="dialog.companyInfo" :edit-mode="UPDATE">
       <template #default="{ attrs, on }">
         <g-input-company-info
           v-bind="attrs"
-          :edit-mode="UPDATE"
           :instance="listener.companyInfo"
           v-on="on"
         />

@@ -188,7 +188,7 @@ export default {
   <v-card v-bind="$attrs" v-on="$listeners">
     <v-card-title class="g-card__title justify-space-between">
       <div>警備員登録情報</div>
-      <g-dialog-input max-width="480">
+      <g-dialog-input edit-mode="UPDATE" max-width="480">
         <template #activator="{ attrs, on }">
           <g-btn-edit-icon
             :disabled="error.message || !docId || disableEdit"
@@ -200,7 +200,6 @@ export default {
         <template #default="{ attrs, on }">
           <g-input-security-registration
             v-bind="attrs"
-            edit-mode="UPDATE"
             :instance="editModel"
             v-on="on"
           />

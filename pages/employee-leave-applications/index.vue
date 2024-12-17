@@ -104,14 +104,17 @@ export default {
       <v-spacer />
     </template>
     <template #append-search>
-      <g-dialog-input v-model="dialog" max-width="600">
+      <g-dialog-input
+        v-model="dialog"
+        :edit-mode.sync="editMode"
+        max-width="600"
+      >
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
         </template>
         <template #default="{ attrs, on }">
           <g-input-employee-leave-application
             v-bind="attrs"
-            :edit-mode.sync="editMode"
             :instance="instance"
             tile
             v-on="on"

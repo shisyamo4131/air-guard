@@ -505,7 +505,11 @@ export default {
         </v-toolbar-items>
         <v-spacer />
         <v-toolbar-items>
-          <g-dialog-input v-model="dialog" max-width="480">
+          <g-dialog-input
+            v-model="dialog"
+            :edit-mode.sync="editMode"
+            max-width="480"
+          >
             <template #activator="{ attrs, on }">
               <v-btn v-bind="attrs" color="primary" text v-on="on">
                 <v-icon left>mdi-plus</v-icon>
@@ -516,7 +520,6 @@ export default {
               <g-input-site-operation-schedule
                 v-bind="attrs"
                 :instance="instance"
-                :edit-mode.sync="editMode"
                 v-on="on"
               />
             </template>
