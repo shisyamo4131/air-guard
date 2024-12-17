@@ -8,6 +8,7 @@ import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GInputCompanyInfo from '~/components/molecules/inputs/GInputCompanyInfo.vue'
 import CompanyInfo from '~/models/CompanyInfo'
+import GCardCompanyInfo from '~/components/molecules/cards/GCardCompanyInfo.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -21,6 +22,7 @@ export default {
     GTemplateDetail,
     GDialogInput,
     GInputCompanyInfo,
+    GCardCompanyInfo,
   },
 
   /***************************************************************************
@@ -93,7 +95,9 @@ export default {
     @click:edit="onClickEdit"
   >
     <!-- 自社情報 -->
-    <v-container> </v-container>
+    <v-container>
+      <g-card-company-info />
+    </v-container>
 
     <!-- editor -->
     <g-dialog-input
