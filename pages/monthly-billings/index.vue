@@ -24,6 +24,11 @@ export default {
   data() {
     return {
       /**
+       * PDF 生成時の取引先情報取得用インスタンス
+       */
+      customer: new Customer(),
+
+      /**
        * 現場請求ドキュメントを保存する配列
        */
       items: [],
@@ -101,6 +106,13 @@ export default {
           return acc
         }, {})
       )
+    },
+
+    /**
+     * Vuex から自社情報を取得して返します。
+     */
+    companyInfo() {
+      return this.$store.state['company-info'].item
     },
 
     /**
@@ -191,21 +203,73 @@ export default {
      * 請求書 PDF 出力処理
      *************************************************************************/
     async generatePdf(item) {
-      const content = [
-        // タイトル
-        {
-          text: 'ご請求書',
+      // 取引先ドキュメントをインスタンスに読み込む
+      await this.customer.fetch(item.customer.docId)
+
+      // デフォルトスタイル定義
+      const defaultStyle = {
+        fontSize: 10,
+      }
+
+      // スタイル定義
+      const styles = {
+        header: {
           bold: true,
           fontSize: 16,
           alignment: 'center',
           margin: [0, 0, 0, 20],
         },
+      }
+
+      const content = [
+        // タイトル
+        { text: 'ご請求書', style: 'header' },
 
         // 宛先
-        ...(await this.customerLines(item)),
+        [
+          { text: `〒${this.customer.zipcode}` },
+          { text: this.customer.address1 },
+          { text: this.customer.address2, margin: [0, 0, 0, 10] },
+          { text: `${this.customer.name1} 御中`, fontSize: 12 },
+          { text: this.customer.name2 || ' ', margin: [0, 0, 0, 20] },
+        ],
 
         // 自社情報
-        this.companyTable({ x: 0, y: 84 }),
+        {
+          table: {
+            widths: ['100%'],
+            body: [
+              [
+                {
+                  text: `〒${this.companyInfo.zipcode} ${this.companyInfo.address1}`,
+                },
+              ],
+              [{ text: `${this.companyInfo.name1}`, fontSize: 12 }],
+              [{ text: 'T0000000000000' }],
+              [
+                {
+                  text: '城北信用金庫 浅草支店 普通 9999999',
+                  noWrap: true,
+                },
+              ],
+              [
+                {
+                  text: 'お振込み手数料はご負担ください。',
+                  fontSize: 8,
+                  noWrap: true,
+                },
+              ],
+            ],
+          },
+          layout: {
+            hLineWidth: () => 0,
+            vLineWidth: () => 0,
+            paddingTop: () => 1,
+            paddingBottom: () => 1,
+          },
+          absolutePosition: { x: 0, y: 84 },
+          alignment: 'right',
+        },
 
         // 総請求額
         {
@@ -284,7 +348,7 @@ export default {
       }
 
       // PDF を生成
-      await generatePDF({ content, background })
+      await generatePDF({ content, background, styles, defaultStyle })
     },
     /*************************************************************************
      * 背景画像を生成して返します。
@@ -316,53 +380,7 @@ export default {
       }
       return background
     },
-    /*************************************************************************
-     * 宛先情報を生成して返します。
-     *************************************************************************/
-    async customerLines(item) {
-      const customer = new Customer()
-      await customer.fetch(item.customer.docId)
-      return [
-        { text: `〒${customer.zipcode}`, fontSize: 10 },
-        { text: customer.address1, fontSize: 10 },
-        { text: customer.address2, margin: [0, 0, 0, 10], fontSize: 10 },
-        { text: `${customer.name1} 御中` },
-        { text: customer.name2 || ' ', margin: [0, 0, 0, 20] },
-      ]
-    },
-    /*************************************************************************
-     * 自社情報テーブルを生成して返します。
-     *************************************************************************/
-    companyTable({ x = 0, y = 0 } = {}) {
-      const rows = [
-        { text: '〒1110022 東京都台東区清川1-23-1', fontSize: 10 },
-        { text: '株式会社 唯心', fontSize: 12 },
-        { text: '警備事業部', fontSize: 10 },
-        { text: 'T0000000000000', fontSize: 10 },
-        {
-          text: '城北信用金庫 浅草支店 普通 9999999',
-          fontSize: 10,
-          noWrap: true,
-        },
-        { text: 'お振込み手数料はご負担ください。', fontSize: 8, noWrap: true },
-      ]
 
-      const result = {
-        table: {
-          widths: ['100%'],
-          body: rows.map((row) => [{ ...row, alignment: 'right' }]), // 各行の生成を簡略化
-        },
-        layout: {
-          hLineWidth: () => 0,
-          vLineWidth: () => 0,
-          paddingTop: () => 1,
-          paddingBottom: () => 1,
-        },
-        ...(x || y ? { absolutePosition: { x, y } } : {}),
-      }
-
-      return result
-    },
     /*************************************************************************
      * 現場別請求明細部を生成して返します。
      *************************************************************************/
@@ -419,15 +437,10 @@ export default {
           body: [header, ...item.details.map(this.operationDetailsBody).flat()],
         },
         fontSize,
-        // layout: {
-        //   hLineWidth: (i, node) => 0.1, // 水平方向の線幅
-        //   vLineWidth: (i, node) => 0.1, // 垂直方向の線幅
-        //   paddingTop: (i, node) => 5, // 上方向のパディング
-        //   paddingBottom: (i, node) => 5, // 下方向のパディング
-        // },
         layout: 'lightHorizontalLines', // optional
       }
     },
+
     /*************************************************************************
      * 現場単位の明細データを受け取り pdfMake で出力する稼働明細の明細部を生成して返します。
      *
