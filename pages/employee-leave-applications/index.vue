@@ -107,18 +107,13 @@ export default {
       <g-dialog-input
         v-model="dialog"
         :edit-mode.sync="editMode"
-        max-width="600"
+        :instance="instance"
       >
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
         </template>
         <template #default="{ attrs, on }">
-          <g-input-employee-leave-application
-            v-bind="attrs"
-            :instance="instance"
-            tile
-            v-on="on"
-          />
+          <g-input-employee-leave-application v-bind="attrs" tile v-on="on" />
         </template>
       </g-dialog-input>
     </template>

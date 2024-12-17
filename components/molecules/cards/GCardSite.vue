@@ -115,7 +115,7 @@ export default {
           {{ `${$SITE_STATUS[editModel.status]}` }}
         </v-chip>
       </div>
-      <g-dialog-input edit-mode="UPDATE">
+      <g-dialog-input edit-mode="UPDATE" :instance="editModel">
         <template #activator="{ attrs, on }">
           <g-btn-edit-icon
             v-if="!error.message && docId && !disableEdit"
@@ -126,7 +126,7 @@ export default {
           />
         </template>
         <template #default="{ attrs, on }">
-          <g-input-site v-bind="attrs" :instance="editModel" v-on="on" />
+          <g-input-site v-bind="attrs" v-on="on" />
         </template>
       </g-dialog-input>
     </v-card-title>

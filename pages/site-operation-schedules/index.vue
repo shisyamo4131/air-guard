@@ -508,6 +508,7 @@ export default {
           <g-dialog-input
             v-model="dialog"
             :edit-mode.sync="editMode"
+            :instance="instance"
             max-width="480"
           >
             <template #activator="{ attrs, on }">
@@ -517,11 +518,7 @@ export default {
               </v-btn>
             </template>
             <template #default="{ attrs, on }">
-              <g-input-site-operation-schedule
-                v-bind="attrs"
-                :instance="instance"
-                v-on="on"
-              />
+              <g-input-site-operation-schedule v-bind="attrs" v-on="on" />
             </template>
           </g-dialog-input>
           <g-site-order-manager

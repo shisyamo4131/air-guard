@@ -114,16 +114,17 @@ export default {
       <v-spacer />
     </template>
     <template #append-search>
-      <g-dialog-input v-model="dialog" :edit-mode.sync="editMode" fullscreen>
+      <g-dialog-input
+        v-model="dialog"
+        :edit-mode.sync="editMode"
+        :instance="instance"
+        fullscreen
+      >
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
         </template>
         <template #default="{ attrs, on }">
-          <g-input-operation-billing-basis
-            v-bind="attrs"
-            :instance="instance"
-            v-on="on"
-          />
+          <g-input-operation-billing-basis v-bind="attrs" v-on="on" />
         </template>
       </g-dialog-input>
     </template>

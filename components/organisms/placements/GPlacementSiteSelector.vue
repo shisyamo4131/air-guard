@@ -120,12 +120,12 @@ export default {
       <v-toolbar class="flex-grow-0" color="secondary" dark dense flat>
         <v-toolbar-title>現場選択</v-toolbar-title>
         <v-spacer />
-        <g-dialog-input :edit-mode.sync="editMode">
+        <g-dialog-input :edit-mode.sync="editMode" :instance="instance">
           <template #activator="{ attrs, on }">
             <g-btn-regist-icon v-bind="attrs" v-on="on" />
           </template>
           <template #default="{ attrs, on }">
-            <g-input-site v-bind="attrs" :instance="instance" v-on="on" />
+            <g-input-site v-bind="attrs" v-on="on" />
           </template>
         </g-dialog-input>
       </v-toolbar>

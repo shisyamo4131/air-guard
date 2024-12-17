@@ -146,7 +146,11 @@ export default {
       <v-tab tab-value="day">日勤</v-tab>
       <v-tab tab-value="night">夜勤</v-tab>
       <v-spacer />
-      <g-dialog-input v-model="dialog" :edit-mode.sync="editMode">
+      <g-dialog-input
+        v-model="dialog"
+        :edit-mode.sync="editMode"
+        :instance="editModel"
+      >
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon
             v-bind="attrs"
@@ -157,12 +161,7 @@ export default {
           />
         </template>
         <template #default="{ attrs, on }">
-          <g-input-site-contract
-            v-bind="attrs"
-            :instance="editModel"
-            hide-site
-            v-on="on"
-          />
+          <g-input-site-contract v-bind="attrs" hide-site v-on="on" />
         </template>
       </g-dialog-input>
     </v-tabs>

@@ -189,7 +189,7 @@ export default {
     <v-toolbar dense flat>
       <v-toolbar-title class="text-subtitle-1">{{ title }}</v-toolbar-title>
       <v-spacer />
-      <g-dialog-input edit-mode="UPDATE">
+      <g-dialog-input edit-mode="UPDATE" :instance="editModel">
         <template #activator="{ attrs, on }">
           <g-btn-edit-icon
             v-if="!error.message && docId && !disableEdit"
@@ -199,11 +199,7 @@ export default {
           />
         </template>
         <template #default="{ attrs, on }">
-          <g-input-work-regulation
-            v-bind="attrs"
-            :instance="editModel"
-            v-on="on"
-          />
+          <g-input-work-regulation v-bind="attrs" v-on="on" />
         </template>
       </g-dialog-input>
     </v-toolbar>

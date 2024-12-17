@@ -147,14 +147,11 @@ export default {
     <g-dialog-input
       v-model="dialog"
       :edit-mode.sync="editMode"
+      :instance="listeners.employee"
       @submit:complete="onSubmitComplete"
     >
       <template #default="{ attrs, on }">
-        <g-input-employee
-          v-bind="attrs"
-          :instance="listeners.employee"
-          v-on="on"
-        />
+        <g-input-employee v-bind="attrs" v-on="on" />
       </template>
     </g-dialog-input>
   </g-template-detail>

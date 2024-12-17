@@ -1,10 +1,11 @@
 <script>
+import { FireModel } from 'air-firebase'
 /**
  * GInput コンポーネント専用のダイアログコンポーネントです。
  * defaultスロットに GInput コンポーネントを配置して使用します。
  *
  * ### 使用方法
- * <g-dialog-input :edit-mode.sync="editMode" @submit:complete="someMethod">
+ * <g-dialog-input :edit-mode.sync="editMode" :instance="instance" @submit:complete="someMethod">
  *    <template #activator="{attrs, on}">
  *        <v-btn v-bind="attrs" v-on="on">OPEN</v-btn>
  *    </template>
@@ -13,14 +14,15 @@
  *    </template>
  * </g-dialog-input>
  *
- * 1. 通常のダイアログコンポーネント同様、activator スロットを利用可能です。
- * 2. editMode を .sync 修飾子とともにバインドしてください。
- * 3.`submit:complete` イベントが emit されます。 submit 後に必要な処理があれば適宜定義します。
- * 4. `click:cancel` イベントが emit されます。 cancel 後に必要な処理があれば適宜定義します。
- * 5. defaultスロットのスロットプロパティ`attrs`、`on`をGInputコンポーネントに適用します。
- * 6. ダイアログが終了すると、GInput コンポーネントの初期化メソッドが実行され、スクロール位置も初期化されます。
- * 7. ダイアログの開閉状態を管理する場合は props.value を使用します。 v-model が使用可能です。
- * 8. `initialize` メソッドが利用可能です。 GInput コンポーネントが初期化されます。
+ * 1. editMode を .sync 修飾子とともにバインドしてください。
+ * 2. 管理対象のクラスインスタンスを instance プロパティにバインドしてください。
+ * 3. 通常のダイアログコンポーネント同様、activator スロットを利用可能です。
+ * 4.`submit:complete` イベントが emit されます。 submit 後に必要な処理があれば適宜定義します。
+ * 5. `click:cancel` イベントが emit されます。 cancel 後に必要な処理があれば適宜定義します。
+ * 6. defaultスロットのスロットプロパティ`attrs`、`on`をGInputコンポーネントに適用します。
+ * 7. ダイアログが終了すると、GInput コンポーネントの初期化メソッドが実行され、スクロール位置も初期化されます。
+ * 8. ダイアログの開閉状態を管理する場合は props.value を使用します。 v-model が使用可能です。
+ * 9. `initialize` メソッドが利用可能です。 GInput コンポーネントが初期化されます。
  *
  * - GInput コンポーネントへの参照を取得する都合上、ダイアログの eager プロパティは true を既定値にしています。
  * - データ編集に使われるコンポーネントを想定しているため、ダイアログの persistent プロパティは true を既定値にしています。
@@ -36,11 +38,49 @@ export default {
    ***************************************************************************/
   mixins: [GMixinEditModeReceiver],
   props: {
+    /**
+     * default スロットに配置された GInput コンポーネントがマウント時に
+     * レンダリングされることを強制します。既定値は true です。
+     */
     eager: { type: Boolean, default: true, required: false },
+
+    /**
+     * ダイアログをフルスクリーン表示にします。
+     * - プロパティでの指定に関わらず、モバイル表示の場合はフルスクリーンになります。
+     */
     fullscreen: { type: Boolean, default: false, required: false },
+
+    /**
+     * GInput コンポーネントで管理対象となる FireModel を継承したクラスインスタンス
+     * - GInput コンポーネントの instance プロパティにバインドされます。
+     */
+    instance: {
+      type: Object,
+      validator: (instance) => instance instanceof FireModel,
+      required: true,
+    },
+
+    /**
+     * ダイアログの最大幅です。既定値は 600 px です。
+     */
     maxWidth: { type: [String, Number], default: 600, required: false },
+
+    /**
+     * ダイアログの外側をクリックしたり、esc キーを押したりしてもダイアログが
+     * 閉じないようになります。既定値は true です。
+     */
     persistent: { type: Boolean, default: true, required: false },
+
+    /**
+     * ダイアログ内に配置された VCard 内の VCardText コンポーネントが
+     * スクロールするようになります。既定値は true です。
+     */
     scrollable: { type: Boolean, default: true, required: false },
+
+    /**
+     * ダイアログの開閉状態を制御します。
+     * v-model を使用することができます。
+     */
     value: { type: Boolean, default: false, required: false },
   },
 
@@ -76,6 +116,7 @@ export default {
     attrs() {
       return {
         editMode: this.editMode,
+        instance: this.instance,
         ref: this.setInputRef,
         tile: this.$vuetify.breakpoint.mobile,
       }

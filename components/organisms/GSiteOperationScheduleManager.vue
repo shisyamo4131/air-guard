@@ -166,6 +166,7 @@ export default {
         <g-dialog-input
           v-model="dialog"
           :edit-mode.sync="editMode"
+          :instance="editModel"
           max-width="480"
         >
           <template #activator="{ attrs, on }">
@@ -174,7 +175,6 @@ export default {
           <template #default="{ attrs, on }">
             <g-input-site-operation-schedule
               v-bind="attrs"
-              :instance="editModel"
               hide-site
               v-on="on"
             />

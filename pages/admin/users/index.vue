@@ -129,18 +129,14 @@ export default {
       <g-dialog-input
         v-model="dialog"
         :edit-mode.sync="editMode"
+        :instance="instance"
         max-width="360"
       >
         <template #activator="{ attrs, on }">
           <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
         </template>
         <template #default="{ attrs, on }">
-          <component
-            :is="component"
-            v-bind="attrs"
-            :instance="instance"
-            v-on="on"
-          />
+          <component :is="component" v-bind="attrs" v-on="on" />
         </template>
       </g-dialog-input>
 

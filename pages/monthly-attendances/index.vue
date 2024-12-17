@@ -334,6 +334,7 @@ export default {
             <g-dialog-input
               v-model="dialog.leaveRecord"
               :edit-mode.sync="editMode"
+              :instance="instance"
               max-width="360"
             >
               <template #default="props">
@@ -342,7 +343,6 @@ export default {
                   :allowe-dates-for-substitute="allowedDatesForSubstitute"
                   hide-employee
                   hide-date
-                  :instance="instance"
                   v-on="props.on"
                 />
               </template>

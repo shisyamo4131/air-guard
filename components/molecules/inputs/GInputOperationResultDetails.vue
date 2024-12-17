@@ -128,12 +128,16 @@ export default {
       @click:delete="onClickDelete"
     />
 
-    <g-dialog-input v-model="dialog" :edit-mode="UPDATE" max-width="480">
+    <g-dialog-input
+      v-model="dialog"
+      :edit-mode="UPDATE"
+      :instance="editModel"
+      max-width="480"
+    >
       <template #default="{ attrs }">
         <component
           :is="inputComponent"
           v-bind="attrs"
-          :instance="editModel"
           @submit:complete="onSubmitComplete"
           @click:cancel="dialog = false"
         />
