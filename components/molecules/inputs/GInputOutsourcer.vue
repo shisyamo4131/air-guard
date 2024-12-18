@@ -8,6 +8,7 @@ import GCardInputForm from '../cards/GCardInputForm.vue'
 import Outsourcer from '~/models/Outsourcer'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import GTextFieldZipcode from '~/components/atoms/inputs/GTextFieldZipcode.vue'
 
 export default {
   /***************************************************************************
@@ -17,6 +18,7 @@ export default {
     GTextField,
     GTextarea,
     GCardInputForm,
+    GTextFieldZipcode,
   },
   /***************************************************************************
    * MIXINS

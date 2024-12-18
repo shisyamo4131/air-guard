@@ -12,6 +12,7 @@ import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import Employee from '~/models/Employee'
+import GTextFieldZipcode from '~/components/atoms/inputs/GTextFieldZipcode.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -23,6 +24,7 @@ export default {
     GSelect,
     GComboboxDate,
     GCardInputForm,
+    GTextFieldZipcode,
   },
   /***************************************************************************
    * MIXINS
