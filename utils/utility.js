@@ -1,4 +1,6 @@
 import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
 
 /****************************************************************************
  * 指定された日付が 'YYYY-MM-DD' 形式であり、かつ有効な日付かどうかをチェックします。
