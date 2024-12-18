@@ -76,14 +76,22 @@ export default {
         />
       </v-form>
     </v-card-text>
-    <v-card-actions v-if="!hideDefaultActions" class="justify-end">
-      <g-btn-submit-icon
-        color="primary"
-        :disabled="loading || disableSubmit"
-        :loading="loading"
-        @click="submit"
-      />
-    </v-card-actions>
+    <slot
+      name="actions"
+      v-bind="{
+        attrs: { disabled: loading || disableSubmit, loading },
+        on: { click: submit },
+      }"
+    >
+      <v-card-actions v-if="!hideDefaultActions" class="justify-end">
+        <g-btn-submit-icon
+          color="primary"
+          :disabled="loading || disableSubmit"
+          :loading="loading"
+          @click="submit"
+        />
+      </v-card-actions>
+    </slot>
   </v-card>
 </template>
 
