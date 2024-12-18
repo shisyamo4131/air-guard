@@ -29,6 +29,11 @@ export default {
     disabled: { type: Boolean, default: false, required: false },
     disableDelete: { type: Boolean, default: false, required: false },
     disableSubmit: { type: Boolean, default: false, required: false },
+
+    /**
+     * 既定のアクションボタンを非表示にします。
+     */
+    hideDefaultActions: { type: Boolean, default: false, required: false },
     label: { type: String, required: true },
     loading: { type: Boolean, default: false, required: false },
   },
@@ -61,7 +66,7 @@ export default {
         />
       </v-form>
     </v-card-text>
-    <v-card-actions class="justify-end">
+    <v-card-actions v-if="!hideDefaultActions" class="justify-end">
       <g-btn-submit-icon
         color="primary"
         :disabled="loading || disableSubmit"
