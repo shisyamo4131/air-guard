@@ -37,6 +37,15 @@ export default {
     label: { type: String, required: true },
     loading: { type: Boolean, default: false, required: false },
   },
+
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    submit() {
+      this.$emit('click:submit')
+    },
+  },
 }
 </script>
 
@@ -53,6 +62,7 @@ export default {
           name="default"
           v-bind="{
             attrs: { editMode, label, loading, CREATE, UPDATE, DELETE },
+            submit,
           }"
         />
         <g-checkbox
@@ -71,7 +81,7 @@ export default {
         color="primary"
         :disabled="loading || disableSubmit"
         :loading="loading"
-        @click="$emit('click:submit')"
+        @click="submit"
       />
     </v-card-actions>
   </v-card>
