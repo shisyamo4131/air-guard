@@ -36,6 +36,12 @@ export default {
     hideDefaultActions: { type: Boolean, default: false, required: false },
     label: { type: String, required: true },
     loading: { type: Boolean, default: false, required: false },
+
+    /**
+     * VCardText の余白を0にします。
+     * - default スロット内で独自に VCardText を使う場合などに便利です。
+     */
+    noPadding: { type: Boolean, default: false, required: false },
   },
 
   /***************************************************************************
@@ -56,7 +62,7 @@ export default {
       <v-spacer />
       <g-btn-cancel-icon :disabled="loading" @click="$emit('click:cancel')" />
     </v-toolbar>
-    <v-card-text class="pt-5">
+    <v-card-text :class="noPadding ? 'pa-0' : 'pt-5'">
       <v-form :disabled="disabled" @submit.prevent>
         <slot
           name="default"
@@ -76,6 +82,8 @@ export default {
         />
       </v-form>
     </v-card-text>
+
+    <!-- slot.actions -->
     <slot
       name="actions"
       v-bind="{
