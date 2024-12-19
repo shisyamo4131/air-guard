@@ -70,10 +70,11 @@ export default {
       <g-data-table-employee-contracts
         v-bind="table.attrs"
         :actions="['edit', 'print']"
+        button-color="yellow darken-4"
         v-on="table.on"
       >
         <template #print="{ item }">
-          <v-btn icon @click="printLaborTerms(item)"
+          <v-btn color="yellow darken-4" icon @click="printLaborTerms(item)"
             ><v-icon>mdi-printer</v-icon></v-btn
           >
         </template>
