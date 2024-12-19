@@ -20,6 +20,11 @@ export default {
     color: { type: String, default: undefined, required: false },
 
     /**
+     * コンポーネントの高さです。
+     */
+    height: { type: [String, Number], default: undefined, required: false },
+
+    /**
      * ラベルに表示されるアイコンです。
      */
     icon: { type: String, default: undefined, required: false },
@@ -39,11 +44,29 @@ export default {
      */
     tile: { type: Boolean, default: false, required: false },
   },
+
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
+  computed: {
+    /**
+     * ルート（div）の高さを指定するCSSを返します。
+     */
+    computedHeightStyle() {
+      if (this.height === undefined) {
+        return {}
+      }
+      return {
+        height:
+          typeof this.height === 'number' ? `${this.height}px` : this.height,
+      }
+    },
+  },
 }
 </script>
 
 <template>
-  <div class="g-card-floating-label__container">
+  <div class="g-card-floating-label__container" :style="computedHeightStyle">
     <v-sheet
       :color="color"
       dark
@@ -57,13 +80,22 @@ export default {
       </div>
     </v-sheet>
     <v-card
-      class="pt-8"
+      class="pt-8 d-flex flex-column"
       v-bind="$attrs"
+      height="100%"
       :rounded="rounded"
       :tile="tile"
       v-on="$listeners"
     >
-      <slot name="default" />
+      <div class="flex-grow-1">
+        <slot name="default" />
+      </div>
+      <v-card-actions
+        v-if="$scopedSlots.actions"
+        class="flex-grow-0 mt-auto justify-end"
+      >
+        <slot name="actions" />
+      </v-card-actions>
     </v-card>
   </div>
 </template>
@@ -71,7 +103,7 @@ export default {
 <style scoped>
 .g-card-floating-label__container {
   position: relative !important;
-  margin: 12px 0 0 0 !important;
+  padding: 0 0 12px 0 !important;
 }
 
 .g-card-floating-label__label {
