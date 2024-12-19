@@ -5,10 +5,12 @@
  * @author shisyamo4131
  */
 import FireModel from 'air-firebase/dist/firestore/FireModel'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
+  mixins: [GMixinEditModeProvider],
   props: {
     /**
      * 管理対象のドキュメントIDです。
@@ -91,10 +93,17 @@ export default {
    * RENDER
    ***************************************************************************/
   render(h) {
-    // スロットが指定されているか確認
     if (this.$scopedSlots.default) {
       return this.$scopedSlots.default({
         editModel: this.editModel,
+
+        // 編集画面を包括するダイアログコンポーネントへのプロパティ
+        dialog: {
+          attrs: {
+            editMode: this.editMode,
+            instance: this.editModel,
+          },
+        },
       })
     }
     return null // スロットが提供されていない場合、何もレンダリングしない
