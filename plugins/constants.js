@@ -1,4 +1,5 @@
 import colors from 'vuetify/es5/util/colors'
+import { HEALTH_INSURANCE_TYPE } from '~/models/constants/health-insurance-types'
 
 const ATTENDANCE_STATUS = {}
 Object.defineProperties(ATTENDANCE_STATUS, {
@@ -287,6 +288,12 @@ const EMPLOYEE_STATUS_ARRAY = [
   { value: 'expired', text: '退職' },
 ]
 
+const HEALTH_INSURANCE_TYPE_ARRAY = Object.entries(HEALTH_INSURANCE_TYPE).map(
+  ([key, value]) => {
+    return { value: key, text: value }
+  }
+)
+
 const LEAVE_APPLICATION_STATUS = {
   approved: '承認',
   unapproved: '未承認',
@@ -446,6 +453,8 @@ export default (context, inject) => {
   inject('EMPLOYEE_CONTRACT_TYPE_ARRAY', EMPLOYEE_CONTRACT_TYPE_ARRAY)
   inject('EMPLOYEE_STATUS', EMPLOYEE_STATUS)
   inject('EMPLOYEE_STATUS_ARRAY', EMPLOYEE_STATUS_ARRAY)
+  inject('HEALTH_INSURANCE_TYPE', HEALTH_INSURANCE_TYPE)
+  inject('HEALTH_INSURANCE_TYPE_ARRAY', HEALTH_INSURANCE_TYPE_ARRAY)
   inject('LEAVE_APPLICATION_STATUS', LEAVE_APPLICATION_STATUS)
   inject('LEAVE_APPLICATION_STATUS_ARRAY', LEAVE_APPLICATION_STATUS_ARRAY)
   inject('LEAVE_APPLICATION_TYPE', LEAVE_APPLICATION_TYPE)
