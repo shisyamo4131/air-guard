@@ -38,7 +38,7 @@ export default {
        * - props.instance で与えられたインスタンスの clone() メソッドによって複製された
        *   インスタンスがセットされます。
        */
-      editModel: null,
+      doc: null,
     }
   },
 
@@ -77,15 +77,15 @@ export default {
       this.unsubscribe()
       const { docId, instance } = this.$props
       if (!docId || !instance) return
-      this.editModel = instance.clone()
-      this.editModel.subscribe(docId)
+      this.doc = instance.clone()
+      this.doc.subscribe(docId)
     },
 
     /**
      * ドキュメントの購読を解除します。
      */
     unsubscribe() {
-      if (this.editModel) this.editModel.unsubscribe()
+      if (this.doc) this.doc.unsubscribe()
     },
   },
 
@@ -95,13 +95,13 @@ export default {
   render(h) {
     if (this.$scopedSlots.default) {
       return this.$scopedSlots.default({
-        editModel: this.editModel,
+        doc: this.doc,
 
         // 編集画面を包括するダイアログコンポーネントへのプロパティ
         dialog: {
           attrs: {
             editMode: this.editMode,
-            instance: this.editModel,
+            instance: this.doc,
           },
         },
       })
