@@ -107,8 +107,8 @@ export default {
     />
 
     <v-card outlined>
+      <v-subheader>緊急連絡先</v-subheader>
       <v-card-text>
-        <v-subheader>緊急連絡先</v-subheader>
         <g-text-field
           v-model="editModel.securityRegistration.emergencyContactName"
           label="氏名"

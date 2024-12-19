@@ -70,7 +70,7 @@ export default {
                   :name="`list-item-icon.${list.value}`"
                   v-bind="{ item, index }"
                 >
-                  <v-icon v-if="list.icon" :color="iconColor" left x-small>
+                  <v-icon v-if="list.icon" :color="iconColor" small>
                     {{ list.icon }}
                   </v-icon>
                 </slot>

@@ -47,7 +47,7 @@ export default {
     <v-sheet
       :color="color"
       dark
-      class="g-card-floating-label__label px-2 text-subtitle-1"
+      class="g-card-floating-label__label px-3 py-2 text-subtitle-1"
       :tile="tile"
       :rounded="rounded"
     >
@@ -57,7 +57,7 @@ export default {
       </div>
     </v-sheet>
     <v-card
-      class="pt-5"
+      class="pt-6"
       v-bind="$attrs"
       :rounded="rounded"
       :tile="tile"
