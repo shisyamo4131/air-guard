@@ -57,7 +57,7 @@ export default {
       </div>
     </v-sheet>
     <v-card
-      class="pt-6"
+      class="pt-8"
       v-bind="$attrs"
       :rounded="rounded"
       :tile="tile"
