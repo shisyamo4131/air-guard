@@ -107,7 +107,7 @@ export default {
         :lists="lists"
         :item="doc.securityRegistration"
       />
-      <v-card-actions class="pt-0 justify-end">
+      <template #actions>
         <g-dialog-input v-bind="dialog.attrs" max-width="480">
           <template #activator="{ attrs, on }">
             <g-btn-edit-icon v-bind="attrs" color="blue darken-4" v-on="on" />
@@ -116,7 +116,7 @@ export default {
             <g-input-security-registration v-bind="attrs" v-on="on" />
           </template>
         </g-dialog-input>
-      </v-card-actions>
+      </template>
     </g-card-floating-label>
   </a-document-subscriber>
 </template>

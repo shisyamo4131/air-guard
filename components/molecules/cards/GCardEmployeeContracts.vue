@@ -61,9 +61,11 @@ export default {
     edit-event="click:edit"
   >
     <g-card-floating-label
-      color="green darken-4"
-      label="雇用契約"
+      v-bind="$attrs"
+      color="yellow darken-4"
+      label="雇用契約（直近3件）"
       icon="mdi-file-sign"
+      height="100%"
     >
       <g-data-table-employee-contracts
         v-bind="table.attrs"
@@ -76,12 +78,12 @@ export default {
           >
         </template>
       </g-data-table-employee-contracts>
-      <v-card-actions class="pt-0 justify-end">
+      <template #actions>
         <g-dialog-input v-bind="dialog.attrs" max-width="600">
           <template #activator="{ attrs, on }">
             <g-btn-regist-icon
               v-bind="attrs"
-              color="green darken-4"
+              color="yellow darken-4"
               @click="openEditor()"
               v-on="on"
             />
@@ -90,7 +92,7 @@ export default {
             <g-input-employee-contract v-bind="attrs" v-on="on" />
           </template>
         </g-dialog-input>
-      </v-card-actions>
+      </template>
     </g-card-floating-label>
   </a-documents-subscriber>
 </template>
