@@ -35,6 +35,11 @@ export default {
    ***************************************************************************/
   props: {
     actions: { type: Array, default: () => [], required: false },
+
+    /**
+     * 行に表示されるボタンの色です。
+     */
+    buttonColor: { type: String, default: undefined, required: false },
     checkboxColor: { type: String, default: 'primary', required: false },
     customFilter: { type: Function, default: undefined, required: false },
     disableEdit: { type: Boolean, default: false, required: false },
@@ -174,6 +179,7 @@ export default {
       >
         <v-btn
           v-if="actions.includes('edit')"
+          :color="buttonColor"
           icon
           :disabled="disableEdit"
           @click="$emit('click:edit', props.item)"
@@ -182,6 +188,7 @@ export default {
         </v-btn>
         <v-btn
           v-if="actions.includes('delete')"
+          :color="buttonColor"
           icon
           :disabled="disableDelete"
           @click="$emit('click:delete', props.item)"
@@ -190,6 +197,7 @@ export default {
         </v-btn>
         <v-btn
           v-if="actions.includes('detail')"
+          :color="buttonColor"
           icon
           :disabled="disableDetail"
           @click="$emit('click:detail', props.item)"
