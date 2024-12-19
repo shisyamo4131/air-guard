@@ -36,7 +36,7 @@ export default {
        * - props.instance で与えられたインスタンスの clone() メソッドによって複製された
        *   インスタンスがセットされます。
        */
-      clonedInstance: null,
+      editModel: null,
     }
   },
 
@@ -75,15 +75,15 @@ export default {
       this.unsubscribe()
       const { docId, instance } = this.$props
       if (!docId || !instance) return
-      this.clonedInstance = instance.clone()
-      this.clonedInstance.subscribe(docId)
+      this.editModel = instance.clone()
+      this.editModel.subscribe(docId)
     },
 
     /**
      * ドキュメントの購読を解除します。
      */
     unsubscribe() {
-      if (this.clonedInstance) this.clonedInstance.unsubscribe()
+      if (this.editModel) this.editModel.unsubscribe()
     },
   },
 
@@ -94,7 +94,7 @@ export default {
     // スロットが指定されているか確認
     if (this.$scopedSlots.default) {
       return this.$scopedSlots.default({
-        instance: this.clonedInstance,
+        editModel: this.editModel,
       })
     }
     return null // スロットが提供されていない場合、何もレンダリングしない
