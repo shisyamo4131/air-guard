@@ -7,12 +7,12 @@ import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GCardEmployee from '~/components/molecules/cards/GCardEmployee.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
-import GEmployeeContractsManager from '~/components/organisms/GEmployeeContractsManager.vue'
 import Employee from '~/models/Employee'
 import EmployeeMedicalCheckup from '~/models/EmployeeMedicalCheckup'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GCardEmployeeSecurityRegistration from '~/components/molecules/cards/GCardEmployeeSecurityRegistration.vue'
+import GCardEmployeeContracts from '~/components/molecules/cards/GCardEmployeeContracts.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -27,9 +27,9 @@ export default {
     GCardEmployee,
     GTemplateDetail,
     GInputEmployee,
-    GEmployeeContractsManager,
     GDialogInput,
     GCardEmployeeSecurityRegistration,
+    GCardEmployeeContracts,
   },
 
   /***************************************************************************
@@ -120,9 +120,9 @@ export default {
         />
       </v-col>
       <v-col v-if="$store.getters['auth/isAdmin']" cols="12" lg="6">
-        <g-employee-contracts-manager
-          height="100%"
+        <g-card-employee-contracts
           :employee-id="listeners.employee.docId"
+          height="100%"
         />
       </v-col>
       <v-col cols="12" lg="6">
