@@ -1,4 +1,5 @@
 import colors from 'vuetify/es5/util/colors'
+import { CONTRACT_TYPE } from '~/models/constants/contract-types'
 import { HEALTH_INSURANCE_TYPE } from '~/models/constants/health-insurance-types'
 
 const ATTENDANCE_STATUS = {}
@@ -110,19 +111,12 @@ const CHAR_REGEXP_ARRAY = [
   { text: 'ワ', value: '[ワ-ン]' },
 ]
 
-const CONTRACT_TYPE = {
-  exective: '0: 役員',
-  'full-time': '1: 正社員',
-  contract: '2: 契約社員',
-  'part-time': '3: アルバイト',
-}
-
-const CONTRACT_TYPE_ARRAY = [
-  { value: 'exective', text: '0: 役員' },
-  { value: 'full-time', text: '1: 正社員' },
-  { value: 'contract', text: '2: 契約社員' },
-  { value: 'part-time', text: '3: アルバイト' },
-]
+// 雇用形態
+const CONTRACT_TYPE_ARRAY = Object.entries(CONTRACT_TYPE).map(
+  ([key, value]) => {
+    return { value: key, text: value }
+  }
+)
 
 const CUSTOMER_STATUS = {
   active: '契約中',
