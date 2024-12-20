@@ -1,12 +1,12 @@
 <script>
 /**
- * 従業員健康保険情報入力コンポーネント
+ * 従業員厚生年金情報入力コンポーネント
  * @author shisayamo4131
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
-import EmployeeHealthInsurance from '~/models/EmployeeHealthInsurance'
+import EmployeePension from '~/models/EmployeePension'
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 export default {
@@ -28,7 +28,7 @@ export default {
       type: Object,
       required: true,
       validator(instance) {
-        return instance instanceof EmployeeHealthInsurance
+        return instance instanceof EmployeePension
       },
     },
   },
@@ -38,7 +38,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      editModel: new EmployeeHealthInsurance(),
+      editModel: new EmployeePension(),
     }
   },
 }
@@ -47,7 +47,7 @@ export default {
 <template>
   <g-card-input-form
     v-bind="$attrs"
-    label="健康保険情報編集"
+    label="厚生年金情報編集"
     :edit-mode="editMode"
     :loading="loading"
     @click:submit="submit"

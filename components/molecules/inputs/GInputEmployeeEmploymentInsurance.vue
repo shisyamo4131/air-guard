@@ -1,19 +1,18 @@
 <script>
 /**
- * 従業員健康保険情報入力コンポーネント
+ * 従業員雇用保険情報入力コンポーネント
  * @author shisayamo4131
  */
 import GCardInputForm from '../cards/GCardInputForm.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
-import EmployeeHealthInsurance from '~/models/EmployeeHealthInsurance'
+import EmployeeEmploymentInsurance from '~/models/EmployeeEmploymentInsurance'
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
-import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextField, GCardInputForm, GComboboxDate, GNumeric },
+  components: { GTextField, GCardInputForm, GComboboxDate },
 
   /***************************************************************************
    * MIXINS
@@ -28,7 +27,7 @@ export default {
       type: Object,
       required: true,
       validator(instance) {
-        return instance instanceof EmployeeHealthInsurance
+        return instance instanceof EmployeeEmploymentInsurance
       },
     },
   },
@@ -38,7 +37,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      editModel: new EmployeeHealthInsurance(),
+      editModel: new EmployeeEmploymentInsurance(),
     }
   },
 }
@@ -47,7 +46,7 @@ export default {
 <template>
   <g-card-input-form
     v-bind="$attrs"
-    label="健康保険情報編集"
+    label="雇用保険情報編集"
     :edit-mode="editMode"
     :loading="loading"
     @click:submit="submit"
@@ -56,13 +55,6 @@ export default {
     <g-combobox-date
       v-model="editModel.acquisitionDate"
       label="資格取得日"
-      required
-    />
-    <g-numeric
-      v-model="editModel.standardMonthlyAmount"
-      label="標準報酬月額"
-      class="right-input"
-      suffix="円/月"
       required
     />
     <g-text-field

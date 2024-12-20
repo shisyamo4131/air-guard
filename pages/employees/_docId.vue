@@ -13,6 +13,9 @@ import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GCardEmployeeSecurityRegistration from '~/components/molecules/cards/GCardEmployeeSecurityRegistration.vue'
 import GCardEmployeeContracts from '~/components/molecules/cards/GCardEmployeeContracts.vue'
+import GCardEmployeeHealthInsurance from '~/components/molecules/cards/GCardEmployeeHealthInsurance.vue'
+import GCardEmployeePension from '~/components/molecules/cards/GCardEmployeePension.vue'
+import GCardEmployeeEmploymentInsurance from '~/components/molecules/cards/GCardEmployeeEmploymentInsurance.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -30,6 +33,9 @@ export default {
     GDialogInput,
     GCardEmployeeSecurityRegistration,
     GCardEmployeeContracts,
+    GCardEmployeeHealthInsurance,
+    GCardEmployeePension,
+    GCardEmployeeEmploymentInsurance,
   },
 
   /***************************************************************************
@@ -117,6 +123,19 @@ export default {
           :instance="listeners.employee"
           outlined
           :medical-checkups="items.medicalCheckups"
+        />
+      </v-col>
+      <v-col cols="12" md="4">
+        <g-card-employee-health-insurance
+          :employee-id="listeners.employee.docId"
+        />
+      </v-col>
+      <v-col cols="12" md="4">
+        <g-card-employee-pension :employee-id="listeners.employee.docId" />
+      </v-col>
+      <v-col cols="12" md="4">
+        <g-card-employee-employment-insurance
+          :employee-id="listeners.employee.docId"
         />
       </v-col>
       <v-col v-if="$store.getters['auth/isAdmin']" cols="12" lg="6">

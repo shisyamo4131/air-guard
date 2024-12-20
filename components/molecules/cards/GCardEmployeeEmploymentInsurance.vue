@@ -1,8 +1,8 @@
 <script>
 import GCardFloatingLabel from '../../atoms/cards/GCardFloatingLabel.vue'
 import GDialogInput from '../dialogs/GDialogInput.vue'
-import GInputEmployeeHealthInsurance from '../inputs/GInputEmployeeHealthInsurance.vue'
-import EmployeeHealthInsurance from '~/models/EmployeeHealthInsurance'
+import GInputEmployeeEmploymentInsurance from '../inputs/GInputEmployeeEmploymentInsurance.vue'
+import EmployeeEmploymentInsurance from '~/models/EmployeeEmploymentInsurance'
 import ADocumentsSubscriber from '~/components/atoms/renderless/ADocumentsSubscriber.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
@@ -13,7 +13,7 @@ export default {
   components: {
     GCardFloatingLabel,
     GDialogInput,
-    GInputEmployeeHealthInsurance,
+    GInputEmployeeEmploymentInsurance,
     ADocumentsSubscriber,
     GDataTable,
     GBtnRegistIcon,
@@ -34,15 +34,11 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      instance: new EmployeeHealthInsurance(),
+      instance: new EmployeeEmploymentInsurance(),
       headers: [
         {
           text: '資格取得日',
           value: 'acquisitionDate',
-        },
-        {
-          text: '標準報酬月額',
-          value: 'standardMonthlyAmount',
         },
         {
           text: '被保険者整理番号',
@@ -67,14 +63,14 @@ export default {
   >
     <g-card-floating-label
       v-bind="$attrs"
-      color="green darken-4"
-      label="健康保険"
-      icon="mdi-hospital-box"
+      color="purple darken-4"
+      label="雇用保険"
+      icon="mdi-shield-account"
     >
       <g-data-table
         v-bind="table.attrs"
         :headers="headers"
-        button-color="green darken-4"
+        button-color="purple darken-4"
         v-on="table.on"
       >
       </g-data-table>
@@ -83,13 +79,13 @@ export default {
           <template #activator="{ attrs, on }">
             <g-btn-regist-icon
               v-bind="attrs"
-              color="green darken-4"
+              color="purple darken-4"
               @click="openEditor()"
               v-on="on"
             />
           </template>
           <template #default="{ attrs, on }">
-            <g-input-employee-health-insurance v-bind="attrs" v-on="on" />
+            <g-input-employee-employment-insurance v-bind="attrs" v-on="on" />
           </template>
         </g-dialog-input>
       </template>
