@@ -24,6 +24,11 @@ export default {
    ***************************************************************************/
   props: {
     /**
+     * コンポーネントのカラーです。
+     */
+    color: { type: String, default: undefined, required: false },
+
+    /**
      * 管理対象のドキュメントIDです。
      */
     docId: { type: String, default: '', required: false },
@@ -98,19 +103,19 @@ export default {
     :instance="instance"
   >
     <g-card-floating-label
-      color="blue darken-4"
+      :color="color"
       label="警備員登録情報"
       icon="mdi-shield"
     >
       <g-list-iterator
-        icon-color="blue darken-4"
+        icon-:color="color"
         :lists="lists"
         :item="doc.securityRegistration"
       />
       <template #actions>
         <g-dialog-input v-bind="dialog.attrs" max-width="480">
           <template #activator="{ attrs, on }">
-            <g-btn-edit-icon v-bind="attrs" color="blue darken-4" v-on="on" />
+            <g-btn-edit-icon v-bind="attrs" :color="color" v-on="on" />
           </template>
           <template #default="{ attrs, on }">
             <g-input-security-registration v-bind="attrs" v-on="on" />

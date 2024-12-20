@@ -24,6 +24,11 @@ export default {
    ***************************************************************************/
   props: {
     /**
+     * コンポーネントのカラーです。
+     */
+    color: { type: String, default: undefined, required: false },
+
+    /**
      * 管理対象の従業員IDです。
      */
     employeeId: { type: String, required: true },
@@ -67,14 +72,14 @@ export default {
   >
     <g-card-floating-label
       v-bind="$attrs"
-      color="green darken-4"
+      :color="color"
       label="健康保険"
       icon="mdi-hospital-box"
     >
       <g-data-table
         v-bind="table.attrs"
         :headers="headers"
-        button-color="green darken-4"
+        :button-color="color"
         v-on="table.on"
       >
       </g-data-table>
@@ -83,7 +88,7 @@ export default {
           <template #activator="{ attrs, on }">
             <g-btn-regist-icon
               v-bind="attrs"
-              color="green darken-4"
+              :color="color"
               @click="openEditor()"
               v-on="on"
             />

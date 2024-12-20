@@ -24,6 +24,11 @@ export default {
    ***************************************************************************/
   props: {
     /**
+     * コンポーネントのカラーです。
+     */
+    color: { type: String, default: undefined, required: false },
+
+    /**
      * 管理対象の従業員IDです。
      */
     employeeId: { type: String, required: true },
@@ -62,7 +67,7 @@ export default {
   >
     <g-card-floating-label
       v-bind="$attrs"
-      color="yellow darken-4"
+      :color="color"
       label="雇用契約（直近3件）"
       icon="mdi-file-sign"
       height="100%"
@@ -70,11 +75,11 @@ export default {
       <g-data-table-employee-contracts
         v-bind="table.attrs"
         :actions="['edit', 'print']"
-        button-color="yellow darken-4"
+        :button-color="color"
         v-on="table.on"
       >
         <template #print="{ item }">
-          <v-btn color="yellow darken-4" icon @click="printLaborTerms(item)"
+          <v-btn :color="color" icon @click="printLaborTerms(item)"
             ><v-icon>mdi-printer</v-icon></v-btn
           >
         </template>
@@ -84,7 +89,7 @@ export default {
           <template #activator="{ attrs, on }">
             <g-btn-regist-icon
               v-bind="attrs"
-              color="yellow darken-4"
+              :color="color"
               @click="openEditor()"
               v-on="on"
             />

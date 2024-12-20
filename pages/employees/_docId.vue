@@ -128,24 +128,34 @@ export default {
       <v-col cols="12" md="4">
         <g-card-employee-health-insurance
           :employee-id="listeners.employee.docId"
+          color="secondary"
         />
       </v-col>
       <v-col cols="12" md="4">
-        <g-card-employee-pension :employee-id="listeners.employee.docId" />
+        <g-card-employee-pension
+          :employee-id="listeners.employee.docId"
+          color="accent"
+        />
       </v-col>
       <v-col cols="12" md="4">
         <g-card-employee-employment-insurance
           :employee-id="listeners.employee.docId"
+          color="info"
         />
       </v-col>
       <v-col v-if="$store.getters['auth/isAdmin']" cols="12" lg="6">
         <g-card-employee-contracts
           :employee-id="listeners.employee.docId"
           height="100%"
+          color="warning"
         />
       </v-col>
       <v-col cols="12" lg="6">
-        <g-card-employee-security-registration height="100%" :doc-id="docId" />
+        <g-card-employee-security-registration
+          height="100%"
+          :doc-id="docId"
+          color="success"
+        />
       </v-col>
       <v-col cols="12">
         <g-card-map
