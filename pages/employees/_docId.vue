@@ -128,33 +128,33 @@ export default {
       <v-col cols="12" md="4">
         <g-card-employee-health-insurance
           :employee-id="listeners.employee.docId"
-          color="secondary"
+          :color="$FUTURE_COLOR_INDEX(0)"
         />
       </v-col>
       <v-col cols="12" md="4">
         <g-card-employee-pension
           :employee-id="listeners.employee.docId"
-          color="accent"
+          :color="$FUTURE_COLOR_INDEX(1)"
         />
       </v-col>
       <v-col cols="12" md="4">
         <g-card-employee-employment-insurance
           :employee-id="listeners.employee.docId"
-          color="info"
+          :color="$FUTURE_COLOR_INDEX(2)"
         />
       </v-col>
       <v-col v-if="$store.getters['auth/isAdmin']" cols="12" lg="6">
         <g-card-employee-contracts
           :employee-id="listeners.employee.docId"
           height="100%"
-          color="warning"
+          :color="$FUTURE_COLOR_INDEX(3)"
         />
       </v-col>
       <v-col cols="12" lg="6">
         <g-card-employee-security-registration
           height="100%"
           :doc-id="docId"
-          color="success"
+          :color="$FUTURE_COLOR_INDEX(4)"
         />
       </v-col>
       <v-col cols="12">

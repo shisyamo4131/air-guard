@@ -2,6 +2,27 @@ import colors from 'vuetify/es5/util/colors'
 import { CONTRACT_TYPE } from '~/models/constants/contract-types'
 import { HEALTH_INSURANCE_TYPE } from '~/models/constants/health-insurance-types'
 
+/**
+ * 将来適用したいカラーパレット
+ * 現行で勝手に変更してしまうと混乱を招きそうなので、一旦こちらに定義
+ */
+const FUTURE_COLORS = Object.freeze({
+  primary: '#1B3B6F', // Deep Blue: 主な基調色として、信頼性と安定感を象徴
+  secondary: '#6A994E', // Olive Green: 補助色として自然や調和をイメージ
+  accent: '#D1495B', // Burnt Orange: アクセントカラーとして、エネルギッシュで暖かみのある色
+  info: '#468FAF', // Teal: 情報をクリアに表現する青緑
+  warning: '#D4A373', // Golden Yellow: 注意や警告を促す暖かみのある黄色
+  error: '#A63A50', // Brick Red: エラーや危険を示す落ち着いた赤
+  success: '#6D597A', // Royal Purple: 成功や高級感を象徴する深い紫
+  highlight: '#3E4C59', // Steel Gray: 特定の要素を目立たせるニュートラルなグレー
+})
+
+const FUTURE_COLOR_INDEX = (index) => {
+  const colorCount = Object.keys(FUTURE_COLORS).length
+  const colorIndex = index % colorCount
+  return Object.values(FUTURE_COLORS)[colorIndex]
+}
+
 const ATTENDANCE_STATUS = {}
 Object.defineProperties(ATTENDANCE_STATUS, {
   undefined: {
@@ -427,6 +448,9 @@ const WORK_SHIFT_ARRAY = Object.entries(WORK_SHIFT).map(([key, value]) => {
 })
 
 export default (context, inject) => {
+  inject('FUTURE_COLORS', FUTURE_COLORS)
+  inject('FUTURE_COLOR_INDEX', (index) => FUTURE_COLOR_INDEX(index))
+
   inject('ATTENDANCE_STATUS', ATTENDANCE_STATUS)
   inject('CHAR_REGEXP', CHAR_REGEXP)
   inject('CHAR_REGEXP_ARRAY', CHAR_REGEXP_ARRAY)
