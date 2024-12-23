@@ -14,7 +14,7 @@ import { FireModel } from 'air-firebase'
  *    </template>
  * </g-dialog-input>
  *
- * 1. editMode を .sync 修飾子とともにバインドしてください。
+ * 1. editMode を 受け取り、GInput コンポーネントに引き渡します。
  * 2. 管理対象のクラスインスタンスを instance プロパティにバインドしてください。
  * 3. 通常のダイアログコンポーネント同様、activator スロットを利用可能です。
  * 4.`submit:complete` イベントが emit されます。 submit 後に必要な処理があれば適宜定義します。
