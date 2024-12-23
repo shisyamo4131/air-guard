@@ -19,10 +19,7 @@ import {
   extractDiffsFromDocUpdatedEvent,
   isDocumentChanged,
 } from '../modules/utils.js'
-import {
-  EmployeeForEmployeeContract,
-  EmployeeIndex,
-} from '../models/Employee.js'
+import { EmployeeIndex, EmployeeMinimal } from '../models/Employee.js'
 import { EmployeeContractLatest } from '../models/EmployeeContract.js'
 
 /****************************************************************************
@@ -60,8 +57,6 @@ export const onCreate = onDocumentCreated(
 
 /****************************************************************************
  * ドキュメントの更新トリガーです。
- * - インデックスを更新します。
- * - 従属するドキュメントの `employee` プロパティを同期します。
  * @author shisyamo4131
  ****************************************************************************/
 export const onUpdate = onDocumentUpdated(
@@ -73,32 +68,30 @@ export const onUpdate = onDocumentUpdated(
       // ドキュメントに変更がなければ処理を終了
       if (!isDocumentChanged(event)) return
 
-      logger.info(
-        `Employeesドキュメントが更新されました。ドキュメントID: ${event.params.docId}`
-      )
-
-      /**
-       * Realtime Database にインデックスを作成します。
-       * - インデックス対象のデータに変更がある場合のみ。
-       */
+      // EmployeeIndex クラスを基準に変更の有無を確認
       const isChangedAsIndex = extractDiffsFromDocUpdatedEvent({
         event,
         ComparisonClass: EmployeeIndex,
       })
+
+      // 変更があった場合はインデックスを更新
       if (isChangedAsIndex.length > 0) {
         await EmployeeIndex.create(event.params.docId)
       }
-      logger.info(`Employeeインデックスとの同期完了`)
 
-      /**
-       * EmployeeContracts ドキュメントと同期
-       */
-      await EmployeeForEmployeeContract.sync(event)
-      logger.info(`EmployeeContractsコレクションとの同期処理完了`)
+      // 従属ドキュメント（非同期ドキュメント）との同期処理
+      const dependentCollections = [
+        'EmployeeContracts',
+        'HealthInsurances',
+        'Pensions',
+        'EmploymentInsurances',
+        'MedicalCheckups',
+      ]
+      for (const collectionId of dependentCollections) {
+        await EmployeeMinimal.sync(event, collectionId)
+      }
 
-      /**
-       * status 更新された場合は最新の雇用契約情報を同期
-       */
+      // status が更新された場合は最新の雇用契約情報を同期
       if (event.data.before.data().status !== event.data.after.data().status) {
         await EmployeeContractLatest.sync(employeeId)
       }

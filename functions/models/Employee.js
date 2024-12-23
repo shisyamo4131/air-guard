@@ -2,7 +2,7 @@ import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import {
   extractDiffsFromDocUpdatedEvent,
-  syncDependentDocuments,
+  syncDependentDocumentsV2,
 } from '../modules/utils.js'
 import {
   createIndex,
@@ -46,12 +46,6 @@ export default class Employee extends FireModel {
 
   delete() {
     return Promise.reject(new Error('このクラスの delete は使用できません。'))
-  }
-
-  static updateImgRef() {
-    return Promise.reject(
-      new Error('このクラスの updateImgRef は使用できません。')
-    )
   }
 
   /****************************************************************************
@@ -246,30 +240,20 @@ export class EmployeeMinimal extends Employee {
     delete this.remarks
     delete this.tokenMap
   }
-}
 
-/**
- * EmployeeCotract 専用の Employee クラスです。
- */
-export class EmployeeForEmployeeContract extends EmployeeMinimal {
-  /**
-   * ドキュメントの更新トリガーイベントオブジェクトを受け取り、EmployeeContract ドキュメントの
-   * employee プロパティを同期します。
-   * @param {Object} event - ドキュメントの更新トリガーイベントオブジェクト
-   */
-  static async sync(event) {
+  static async sync(event, collectionId) {
     try {
       const differences = extractDiffsFromDocUpdatedEvent({
         event,
         ComparisonClass: this,
       })
       if (!differences.length) return
-      await syncDependentDocuments(
-        'EmployeeContracts',
-        'employee.docId',
-        'employee',
-        differences.data
-      )
+      await syncDependentDocumentsV2({
+        collectionId,
+        updateProp: 'employee',
+        afterData: differences.data,
+        conditions: [['employeeId', '==', event.data.after.data().docId]],
+      })
     } catch (error) {
       logger.error(
         `EmployeeContract ドキュメントの employee プロパティの同期処理に失敗しました。`

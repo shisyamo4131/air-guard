@@ -29,6 +29,24 @@ export default class Employee extends FireModel {
       type: 'collection',
     },
     {
+      collection: 'HealthInsurances',
+      field: 'employeeId',
+      condition: '==',
+      type: 'collection',
+    },
+    {
+      collection: 'Pensions',
+      field: 'employeeId',
+      condition: '==',
+      type: 'collection',
+    },
+    {
+      collection: 'EmploymentInsurances',
+      field: 'employeeId',
+      condition: '==',
+      type: 'collection',
+    },
+    {
       collection: 'OperationResults',
       field: 'employeeIds',
       condition: 'array-contains',

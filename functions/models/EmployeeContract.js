@@ -3,7 +3,7 @@ import { getDatabase } from 'firebase-admin/database'
 import { logger } from 'firebase-functions/v2'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/EmployeeContract.js'
-import { EmployeeForEmployeeContract } from './Employee.js'
+import { EmployeeMinimal } from './Employee.js'
 import WorkRegulation, {
   WorkRegulationForDailyAttendance,
 } from './WorkRegulation.js'
@@ -27,7 +27,7 @@ export default class EmployeeContract extends FireModel {
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
-    employee: EmployeeForEmployeeContract,
+    employee: EmployeeMinimal,
     workRegulation: WorkRegulation,
     allowances: EmployeeAllowance,
   }
