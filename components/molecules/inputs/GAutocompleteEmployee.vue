@@ -15,6 +15,7 @@ export default {
    * PROPS
    ***************************************************************************/
   props: {
+    disabled: { type: Boolean, default: false, required: false },
     itemText: { type: String, default: 'abbr', required: false },
     itemValue: { type: String, default: 'docId', required: false },
     multiple: { type: Boolean, default: false, required: false },
@@ -70,10 +71,13 @@ export default {
       <g-dialog-employee-selector
         :items="items"
         :single-select="!multiple"
+        :disabled="disabled"
         @click:submit="submit"
       >
         <template #activator="{ attrs, on }">
-          <v-icon v-bind="attrs" v-on="on">mdi-list-box-outline</v-icon>
+          <v-icon v-bind="attrs" :disabled="disabled" v-on="on"
+            >mdi-list-box-outline</v-icon
+          >
         </template>
       </g-dialog-employee-selector>
     </template>
