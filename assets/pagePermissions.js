@@ -15,6 +15,7 @@ module.exports = {
   'monthly-attendances': ['admin', 'developer'],
 
   // 人事管理
+  employees: ['admin', 'developer'],
   'employement-insurances': ['admin', 'developer'],
   'health-insurances': ['admin', 'developer'],
   pensions: ['admin', 'developer'],
@@ -29,7 +30,6 @@ module.exports = {
   // マスタ管理
   customers: ['admin', 'developer'],
   'customers-docId': ['admin', 'developer'],
-  employees: ['admin', 'developer'],
   'employees-docId': ['admin', 'developer'],
   sites: ['admin', 'developer', 'manager'],
   'sites-docId': ['admin', 'developer', 'manager'],

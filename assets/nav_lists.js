@@ -33,9 +33,10 @@ export const allNavList = [
     ],
   },
   {
-    name: '人事管理',
+    name: '人事・労務',
     icon: 'mdi-account-group',
     lists: [
+      { name: '従業員', to: '/employees', icon: 'mdi-domain' },
       {
         name: '雇用保険',
         to: '/employment-insurances',
@@ -86,7 +87,6 @@ export const allNavList = [
     lists: [
       { name: '取引先', to: '/customers', icon: 'mdi-domain' },
       { name: '現場', to: '/sites', icon: 'mdi-domain' },
-      { name: '従業員', to: '/employees', icon: 'mdi-domain' },
       { name: '外注先', to: '/outsourcers', icon: 'mdi-domain' },
       { name: '制服・装備品', to: '/equipments', icon: 'mdi-domain' },
       { name: '手当', to: '/allowances', icon: 'mdi-domain' },
