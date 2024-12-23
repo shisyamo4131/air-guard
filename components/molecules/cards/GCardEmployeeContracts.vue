@@ -1,23 +1,21 @@
 <script>
 import GCardFloatingLabel from '../../atoms/cards/GCardFloatingLabel.vue'
-import GDialogInput from '../dialogs/GDialogInput.vue'
 import GDataTableEmployeeContracts from '../tables/GDataTableEmployeeContracts.vue'
-import GInputEmployeeContract from '../inputs/GInputEmployeeContract.vue'
 import EmployeeContract from '~/models/EmployeeContract'
-import ADocumentsSubscriber from '~/components/atoms/renderless/ADocumentsSubscriber.vue'
-import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
     GCardFloatingLabel,
-    GDialogInput,
-    ADocumentsSubscriber,
     GDataTableEmployeeContracts,
-    GBtnRegistIcon,
-    GInputEmployeeContract,
   },
+
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * PROPS
@@ -39,8 +37,37 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      docs: [],
       instance: new EmployeeContract(),
     }
+  },
+
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    /**
+     * 従業員IDが変更されたら雇用契約ドキュメントの購読を開始します。
+     */
+    employeeId: {
+      handler(v) {
+        this.instance.employeeId = v
+        this.docs = this.instance.subscribeDocs([
+          ['where', 'employeeId', '==', v],
+          ['orderBy', 'startDate', 'desc'],
+          ['limit', 3],
+        ])
+      },
+      immediate: true,
+    },
+  },
+
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    // 雇用保険ドキュメントの購読を解除します。
+    this.instance.unsubscribe()
   },
 
   /***************************************************************************
@@ -55,52 +82,20 @@ export default {
 </script>
 
 <template>
-  <a-documents-subscriber
-    v-slot="{ dialog, table, openEditor }"
-    :instance="instance"
-    :condition="[
-      ['where', 'employeeId', '==', employeeId],
-      ['orderBy', 'startDate', 'desc'],
-      ['limit', 3],
-    ]"
-    edit-event="click:edit"
+  <g-card-floating-label
+    v-bind="$attrs"
+    :color="color"
+    label="雇用契約（直近3件）"
+    icon="mdi-file-sign"
   >
-    <g-card-floating-label
-      v-bind="$attrs"
-      :color="color"
-      label="雇用契約（直近3件）"
-      icon="mdi-file-sign"
-      height="100%"
-    >
-      <g-data-table-employee-contracts
-        v-bind="table.attrs"
-        :actions="['edit', 'print']"
-        :button-color="color"
-        v-on="table.on"
-      >
-        <template #print="{ item }">
-          <v-btn :color="color" icon @click="printLaborTerms(item)"
-            ><v-icon>mdi-printer</v-icon></v-btn
-          >
-        </template>
-      </g-data-table-employee-contracts>
-      <template #actions>
-        <g-dialog-input v-bind="dialog.attrs" max-width="600">
-          <template #activator="{ attrs, on }">
-            <g-btn-regist-icon
-              v-bind="attrs"
-              :color="color"
-              @click="openEditor()"
-              v-on="on"
-            />
-          </template>
-          <template #default="{ attrs, on }">
-            <g-input-employee-contract v-bind="attrs" v-on="on" />
-          </template>
-        </g-dialog-input>
+    <g-data-table-employee-contracts :items="docs" :button-color="color">
+      <template #print="{ item }">
+        <v-btn :color="color" icon @click="printLaborTerms(item)"
+          ><v-icon>mdi-printer</v-icon></v-btn
+        >
       </template>
-    </g-card-floating-label>
-  </a-documents-subscriber>
+    </g-data-table-employee-contracts>
+  </g-card-floating-label>
 </template>
 
 <style></style>
