@@ -1,6 +1,7 @@
 import colors from 'vuetify/es5/util/colors'
 import { CONTRACT_TYPE } from '~/models/constants/contract-types'
 import { HEALTH_INSURANCE_TYPE } from '~/models/constants/health-insurance-types'
+import { SOCIAL_SECURITY_PROCESSING_STATUS } from '~/models/constants/processing-status'
 
 /**
  * 将来適用したいカラーパレット
@@ -399,6 +400,15 @@ const SITE_STATUS_ARRAY = [
   { value: 'expired', text: '終了' },
 ]
 
+/**
+ * 社会保障手続き状況
+ */
+const SOCIAL_SECURITY_PROCESSING_STATUS_ARRAY = Object.entries(
+  SOCIAL_SECURITY_PROCESSING_STATUS
+).map(([key, value]) => {
+  return { value: key, text: value }
+})
+
 const TEMPORARY_SITE_STATUS = {
   accepted: '受注',
   aborted: '中止',
@@ -481,6 +491,11 @@ export default (context, inject) => {
   inject('OUTSOURCER_STATUS_ARRAY', OUTSOURCER_STATUS_ARRAY)
   inject('PAYMENT_TYPE', PAYMENT_TYPE)
   inject('PAYMENT_TYPE_ARRAY', PAYMENT_TYPE_ARRAY)
+  inject('SOCIAL_SECURITY_PROCESSING_STATUS', SOCIAL_SECURITY_PROCESSING_STATUS)
+  inject(
+    'SOCIAL_SECURITY_PROCESSING_STATUS_ARRAY',
+    SOCIAL_SECURITY_PROCESSING_STATUS_ARRAY
+  )
   inject('RELATION', RELATION)
   inject('RELATION_ARRAY', RELATION_ARRAY)
   inject('SECURITY_TYPE', SECURITY_TYPE)
