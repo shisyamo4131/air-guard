@@ -33,6 +33,27 @@ export const allNavList = [
     ],
   },
   {
+    name: '人事管理',
+    icon: 'mdi-account-group',
+    lists: [
+      {
+        name: '雇用保険',
+        to: '/employment-insurances',
+        icon: 'mdi-shield-account',
+      },
+      {
+        name: '健康保険',
+        to: '/health-insurances',
+        icon: 'mdi-hospital-box',
+      },
+      {
+        name: '厚生年金',
+        to: '/pensions',
+        icon: 'mdi-currency-jpy',
+      },
+    ],
+  },
+  {
     name: '経理業務',
     icon: 'mdi-calculator-variant-outline',
     lists: [

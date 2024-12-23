@@ -1,5 +1,6 @@
 import { FireModel } from 'air-firebase'
-import { classProps } from './propsDefinition/EmployeeEmploymentInsurance'
+import { classProps } from './propsDefinition/EmploymentInsurance'
+import { EmployeeMinimal } from './Employee'
 
 /**
  * 従業員の雇用保険データモデル
@@ -7,13 +8,20 @@ import { classProps } from './propsDefinition/EmployeeEmploymentInsurance'
  *
  * @author shisyamo4131
  */
-export default class EmployeeEmploymentInsurance extends FireModel {
+export default class EmploymentInsurance extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
-  static collectionPath = 'EmployeeEmploymentInsurances'
+  static collectionPath = 'EmploymentInsurances'
   static useAutonumber = false
   static classProps = classProps
+
+  /****************************************************************************
+   * CUSTOM CLASS MAPPING
+   ****************************************************************************/
+  static customClassMap = {
+    employee: EmployeeMinimal,
+  }
 
   /****************************************************************************
    * CONSTRUCTOR
@@ -22,6 +30,27 @@ export default class EmployeeEmploymentInsurance extends FireModel {
     super(item)
 
     delete this.tokenMap
+  }
+
+  /****************************************************************************
+   * beforeCreate をオーバーライドします。
+   * - 従業員オブジェクトを employee プロパティにセットします。
+   ****************************************************************************/
+  async beforeCreate() {
+    await this.employee.fetch(this.employeeId)
+  }
+
+  /****************************************************************************
+   * beforeUpdate をオーバーライドします。
+   * - 従業員IDに変更があった場合はエラーをスローします。
+   ****************************************************************************/
+  beforeUpdate() {
+    return new Promise((resolve, reject) => {
+      if (this.employeeId !== this.employee?.docId || null) {
+        reject(new Error(`従業員IDは変更できません。`))
+      }
+      resolve()
+    })
   }
 
   /****************************************************************************

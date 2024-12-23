@@ -1,23 +1,18 @@
 <script>
 import GCardFloatingLabel from '../../atoms/cards/GCardFloatingLabel.vue'
-import GDialogInput from '../dialogs/GDialogInput.vue'
-import GInputEmployeeHealthInsurance from '../inputs/GInputEmployeeHealthInsurance.vue'
-import EmployeeHealthInsurance from '~/models/EmployeeHealthInsurance'
-import ADocumentsSubscriber from '~/components/atoms/renderless/ADocumentsSubscriber.vue'
-import GDataTable from '~/components/atoms/tables/GDataTable.vue'
-import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
+import HealthInsurance from '~/models/HealthInsurance'
+import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
+import GCardHealthInsurance from '~/components/atoms/cards/GCardHealthInsurance.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: {
-    GCardFloatingLabel,
-    GDialogInput,
-    GInputEmployeeHealthInsurance,
-    ADocumentsSubscriber,
-    GDataTable,
-    GBtnRegistIcon,
-  },
+  components: { GCardFloatingLabel, GCardHealthInsurance },
+
+  /***************************************************************************
+   * MIXINS
+   ***************************************************************************/
+  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * PROPS
@@ -39,67 +34,70 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      instance: new EmployeeHealthInsurance(),
-      headers: [
-        {
-          text: '資格取得日',
-          value: 'acquisitionDate',
-        },
-        {
-          text: '標準報酬月額',
-          value: 'standardMonthlyAmount',
-        },
-        {
-          text: '被保険者整理番号',
-          value: 'policyNumber',
-        },
-      ],
+      docs: [],
+      instance: new HealthInsurance(),
     }
+  },
+
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    /**
+     * 従業員IDが変更されたら健康保険ドキュメントの購読を開始します。
+     */
+    employeeId: {
+      handler(v) {
+        this.instance.employeeId = v
+        this.docs = this.instance.subscribeDocs([
+          ['where', 'employeeId', '==', v],
+          ['orderBy', 'acquisitionDate', 'desc'],
+          ['limit', 3],
+        ])
+      },
+      immediate: true,
+    },
+  },
+
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    // 健康保険ドキュメントの購読を解除します。
+    this.instance.unsubscribe()
   },
 }
 </script>
 
 <template>
-  <a-documents-subscriber
-    v-slot="{ dialog, table, openEditor }"
-    :default-item="{ employeeId }"
-    :instance="instance"
-    :condition="[
-      ['where', 'employeeId', '==', employeeId],
-      ['orderBy', 'acquisitionDate', 'desc'],
-      ['limit', 3],
-    ]"
+  <g-card-floating-label
+    v-bind="$attrs"
+    :color="color"
+    label="健康保険"
+    icon="mdi-hospital-box"
   >
-    <g-card-floating-label
-      v-bind="$attrs"
-      :color="color"
-      label="健康保険"
-      icon="mdi-hospital-box"
-    >
-      <g-data-table
-        v-bind="table.attrs"
-        :headers="headers"
-        :button-color="color"
-        v-on="table.on"
+    <v-container>
+      <v-data-iterator
+        :items="docs"
+        hide-default-footer
+        sort-by="acquisitionDate"
+        sort-by-desc
       >
-      </g-data-table>
-      <template #actions>
-        <g-dialog-input v-bind="dialog.attrs" max-width="360">
-          <template #activator="{ attrs, on }">
-            <g-btn-regist-icon
-              v-bind="attrs"
-              :color="color"
-              @click="openEditor()"
-              v-on="on"
-            />
-          </template>
-          <template #default="{ attrs, on }">
-            <g-input-employee-health-insurance v-bind="attrs" v-on="on" />
-          </template>
-        </g-dialog-input>
-      </template>
-    </g-card-floating-label>
-  </a-documents-subscriber>
+        <template #default="{ items }">
+          <v-window :value="items.length - 1" show-arrows show-arrows-on-hover>
+            <v-window-item v-for="doc in docs" :key="doc.docId">
+              <g-card-health-insurance v-bind="doc" :color="color" outlined />
+            </v-window-item>
+          </v-window>
+        </template>
+        <template #no-data>
+          <v-card outlined>
+            <v-card-text>加入していません。</v-card-text>
+          </v-card>
+        </template>
+      </v-data-iterator>
+    </v-container>
+  </g-card-floating-label>
 </template>
 
 <style></style>

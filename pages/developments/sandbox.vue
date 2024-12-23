@@ -1,19 +1,18 @@
 <template>
   <v-container>
     <v-card>
-      <v-card-text> </v-card-text>
+      <v-card-text>
+        <g-textarea />
+      </v-card-text>
     </v-card>
   </v-container>
 </template>
 
 <script>
-import Employee from '~/models/Employee'
+import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 export default {
-  components: {},
-  data() {
-    return {
-      instance: new Employee(),
-    }
-  },
+  components: { GTextarea },
 }
 </script>
+
+<style></style>

@@ -14,6 +14,11 @@ module.exports = {
   'operation-results': ['admin', 'developer'],
   'monthly-attendances': ['admin', 'developer'],
 
+  // 人事管理
+  'employement-insurances': ['admin', 'developer'],
+  'health-insurances': ['admin', 'developer'],
+  pensions: ['admin', 'developer'],
+
   // 経理業務
   'operation-billing-bases': ['admin', 'developer'],
   'monthly-billings': ['admin', 'developer'],
