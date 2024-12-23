@@ -47,10 +47,13 @@ export default {
           <v-list-item-title class="pb-2">
             {{ date }}
           </v-list-item-title>
+          <!-- 標準報酬月額は一旦不可視に -->
+          <!--
           <v-list-item-subtitle> 標準報酬月額 </v-list-item-subtitle>
           <v-list-item-title class="pb-2">
             {{ amount }}
           </v-list-item-title>
+          -->
           <v-list-item-subtitle> 被保険者整理番号 </v-list-item-subtitle>
           <v-list-item-title>
             {{ policyNumber }}
