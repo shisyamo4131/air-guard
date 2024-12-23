@@ -106,12 +106,6 @@ export default {
           table: 'GDataTableEmployeeContracts',
         },
         {
-          text: 'EmployeeMedicalCheckup',
-          model: 'EmployeeMedicalCheckup',
-          input: 'GInputEmployeeMedicalCheckup',
-          table: 'GDataTableEmployeeMedicalCheckups',
-        },
-        {
           text: 'Equipment',
           model: 'Equipment',
           input: 'GInputEquipment',

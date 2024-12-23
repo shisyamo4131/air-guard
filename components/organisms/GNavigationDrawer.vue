@@ -38,6 +38,7 @@
                 <v-icon v-if="shouldShowAlert(list)" color="error" small left
                   >mdi-alert-circle</v-icon
                 >
+                <v-icon v-if="list.icon" left small>{{ list.icon }}</v-icon>
                 {{ list.name }}
               </v-list-item-title>
             </v-list-item-content>

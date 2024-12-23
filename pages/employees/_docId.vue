@@ -8,7 +8,6 @@ import GCardEmployee from '~/components/molecules/cards/GCardEmployee.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 import Employee from '~/models/Employee'
-import EmployeeMedicalCheckup from '~/models/EmployeeMedicalCheckup'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GCardEmployeeSecurityRegistration from '~/components/molecules/cards/GCardEmployeeSecurityRegistration.vue'
@@ -16,6 +15,7 @@ import GCardEmployeeContracts from '~/components/molecules/cards/GCardEmployeeCo
 import GCardEmployeeHealthInsurance from '~/components/molecules/cards/GCardEmployeeHealthInsurance.vue'
 import GCardEmployeePension from '~/components/molecules/cards/GCardEmployeePension.vue'
 import GCardEmployeeEmploymentInsurance from '~/components/molecules/cards/GCardEmployeeEmploymentInsurance.vue'
+import GCardEmployeeMedicalCheckups from '~/components/organisms/Cards/GCardEmployeeMedicalCheckups.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -36,6 +36,7 @@ export default {
     GCardEmployeeHealthInsurance,
     GCardEmployeePension,
     GCardEmployeeEmploymentInsurance,
+    GCardEmployeeMedicalCheckups,
   },
 
   /***************************************************************************
@@ -48,16 +49,11 @@ export default {
    ***************************************************************************/
   asyncData({ app, route }) {
     const docId = route.params.docId
-    const items = {
-      medicalCheckups: [],
-    }
     const listeners = {
       employee: new Employee(),
-      medicalCheckup: new EmployeeMedicalCheckup(),
     }
     listeners.employee.subscribe(docId)
-    items.medicalCheckups = listeners.medicalCheckup.subscribeDocs()
-    return { docId, listeners, items }
+    return { docId, listeners }
   },
 
   /***************************************************************************
@@ -119,11 +115,7 @@ export default {
     <v-breadcrumbs :items="breadcrumbs" />
     <v-row>
       <v-col cols="12">
-        <g-card-employee
-          :instance="listeners.employee"
-          outlined
-          :medical-checkups="items.medicalCheckups"
-        />
+        <g-card-employee :instance="listeners.employee" outlined />
       </v-col>
       <v-col cols="12" md="4">
         <g-card-employee-health-insurance
@@ -143,18 +135,24 @@ export default {
           :color="$FUTURE_COLOR_INDEX(2)"
         />
       </v-col>
+      <v-col cols="12">
+        <g-card-employee-medical-checkups
+          :employee-id="listeners.employee.docId"
+          :color="$FUTURE_COLOR_INDEX(3)"
+        />
+      </v-col>
       <v-col v-if="$store.getters['auth/isAdmin']" cols="12" lg="6">
         <g-card-employee-contracts
           :employee-id="listeners.employee.docId"
           height="100%"
-          :color="$FUTURE_COLOR_INDEX(3)"
+          :color="$FUTURE_COLOR_INDEX(4)"
         />
       </v-col>
       <v-col cols="12" lg="6">
         <g-card-employee-security-registration
           height="100%"
           :doc-id="docId"
-          :color="$FUTURE_COLOR_INDEX(4)"
+          :color="$FUTURE_COLOR_INDEX(5)"
         />
       </v-col>
       <v-col cols="12">

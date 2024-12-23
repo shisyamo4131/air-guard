@@ -19,6 +19,7 @@ module.exports = {
   'employement-insurances': ['admin', 'developer'],
   'health-insurances': ['admin', 'developer'],
   pensions: ['admin', 'developer'],
+  'medical-checkups': ['admin', 'developer'],
 
   // 経理業務
   'operation-billing-bases': ['admin', 'developer'],

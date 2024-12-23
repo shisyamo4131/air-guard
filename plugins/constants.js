@@ -1,6 +1,7 @@
 import colors from 'vuetify/es5/util/colors'
 import { CONTRACT_TYPE } from '~/models/constants/contract-types'
 import { HEALTH_INSURANCE_TYPE } from '~/models/constants/health-insurance-types'
+import { MEDICAL_CHECKUP_TYPES } from '~/models/constants/medical-checkup-types'
 import { SOCIAL_SECURITY_PROCESSING_STATUS } from '~/models/constants/processing-status'
 
 /**
@@ -334,6 +335,15 @@ const LEAVE_APPLICATION_TYPE_ARRAY = [
   { value: 'paid', text: '2: 有給休暇' },
 ]
 
+/**
+ * 健康診断受診区分
+ */
+const MEDICAL_CHECKUP_TYPES_ARRAY = Object.entries(MEDICAL_CHECKUP_TYPES).map(
+  ([key, value]) => {
+    return { value: key, text: value }
+  }
+)
+
 const OUTSOURCER_STATUS = {
   active: '契約中',
   expired: '契約終了',
@@ -487,6 +497,8 @@ export default (context, inject) => {
   inject('LEAVE_APPLICATION_STATUS_ARRAY', LEAVE_APPLICATION_STATUS_ARRAY)
   inject('LEAVE_APPLICATION_TYPE', LEAVE_APPLICATION_TYPE)
   inject('LEAVE_APPLICATION_TYPE_ARRAY', LEAVE_APPLICATION_TYPE_ARRAY)
+  inject('MEDICAL_CHECKUP_TYPES', MEDICAL_CHECKUP_TYPES)
+  inject('MEDICAL_CHECKUP_TYPES_ARRAY', MEDICAL_CHECKUP_TYPES_ARRAY)
   inject('OUTSOURCER_STATUS', OUTSOURCER_STATUS)
   inject('OUTSOURCER_STATUS_ARRAY', OUTSOURCER_STATUS_ARRAY)
   inject('PAYMENT_TYPE', PAYMENT_TYPE)

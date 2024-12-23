@@ -23,7 +23,7 @@ export default class Employee extends FireModel {
       type: 'collection',
     },
     {
-      collection: 'EmployeeMedicalCheckups',
+      collection: 'MedicalCheckups',
       field: 'employeeId',
       condition: '==',
       type: 'collection',

@@ -36,7 +36,7 @@ export const allNavList = [
     name: '人事・労務',
     icon: 'mdi-account-group',
     lists: [
-      { name: '従業員', to: '/employees', icon: 'mdi-domain' },
+      { name: '従業員', to: '/employees', icon: 'mdi-account' },
       {
         name: '雇用保険',
         to: '/employment-insurances',
@@ -51,6 +51,11 @@ export const allNavList = [
         name: '厚生年金',
         to: '/pensions',
         icon: 'mdi-currency-jpy',
+      },
+      {
+        name: '健康診断',
+        to: '/medical-checkups',
+        icon: 'mdi-heart-pulse',
       },
     ],
   },

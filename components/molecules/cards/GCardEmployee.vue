@@ -16,7 +16,6 @@
 import GSimpleTableEmployeeBasic from '../tables/GSimpleTableEmployeeBasic.vue'
 import GSimpleTableEmployeeAddress from '../tables/GSimpleTableEmployeeAddress.vue'
 import GSimpleTableEmployeeContact from '../tables/GSimpleTableEmployeeContact.vue'
-import GDataTableEmployeeMedicalCheckups from '../tables/GDataTableEmployeeMedicalCheckups.vue'
 import GCardImgEmployee from './GCardImgEmployee.vue'
 import Employee from '~/models/Employee'
 export default {
@@ -28,8 +27,8 @@ export default {
     GSimpleTableEmployeeAddress,
     GSimpleTableEmployeeContact,
     GCardImgEmployee,
-    GDataTableEmployeeMedicalCheckups,
   },
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -41,17 +40,18 @@ export default {
         return instance instanceof Employee
       },
     },
-    medicalCheckups: { type: Array, default: () => [], required: false },
   },
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
       tab: null,
-      tabs: ['基本情報', '住所', '連絡先', '健康診断'],
+      tabs: ['基本情報', '住所', '連絡先'],
     }
   },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
@@ -60,6 +60,7 @@ export default {
       return this.$vuetify.breakpoint.mobile
     },
   },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/
@@ -107,12 +108,6 @@ export default {
               </v-tab-item>
               <v-tab-item>
                 <g-simple-table-employee-contact v-bind="instance" />
-              </v-tab-item>
-              <v-tab-item>
-                <g-data-table-employee-medical-checkups
-                  :doc-id="instance.docId"
-                  :items="medicalCheckups"
-                />
               </v-tab-item>
             </v-tabs-items>
           </v-card>
