@@ -383,7 +383,7 @@ export default {
         </v-expand-transition>
       </v-col>
       <v-col cols="12">
-        <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+        <g-textarea v-model="editModel.remarks" label="備考" />
       </v-col>
     </v-row>
   </g-card-input-form>

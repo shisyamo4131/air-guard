@@ -149,7 +149,7 @@ export default {
         <g-switch v-model="editModel.isInternal" label="自社情報である" />
       </v-col>
     </v-row>
-    <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+    <g-textarea v-model="editModel.remarks" label="備考" />
   </g-card-input-form>
 </template>
 

@@ -52,7 +52,7 @@ export default {
     <g-text-field v-model="editModel.name" label="名称" required />
     <g-text-field v-model="editModel.code" label="商品コード" />
     <g-text-field v-model="editModel.colorSize" label="色・サイズ" />
-    <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+    <g-textarea v-model="editModel.remarks" label="備考" />
   </g-card-input-form>
 </template>
 

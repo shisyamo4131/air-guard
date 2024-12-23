@@ -149,7 +149,7 @@ export default {
       :items="$SECURITY_TYPE_ARRAY"
       required
     />
-    <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+    <g-textarea v-model="editModel.remarks" label="備考" />
   </g-card-input-form>
 </template>
 

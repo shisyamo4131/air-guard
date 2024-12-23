@@ -283,7 +283,7 @@ export default {
       outlined
       class="mb-8"
     />
-    <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+    <g-textarea v-model="editModel.remarks" label="備考" />
   </g-card-input-form>
 </template>
 

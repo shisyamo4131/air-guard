@@ -17,6 +17,7 @@ export default {
    ***************************************************************************/
   props: {
     label: { type: String, default: undefined, required: false },
+    maxlength: { type: [String, Number], default: '150', required: false },
     outlined: { type: Boolean, default: true, required: false },
     required: { type: Boolean, default: false, required: false },
     requiredError: { type: String, default: '必須入力です', required: false },
@@ -25,7 +26,12 @@ export default {
 </script>
 
 <template>
-  <air-textarea v-bind="{ ...$props, ...$attrs }" v-on="$listeners">
+  <air-textarea
+    v-bind="{ ...$props, ...$attrs }"
+    :counter="!!maxlength"
+    :maxlength="maxlength"
+    v-on="$listeners"
+  >
     <template v-if="label" #label>
       {{ label }}<span v-if="required" class="red--text">*</span>
     </template>
@@ -41,6 +47,4 @@ export default {
   </air-textarea>
 </template>
 
-<style scoped>
-/* 必要に応じてスタイルを追加 */
-</style>
+<style></style>

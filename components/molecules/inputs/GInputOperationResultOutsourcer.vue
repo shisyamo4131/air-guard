@@ -162,7 +162,7 @@ export default {
         <g-checkbox v-model="editModel.ojt" class="mt-1" label="OJT" />
       </v-col>
     </v-row>
-    <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+    <g-textarea v-model="editModel.remarks" label="備考" />
   </g-card-input-form>
 </template>
 

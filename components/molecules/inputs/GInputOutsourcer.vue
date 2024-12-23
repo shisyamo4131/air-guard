@@ -80,7 +80,7 @@ export default {
     <g-text-field v-model="editModel.address2" label="建物名・階数" />
     <g-text-field v-model="editModel.tel" label="電話番号" input-type="tel" />
     <g-text-field v-model="editModel.fax" label="FAX番号" input-type="tel" />
-    <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+    <g-textarea v-model="editModel.remarks" label="備考" />
   </g-card-input-form>
 </template>
 

@@ -193,7 +193,7 @@ export default {
       counter
       maxlength="5"
     />
-    <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+    <g-textarea v-model="editModel.remarks" label="備考" />
   </g-card-input-form>
 </template>
 

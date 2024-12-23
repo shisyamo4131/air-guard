@@ -59,7 +59,7 @@ export default {
       required
     />
     <g-numeric v-model="editModel.amount" label="数量" required />
-    <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+    <g-textarea v-model="editModel.remarks" label="備考" />
   </g-card-input-form>
 </template>
 

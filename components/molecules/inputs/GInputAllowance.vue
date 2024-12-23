@@ -80,7 +80,7 @@ export default {
       class="mt-0"
       label="時間外基礎に含める"
     />
-    <g-textarea v-model="editModel.remarks" label="備考" hide-details />
+    <g-textarea v-model="editModel.remarks" label="備考" />
   </g-card-input-form>
 </template>
 
