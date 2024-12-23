@@ -1,10 +1,6 @@
 import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import {
-  extractDiffsFromDocUpdatedEvent,
-  syncDependentDocumentsV2,
-} from '../modules/utils.js'
-import {
   createIndex,
   removeIndex,
   syncToFirestoreFromAirGuard,
@@ -239,26 +235,5 @@ export class EmployeeMinimal extends Employee {
     delete this.updateAt
     delete this.remarks
     delete this.tokenMap
-  }
-
-  static async sync(event, collectionId) {
-    try {
-      const differences = extractDiffsFromDocUpdatedEvent({
-        event,
-        ComparisonClass: this,
-      })
-      if (!differences.length) return
-      await syncDependentDocumentsV2({
-        collectionId,
-        updateProp: 'employee',
-        afterData: differences.data,
-        conditions: [['employeeId', '==', event.data.after.data().docId]],
-      })
-    } catch (error) {
-      logger.error(
-        `EmployeeContract ドキュメントの employee プロパティの同期処理に失敗しました。`
-      )
-      throw new Error(error)
-    }
   }
 }

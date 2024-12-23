@@ -20,7 +20,6 @@ import {
   isDocumentChanged,
 } from '../modules/utils.js'
 import { CustomerIndex } from '../models/Customer.js'
-import Site from '../models/Site.js'
 
 /****************************************************************************
  * ドキュメントが作成されたときにトリガーされる関数。
@@ -83,9 +82,6 @@ export const onUpdate = onDocumentUpdated(
       if (isChangedAsIndex.length > 0) {
         await CustomerIndex.create(event.params.docId)
       }
-
-      // Siteドキュメントのcustomerプロパティを同期
-      await Site.refreshCustomer(event)
     } catch (err) {
       // エラーハンドリング
       logger.error(

@@ -3,9 +3,9 @@ import ja from 'dayjs/locale/ja'
 import SiteBilling from '~/models/SiteBilling'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import Customer from '~/models/Customer'
-import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
 import GTextFieldMonth from '~/components/molecules/inputs/GTextFieldMonth.vue'
 import { generatePDF } from '~/plugins/pdf-generator'
+import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 
 export default {
   /***************************************************************************
@@ -16,7 +16,7 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GDataTable, GTemplateFixed, GTextFieldMonth },
+  components: { GDataTable, GTextFieldMonth, GTemplateDefault },
 
   /***************************************************************************
    * DATA
@@ -535,81 +535,87 @@ export default {
 </script>
 
 <template>
-  <g-template-fixed v-slot="{ height }">
-    <v-sheet class="d-flex flex-column overflow-y-hidden" :height="height">
-      <v-toolbar class="flex-grow-0" color="secondary" flat dense dark>
-        <v-icon left>mdi-currency-jpy</v-icon>
-        <v-toolbar-title>月次請求</v-toolbar-title>
-        <v-spacer />
-        <v-toolbar-items>
-          <v-btn
-            :disabled="isCalculating || loading"
-            :loading="isCalculating || loading"
-            text
-            @click="recalc"
+  <g-template-default v-slot="{ height }">
+    <v-container class="pa-0 pa-sm-3" :style="{ height: `${height}px` }">
+      <v-card
+        height="100%"
+        class="d-flex flex-column overflow-y-hidden"
+        :tile="$vuetify.breakpoint.mobile"
+      >
+        <v-toolbar class="flex-grow-0" color="secondary" flat dense dark>
+          <v-icon left>mdi-currency-jpy</v-icon>
+          <v-toolbar-title>月次請求</v-toolbar-title>
+          <v-spacer />
+          <v-toolbar-items>
+            <v-btn
+              :disabled="isCalculating || loading"
+              :loading="isCalculating || loading"
+              text
+              @click="recalc"
+            >
+              <v-icon :left="$vuetify.breakpoint.smAndUp">mdi-update</v-icon>
+              <span v-if="$vuetify.breakpoint.smAndUp">実績更新</span>
+            </v-btn>
+          </v-toolbar-items>
+        </v-toolbar>
+        <v-toolbar class="flex-grow-0" flat>
+          <g-text-field-month
+            v-model="month"
+            :options="{
+              outlined: false,
+              soloInverted: true,
+              hideDetails: true,
+              flat: true,
+            }"
+          />
+          <v-spacer />
+          <div class="flex-grow-0 px-4 text-right text-subtitle-2 grey--text">
+            <div>最終更新:</div>
+            <div>{{ lastExecutedAt }}</div>
+          </div>
+        </v-toolbar>
+        <v-divider />
+        <v-container class="d-flex flex-grow-1 overflow-y-auto">
+          <g-data-table
+            class="flex-table"
+            :headers="[
+              { text: 'CODE', value: 'code' },
+              { text: '取引先', value: 'customer.abbr' },
+              { text: '税抜金額', value: 'amount', align: 'right' },
+              {
+                text: '消費税額',
+                value: 'consumptionTax',
+                align: 'right',
+              },
+              { text: '請求額', value: 'billingTotal', align: 'right' },
+              {
+                text: 'PDF',
+                value: 'action',
+                align: 'right',
+                sortable: false,
+              },
+            ]"
+            :items="billingsByCustomer"
+            :items-per-page="-1"
+            sort-by="code"
           >
-            <v-icon :left="$vuetify.breakpoint.smAndUp">mdi-update</v-icon>
-            <span v-if="$vuetify.breakpoint.smAndUp">実績更新</span>
-          </v-btn>
-        </v-toolbar-items>
-      </v-toolbar>
-      <v-toolbar class="flex-grow-0" flat>
-        <g-text-field-month
-          v-model="month"
-          :options="{
-            outlined: false,
-            soloInverted: true,
-            hideDetails: true,
-            flat: true,
-          }"
-        />
-        <v-spacer />
-        <div class="flex-grow-0 px-4 text-right text-subtitle-2 grey--text">
-          <div>最終更新:</div>
-          <div>{{ lastExecutedAt }}</div>
-        </div>
-      </v-toolbar>
-      <v-divider />
-      <v-container class="d-flex flex-grow-1 overflow-y-hidden">
-        <g-data-table
-          class="flex-table"
-          :headers="[
-            { text: 'CODE', value: 'code' },
-            { text: '取引先', value: 'customer.abbr' },
-            { text: '税抜金額', value: 'amount', align: 'right' },
-            {
-              text: '消費税額',
-              value: 'consumptionTax',
-              align: 'right',
-            },
-            { text: '請求額', value: 'billingTotal', align: 'right' },
-            {
-              text: 'PDF',
-              value: 'action',
-              align: 'right',
-              sortable: false,
-            },
-          ]"
-          :items="billingsByCustomer"
-          :items-per-page="-1"
-          sort-by="code"
-        >
-          <template #[`item.amount`]="{ item }">
-            {{ item.amount.toLocaleString() }}
-          </template>
-          <template #[`item.consumptionTax`]="{ item }">
-            {{ item.consumptionTax.toLocaleString() }}
-          </template>
-          <template #[`item.billingTotal`]="{ item }">
-            {{ item.billingTotal.toLocaleString() }}
-          </template>
-          <template #[`item.action`]="{ item }">
-            <v-icon @click="generatePdf(item)">mdi-file-pdf-box</v-icon>
-          </template>
-        </g-data-table>
-      </v-container>
-    </v-sheet>
-  </g-template-fixed>
+            <template #[`item.amount`]="{ item }">
+              {{ item.amount.toLocaleString() }}
+            </template>
+            <template #[`item.consumptionTax`]="{ item }">
+              {{ item.consumptionTax.toLocaleString() }}
+            </template>
+            <template #[`item.billingTotal`]="{ item }">
+              {{ item.billingTotal.toLocaleString() }}
+            </template>
+            <template #[`item.action`]="{ item }">
+              <v-icon @click="generatePdf(item)">mdi-file-pdf-box</v-icon>
+            </template>
+          </g-data-table>
+        </v-container>
+      </v-card>
+    </v-container>
+  </g-template-default>
 </template>
 
 <style></style>

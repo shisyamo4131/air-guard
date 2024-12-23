@@ -38,11 +38,11 @@ import {
 } from 'firebase/database'
 import { database } from 'air-firebase/dist/firebase.init'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
-import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import Site from '~/models/Site'
 import Autonumber from '~/models/Autonumber'
 import Customer from '~/models/Customer'
+import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -51,7 +51,7 @@ export default {
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
-  components: { GDataTable, GTemplateFixed, GCheckbox },
+  components: { GDataTable, GCheckbox, GTemplateDefault },
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -281,206 +281,213 @@ export default {
 </script>
 
 <template>
-  <g-template-fixed>
-    <v-card height="100%" outlined class="d-flex flex-column">
-      <v-card-title> 現場情報同期設定 </v-card-title>
-      <v-card-text> 現場情報の同期設定を行います。 </v-card-text>
-      <v-window v-model="step" style="height: 100%">
-        <v-window-item style="height: inherit">
-          <v-container class="d-flex flex-column" style="height: inherit">
-            <v-card-text class="d-flex justify-space-between">
-              <g-checkbox
-                v-model="multiple"
-                label="選択した現場を強制登録する"
-                :disabled="
-                  !!items.unsync.length || !items.airGuard.length || loading
-                "
-                hide-details
-              />
-              <air-select
-                v-model="itemsPerPage"
-                style="width: 120px; max-width: 120px"
-                label="表示件数"
-                :items="[
-                  { text: '10件', value: 10 },
-                  { text: '20件', value: 20 },
-                ]"
-                hide-details
-              />
-            </v-card-text>
-            <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
-              <g-data-table
-                v-model="selectedUnsync"
-                class="flex-table"
-                disable-sort
-                :headers="[
-                  { text: 'CODE', value: 'code', width: '108' },
-                  { text: '現場名', value: 'name' },
-                  { text: '住所', value: 'address' },
-                ]"
-                item-key="code"
-                :items="items.airGuard"
-                :items-per-page="itemsPerPage"
-                show-select
-                :single-select="!multiple"
-                :page.sync="page.airGuard"
-                @page-count="pageCount.airGuard = $event"
-              >
-                <template #[`item.code`]="{ item }">
-                  <v-icon v-if="!item.isSelectable" color="error" small>
-                    mdi-close-circle
-                  </v-icon>
-                  {{ item.code }}
-                </template>
-                <template #[`item.name`]="{ item }">
-                  <div>{{ item.name }}</div>
-                  <div class="grey--text">
-                    {{ item?.customer?.abbr || 'N/A' }}
-                  </div>
-                </template>
-              </g-data-table>
-            </v-card>
-            <v-container class="text-center">
-              <v-pagination
-                v-model="page.airGuard"
-                :length="pageCount.airGuard"
-                total-visible="20"
-              />
+  <g-template-default v-slot="{ height }">
+    <v-container :style="{ height: `${height}px` }">
+      <v-card height="100%" outlined class="d-flex flex-column">
+        <v-card-title> 現場情報同期設定 </v-card-title>
+        <v-card-text> 現場情報の同期設定を行います。 </v-card-text>
+        <v-window v-model="step" style="height: 100%">
+          <v-window-item style="height: inherit">
+            <v-container class="d-flex flex-column" style="height: inherit">
+              <v-card-text class="d-flex justify-space-between">
+                <g-checkbox
+                  v-model="multiple"
+                  label="選択した現場を強制登録する"
+                  :disabled="
+                    !!items.unsync.length || !items.airGuard.length || loading
+                  "
+                  hide-details
+                />
+                <air-select
+                  v-model="itemsPerPage"
+                  style="width: 120px; max-width: 120px"
+                  label="表示件数"
+                  :items="[
+                    { text: '10件', value: 10 },
+                    { text: '20件', value: 20 },
+                  ]"
+                  hide-details
+                />
+              </v-card-text>
+              <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
+                <g-data-table
+                  v-model="selectedUnsync"
+                  class="flex-table"
+                  disable-sort
+                  :headers="[
+                    { text: 'CODE', value: 'code', width: '108' },
+                    { text: '現場名', value: 'name' },
+                    { text: '住所', value: 'address' },
+                  ]"
+                  item-key="code"
+                  :items="items.airGuard"
+                  :items-per-page="itemsPerPage"
+                  show-select
+                  :single-select="!multiple"
+                  :page.sync="page.airGuard"
+                  @page-count="pageCount.airGuard = $event"
+                >
+                  <template #[`item.code`]="{ item }">
+                    <v-icon v-if="!item.isSelectable" color="error" small>
+                      mdi-close-circle
+                    </v-icon>
+                    {{ item.code }}
+                  </template>
+                  <template #[`item.name`]="{ item }">
+                    <div>{{ item.name }}</div>
+                    <div class="grey--text">
+                      {{ item?.customer?.abbr || 'N/A' }}
+                    </div>
+                  </template>
+                </g-data-table>
+              </v-card>
+              <v-container class="text-center">
+                <v-pagination
+                  v-model="page.airGuard"
+                  :length="pageCount.airGuard"
+                  total-visible="20"
+                />
+              </v-container>
+              <v-card-actions class="justify-end">
+                <v-btn
+                  v-if="!multiple"
+                  color="primary"
+                  :disabled="!selectedUnsync.length"
+                  @click="step++"
+                  >次へ</v-btn
+                >
+                <v-btn
+                  v-else
+                  color="primary"
+                  :disabled="!selectedUnsync.length || loading"
+                  :loading="loading"
+                  @click="forceRegist"
+                >
+                  {{ `${selectedUnsync.length}件を強制登録` }}
+                </v-btn>
+              </v-card-actions>
             </v-container>
-            <v-card-actions class="justify-end">
-              <v-btn
-                v-if="!multiple"
-                color="primary"
-                :disabled="!selectedUnsync.length"
-                @click="step++"
-                >次へ</v-btn
-              >
-              <v-btn
-                v-else
-                color="primary"
-                :disabled="!selectedUnsync.length || loading"
-                :loading="loading"
-                @click="forceRegist"
-              >
-                {{ `${selectedUnsync.length}件を強制登録` }}
-              </v-btn>
-            </v-card-actions>
-          </v-container>
-        </v-window-item>
-        <v-window-item style="height: inherit">
-          <v-container class="d-flex flex-column" style="height: inherit">
-            <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
-              <g-data-table
-                v-model="selectedToSync"
-                class="flex-table"
-                disable-sort
-                :headers="[
-                  { text: 'CODE', value: 'code', width: '96' },
-                  { text: '現場名', value: 'name' },
-                  { text: '住所', value: 'address' },
-                ]"
-                :items="items.unsync"
-                item-key="docId"
-                :show-select="!asNewItem"
-                single-select
-                :page.sync="page.toSync"
-                @page-count="pageCount.toSync = $event"
-              >
-                <template #[`item.name`]="{ item }">
-                  <div>{{ item.name }}</div>
-                  <div class="grey--text">
-                    {{ item?.customer?.abbr || 'N/A' }}
-                  </div>
-                </template>
-              </g-data-table>
-            </v-card>
-            <v-container class="text-center">
-              <v-pagination
-                v-model="page.toSync"
-                :length="pageCount.toSync"
-                total-visible="20"
-              />
+          </v-window-item>
+          <v-window-item style="height: inherit">
+            <v-container class="d-flex flex-column" style="height: inherit">
+              <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
+                <g-data-table
+                  v-model="selectedToSync"
+                  class="flex-table"
+                  disable-sort
+                  :headers="[
+                    { text: 'CODE', value: 'code', width: '96' },
+                    { text: '現場名', value: 'name' },
+                    { text: '住所', value: 'address' },
+                  ]"
+                  :items="items.unsync"
+                  item-key="docId"
+                  :show-select="!asNewItem"
+                  single-select
+                  :page.sync="page.toSync"
+                  @page-count="pageCount.toSync = $event"
+                >
+                  <template #[`item.name`]="{ item }">
+                    <div>{{ item.name }}</div>
+                    <div class="grey--text">
+                      {{ item?.customer?.abbr || 'N/A' }}
+                    </div>
+                  </template>
+                </g-data-table>
+              </v-card>
+              <v-container class="text-center">
+                <v-pagination
+                  v-model="page.toSync"
+                  :length="pageCount.toSync"
+                  total-visible="20"
+                />
+              </v-container>
+              <v-card-text class="d-flex">
+                <v-checkbox
+                  v-model="asNewItem"
+                  class="ml-auto"
+                  label="新規データとして同期する"
+                />
+              </v-card-text>
+              <v-card-actions class="justify-space-between">
+                <v-btn @click="step--">戻る</v-btn>
+                <v-btn
+                  color="primary"
+                  :disabled="!selectedToSync.length && !asNewItem"
+                  @click="step++"
+                  >次へ</v-btn
+                >
+              </v-card-actions>
             </v-container>
-            <v-card-text class="d-flex">
-              <v-checkbox
-                v-model="asNewItem"
-                class="ml-auto"
-                label="新規データとして同期する"
-              />
-            </v-card-text>
-            <v-card-actions class="justify-space-between">
-              <v-btn @click="step--">戻る</v-btn>
-              <v-btn
-                color="primary"
-                :disabled="!selectedToSync.length && !asNewItem"
-                @click="step++"
-                >次へ</v-btn
-              >
-            </v-card-actions>
-          </v-container>
-        </v-window-item>
-        <v-window-item style="height: inherit">
-          <v-container class="d-flex flex-column mb-4" style="height: inherit">
-            <v-card outlined>
-              <v-subheader>同期元</v-subheader>
-              <v-simple-table v-if="selectedUnsync.length">
-                <thead>
-                  <tr>
-                    <th>CODE</th>
-                    <th>現場名</th>
-                    <th>住所</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>{{ selectedUnsync[0].code }}</td>
-                    <td>{{ selectedUnsync[0].name }}</td>
-                    <td>{{ selectedUnsync[0].address }}</td>
-                  </tr>
-                </tbody>
-              </v-simple-table>
-            </v-card>
-            <v-icon class="align-self-center my-4" x-large
-              >mdi-arrow-down-bold</v-icon
+          </v-window-item>
+          <v-window-item style="height: inherit">
+            <v-container
+              class="d-flex flex-column mb-4"
+              style="height: inherit"
             >
-            <v-card outlined>
-              <v-subheader>同期先</v-subheader>
-              <v-simple-table v-if="selectedToSync.length">
-                <thead>
-                  <tr>
-                    <th>CODE</th>
-                    <th>現場名</th>
-                    <th>住所</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>{{ selectedToSync[0].code }}</td>
-                    <td>{{ selectedToSync[0].name }}</td>
-                    <td>{{ selectedToSync[0].address }}</td>
-                  </tr>
-                </tbody>
-              </v-simple-table>
-              <v-alert v-else type="info" color="info" text
-                >新規データとして作成します。</v-alert
+              <v-card outlined>
+                <v-subheader>同期元</v-subheader>
+                <v-simple-table v-if="selectedUnsync.length">
+                  <thead>
+                    <tr>
+                      <th>CODE</th>
+                      <th>現場名</th>
+                      <th>住所</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{{ selectedUnsync[0].code }}</td>
+                      <td>{{ selectedUnsync[0].name }}</td>
+                      <td>{{ selectedUnsync[0].address }}</td>
+                    </tr>
+                  </tbody>
+                </v-simple-table>
+              </v-card>
+              <v-icon class="align-self-center my-4" x-large
+                >mdi-arrow-down-bold</v-icon
               >
-            </v-card>
-            <v-card-actions class="mt-auto justify-space-between">
-              <v-btn :disabled="loading" @click="step--">戻る</v-btn>
-              <v-btn
-                color="primary"
-                :disabled="loading"
-                :loading="loading"
-                @click="submit"
-                >実行</v-btn
-              >
-            </v-card-actions>
-          </v-container>
-        </v-window-item>
-      </v-window>
-    </v-card>
-    <v-snackbar v-model="snackbar" centered> 処理が完了しました。 </v-snackbar>
-  </g-template-fixed>
+              <v-card outlined>
+                <v-subheader>同期先</v-subheader>
+                <v-simple-table v-if="selectedToSync.length">
+                  <thead>
+                    <tr>
+                      <th>CODE</th>
+                      <th>現場名</th>
+                      <th>住所</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td>{{ selectedToSync[0].code }}</td>
+                      <td>{{ selectedToSync[0].name }}</td>
+                      <td>{{ selectedToSync[0].address }}</td>
+                    </tr>
+                  </tbody>
+                </v-simple-table>
+                <v-alert v-else type="info" color="info" text
+                  >新規データとして作成します。</v-alert
+                >
+              </v-card>
+              <v-card-actions class="mt-auto justify-space-between">
+                <v-btn :disabled="loading" @click="step--">戻る</v-btn>
+                <v-btn
+                  color="primary"
+                  :disabled="loading"
+                  :loading="loading"
+                  @click="submit"
+                  >実行</v-btn
+                >
+              </v-card-actions>
+            </v-container>
+          </v-window-item>
+        </v-window>
+      </v-card>
+      <v-snackbar v-model="snackbar" centered>
+        処理が完了しました。
+      </v-snackbar>
+    </v-container>
+  </g-template-default>
 </template>
 
 <style></style>

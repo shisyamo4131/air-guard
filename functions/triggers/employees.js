@@ -19,7 +19,7 @@ import {
   extractDiffsFromDocUpdatedEvent,
   isDocumentChanged,
 } from '../modules/utils.js'
-import { EmployeeIndex, EmployeeMinimal } from '../models/Employee.js'
+import { EmployeeIndex } from '../models/Employee.js'
 import { EmployeeContractLatest } from '../models/EmployeeContract.js'
 
 /****************************************************************************
@@ -77,18 +77,6 @@ export const onUpdate = onDocumentUpdated(
       // 変更があった場合はインデックスを更新
       if (isChangedAsIndex.length > 0) {
         await EmployeeIndex.create(event.params.docId)
-      }
-
-      // 従属ドキュメント（非同期ドキュメント）との同期処理
-      const dependentCollections = [
-        'EmployeeContracts',
-        'HealthInsurances',
-        'Pensions',
-        'EmploymentInsurances',
-        'MedicalCheckups',
-      ]
-      for (const collectionId of dependentCollections) {
-        await EmployeeMinimal.sync(event, collectionId)
       }
 
       // status が更新された場合は最新の雇用契約情報を同期

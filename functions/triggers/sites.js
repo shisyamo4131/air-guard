@@ -21,8 +21,6 @@ import {
   removeDependentDocuments,
 } from '../modules/utils.js'
 import { SiteIndex } from '../models/Site.js'
-import SiteContract from '../models/SiteContract.js'
-import OperationResult from '../models/OperationResult.js'
 
 /****************************************************************************
  * ドキュメントが作成されたときにトリガーされる関数。
@@ -81,16 +79,6 @@ export const onUpdate = onDocumentUpdated('Sites/{docId}', async (event) => {
     if (isChangedAsIndex.length > 0) {
       await SiteIndex.create(event.params.docId)
     }
-
-    // SiteContractsドキュメントのsiteプロパティを同期
-    logger.log(`SiteContracts ドキュメントとの同期処理を開始します。`)
-    await SiteContract.refreshSite(event)
-    logger.log(`SiteContracts ドキュメントとの同期処理が完了しました。`)
-
-    // OperationResultsドキュメントのsiteプロパティを同期
-    logger.log(`OperationResults ドキュメントとの同期処理を開始します。`)
-    await OperationResult.refreshSite(event)
-    logger.log(`OperationResults ドキュメントとの同期処理が完了しました。`)
   } catch (err) {
     // エラーハンドリング
     logger.error(

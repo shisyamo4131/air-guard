@@ -1,11 +1,11 @@
 <script>
 import { database } from 'air-firebase'
 import { onValue, ref } from 'firebase/database'
-import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
 import GCalendar from '~/components/atoms/calendars/GCalendar.vue'
+import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
   name: 'HolidaysIndex',
-  components: { GTemplateFixed, GCalendar },
+  components: { GCalendar, GTemplateDefault },
   data() {
     return {
       data: null,
@@ -57,7 +57,7 @@ export default {
 </script>
 
 <template>
-  <g-template-fixed v-slot="{ height }">
+  <g-template-default v-slot="{ height }">
     <v-container class="pa-0 pa-md-3" :style="{ height: `${height}px` }">
       <v-card
         flat
@@ -78,7 +78,7 @@ export default {
         </v-card-text>
       </v-card>
     </v-container>
-  </g-template-fixed>
+  </g-template-default>
 </template>
 
 <style></style>

@@ -1,7 +1,5 @@
 <script>
 /**
- * ### GTemplateIndex
- *
  * 各種インデックスページ用のテンプレートです。
  *
  * 機能の詳細:
@@ -59,11 +57,13 @@
  *
  */
 import GTextFieldSearch from '../molecules/inputs/GTextFieldSearch.vue'
+import GTemplateDefault from './GTemplateDefault.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextFieldSearch },
+  components: { GTextFieldSearch, GTemplateDefault },
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -76,6 +76,7 @@ export default {
     lazySearch: { type: String, default: undefined, required: false },
     search: { type: String, default: undefined, required: false },
   },
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -89,28 +90,30 @@ export default {
       pageCount: 0,
     }
   },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
-    defaultAttrs() {
+    /**
+     * デフォルトスロットで提供するプロパティを返します。
+     * 提供するプロパティは DataTable コンポーネントで使用されることを想定しています。
+     */
+    defaultSlotProperties() {
       return {
-        class: 'flex-table',
-        items: this.items,
-        page: this.page,
+        attrs: {
+          class: 'flex-table',
+          items: this.items,
+          page: this.page,
+        },
+        on: {
+          'update:page': ($event) => (this.page = $event),
+          'page-count': ($event) => (this.pageCount = $event),
+        },
       }
-    },
-    defaultOn() {
-      return {
-        'update:page': ($event) => (this.page = $event),
-        'page-count': ($event) => (this.pageCount = $event),
-      }
-    },
-    templateHeight() {
-      const viewHeight = this.$vuetify.breakpoint.height
-      return viewHeight - this.appbarHeight
     },
   },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/
@@ -135,107 +138,106 @@ export default {
 </script>
 
 <template>
-  <v-container
-    class="d-flex flex-column pa-0"
-    :style="{ height: `${templateHeight}px` }"
-  >
-    <v-navigation-drawer v-model="drawer" fixed right temporary>
-      <v-container>
-        <slot name="nav" />
-        <v-btn
-          class="mb-6"
-          block
-          color="primary"
-          small
-          depressed
-          @click="$emit('click:clear')"
-          >クリア</v-btn
-        >
-        <v-btn block color="primary" small depressed @click="drawer = false"
-          >閉じる</v-btn
-        >
-      </v-container>
-    </v-navigation-drawer>
-    <v-toolbar class="flex-grow-0" color="secondary" dark dense flat>
-      <v-toolbar-title>{{ label }}</v-toolbar-title>
-      <slot name="append-label" />
-    </v-toolbar>
-    <!-- HEADER -->
-    <v-toolbar class="flex-grow-0" flat>
-      <div class="d-flex align-center flex-grow-1" style="gap: 8px">
-        <!-- slot: prepend-search -->
-        <slot
-          name="prepend-search"
-          v-bind="{
-            attrs: {
-              outlined: false,
-              hideDetails: true,
-              soloInverted: true,
-              flat: true,
-            },
-          }"
-        />
-        <slot
-          name="search"
-          v-bind="{
-            attrs: {
-              outlined: false,
-              hideDetails: true,
-              soloInverted: true,
-              flat: true,
-            },
-          }"
-        >
-          <g-text-field-search
-            v-model="internalSearch"
-            :delay="delay"
-            :lazy-value.sync="internalLazySearch"
+  <g-template-default v-slot="{ height }">
+    <v-container
+      class="d-flex flex-column pa-0 pa-sm-3"
+      :style="{ height: `${height}px` }"
+    >
+      <v-navigation-drawer v-model="drawer" fixed right temporary>
+        <v-container>
+          <slot name="nav" />
+          <v-btn
+            class="mb-6"
+            block
+            color="primary"
+            small
+            depressed
+            @click="$emit('click:clear')"
+            >クリア</v-btn
+          >
+          <v-btn block color="primary" small depressed @click="drawer = false"
+            >閉じる</v-btn
+          >
+        </v-container>
+      </v-navigation-drawer>
+      <v-toolbar class="flex-grow-0" color="secondary" dark dense flat>
+        <v-toolbar-title>{{ label }}</v-toolbar-title>
+        <slot name="append-label" />
+      </v-toolbar>
+      <!-- HEADER -->
+      <v-toolbar class="flex-grow-0" flat>
+        <div class="d-flex align-center flex-grow-1" style="gap: 8px">
+          <!-- slot: prepend-search -->
+          <slot
+            name="prepend-search"
+            v-bind="{
+              attrs: {
+                outlined: false,
+                hideDetails: true,
+                soloInverted: true,
+                flat: true,
+              },
+            }"
           />
-        </slot>
-        <!-- slot: append-search -->
-        <slot
-          name="append-search"
-          v-bind="{
-            attrs: {
-              outlined: false,
-              hideDetails: true,
-              soloInverted: true,
-              flat: true,
-            },
-          }"
-        />
-        <v-btn icon class="ml-auto">
-          <v-icon color="primary" @click="drawer = !drawer">mdi-filter</v-icon>
-        </v-btn>
-      </div>
-      <template v-if="extend" #extension>
-        <slot name="extension" />
-      </template>
-    </v-toolbar>
-    <v-divider />
-    <v-sheet class="d-flex flex-grow-1 overflow-y-hidden" flat>
-      <!-- slot: default -->
-      <slot
-        name="default"
-        v-bind="{
-          attrs: defaultAttrs,
-          search: internalSearch,
-          lazySearch: internalLazySearch,
-          on: defaultOn,
-        }"
-      />
-    </v-sheet>
-    <!-- <v-container v-if="!hidePagination" class="flex-grow-0">
-      <v-pagination v-model="page" :length="pageCount" total-visible="20" />
-    </v-container> -->
-    <v-toolbar class="flex-grow-0" flat>
-      <v-row justify="center">
-        <v-col cols="10">
-          <v-pagination v-model="page" :length="pageCount" total-visible="20" />
-        </v-col>
-      </v-row>
-    </v-toolbar>
-  </v-container>
+          <slot
+            name="search"
+            v-bind="{
+              attrs: {
+                outlined: false,
+                hideDetails: true,
+                soloInverted: true,
+                flat: true,
+              },
+            }"
+          >
+            <g-text-field-search
+              v-model="internalSearch"
+              :delay="delay"
+              :lazy-value.sync="internalLazySearch"
+            />
+          </slot>
+          <!-- slot: append-search -->
+          <slot
+            name="append-search"
+            v-bind="{
+              attrs: {
+                outlined: false,
+                hideDetails: true,
+                soloInverted: true,
+                flat: true,
+              },
+            }"
+          />
+          <v-btn icon class="ml-auto">
+            <v-icon color="primary" @click="drawer = !drawer"
+              >mdi-filter</v-icon
+            >
+          </v-btn>
+        </div>
+        <template v-if="extend" #extension>
+          <slot name="extension" />
+        </template>
+      </v-toolbar>
+      <v-divider />
+      <v-sheet class="d-flex flex-grow-1 overflow-y-hidden" flat>
+        <!-- SLOT: DEFAULT -->
+        <slot name="default" v-bind="defaultSlotProperties" />
+      </v-sheet>
+
+      <!-- PAGINATION -->
+      <v-toolbar class="flex-grow-0" flat>
+        <v-row justify="center">
+          <v-col cols="10">
+            <v-pagination
+              v-model="page"
+              :length="pageCount"
+              total-visible="20"
+            />
+          </v-col>
+        </v-row>
+      </v-toolbar>
+    </v-container>
+  </g-template-default>
 </template>
 
 <style></style>

@@ -169,6 +169,20 @@
       ]
     },
     {
+      "collectionGroup": "MedicalCheckups",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "employeeId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "date",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
       "collectionGroup": "OperationResults",
       "queryScope": "COLLECTION",
       "fields": [

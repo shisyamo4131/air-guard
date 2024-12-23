@@ -5,10 +5,6 @@ import {
   removeIndex,
   syncToFirestoreFromAirGuard,
 } from '../modules/database.js'
-import {
-  extractDiffsFromDocUpdatedEvent,
-  syncDependentDocuments,
-} from '../modules/utils.js'
 import { CustomerMinimal } from './Customer.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/Site.js'
@@ -60,26 +56,6 @@ export default class Site extends FireModel {
       logger.error(err, { code })
       throw err
     }
-  }
-
-  /****************************************************************************
-   * Sites ドキュメントの customer プロパティを更新します。
-   * - 引数 event は Firestore の更新トリガーオブジェクトを受け取ります。
-   * - event の before, after を比較し、更新が不要な場合は処理をスキップします。
-   * @param {Object} event - Firestore の更新トリガーオブジェクト
-   ****************************************************************************/
-  static async refreshCustomer(event) {
-    const isChanged = extractDiffsFromDocUpdatedEvent({
-      event,
-      ComparisonClass: Site.customClassMap.customer,
-    })
-    if (isChanged.length === 0) return
-    await syncDependentDocuments(
-      Site.collectionPath,
-      'customer.docId',
-      'customer',
-      isChanged.data
-    )
   }
 
   /****************************************************************************

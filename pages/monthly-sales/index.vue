@@ -8,8 +8,8 @@ import {
 import GChartSales from '~/components/atoms/charts/GChartSales.vue'
 import DailySale from '~/models/DailySale'
 import GDataTableMonthlySalesByCustomer from '~/components/molecules/tables/GDataTableMonthlySalesByCustomer.vue'
-import GTemplateFixed from '~/components/templates/GTemplateFixed.vue'
 import GTextFieldMonth from '~/components/molecules/inputs/GTextFieldMonth.vue'
+import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -22,8 +22,8 @@ export default {
   components: {
     GChartSales,
     GDataTableMonthlySalesByCustomer,
-    GTemplateFixed,
     GTextFieldMonth,
+    GTemplateDefault,
   },
 
   /***************************************************************************
@@ -118,89 +118,95 @@ export default {
 </script>
 
 <template>
-  <g-template-fixed v-slot="{ height }">
-    <v-sheet class="d-flex flex-column overflow-y-hidden" :height="height">
-      <v-toolbar class="flex-grow-0" color="secondary" flat dense dark>
-        <v-icon left>mdi-currency-jpy</v-icon>
-        <v-toolbar-title>月次売上</v-toolbar-title>
-        <v-spacer />
-        <v-toolbar-items>
-          <v-btn
-            :disabled="isCalculating || loading"
-            :loading="isCalculating || loading"
-            text
-            @click="recalc"
-            ><v-icon left>mdi-update</v-icon>実績更新</v-btn
-          >
-        </v-toolbar-items>
-      </v-toolbar>
-      <v-toolbar class="flex-grow-0" flat>
-        <g-text-field-month
-          v-model="month"
-          :options="{
-            outlined: false,
-            soloInverted: true,
-            hideDetails: true,
-            flat: true,
-          }"
-        />
-        <v-spacer />
-        <div class="flex-grow-0 px-4 text-right text-subtitle-2 grey--text">
-          <div>最終更新:</div>
-          <div>{{ status }}</div>
-        </div>
-      </v-toolbar>
-      <v-divider />
-      <v-container class="flex-grow-1 overflow-y-auto">
-        <v-row>
-          <!-- 売上推移 -->
-          <v-col cols="12" md="6" xl="4" class="d-flex">
-            <v-card outlined class="flex-grow-1">
-              <v-card-title>
-                <v-icon color="primary" left>mdi-chart-bar</v-icon
-                >売上推移</v-card-title
-              >
-              <!-- DIV で括らないと縦に伸び続けてしまう -->
-              <div>
-                <g-chart-sales :items="items" :month="month" />
-              </div>
-            </v-card>
-          </v-col>
+  <g-template-default v-slot="{ height }">
+    <v-container class="pa-0 pa-sm-3" :style="{ height: `${height}px` }">
+      <v-card
+        class="d-flex flex-column overflow-y-hidden"
+        height="100%"
+        :tile="$vuetify.breakpoint.mobile"
+      >
+        <v-toolbar class="flex-grow-0" color="secondary" flat dense dark>
+          <v-icon left>mdi-currency-jpy</v-icon>
+          <v-toolbar-title>月次売上</v-toolbar-title>
+          <v-spacer />
+          <v-toolbar-items>
+            <v-btn
+              :disabled="isCalculating || loading"
+              :loading="isCalculating || loading"
+              text
+              @click="recalc"
+              ><v-icon left>mdi-update</v-icon>実績更新</v-btn
+            >
+          </v-toolbar-items>
+        </v-toolbar>
+        <v-toolbar class="flex-grow-0" flat>
+          <g-text-field-month
+            v-model="month"
+            :options="{
+              outlined: false,
+              soloInverted: true,
+              hideDetails: true,
+              flat: true,
+            }"
+          />
+          <v-spacer />
+          <div class="flex-grow-0 px-4 text-right text-subtitle-2 grey--text">
+            <div>最終更新:</div>
+            <div>{{ status }}</div>
+          </div>
+        </v-toolbar>
+        <v-divider />
+        <v-container class="flex-grow-1 overflow-y-auto">
+          <v-row>
+            <!-- 売上推移 -->
+            <v-col cols="12" md="6" xl="4" class="d-flex">
+              <v-card outlined class="flex-grow-1">
+                <v-card-title>
+                  <v-icon color="primary" left>mdi-chart-bar</v-icon
+                  >売上推移</v-card-title
+                >
+                <!-- DIV で括らないと縦に伸び続けてしまう -->
+                <div>
+                  <g-chart-sales :items="items" :month="month" />
+                </div>
+              </v-card>
+            </v-col>
 
-          <!-- 売上TOP5 -->
-          <v-col cols="12" md="6" xl="4" class="d-flex">
-            <v-card outlined class="flex-grow-1">
-              <v-card-title>
-                <v-icon color="primary" left>mdi-podium</v-icon
-                >売上TOP5</v-card-title
-              >
-              <g-data-table-monthly-sales-by-customer
-                :items="items"
-                :month="month"
-                type="top5"
-                :mobile-breakpoint="0"
-              />
-            </v-card>
-          </v-col>
+            <!-- 売上TOP5 -->
+            <v-col cols="12" md="6" xl="4" class="d-flex">
+              <v-card outlined class="flex-grow-1">
+                <v-card-title>
+                  <v-icon color="primary" left>mdi-podium</v-icon
+                  >売上TOP5</v-card-title
+                >
+                <g-data-table-monthly-sales-by-customer
+                  :items="items"
+                  :month="month"
+                  type="top5"
+                  :mobile-breakpoint="0"
+                />
+              </v-card>
+            </v-col>
 
-          <!-- 取引先別売上高 -->
-          <v-col cols="12" xl="4">
-            <v-card outlined>
-              <v-card-title
-                ><v-icon color="primary" left>mdi-currency-usd</v-icon
-                >取引先別売上高</v-card-title
-              >
-              <g-data-table-monthly-sales-by-customer
-                :items="items"
-                :month="month"
-                :mobile-breakpoint="0"
-              />
-            </v-card>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-sheet>
-  </g-template-fixed>
+            <!-- 取引先別売上高 -->
+            <v-col cols="12" xl="4">
+              <v-card outlined>
+                <v-card-title
+                  ><v-icon color="primary" left>mdi-currency-usd</v-icon
+                  >取引先別売上高</v-card-title
+                >
+                <g-data-table-monthly-sales-by-customer
+                  :items="items"
+                  :month="month"
+                  :mobile-breakpoint="0"
+                />
+              </v-card>
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-card>
+    </v-container>
+  </g-template-default>
 </template>
 
 <style></style>

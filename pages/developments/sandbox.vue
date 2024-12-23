@@ -1,17 +1,11 @@
 <template>
-  <v-container>
-    <v-card>
-      <v-card-text>
-        <g-textarea />
-      </v-card-text>
-    </v-card>
-  </v-container>
+  <g-template-default> </g-template-default>
 </template>
 
 <script>
-import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
+import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
-  components: { GTextarea },
+  components: { GTemplateDefault },
 }
 </script>
 

@@ -11,7 +11,6 @@ import * as siteContracts from './triggers/site-contracts.js'
 import * as siteOperationSchedules from './triggers/site-operation-schedules.js'
 import * as employees from './triggers/employees.js'
 import * as employeeContracts from './triggers/employee-contracts.js'
-import * as workRegulations from './triggers/work-regulations.js'
 import * as operationResults from './triggers/operation-results.js'
 import * as operationWorkResults from './triggers/operation-work-results.js'
 import * as maintenance from './modules/maintenance.js'
@@ -19,6 +18,7 @@ import * as outsourcers from './triggers/outsourcers.js'
 import * as newUsers from './triggers/new-users.js'
 import * as users from './triggers/users.js'
 import * as system from './modules/system.js'
+import * as masterDocuments from './triggers/master-documents.js'
 
 /**
  * APIによる同期処理
@@ -35,7 +35,6 @@ export {
   siteOperationSchedules,
   employees,
   employeeContracts,
-  workRegulations,
   operationResults,
   operationWorkResults,
   maintenance,
@@ -44,4 +43,5 @@ export {
   users,
   system,
   access,
+  masterDocuments,
 }
