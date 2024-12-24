@@ -13,7 +13,7 @@ const propsDefinition = {
     type: String,
     default: '',
     required: false,
-    requiredByClass: true,
+    requiredByClass: false,
   },
   displayName: {
     type: String,
