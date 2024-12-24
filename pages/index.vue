@@ -89,7 +89,26 @@
               </v-alert>
               <v-list v-if="nearingExpiredContracts.length > 0">
                 <v-list-item-group>
-                  <v-list-item
+                  <!-- Vuex から従業員情報を取得できなかった場合にエラーになるのを回避 -->
+                  <template
+                    v-for="(contract, index) in nearingExpiredContracts"
+                  >
+                    <v-list-item
+                      v-if="contract.employee"
+                      :key="index"
+                      :to="`employees/${contract.employee.docId}`"
+                    >
+                      <v-list-item-content>
+                        <v-list-item-title>
+                          {{ contract.employee.fullName }}
+                        </v-list-item-title>
+                        <v-list-item-subtitle>
+                          契約満了日: {{ contract.expiredDate }}
+                        </v-list-item-subtitle>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </template>
+                  <!-- <v-list-item
                     v-for="(contract, index) in nearingExpiredContracts"
                     :key="index"
                     :to="`employees/${contract.employee.docId}`"
@@ -102,7 +121,7 @@
                         契約満了日: {{ contract.expiredDate }}
                       </v-list-item-subtitle>
                     </v-list-item-content>
-                  </v-list-item>
+                  </v-list-item> -->
                 </v-list-item-group>
               </v-list>
             </v-card-text>
