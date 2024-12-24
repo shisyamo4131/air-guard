@@ -63,11 +63,7 @@ export default {
       required
       type="password"
     />
-    <g-autocomplete-employee
-      v-model="editModel.employeeId"
-      label="従業員"
-      required
-    />
+    <g-autocomplete-employee v-model="editModel.employeeId" label="従業員" />
     <g-text-field v-model="editModel.displayName" label="表示名" required />
   </g-card-input-form>
 </template>
