@@ -96,7 +96,7 @@ export default {
               .trim()
           : 'lightgrey'
       return {
-        border: `2px solid ${color}`,
+        border: `4px solid ${color}`,
         position: 'relative',
         width: '100%',
       }
@@ -106,7 +106,7 @@ export default {
      * 状態チップ、Cardコンポーネントの外枠の色を返します。
      */
     color() {
-      if (this.status === 'confirmed') return 'info'
+      if (this.status === 'confirmed') return 'warning'
       if (this.status === 'arrived') return 'primary'
       if (this.status === 'leaved') return 'secondary'
       return undefined
@@ -200,6 +200,43 @@ export default {
       }
 
       return 'N/A'
+    },
+
+    /**
+     * 当月の従業員の最終勤怠情報を返します。
+     * - 外注先の場合は無条件で null を返します。
+     */
+    latestAttendance() {
+      if (!this.employeeId) return null
+      const employeeId = this.employeeId
+      const date = this.placement.date
+      const month = this.$dayjs(date).format('YYYY-MM')
+      return this.$store.getters['monthly-attendances/latestAttendance']({
+        employeeId,
+        month,
+      })
+    },
+
+    /**
+     * 当月の従業員の累積残業時間（時間単位）を返します。
+     * - 外注先の場合は無条件で0を返します。
+     */
+    overtimeTotal() {
+      if (!this.employeeId) return 0
+      const employeeId = this.employeeId
+      const date = this.placement.date
+      const month = this.$dayjs(date).format('YYYY-MM')
+      return this.$store.getters['monthly-attendances/overtimeTotal']({
+        employeeId,
+        month,
+      })
+    },
+
+    /**
+     * 当月の累積残業時間が60時間以上だと true を返します。
+     */
+    nearOvertimeLimit() {
+      return this.overtimeTotal >= 60
     },
 
     /**
@@ -422,6 +459,20 @@ export default {
             >
               <v-icon small>mdi-pencil</v-icon>
             </v-btn>
+          </div>
+        </div>
+        <div class="pl-1 text-caption">
+          <div :class="{ 'error--text': nearOvertimeLimit }">
+            {{ `累積: ${overtimeTotal} H` }}
+          </div>
+          <div v-show="!ellipsis">
+            {{
+              `(${
+                latestAttendance
+                  ? $dayjs(latestAttendance.date).format('MM月DD日')
+                  : 'N/A'
+              })`
+            }}
           </div>
         </div>
       </div>

@@ -100,13 +100,21 @@ export default {
           success: colors.green.accent3,
         },
         light: {
-          primary: colors.blue.darken2,
-          accent: colors.grey.darken3,
-          secondary: colors.amber.darken3,
-          info: colors.teal.lighten1,
-          warning: colors.amber.base,
-          error: colors.deepOrange.accent4,
-          success: colors.green.accent3,
+          // primary: colors.blue.darken2,
+          // accent: colors.grey.darken3,
+          // secondary: colors.amber.darken3,
+          // info: colors.teal.lighten1,
+          // warning: colors.amber.base,
+          // error: colors.deepOrange.accent4,
+          // success: colors.green.accent3,
+          primary: '#1B3B6F', // Deep Blue: 主な基調色として、信頼性と安定感を象徴
+          secondary: '#6A994E', // Olive Green: 補助色として自然や調和をイメージ
+          accent: '#D1495B', // Burnt Orange: アクセントカラーとして、エネルギッシュで暖かみのある色
+          info: '#468FAF', // Teal: 情報をクリアに表現する青緑
+          warning: '#D4A373', // Golden Yellow: 注意や警告を促す暖かみのある黄色
+          error: '#A63A50', // Brick Red: エラーや危険を示す落ち着いた赤
+          success: '#6D597A', // Royal Purple: 成功や高級感を象徴する深い紫
+          highlight: '#3E4C59', // Steel Gray: 特定の要素を目立たせるニュートラルなグレー
           background: '#f5f5f5',
         },
       },
