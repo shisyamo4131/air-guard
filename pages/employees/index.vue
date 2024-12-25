@@ -51,6 +51,7 @@ export default {
     label="従業員管理"
     :items="items"
     :instance="instance"
+    :edit-event-handler="(item) => $router.push(`employees/${item.docId}`)"
   >
     <template #input="{ attrs, on }">
       <g-input-employee v-bind="attrs" v-on="on" />
