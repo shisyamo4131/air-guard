@@ -1,80 +1,101 @@
 <script>
 /**
  * 各種インデックスページ用のテンプレートです。
- *
- * 機能の詳細:
- * - ヘッダーとしてVToolbarを内包しており、既定で検索用TextFieldが配置されています。
- * - 検索用TextFieldの前後に用意されたスロットでカスタマイズ可能です。
- * - defaultスロットにVDataTableを指定することで自動的にレイアウトされます。
- * - フッターとしてVPaginationを内包しており、defaultスロットに指定されたVDataTableと連携します。
- *
- * lazySearch:
- * 検索用TextFieldに入力された値が、`props.delay`で指定されたミリ秒後に同期されます。
- * 値の更新がデバウンスされるため、ユーザーに入力された値でAPI検索などを行う場合に有用です。
- *
- * search:
- * 検索用TextFieldに入力された値は、defaultスロットのattrsプロパティで提供されません。
- * -> v-bind="attrs"でsearchを提供すると独自のフィルターが必要な場合にコードが複雑になる。
- * -> lazySearchの値を使用するケースも想定される。
- * defaultスロットのsearchプロパティを使用するか、親コンポーネント側で制御します。
- *
- * 注意事項:
- * - VDataTableにはdefaultスロットのattrsプロパティでclass: 'flex-table'が設定されます。
- * - flex-tableに関するCSS設定はdefaultレイアウトで定義されます。
- *
- * @props
- * @prop {Number} delay - 検索用TextFieldの入力値でlazySearchが更新されるまでの遅延時間です。
- * @prop {Boolean} extend - VToolBarのextentionスロットを有効にします。
- * @prop {Array} items - VDataTableに引き渡される配列です。
- * @prop {String} lazySearch - 検索用TextFieldの入力値です。.sync修飾子を使用することでデバウンスされて同期されます。
- * @prop {String} saerch - 検索用TextFieldの入力値です。.sync修飾子で同期されます。
- *
- * @events
- * @event update:lazySearch - 検索用TextFieldの入力値をデバウンス後にemitします。
- * @event update:search - 検索用TextFieldの入力値です。
- *
- * @slots
- * @slot append-search - 検索用TextFieldの後ろに配置されます。
- * @slot default - VDataTable用のスロットです。
- * @slot extension - VToolbarのextensionスロットです。
- * @slot prepend-search - 検索用TextFieldの前に配置されます。
- *
  * @author shisyamo4131
- * @version 1.3.0
- *
- * @updates
- * - version 1.3.0 - 2024-08-12 - 検索用VToolbar直下に`div`を配置し、検索用TextField他をflexアイテム化。
- *                              - `slots.search`を用意し、検索用TextFieldを置換できるように修正。
- * - version 1.2.0 - 2024-07-31 - 検索バーのv-toolbarにdenseを設定。
- * - version 1.1.1 - 2024-07-25 - v-paginationのtotal-visibleを20に設定。
- * - version 1.1.0 - 2024-06-27 - ページネーションをv-footerからv-containerに変更。
- *                              - これに伴ってメインコンテナの高さの計算方法を変更。
- * - version 1.0.0 - 2024-06-25 - 初版作成
- *
- * 更新予定:
- * - VDataTableのitemsPerPageを変更できるようにしたい。
- * - VToolbarのextension機能を利用するかもしれない。
- *
  */
+import GBtnFilterIcon from '../atoms/btns/GBtnFilterIcon.vue'
+import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
 import GTextFieldSearch from '../molecules/inputs/GTextFieldSearch.vue'
 import GTemplateDefault from './GTemplateDefault.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextFieldSearch, GTemplateDefault },
+  components: {
+    GTextFieldSearch,
+    GTemplateDefault,
+    GBtnRegistIcon,
+    GBtnFilterIcon,
+  },
 
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
+    /**
+     * テンプレートのカラーです。
+     */
+    color: { type: String, default: 'secondary', required: false },
+
+    /**
+     * 検索用テキストボックスの入力内容を lazySearch に反映させる遅延時間（ミリ秒）です。
+     */
     delay: { type: Number, default: 500, required: false },
+
+    /**
+     * フィルターボタンを使用不可にします。
+     */
+    disableFilter: { type: Boolean, default: false, required: false },
+
+    /**
+     * 登録ボタンを使用不可にします。
+     */
+    disableRegist: { type: Boolean, default: false, required: false },
+
+    /**
+     * ツールバーを拡張します。
+     * 拡張されたツールバーにコンポーネントを配置するには nav スロットを使用します。
+     */
     extend: { type: Boolean, default: false, required: false },
+
+    /**
+     * フィルターボタンを非表示にします。
+     */
+    hideFilter: { type: Boolean, default: false, required: false },
+
+    /**
+     * ページネーションを非表示にします。
+     */
     hidePagination: { type: Boolean, default: false, required: false },
+
+    /**
+     * 登録ボタンを非表示にします。
+     */
+    hideRegist: { type: Boolean, default: false, required: false },
+
+    /**
+     * 一覧表示するアイテム（配列）です。
+     * default スロットから提供されます。
+     */
     items: { type: Array, default: () => [], required: false },
+
+    /**
+     * 画面のタイトルです。
+     */
     label: { type: String, default: undefined, required: false },
+
+    /**
+     * 検索用テキストボックスの値が delay で指定された時間だけ遅延して反映されます。
+     * .sync 修飾子とともに使用します。
+     */
     lazySearch: { type: String, default: undefined, required: false },
+
+    /**
+     * タイトルを非表示にします。
+     */
+    noLabel: { type: Boolean, default: false, required: false },
+
+    /**
+     * 検索用テキストボックスの値です。
+     * .sync 修飾子が使用可能です。
+     */
     search: { type: String, default: undefined, required: false },
+
+    totalVisible: {
+      type: [String, Number],
+      default: undefined,
+      required: false,
+    },
   },
 
   /***************************************************************************
@@ -82,11 +103,29 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      appbarHeight: 48,
+      /**
+       * フィルタリング用ナビゲーションの開閉状態です。
+       */
       drawer: false,
+
+      /**
+       * 遅延検索文字列の内部値です。
+       */
       internalLazySearch: null,
+
+      /**
+       * 検索文字列の内部値です。
+       */
       internalSearch: null,
+
+      /**
+       * ページネーション、データテーブルのページ番号です。
+       */
       page: 1,
+
+      /**
+       * ページネーション、データテーブルの総ページ数です。
+       */
       pageCount: 0,
     }
   },
@@ -99,16 +138,63 @@ export default {
      * デフォルトスロットで提供するプロパティを返します。
      * 提供するプロパティは DataTable コンポーネントで使用されることを想定しています。
      */
-    defaultSlotProperties() {
+    defaultSlotProps() {
       return {
         attrs: {
           class: 'flex-table',
           items: this.items,
           page: this.page,
+          search: this.internalSearch,
         },
         on: {
           'update:page': ($event) => (this.page = $event),
           'page-count': ($event) => (this.pageCount = $event),
+        },
+        lazySearch: this.internalLazySearch,
+      }
+    },
+
+    /**
+     * filter-button スロットで提供するプロパティを返します。
+     */
+    filterButtonSlotProps() {
+      return {
+        attrs: { color: this.color, disabled: this.disableFilter },
+        on: { click: this.toggleDrawer },
+        show: !this.hideFilter,
+      }
+    },
+
+    /**
+     * regist-button スロットで提供するプロパティを返します。
+     */
+    registButtonSlotProps() {
+      return {
+        attrs: { color: this.color, disabled: this.disableRegist },
+        on: { click: () => this.$emit('click:regist') },
+        show: !this.hideRegist,
+      }
+    },
+
+    /**
+     * search, prepend-search, append-search スロットで提供するプロパティを返します。
+     */
+    searchSlotProps() {
+      return {
+        attrs: {
+          delay: this.delay,
+          lazyValue: this.internalLazySearch,
+          value: this.internalSearch,
+        },
+        on: {
+          input: ($event) => (this.internalSearch = $event),
+          'update:lazyValue': ($event) => (this.internalLazySearch = $event),
+        },
+        inputAttrs: {
+          flat: true,
+          outlined: false,
+          soloInverted: true,
+          hideDetails: true,
         },
       }
     },
@@ -118,14 +204,25 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
+    /**
+     * 遅延検索文字列が更新されたら `update:lazySearch` を emit します。
+     */
     internalLazySearch(newVal, oldVal) {
       if (newVal === oldVal) return
       this.$emit('update:lazySearch', newVal)
     },
+
+    /**
+     * 検索文字列が更新されたら `update:search` を emit します。
+     */
     internalSearch(newVal, oldVal) {
       if (newVal === oldVal) return
       this.$emit('update:search', newVal)
     },
+
+    /**
+     * props.search の内容を直ちに検索用文字列に反映させます。
+     */
     search: {
       handler(newVal, oldVal) {
         if (newVal === oldVal) return
@@ -134,108 +231,140 @@ export default {
       immediate: true,
     },
   },
+
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    /**
+     * フィルタリング用ナビゲーションドロワーを開きます。
+     */
+    openDrawer() {
+      this.drawer = true
+    },
+
+    /**
+     * フィルタリング用ナビゲーションドロワーを閉じます。
+     */
+    closeDrawer() {
+      this.drawer = false
+    },
+
+    /**
+     * フィルタリング用ナビゲーションドロワーの開閉状態を切り替えます。
+     */
+    toggleDrawer() {
+      this.drawer = !this.drawer
+    },
+  },
 }
 </script>
 
 <template>
   <g-template-default v-slot="{ height }">
-    <v-container
-      class="d-flex flex-column pa-0 pa-sm-3"
-      :style="{ height: `${height}px` }"
-    >
-      <v-navigation-drawer v-model="drawer" fixed right temporary>
-        <v-container>
-          <slot name="nav" />
-          <v-btn
-            class="mb-6"
-            block
-            color="primary"
-            small
-            depressed
-            @click="$emit('click:clear')"
-            >クリア</v-btn
-          >
-          <v-btn block color="primary" small depressed @click="drawer = false"
-            >閉じる</v-btn
-          >
-        </v-container>
-      </v-navigation-drawer>
-      <v-toolbar class="flex-grow-0" color="secondary" dark dense flat>
-        <v-toolbar-title>{{ label }}</v-toolbar-title>
-        <slot name="append-label" />
-      </v-toolbar>
-      <!-- HEADER -->
-      <v-toolbar class="flex-grow-0" flat>
-        <div class="d-flex align-center flex-grow-1" style="gap: 8px">
-          <!-- slot: prepend-search -->
-          <slot
-            name="prepend-search"
-            v-bind="{
-              attrs: {
-                outlined: false,
-                hideDetails: true,
-                soloInverted: true,
-                flat: true,
-              },
-            }"
-          />
-          <slot
-            name="search"
-            v-bind="{
-              attrs: {
-                outlined: false,
-                hideDetails: true,
-                soloInverted: true,
-                flat: true,
-              },
-            }"
-          >
-            <g-text-field-search
-              v-model="internalSearch"
-              :delay="delay"
-              :lazy-value.sync="internalLazySearch"
-            />
-          </slot>
-          <!-- slot: append-search -->
-          <slot
-            name="append-search"
-            v-bind="{
-              attrs: {
-                outlined: false,
-                hideDetails: true,
-                soloInverted: true,
-                flat: true,
-              },
-            }"
-          />
-          <v-btn icon class="ml-auto">
-            <v-icon color="primary" @click="drawer = !drawer"
-              >mdi-filter</v-icon
-            >
-          </v-btn>
-        </div>
-        <template v-if="extend" #extension>
-          <slot name="extension" />
-        </template>
-      </v-toolbar>
-      <v-divider />
-      <v-sheet class="d-flex flex-grow-1 overflow-y-hidden" flat>
-        <!-- SLOT: DEFAULT -->
-        <slot name="default" v-bind="defaultSlotProperties" />
-      </v-sheet>
+    <v-container class="pa-0 pa-sm-3" :style="{ height: `${height}px` }">
+      <v-card class="d-flex flex-column" height="100%" flat>
+        <v-navigation-drawer
+          v-model="drawer"
+          class="rounded-t-0"
+          fixed
+          right
+          temporary
+        >
+          <div class="pa-4 d-flex flex-column" style="height: 100%">
+            <div class="flex-grow-1">
+              <!-- slot: nav -->
+              <slot name="nav" v-bind="{ color }" />
+            </div>
+            <div class="flex-grow-0 d-flex flex-column" style="gap: 12px">
+              <v-btn block :color="color" @click="$emit('click:clear')"
+                >クリア</v-btn
+              >
+              <v-btn block :color="color" @click="closeDrawer">閉じる</v-btn>
+            </div>
+          </div>
+        </v-navigation-drawer>
 
-      <!-- PAGINATION -->
-      <v-toolbar class="flex-grow-0" flat>
-        <v-row justify="center">
-          <v-col cols="10">
-            <v-pagination
-              v-model="page"
-              :length="pageCount"
-              total-visible="20"
-            />
-          </v-col>
-        </v-row>
-      </v-toolbar>
+        <!-- LABEL -->
+        <v-toolbar
+          v-show="!noLabel"
+          class="flex-grow-0"
+          :color="color"
+          dark
+          dense
+          flat
+        >
+          <!-- slot: prepend-label -->
+          <slot name="prepend-label" />
+
+          <v-toolbar-title>{{ label }}</v-toolbar-title>
+
+          <!-- slot: append-label -->
+          <slot name="append-label" />
+        </v-toolbar>
+
+        <!-- HEADER -->
+        <v-toolbar class="flex-grow-0" flat>
+          <div class="d-flex align-center flex-grow-1" style="gap: 8px">
+            <!-- slot: prepend-search -->
+            <slot name="prepend-search" v-bind="searchSlotProps" />
+
+            <!-- slot: search -->
+            <slot name="search" v-bind="searchSlotProps">
+              <g-text-field-search
+                v-bind="searchSlotProps.attrs"
+                :delay="delay"
+                v-on="searchSlotProps.on"
+              />
+            </slot>
+
+            <!-- slot: append-search -->
+            <slot name="append-search" v-bind="searchSlotProps" />
+
+            <!-- 登録ボタン -->
+            <slot name="regist-button" v-bind="registButtonSlotProps">
+              <g-btn-regist-icon
+                v-show="registButtonSlotProps.show"
+                v-bind="registButtonSlotProps.attrs"
+                v-on="registButtonSlotProps.on"
+              />
+            </slot>
+
+            <!-- フィルターボタン -->
+            <slot name="filter-button" v-bind="filterButtonSlotProps">
+              <g-btn-filter-icon
+                v-show="filterButtonSlotProps.show"
+                v-bind="filterButtonSlotProps.attrs"
+                v-on="filterButtonSlotProps.on"
+              />
+            </slot>
+          </div>
+
+          <!-- slot: extension -->
+          <template v-if="extend" #extension>
+            <slot name="extension" />
+          </template>
+        </v-toolbar>
+        <v-divider />
+        <div class="d-flex flex-grow-1 overflow-y-hidden">
+          <!-- slot: default -->
+          <slot name="default" v-bind="defaultSlotProps" />
+        </div>
+
+        <!-- PAGINATION -->
+        <v-toolbar class="flex-grow-0" flat>
+          <v-row justify="center">
+            <v-col cols="10">
+              <v-pagination
+                v-model="page"
+                :color="color"
+                :length="pageCount"
+                :total-visible="totalVisible"
+              />
+            </v-col>
+          </v-row>
+        </v-toolbar>
+      </v-card>
     </v-container>
   </g-template-default>
 </template>
