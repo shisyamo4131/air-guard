@@ -58,7 +58,7 @@ export default {
     /**
      * 編集モードでダイアログを開くトリガーとなるイベント名です。
      */
-    eventEdit: { type: String, default: 'click:row', required: false },
+    editEvent: { type: String, default: 'click:row', required: false },
 
     /**
      * 追加モードでダイアログを開いた直後にコールされる関数です。
@@ -155,7 +155,7 @@ export default {
           items: this.value,
         },
         on: {
-          [this.eventEdit]: this.onClickTableRow,
+          [this.editEvent]: this.onClickTableRow,
         },
       }
     },
