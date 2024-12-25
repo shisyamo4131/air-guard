@@ -1,5 +1,4 @@
 <script>
-import { FireModel } from 'air-firebase'
 /**
  * GInput コンポーネント専用のダイアログコンポーネントです。
  * defaultスロットに GInput コンポーネントを配置して使用します。
@@ -31,6 +30,7 @@ import { FireModel } from 'air-firebase'
  *
  * @author shisyamo4131
  */
+// import { FireModel } from 'air-firebase'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
 export default {
   /***************************************************************************
@@ -56,7 +56,7 @@ export default {
      */
     instance: {
       type: Object,
-      validator: (instance) => instance instanceof FireModel,
+      // validator: (instance) => instance instanceof FireModel,
       required: true,
     },
 
