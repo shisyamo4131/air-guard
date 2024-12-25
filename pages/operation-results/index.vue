@@ -5,14 +5,11 @@
  */
 import GInputOperationResult from '~/components/molecules/inputs/GInputOperationResult.vue'
 import GDataTableOperationResults from '~/components/molecules/tables/GDataTableOperationResults.vue'
-import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import OperationResult from '~/models/OperationResult'
-import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
-import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
-import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GTextFieldMonth from '~/components/molecules/inputs/GTextFieldMonth.vue'
 import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
 import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
+import GTemplateDocumentsIndex from '~/components/templates/GTemplateDocumentsIndex.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -24,26 +21,18 @@ export default {
    ***************************************************************************/
   components: {
     GInputOperationResult,
-    GTemplateIndex,
     GDataTableOperationResults,
-    GDialogInput,
-    GBtnRegistIcon,
     GTextFieldMonth,
     GAutocompleteCustomer,
     GAutocompleteSite,
+    GTemplateDocumentsIndex,
   },
-
-  /***************************************************************************
-   * MIXINS
-   ***************************************************************************/
-  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      dialog: false,
       instance: new OperationResult(),
       items: [],
       month: this.$dayjs().format('YYYY-MM'),
@@ -105,13 +94,6 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
-    dialog(v) {
-      if (!v) {
-        this.instance.initialize()
-        this.editMode = this.CREATE
-      }
-    },
-
     month: {
       handler(v) {
         const constraints = [['where', 'month', '==', v]]
@@ -140,24 +122,21 @@ export default {
       this.selectedCustomerId = null
       this.selectedSiteId = null
     },
-
-    onClickRow(item) {
-      // 詳細ページが出来上がったらこちらを適用
-      // this.$router.push(`/customers/${item.docId}`)
-      this.instance.initialize(item)
-      this.editMode = this.UPDATE
-      this.dialog = true
-    },
   },
 }
 </script>
 
 <template>
-  <g-template-index
+  <g-template-documents-index
     label="稼働実績管理"
     :items="filteredItems"
+    :instance="instance"
+    :dialog-props="{ fullscreen: true }"
     @click:clear="onClickSearchClear"
   >
+    <template #input="{ attrs, on }">
+      <g-input-operation-result v-bind="attrs" tile v-on="on" />
+    </template>
     <template #nav>
       <g-autocomplete-customer
         v-model="selectedCustomerId"
@@ -170,33 +149,17 @@ export default {
         :doc-ids="siteIds"
       />
     </template>
-    <template #search="{ attrs }">
-      <g-text-field-month v-model="month" :options="attrs" />
+    <template #search="{ attrs, inputAttrs }">
+      <g-text-field-month
+        v-model="month"
+        :options="{ ...attrs, ...inputAttrs }"
+      />
       <v-spacer />
     </template>
-    <template #append-search>
-      <g-dialog-input
-        v-model="dialog"
-        :edit-mode.sync="editMode"
-        :instance="instance"
-        fullscreen
-      >
-        <template #activator="{ attrs, on }">
-          <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
-        </template>
-        <template #default="{ attrs, on }">
-          <g-input-operation-result v-bind="attrs" tile v-on="on" />
-        </template>
-      </g-dialog-input>
-    </template>
     <template #default="{ attrs, on }">
-      <g-data-table-operation-results
-        v-bind="attrs"
-        @click:row="onClickRow"
-        v-on="on"
-      />
+      <g-data-table-operation-results v-bind="attrs" v-on="on" />
     </template>
-  </g-template-index>
+  </g-template-documents-index>
 </template>
 
 <style></style>
