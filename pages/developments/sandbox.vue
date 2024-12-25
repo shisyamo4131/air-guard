@@ -1,11 +1,16 @@
 <template>
-  <g-template-default> </g-template-default>
+  <g-template-index :lazy-search.sync="search"> </g-template-index>
 </template>
 
 <script>
-import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
+import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 export default {
-  components: { GTemplateDefault },
+  components: { GTemplateIndex },
+  data() {
+    return {
+      search: null,
+    }
+  },
 }
 </script>
 

@@ -1,108 +1,72 @@
 <script>
-import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
+/**
+ * 自動採番の一覧ページです。
+ * @author shisyamo4131
+ */
 import GInputAutonumber from '~/components/molecules/inputs/GInputAutonumber.vue'
 import Autonumber from '~/models/Autonumber'
-import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
-import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
-import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GDataTableAutonumbers from '~/components/molecules/tables/GDataTableAutonumbers.vue'
+import GTemplateDocumentsIndex from '~/components/templates/GTemplateDocumentsIndex.vue'
 export default {
   /***************************************************************************
    * NAME
    ***************************************************************************/
   name: 'AutonumbersIndex',
+
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GBtnRegistIcon,
     GInputAutonumber,
-    GTemplateIndex,
-    GDialogInput,
     GDataTableAutonumbers,
+    GTemplateDocumentsIndex,
   },
-  /***************************************************************************
-   * MIXINS
-   ***************************************************************************/
-  mixins: [GMixinEditModeProvider],
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      dialog: false,
       instance: new Autonumber(),
       items: [],
-      listener: new Autonumber(),
     }
   },
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {},
-  /***************************************************************************
-   * WATCH
-   ***************************************************************************/
-  watch: {
-    dialog(v) {
-      if (!v) {
-        this.instance.initialize()
-        this.editMode = this.CREATE
-      }
-    },
-  },
+
   /***************************************************************************
    * MOUNTED
    ***************************************************************************/
   mounted() {
-    this.items = this.listener.subscribeDocs()
+    this.items = this.instance.subscribeDocs()
   },
+
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.listener.unsubscribe()
-  },
-  /***************************************************************************
-   * METHODS
-   ***************************************************************************/
-  methods: {
-    onClickRow(item) {
-      // 詳細ページが出来上がったらこちらを適用
-      // this.$router.push(`/customers/${item.docId}`)
-      this.instance.initialize(item)
-      this.editMode = this.UPDATE
-      this.dialog = true
-    },
+    this.instance.unsubscribe()
   },
 }
 </script>
 
 <template>
-  <g-template-index label="自動採番管理" :items="items">
-    <template #append-search>
-      <g-dialog-input
-        v-model="dialog"
-        :edit-mode.sync="editMode"
-        :instance="instance"
-      >
-        <template #activator="{ attrs, on }">
-          <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
-        </template>
-        <template #default="{ attrs, on }">
-          <g-input-autonumber v-bind="attrs" v-on="on" />
-        </template>
-      </g-dialog-input>
+  <g-template-documents-index
+    label="自動採番管理"
+    :dialog-props="{ maxWidth: 360 }"
+    :items="items"
+    :instance="instance"
+  >
+    <template #input="{ attrs, on }">
+      <g-input-autonumber v-bind="attrs" v-on="on" />
     </template>
-    <template #default="{ attrs, on, search }">
-      <g-data-table-autonumbers
-        v-bind="attrs"
-        :search="search"
-        @click:row="onClickRow"
-        v-on="on"
-      />
+
+    <template #default="{ attrs, on }">
+      <g-data-table-autonumbers v-bind="attrs" v-on="on" />
     </template>
-  </g-template-index>
+  </g-template-documents-index>
 </template>
 
 <style></style>

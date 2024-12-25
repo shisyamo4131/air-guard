@@ -1,11 +1,8 @@
 <script>
-import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GDataTablePensions from '~/components/atoms/tables/GDataTablePensions.vue'
-import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GAutocompleteEmployee from '~/components/molecules/inputs/GAutocompleteEmployee.vue'
 import GInputPension from '~/components/molecules/inputs/GInputPension.vue'
-import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
-import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
+import GTemplateDocumentsIndex from '~/components/templates/GTemplateDocumentsIndex.vue'
 import Pension from '~/models/Pension'
 export default {
   /***************************************************************************
@@ -17,25 +14,17 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GTemplateIndex,
     GAutocompleteEmployee,
-    GDialogInput,
-    GBtnRegistIcon,
     GInputPension,
     GDataTablePensions,
+    GTemplateDocumentsIndex,
   },
-
-  /***************************************************************************
-   * MIXINS
-   ***************************************************************************/
-  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      dialog: false,
       docs: [],
       instance: new Pension(),
       selectedEmployeeId: null,
@@ -46,12 +35,6 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
-    dialog(v) {
-      if (v) return
-      this.editMode = this.CREATE
-      this.instance.initialize()
-    },
-
     selectedEmployeeId(v) {
       this.subscribe()
     },
@@ -76,16 +59,6 @@ export default {
    ***************************************************************************/
   methods: {
     /**
-     * DataTable の行がクリックされた時の処理です。
-     * - 編集画面を開きます。
-     */
-    onClickRow(item) {
-      this.editMode = this.UPDATE
-      this.instance.initialize(item)
-      this.dialog = true
-    },
-
-    /**
      * 厚生年金ドキュメントへの購読を開始します。
      */
     subscribe() {
@@ -107,30 +80,24 @@ export default {
 </script>
 
 <template>
-  <g-template-index label="厚生年金管理" :items="docs">
-    <template #search="{ attrs }">
-      <g-autocomplete-employee v-bind="attrs" v-model="selectedEmployeeId" />
+  <g-template-documents-index
+    label="厚生年金管理"
+    :items="docs"
+    :instance="instance"
+  >
+    <template #input="{ attrs, on }">
+      <g-input-pension v-bind="attrs" v-on="on" />
     </template>
-    <template #append-search>
-      <g-dialog-input
-        v-model="dialog"
-        :edit-mode="editMode"
-        :instance="instance"
-        max-width="600"
-      >
-        <template #activator="{ attrs, on }">
-          <g-btn-regist-icon v-bind="attrs" v-on="on" />
-        </template>
-        <template #default="{ attrs, on }">
-          <g-input-pension v-bind="attrs" v-on="on" />
-        </template>
-      </g-dialog-input>
+    <template #search="{ inputAttrs }">
+      <g-autocomplete-employee
+        v-model="selectedEmployeeId"
+        v-bind="inputAttrs"
+      />
     </template>
     <template #default="{ attrs, on }">
-      <g-data-table-pensions v-bind="attrs" @click:row="onClickRow" v-on="on">
-      </g-data-table-pensions>
+      <g-data-table-pensions v-bind="attrs" v-on="on" />
     </template>
-  </g-template-index>
+  </g-template-documents-index>
 </template>
 
 <style></style>

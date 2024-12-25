@@ -9,46 +9,47 @@
  *
  * @author shisyamo4131
  */
-import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputUser from '~/components/molecules/inputs/GInputUser.vue'
 import GDataTableUsers from '~/components/molecules/tables/GDataTableUsers.vue'
-import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import User from '~/models/User'
-import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import NewUser from '~/models/NewUser'
 import GInputNewUser from '~/components/molecules/inputs/GInputNewUser.vue'
 import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
 import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
+import GTemplateDocumentsIndex from '~/components/templates/GTemplateDocumentsIndex.vue'
+import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 export default {
   /***************************************************************************
    * NAME
    ***************************************************************************/
   name: 'UsersIndex',
+
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GBtnRegistIcon,
     GInputUser,
     GDataTableUsers,
-    GTemplateIndex,
     GDialogInput,
     GInputNewUser,
     GBtnSubmitIcon,
     GBtnCancelIcon,
+    GTemplateDocumentsIndex,
+    GBtnRegistIcon,
   },
-  /***************************************************************************
-   * MIXINS
-   ***************************************************************************/
-  mixins: [GMixinEditModeProvider],
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      dialog: false,
-      instance: new NewUser(),
+      instance: new User(),
+      regist: {
+        dialog: false,
+        editMode: 'CREATE',
+        instance: new NewUser(),
+      },
       restore: {
         dialog: false,
         loading: false,
@@ -56,28 +57,30 @@ export default {
       },
     }
   },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
-    component() {
-      return this.editMode === this.CREATE ? 'GInputNewUser' : 'GInputUser'
-    },
     items() {
       return this.$store.getters['users/items']
     },
   },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/
   watch: {
-    dialog(v) {
-      if (!v) {
-        this.instance = new NewUser()
-        // this.instance.initialize()
-        this.editMode = this.CREATE
-      }
+    /**
+     * data.restore.dialog を監視します。
+     * - false に更新されたら data.restore.uid を null にします。
+     */
+    'regist.dialog'(v) {
+      if (v) return
+      this.regist.editMode = 'CREATE'
+      this.regist.instance.initialize()
     },
+
     /**
      * data.restore.dialog を監視します。
      * - false に更新されたら data.restore.uid を null にします。
@@ -87,19 +90,11 @@ export default {
       this.restore.uid = null
     },
   },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    onClickRow(item) {
-      // 詳細ページが出来上がったらこちらを適用
-      // this.$router.push(`/users/${item.docId}`)
-      this.instance = new User(item)
-      // this.instance.initialize(item)
-      this.editMode = this.UPDATE
-      this.dialog = true
-    },
-
     /**
      * ユーザーアカウントの復元処理を実行します。
      */
@@ -124,26 +119,36 @@ export default {
 </script>
 
 <template>
-  <g-template-index label="ユーザー管理" :items="items">
-    <template #append-search>
+  <g-template-documents-index
+    label="ユーザー管理"
+    :items="items"
+    :instance="instance"
+  >
+    <template #regist-button="buttonProps">
       <g-dialog-input
-        v-model="dialog"
-        :edit-mode.sync="editMode"
-        :instance="instance"
-        max-width="360"
+        v-model="regist.dialog"
+        :edit-mode.sync="regist.editMode"
+        :instance="regist.instance"
       >
         <template #activator="{ attrs, on }">
-          <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
+          <g-btn-regist-icon
+            v-bind="{ ...buttonProps.attrs, ...attrs }"
+            v-on="on"
+          />
         </template>
         <template #default="{ attrs, on }">
-          <component :is="component" v-bind="attrs" v-on="on" />
+          <g-input-new-user v-bind="attrs" v-on="on" />
         </template>
       </g-dialog-input>
-
+    </template>
+    <template #input="{ attrs, on }">
+      <g-input-user v-bind="attrs" v-on="on" />
+    </template>
+    <template #append-search>
       <!-- 復元処理ダイアログ -->
       <v-dialog v-model="restore.dialog" max-width="360">
         <template #activator="{ attrs, on }">
-          <v-btn v-bind="attrs" icon v-on="on">
+          <v-btn v-bind="attrs" color="secondary" icon v-on="on">
             <v-icon>mdi-delete-restore</v-icon>
           </v-btn>
         </template>
@@ -170,17 +175,10 @@ export default {
         </v-card>
       </v-dialog>
     </template>
-    <template #default="{ attrs, on, search }">
-      <g-data-table-users
-        v-bind="attrs"
-        :search="search"
-        sort-by="code"
-        sort-desc
-        @click:row="onClickRow"
-        v-on="on"
-      />
+    <template #default="{ attrs, on }">
+      <g-data-table-users v-bind="attrs" sort-by="code" sort-desc v-on="on" />
     </template>
-  </g-template-index>
+  </g-template-documents-index>
 </template>
 
 <style></style>

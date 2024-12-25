@@ -3,17 +3,14 @@
  * 就業規則情報の一覧ページです。
  * @author shisyamo4131
  */
-import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
 import GInputWorkRegulation from '~/components/molecules/inputs/GInputWorkRegulation.vue'
 import GDataTableWorkRegulations from '~/components/molecules/tables/GDataTableWorkRegulations.vue'
-import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import WorkRegulation from '~/models/WorkRegulation'
-import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
-import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GDialogConfirm from '~/components/molecules/dialogs/GDialogConfirm.vue'
 import GSnackbarError from '~/components/atoms/snackbars/GSnackbarError.vue'
 import GDialogMessage from '~/components/molecules/dialogs/GDialogMessage.vue'
 import GSelectYear from '~/components/atoms/inputs/GSelectYear.vue'
+import GTemplateDocumentsIndex from '~/components/templates/GTemplateDocumentsIndex.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -24,35 +21,26 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GBtnRegistIcon,
     GInputWorkRegulation,
     GDataTableWorkRegulations,
-    GTemplateIndex,
-    GDialogInput,
     GDialogConfirm,
     GSnackbarError,
     GDialogMessage,
     GSelectYear,
+    GTemplateDocumentsIndex,
   },
-
-  /***************************************************************************
-   * MIXINS
-   ***************************************************************************/
-  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      dialog: false,
       error: {
         snackbar: false,
         message: null,
       },
       instance: new WorkRegulation(),
       items: [],
-      listener: new WorkRegulation(),
       loading: false,
       selectedYear: `${new Date().getFullYear()}`,
     }
@@ -84,16 +72,6 @@ export default {
    ***************************************************************************/
   watch: {
     /**
-     * `data.dialog`を監視します。
-     * - `data.instance`、`data.editMode`を初期化します。
-     */
-    dialog(v) {
-      if (!v) {
-        this.instance.initialize()
-        this.editMode = this.CREATE
-      }
-    },
-    /**
      * `data.selectedYear`を監視します。
      * - `subscribeDocs()`を実行します。
      * - 初回起動時にも実行させるため、immediateを指定しています。
@@ -110,7 +88,7 @@ export default {
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.listener.unsubscribe()
+    this.instance.unsubscribe()
   },
 
   /***************************************************************************
@@ -118,22 +96,10 @@ export default {
    ***************************************************************************/
   methods: {
     /**
-     * DataTableの行がクリックされた時の処理です。
-     * - 詳細ページを開きます。
-     */
-    onClickRow(item) {
-      // 詳細ページが出来上がったらこちらを適用
-      // this.$router.push(`/workRegulations/${item.docId}`)
-      this.instance.initialize(item)
-      this.editMode = this.UPDATE
-      this.dialog = true
-    },
-
-    /**
-     * `data.selectedYear`をクエリ条件として`data.listener`のsubscribeDocsを実行します。
+     * `data.selectedYear`をクエリ条件として`data.instance`のsubscribeDocsを実行します。
      */
     subscribeDocs() {
-      this.items = this.listener.subscribeDocs([
+      this.items = this.instance.subscribeDocs([
         ['where', 'year', '==', this.selectedYear],
       ])
     },
@@ -164,7 +130,11 @@ export default {
 </script>
 
 <template>
-  <g-template-index label="就業規則管理" :items="items">
+  <g-template-documents-index
+    label="就業規則管理"
+    :items="items"
+    :instance="instance"
+  >
     <template #append-label>
       <v-spacer />
       <v-toolbar-items>
@@ -185,34 +155,21 @@ export default {
         </g-dialog-message>
       </v-toolbar-items>
     </template>
-    <template #prepend-search="{ attrs }">
+    <template #prepend-search="{ attrs, inputAttrs }">
       <g-select-year
         v-model="selectedYear"
         style="max-width: 120px"
-        v-bind="attrs"
+        v-bind="{ ...attrs, ...inputAttrs }"
       />
     </template>
-    <template #append-search>
-      <g-dialog-input
-        v-model="dialog"
-        :edit-mode.sync="editMode"
-        :instance="instance"
-      >
-        <template #activator="{ attrs, on }">
-          <g-btn-regist-icon color="primary" v-bind="attrs" v-on="on" />
-        </template>
-        <template #default="{ attrs, on }">
-          <g-input-work-regulation v-bind="attrs" v-on="on" />
-        </template>
-      </g-dialog-input>
+    <template #input="{ attrs, on }">
+      <g-input-work-regulation v-bind="attrs" v-on="on" />
     </template>
-    <template #default="{ attrs, on, search }">
+    <template #default="{ attrs, on }">
       <g-data-table-work-regulations
         v-bind="attrs"
-        :search="search"
         sort-by="code"
         sort-desc
-        @click:row="onClickRow"
         v-on="on"
       />
       <g-snackbar-error
@@ -222,7 +179,7 @@ export default {
         top
       />
     </template>
-  </g-template-index>
+  </g-template-documents-index>
 </template>
 
 <style></style>

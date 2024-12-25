@@ -1,21 +1,20 @@
 <script>
 /**
- * 登録アイコンボタンを提供するコンポーネントです。
+ * フィルタアイコンボタンを提供するコンポーネントです。
  * @author shisyamo4131
  */
-
-import GIconRegist from '~/components/atoms/icons/GIconRegist.vue'
+import GIconFilter from '../icons/GIconFilter.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GIconRegist },
+  components: { GIconFilter },
 }
 </script>
 
 <template>
   <v-btn v-bind="$attrs" icon v-on="$listeners">
-    <g-icon-regist />
+    <g-icon-filter />
   </v-btn>
 </template>
 
