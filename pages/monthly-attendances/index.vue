@@ -1,11 +1,7 @@
 <script>
 /**
- * ## pages.monthly-attendances.index
- *
+ * 勤怠実績の一覧ページです。
  * @author shisyamo4131
- * @version 1.0.0
- * @updates
- * - version 1.0.0 - 2024-10-15 - 初版作成
  */
 import { getApp } from 'firebase/app'
 import {
@@ -266,22 +262,30 @@ export default {
     :items="items"
     :hide-pagination="isCalculating"
   >
-    <template #search="{ attrs }">
-      <g-text-field-month v-model="month" :options="attrs" />
-      <v-btn
-        color="primary"
-        :disabled="isCalculating || loading"
-        :loading="isCalculating || loading"
-        @click="recalc"
-        >実績更新</v-btn
-      >
-      <v-btn
-        color="primary"
-        :disabled="isCalculating || loading"
-        :loading="isCalculating || loading"
-        @click="downloadCsv"
-        >CSV</v-btn
-      >
+    <template #append-label>
+      <v-spacer />
+      <v-toolbar-items>
+        <v-btn
+          :disabled="isCalculating || loading"
+          :loading="isCalculating || loading"
+          text
+          @click="recalc"
+          ><v-icon left>mdi-reload</v-icon>実績更新</v-btn
+        >
+        <v-btn
+          :disabled="isCalculating || loading"
+          :loading="isCalculating || loading"
+          text
+          @click="downloadCsv"
+          ><v-icon left>mdi-download</v-icon>CSV出力</v-btn
+        >
+      </v-toolbar-items>
+    </template>
+    <template #search="{ attrs, inputAttrs }">
+      <g-text-field-month
+        v-model="month"
+        :options="{ ...attrs, ...inputAttrs }"
+      />
       <v-spacer />
     </template>
     <template #default="{ attrs, on }">
