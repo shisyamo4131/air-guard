@@ -7,7 +7,7 @@ import GCardInputForm from '../cards/GCardInputForm.vue'
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
-import EmployeeLeaveApplication from '~/models/EmployeeLeaveApplication'
+import LeaveApplication from '~/models/LeaveApplication'
 import GAutocompleteEmployee from '~/components/molecules/inputs/GAutocompleteEmployee.vue'
 export default {
   /***************************************************************************
@@ -33,7 +33,7 @@ export default {
       type: Object,
       required: true,
       validator(instance) {
-        return instance instanceof EmployeeLeaveApplication
+        return instance instanceof LeaveApplication
       },
     },
     hideDate: { type: Boolean, default: false, required: false },

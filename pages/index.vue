@@ -52,7 +52,7 @@
         </v-col>
         <v-col cols="6" md="4">
           <v-card
-            v-if="hasPermission('/employee-leave-applications')"
+            v-if="hasPermission('/leave-applications')"
             color="amber darken-2"
             dark
             :tile="$vuetify.breakpoint.mobile"
@@ -63,11 +63,7 @@
               休暇申請
             </v-card-title>
             <v-card-actions class="justify-end">
-              <v-btn
-                class="mr-2 mb-2"
-                outlined
-                rounded
-                to="/employee-leave-applications"
+              <v-btn class="mr-2 mb-2" outlined rounded to="/leave-applications"
                 >管理画面</v-btn
               >
             </v-card-actions>

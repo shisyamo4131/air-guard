@@ -12,7 +12,7 @@ export const allNavList = [
       { name: '配置管理', to: '/placements', icon: 'mdi-table-account' },
       {
         name: '休暇申請管理',
-        to: '/employee-leave-applications',
+        to: '/leave-applications',
         icon: 'mdi-beach',
       },
       {

@@ -5,16 +5,13 @@
 
 import { runTransaction } from 'firebase/firestore'
 import { FireModel, firestore } from 'air-firebase'
-import {
-  accessor,
-  classProps,
-} from './propsDefinition/EmployeeLeaveApplication'
+import { accessor, classProps } from './propsDefinition/LeaveApplication'
 
-export default class EmployeeLeaveApplication extends FireModel {
+export default class LeaveApplication extends FireModel {
   /****************************************************************************
    * STATIC
    ****************************************************************************/
-  static collectionPath = 'EmployeeLeaveApplications'
+  static collectionPath = 'LeaveApplications'
   static classProps = classProps
 
   /****************************************************************************

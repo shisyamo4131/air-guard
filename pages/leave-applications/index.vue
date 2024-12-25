@@ -3,23 +3,23 @@
  * 従業員休暇申請管理の一覧ページです。
  * @author shisyamo4131
  */
-import GInputEmployeeLeaveApplication from '~/components/molecules/inputs/GInputEmployeeLeaveApplication.vue'
-import GDataTableEmployeeLeaveApplications from '~/components/molecules/tables/GDataTableEmployeeLeaveApplications.vue'
-import EmployeeLeaveApplication from '~/models/EmployeeLeaveApplication'
+import GInputLeaveApplication from '~/components/molecules/inputs/GInputLeaveApplication.vue'
+import GDataTableLeaveApplications from '~/components/molecules/tables/GDataTableLeaveApplications.vue'
+import LeaveApplication from '~/models/LeaveApplication'
 import GTextFieldMonth from '~/components/molecules/inputs/GTextFieldMonth.vue'
 import GTemplateDocumentsIndex from '~/components/templates/GTemplateDocumentsIndex.vue'
 export default {
   /***************************************************************************
    * NAME
    ***************************************************************************/
-  name: 'EmployeeLeaveApplicationsIndex',
+  name: 'LeaveApplicationsIndex',
 
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GInputEmployeeLeaveApplication,
-    GDataTableEmployeeLeaveApplications,
+    GInputLeaveApplication,
+    GDataTableLeaveApplications,
     GTextFieldMonth,
     GTemplateDocumentsIndex,
   },
@@ -29,7 +29,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      instance: new EmployeeLeaveApplication(),
+      instance: new LeaveApplication(),
       items: [],
       month: this.$dayjs().format('YYYY-MM'),
     }
@@ -74,7 +74,7 @@ export default {
     :instance="instance"
   >
     <template #input="{ attrs, on }">
-      <g-input-employee-leave-application v-bind="attrs" tile v-on="on" />
+      <g-input-leave-application v-bind="attrs" tile v-on="on" />
     </template>
     <template #search>
       <g-text-field-month
@@ -89,7 +89,7 @@ export default {
       <v-spacer />
     </template>
     <template #default="{ attrs, on }">
-      <g-data-table-employee-leave-applications v-bind="attrs" v-on="on" />
+      <g-data-table-leave-applications v-bind="attrs" v-on="on" />
     </template>
   </g-template-documents-index>
 </template>
