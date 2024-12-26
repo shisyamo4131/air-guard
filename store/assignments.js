@@ -269,7 +269,7 @@ export const actions = {
 
       // 従業員休暇申請ドキュメントのクエリをセットアップ
       const employeeLeaveApplicationsQuery = q(
-        collection(firestore, 'EmployeeLeaveApplications'),
+        collection(firestore, 'LeaveApplications'),
         where('date', '>=', from),
         where('date', '<=', to)
       )
