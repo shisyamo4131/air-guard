@@ -66,11 +66,12 @@ export default class SiteOperationSchedule extends FireModel {
    * - bulk オプションが false の場合は親クラスのcreateメソッドを呼び出します。
    * @param {Object} options
    * @param {boolean} [options.bulk=true] - true の場合、複数のドキュメントを一括作成します。
+   * @param {boolean} [options.overRide=false] - true の場合、既存のドキュメントが存在しても上書きされます。
    * @param {Object} [options.transaction=null] - Firestore のトランザクションオブジェクト（オプション）
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
    * @throws {Error} ドキュメント作成中にエラーが発生した場合にエラーをスローします
    ****************************************************************************/
-  async create({ bulk = true, transaction = null } = {}) {
+  async create({ bulk = true, overRide = false, transaction = null } = {}) {
     try {
       if (bulk) {
         await this._bulkCreate({ transaction })
@@ -79,10 +80,12 @@ export default class SiteOperationSchedule extends FireModel {
         const docId = `${this.siteId}-${this.date}-${this.workShift}`
 
         // ドキュメントが既に存在する場合はエラー
-        const isExist = await this.fetchDoc(docId)
-        if (isExist) {
-          const message = `[create] 既に存在する現場稼働予定です。`
-          throw new Error(message)
+        if (!overRide) {
+          const isExist = await this.fetchDoc(docId)
+          if (isExist) {
+            const message = `[create] 既に存在する現場稼働予定です。`
+            throw new Error(message)
+          }
         }
 
         await super.create({ docId, transaction })
@@ -99,26 +102,29 @@ export default class SiteOperationSchedule extends FireModel {
    * [PRIVATE]
    * dates プロパティを参照し、指定された複数（または単一）の日付の現場稼働予定ドキュメントを作成します。
    * @param {Object} options
+   * @param {boolean} [options.overRide=false] - true の場合、既存のドキュメントが存在しても上書きされます。
    * @param {Object} [options.transaction=null] - Firestore のトランザクションオブジェクト（オプション）
    ****************************************************************************/
-  async _bulkCreate({ transaction = null } = {}) {
+  async _bulkCreate({ overRide = false, transaction = null } = {}) {
     // 一括作成用である dates プロパティをチェック
     if (!Array.isArray(this.dates) || !this.dates.length) {
       throw new Error('[_bulkCreate] 日付が選択されていません。')
     }
 
-    // 作成するドキュメントの ID を配列に用意
-    const docIds = this.dates.map((date) => {
-      return `${this.siteId}-${date}-${this.workShift}`
-    })
+    if (!overRide) {
+      // 作成するドキュメントの ID を配列に用意
+      const docIds = this.dates.map((date) => {
+        return `${this.siteId}-${date}-${this.workShift}`
+      })
 
-    // 既に存在するドキュメントがある場合はエラー
-    const existDocuments = await Promise.all(
-      docIds.map((docId) => this.fetchDoc(docId))
-    )
-    if (existDocuments.some((doc) => doc)) {
-      const message = `[_bulkCreate] 既に稼働予定が登録されている日付が含まれています。`
-      throw new Error(message, { existDocuments })
+      // 既に存在するドキュメントがある場合はエラー
+      const existDocuments = await Promise.all(
+        docIds.map((docId) => this.fetchDoc(docId))
+      )
+      if (existDocuments.some((doc) => doc)) {
+        const message = `[_bulkCreate] 既に稼働予定が登録されている日付が含まれています。`
+        throw new Error(message, { existDocuments })
+      }
     }
 
     // トランザクション処理を行う関数
@@ -141,6 +147,60 @@ export default class SiteOperationSchedule extends FireModel {
       // eslint-disable-next-line no-console
       console.error(message, { err })
       throw err
+    }
+  }
+
+  /****************************************************************************
+   * from で指定された現場IDの稼働予定ドキュメントを to で指定された現場IDの
+   * 稼働予定として登録します。
+   * - 既に存在する現場稼働予定は上書きされます。
+   * - from の稼働予定はすべて削除されます。
+   * @param {Object} options
+   * @param {string} options.from - 統合元の現場ID
+   * @param {string} options.to - 統合先の現場ID
+   ****************************************************************************/
+  static async integrate({ from, to } = {}) {
+    const instance = new this()
+    try {
+      // 統合元のドキュメントを取得
+      const sourceDocs = await instance.fetchDocs([
+        ['where', 'siteId', '==', from],
+      ])
+
+      if (!sourceDocs || sourceDocs.length === 0) {
+        // eslint-disable-next-line no-console
+        console.warn(`No documents found for siteId: ${from}`)
+        return
+      }
+
+      // トランザクションの実行
+      await runTransaction(firestore, async (transaction) => {
+        const promises = []
+        for (const doc of sourceDocs) {
+          // 新しいインスタンスを作成
+          const newDocData = { ...doc, siteId: to }
+          const newInstance = new this(newDocData)
+
+          // 新しいドキュメントを作成
+          promises.push(
+            newInstance.create({ bulk: false, overRide: true, transaction })
+          )
+
+          // 元のドキュメントを削除
+          promises.push(doc.delete({ transaction }))
+        }
+        await Promise.all(promises)
+      })
+
+      // eslint-disable-next-line no-console
+      console.log(`Documents successfully integrated from ${from} to ${to}`)
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `Failed to integrate documents from ${from} to ${to}`,
+        error
+      )
+      throw new Error('Integration failed')
     }
   }
 }
