@@ -60,4 +60,7 @@ module.exports = {
   // 以下、開発用ページ
   'developments-model-input': ['admin', 'developer'],
   'developments-sandbox': ['admin', 'developer'],
+
+  // コンポーネント
+  'developments-components-buttons': ['admin', 'developer'],
 }

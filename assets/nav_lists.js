@@ -163,4 +163,9 @@ export const allNavList = [
       { name: 'コンポーネントテスト', to: '/developments/sandbox' },
     ],
   },
+  {
+    name: 'コンポーネント',
+    icon: 'mdi-wrench-cog',
+    lists: [{ name: 'ボタン', to: '/developments/components/buttons' }],
+  },
 ]
