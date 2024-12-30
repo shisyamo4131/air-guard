@@ -20,7 +20,7 @@ import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import { PlacedEmployee, PlacedOutsourcer } from '~/models/Placement'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
-import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
+import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
 
 export default {
   /***************************************************************************
@@ -35,7 +35,7 @@ export default {
     GPlacementOutsourcerPlacementEditDialog,
     GPlacementSiteOperationSchedulesDialog,
     GSwitch,
-    GBtnCancelIcon,
+    GBtnCancel,
   },
 
   /***************************************************************************
@@ -761,7 +761,7 @@ export default {
         <v-toolbar color="secondary" dark dense flat>
           <v-toolbar-title>勤務指示</v-toolbar-title>
           <v-spacer />
-          <g-btn-cancel-icon @click="commandText.dialog = false" />
+          <g-btn-cancel icon @click="commandText.dialog = false" />
         </v-toolbar>
         <v-card-text class="pa-4 pb-2">
           <v-textarea

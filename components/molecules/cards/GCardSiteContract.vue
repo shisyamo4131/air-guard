@@ -18,7 +18,7 @@
  * - version 1.0.0 - 2024-09-08 - 初版作成
  */
 import GSimpleTableSiteContract from '../tables/GSimpleTableSiteContract.vue'
-import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
+import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import SiteContract from '~/models/SiteContract'
 export default {
   /***************************************************************************
@@ -26,7 +26,7 @@ export default {
    ***************************************************************************/
   components: {
     GSimpleTableSiteContract,
-    GBtnEditIcon,
+    GBtnEdit,
   },
   /***************************************************************************
    * PROPS
@@ -59,7 +59,8 @@ export default {
     </v-card-text>
     <v-divider />
     <v-card-actions class="justify-end">
-      <g-btn-edit-icon
+      <g-btn-edit
+        icon
         color="primary"
         @click="$emit('click:edit', instance.clone())"
       />

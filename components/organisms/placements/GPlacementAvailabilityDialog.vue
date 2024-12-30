@@ -13,7 +13,7 @@
       <v-toolbar color="secondary" dark dense flat>
         <v-toolbar-title>従業員シフト編集</v-toolbar-title>
         <v-spacer />
-        <g-btn-cancel-icon @click="dialog = false" />
+        <g-btn-cancel icon @click="dialog = false" />
       </v-toolbar>
       <div class="pa-4">
         <v-alert class="ma-0 text-caption" type="info" dense text
@@ -122,9 +122,9 @@
 </template>
 
 <script>
-import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
+import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
 export default {
-  components: { GBtnCancelIcon },
+  components: { GBtnCancel },
   props: {
     columns: { type: Array, default: () => [], required: false },
     value: { type: Boolean, default: false, required: false },

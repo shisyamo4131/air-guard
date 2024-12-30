@@ -57,7 +57,7 @@
                 <v-toolbar color="secondary" dark dense flat>
                   <v-toolbar-title>ジャンプ</v-toolbar-title>
                   <v-spacer />
-                  <g-btn-cancel-icon @click="dialog.jump = false" />
+                  <g-btn-cancel icon @click="dialog.jump = false" />
                 </v-toolbar>
                 <v-card-text ref="jump-container" class="pa-2">
                   <v-list-item
@@ -140,7 +140,7 @@ import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GPlacementSiteWorkShiftRow from '~/components/organisms/placements/GPlacementSiteWorkShiftRow.vue'
 import GPlacementToolbar from '~/components/organisms/placements/GPlacementToolbar.vue'
 import GPlacementAlertHiddenSites from '~/components/organisms/placements/GPlacementAlertHiddenSites.vue'
-import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
+import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
 import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 export default {
@@ -158,7 +158,7 @@ export default {
     GPlacementSiteWorkShiftRow,
     GPlacementToolbar,
     GPlacementAlertHiddenSites,
-    GBtnCancelIcon,
+    GBtnCancel,
     GChipWorkShift,
     GSwitch,
   },

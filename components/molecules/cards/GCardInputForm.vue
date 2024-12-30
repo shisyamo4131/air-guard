@@ -7,15 +7,15 @@
  * - 削除チェックボックスを切り替えると editMode に対する update イベントを emit します。
  * @author shisyamo4131
  */
-import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
+import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
+import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GBtnCancelIcon, GBtnSubmitIcon, GCheckbox },
+  components: { GCheckbox, GBtnCancel, GBtnSubmit },
 
   /***************************************************************************
    * MIXINS
@@ -60,7 +60,7 @@ export default {
     <v-toolbar class="flex-grow-0" color="secondary" dark dense flat>
       <v-toolbar-title>{{ label }}</v-toolbar-title>
       <v-spacer />
-      <g-btn-cancel-icon :disabled="loading" @click="$emit('click:cancel')" />
+      <g-btn-cancel icon :disabled="loading" @click="$emit('click:cancel')" />
     </v-toolbar>
     <v-card-text :class="noPadding ? 'pa-0' : 'pt-5'">
       <v-form :disabled="disabled" @submit.prevent>
@@ -92,8 +92,9 @@ export default {
       }"
     >
       <v-card-actions v-if="!hideDefaultActions" class="justify-end">
-        <g-btn-submit-icon
+        <g-btn-submit
           color="primary"
+          icon
           :disabled="loading || disableSubmit"
           :loading="loading"
           @click="submit"

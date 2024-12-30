@@ -1,12 +1,12 @@
 <script>
 import { ref, runTransaction } from 'firebase/database'
 import { database } from 'air-firebase/dist/firebase.init'
-import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
+import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
 import { PlacedEmployee } from '~/models/Placement'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 
 export default {
-  components: { GBtnSubmitIcon, GTextField },
+  components: { GBtnSubmit, GTextField },
 
   props: {
     item: { type: Object, required: true },
@@ -126,7 +126,8 @@ export default {
         </v-form>
       </v-card-text>
       <v-card-actions class="justify-end">
-        <g-btn-submit-icon
+        <g-btn-submit
+          icon
           color="primary"
           :disabled="loading"
           :loading="loading"

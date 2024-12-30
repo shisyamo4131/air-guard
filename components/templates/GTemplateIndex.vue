@@ -3,8 +3,8 @@
  * 各種インデックスページ用のテンプレートです。
  * @author shisyamo4131
  */
-import GBtnFilterIcon from '../atoms/btns/GBtnFilterIcon.vue'
-import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
+import GBtnFilter from '../atoms/btns/GBtnFilter.vue'
+import GBtnRegist from '../atoms/btns/GBtnRegist.vue'
 import GTextFieldSearch from '../molecules/inputs/GTextFieldSearch.vue'
 import GTemplateDefault from './GTemplateDefault.vue'
 export default {
@@ -14,8 +14,8 @@ export default {
   components: {
     GTextFieldSearch,
     GTemplateDefault,
-    GBtnRegistIcon,
-    GBtnFilterIcon,
+    GBtnRegist,
+    GBtnFilter,
   },
 
   /***************************************************************************
@@ -323,8 +323,9 @@ export default {
 
             <!-- 登録ボタン -->
             <slot name="regist-button" v-bind="registButtonSlotProps">
-              <g-btn-regist-icon
+              <g-btn-regist
                 v-show="registButtonSlotProps.show"
+                icon
                 v-bind="registButtonSlotProps.attrs"
                 v-on="registButtonSlotProps.on"
               />
@@ -332,8 +333,9 @@ export default {
 
             <!-- フィルターボタン -->
             <slot name="filter-button" v-bind="filterButtonSlotProps">
-              <g-btn-filter-icon
+              <g-btn-filter
                 v-show="filterButtonSlotProps.show"
+                icon
                 v-bind="filterButtonSlotProps.attrs"
                 v-on="filterButtonSlotProps.on"
               />

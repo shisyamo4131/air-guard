@@ -3,9 +3,9 @@
  * 配置管理で現場を選択するためのコンポーネントです。
  */
 import { mapGetters } from 'vuex'
-import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
-import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
-import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
+import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
+import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
+import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
 import GChipSiteStatus from '~/components/atoms/chips/GChipSiteStatus.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
@@ -20,11 +20,11 @@ export default {
    ***************************************************************************/
   components: {
     GTextFieldSearch,
-    GBtnSubmitIcon,
-    GBtnCancelIcon,
+    GBtnSubmit,
+    GBtnCancel,
     GSwitch,
     GRadioGroupWorkShift,
-    GBtnRegistIcon,
+    GBtnRegist,
     GDialogInput,
     GInputSite,
     GChipSiteStatus,
@@ -122,7 +122,7 @@ export default {
         <v-spacer />
         <g-dialog-input :edit-mode.sync="editMode" :instance="instance">
           <template #activator="{ attrs, on }">
-            <g-btn-regist-icon v-bind="attrs" v-on="on" />
+            <g-btn-regist icon v-bind="attrs" v-on="on" />
           </template>
           <template #default="{ attrs, on }">
             <g-input-site v-bind="attrs" v-on="on" />
@@ -207,10 +207,11 @@ export default {
       </v-container>
       <v-divider />
       <v-card-actions class="justify-space-between">
-        <g-btn-cancel-icon @click="dialog = false" />
+        <g-btn-cancel icon @click="dialog = false" />
         <v-dialog v-model="selectWorkShift.dialog" max-width="240" persistent>
           <template #activator="{ attrs, on }">
-            <g-btn-submit-icon
+            <g-btn-submit
+              icon
               v-bind="attrs"
               color="primary"
               :disabled="!selectedItem"
@@ -226,8 +227,8 @@ export default {
             </v-container>
             <v-divider />
             <v-card-actions class="justify-space-between">
-              <g-btn-cancel-icon @click="selectWorkShift.dialog = false" />
-              <g-btn-submit-icon color="primary" @click="onClickSubmit" />
+              <g-btn-cancel icon @click="selectWorkShift.dialog = false" />
+              <g-btn-submit icon color="primary" @click="onClickSubmit" />
             </v-card-actions>
           </v-card>
         </v-dialog>

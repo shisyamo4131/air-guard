@@ -25,8 +25,9 @@
             </v-form>
           </v-card-text>
           <v-card-actions class="justify-space-between">
-            <g-btn-cancel-icon :disabled="loading" @click="dialog = false" />
-            <g-btn-submit-icon
+            <g-btn-cancel icon :disabled="loading" @click="dialog = false" />
+            <g-btn-submit
+              icon
               :disabled="loading"
               :loading="loading"
               color="primary"
@@ -45,8 +46,8 @@
 
 <script>
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
-import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
+import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
+import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
 import GNavigationDrawer from '~/components/organisms/GNavigationDrawer.vue'
 import User from '~/models/User'
 import GRequiredUpdateDialog from '~/components/organisms/GRequiredUpdateDialog.vue'
@@ -55,8 +56,8 @@ export default {
   components: {
     GNavigationDrawer,
     GTextField,
-    GBtnCancelIcon,
-    GBtnSubmitIcon,
+    GBtnCancel,
+    GBtnSubmit,
     GRequiredUpdateDialog,
   },
   data() {

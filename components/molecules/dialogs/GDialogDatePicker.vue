@@ -17,15 +17,15 @@
  * - version 1.1.0 - 2024-10-07 - `allowedDates` プロパティを実装。
  * - version 1.0.0 - 2024-09-07 - 初版作成
  */
-import GBtnCancelIcon from '../../atoms/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '../../atoms/btns/GBtnSubmitIcon.vue'
+import GBtnCancel from '../../atoms/btns/GBtnCancel.vue'
+import GBtnSubmit from '../../atoms/btns/GBtnSubmit.vue'
 import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
 
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GDatePicker, GBtnCancelIcon, GBtnSubmitIcon },
+  components: { GDatePicker, GBtnCancel, GBtnSubmit },
 
   /***************************************************************************
    * PROPS
@@ -109,9 +109,10 @@ export default {
       :type="type"
       no-title
     >
-      <g-btn-cancel-icon @click="dialog = false" />
+      <g-btn-cancel icon @click="dialog = false" />
       <v-spacer />
-      <g-btn-submit-icon
+      <g-btn-submit
+        icon
         color="primary"
         @click="$refs.dialog.save(pickerValue)"
       />

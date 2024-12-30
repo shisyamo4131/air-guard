@@ -16,7 +16,7 @@ import GInputSiteOperationSchedule from '../molecules/inputs/GInputSiteOperation
 // import GDivMonthChooser from '../molecules/divs/GDivMonthChooser.vue'
 import GCalendarSiteOperationSchedules from '../molecules/calendars/GCalendarSiteOperationSchedules.vue'
 import GDialogInput from '../molecules/dialogs/GDialogInput.vue'
-import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
+import GBtnRegist from '../atoms/btns/GBtnRegist.vue'
 import GCardSiteOperationScheduleHistories from '../molecules/cards/GCardSiteOperationScheduleHistories.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
@@ -29,7 +29,7 @@ export default {
     // GDivMonthChooser,
     GCalendarSiteOperationSchedules,
     GDialogInput,
-    GBtnRegistIcon,
+    GBtnRegist,
     GCardSiteOperationScheduleHistories,
   },
   /***************************************************************************
@@ -170,7 +170,7 @@ export default {
           max-width="480"
         >
           <template #activator="{ attrs, on }">
-            <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
+            <g-btn-regist icon v-bind="attrs" color="primary" v-on="on" />
           </template>
           <template #default="{ attrs, on }">
             <g-input-site-operation-schedule

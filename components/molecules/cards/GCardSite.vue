@@ -10,10 +10,10 @@
  */
 import GDialogInput from '../dialogs/GDialogInput.vue'
 import GInputSite from '../inputs/GInputSite.vue'
-import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
+import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import Site from '~/models/Site'
 export default {
-  components: { GDialogInput, GBtnEditIcon, GInputSite },
+  components: { GDialogInput, GBtnEdit, GInputSite },
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -117,7 +117,8 @@ export default {
       </div>
       <g-dialog-input edit-mode="UPDATE" :instance="editModel">
         <template #activator="{ attrs, on }">
-          <g-btn-edit-icon
+          <g-btn-edit
+            icon
             v-if="!error.message && docId && !disableEdit"
             class="ml-auto"
             v-bind="attrs"

@@ -1,10 +1,10 @@
 <script>
 import GPlacementEmployeePlacementEditDialog from './GPlacementEmployeePlacementEditDialog'
-import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
+import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
 import { PlacedOutsourcer } from '~/models/Placement'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 export default {
-  components: { GBtnSubmitIcon, GTextField },
+  components: { GBtnSubmit, GTextField },
 
   extends: GPlacementEmployeePlacementEditDialog,
 

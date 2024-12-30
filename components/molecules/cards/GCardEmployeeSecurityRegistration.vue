@@ -2,7 +2,7 @@
 import GCardFloatingLabel from '../../atoms/cards/GCardFloatingLabel.vue'
 import GDialogInput from '../dialogs/GDialogInput.vue'
 import GInputSecurityRegistration from '../inputs/GInputSecurityRegistration.vue'
-import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
+import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import Employee from '~/models/Employee'
 import ADocumentSubscriber from '~/components/atoms/renderless/ADocumentSubscriber.vue'
 import GListIterator from '~/components/atoms/lists/GListIterator.vue'
@@ -11,7 +11,7 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GBtnEditIcon,
+    GBtnEdit,
     GCardFloatingLabel,
     ADocumentSubscriber,
     GListIterator,
@@ -115,7 +115,7 @@ export default {
       <template #actions>
         <g-dialog-input v-bind="dialog.attrs" max-width="480">
           <template #activator="{ attrs, on }">
-            <g-btn-edit-icon v-bind="attrs" :color="color" v-on="on" />
+            <g-btn-edit icon v-bind="attrs" :color="color" v-on="on" />
           </template>
           <template #default="{ attrs, on }">
             <g-input-security-registration v-bind="attrs" v-on="on" />

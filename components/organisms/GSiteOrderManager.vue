@@ -8,8 +8,8 @@
  * @author shisyamo4131
  */
 import draggable from 'vuedraggable'
-import GBtnCancelIcon from '../atoms/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '../atoms/btns/GBtnSubmitIcon.vue'
+import GBtnCancel from '../atoms/btns/GBtnCancel.vue'
+import GBtnSubmit from '../atoms/btns/GBtnSubmit.vue'
 import GChipWorkShift from '../atoms/chips/GChipWorkShift.vue'
 import GIconUpDown from '../atoms/icons/GIconUpDown.vue'
 export default {
@@ -18,9 +18,9 @@ export default {
    ***************************************************************************/
   components: {
     draggable,
-    GBtnCancelIcon,
+    GBtnCancel,
     GChipWorkShift,
-    GBtnSubmitIcon,
+    GBtnSubmit,
     GIconUpDown,
   },
 
@@ -119,7 +119,7 @@ export default {
         <v-icon left>mdi-order-alphabetical-ascending</v-icon>
         <v-toolbar-title>{{ label }}</v-toolbar-title>
         <v-spacer />
-        <g-btn-cancel-icon @click="dialog = false" />
+        <g-btn-cancel icon @click="dialog = false" />
       </v-toolbar>
       <v-card-text ref="scrollContainer" class="py-0 px-0 px-md-6">
         <draggable
@@ -173,7 +173,7 @@ export default {
         </draggable>
       </v-card-text>
       <v-card-actions class="justify-end">
-        <g-btn-submit-icon color="primary" @click="onClickSubmit" />
+        <g-btn-submit icon color="primary" @click="onClickSubmit" />
       </v-card-actions>
     </v-card>
   </v-dialog>

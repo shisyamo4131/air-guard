@@ -7,7 +7,7 @@
 import GDialogInput from '../dialogs/GDialogInput.vue'
 import GInputCompanyInfo from '../inputs/GInputCompanyInfo.vue'
 import GCardColorIndicator from './GCardColorIndicator.vue'
-import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
+import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import CompanyInfo from '~/models/CompanyInfo'
 
 export default {
@@ -16,7 +16,7 @@ export default {
    ****************************************************************************/
   components: {
     GDialogInput,
-    GBtnEditIcon,
+    GBtnEdit,
     GCardColorIndicator,
     GInputCompanyInfo,
   },
@@ -132,7 +132,8 @@ export default {
         max-width="480"
       >
         <template #activator="{ attrs, on }">
-          <g-btn-edit-icon
+          <g-btn-edit
+            icon
             :disabled="error.message || disableEdit"
             v-bind="attrs"
             color="primary"

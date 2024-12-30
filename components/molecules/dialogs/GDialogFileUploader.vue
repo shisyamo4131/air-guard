@@ -22,14 +22,14 @@
  * @create 2024-07-03
  * @version 1.0.0
  */
-import GBtnCancelIcon from '../../atoms/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '../../atoms/btns/GBtnSubmitIcon.vue'
+import GBtnCancel from '../../atoms/btns/GBtnCancel.vue'
+import GBtnSubmit from '../../atoms/btns/GBtnSubmit.vue'
 import AFileUploader from '../../atoms/renderless/AFileUploader.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { AFileUploader, GBtnCancelIcon, GBtnSubmitIcon },
+  components: { AFileUploader, GBtnCancel, GBtnSubmit },
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -88,8 +88,9 @@ export default {
           <v-file-input v-bind="attrs" hide-details v-on="on" />
         </v-card-text>
         <v-card-actions class="justify-space-between">
-          <g-btn-cancel-icon @click="dialog = false" />
-          <g-btn-submit-icon
+          <g-btn-cancel icon @click="dialog = false" />
+          <g-btn-submit
+            icon
             color="primary"
             v-bind="uploader.attrs"
             v-on="uploader.on"

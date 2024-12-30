@@ -16,8 +16,8 @@
  * @author shisyamo4131
  */
 
-import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
+import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
+import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
 import GChipEmployeeStatus from '~/components/atoms/chips/GChipEmployeeStatus.vue'
 import GChipGroupKanaFilter from '~/components/atoms/chips/GChipGroupKanaFilter.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
@@ -27,8 +27,8 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GBtnCancelIcon,
-    GBtnSubmitIcon,
+    GBtnCancel,
+    GBtnSubmit,
     GChipGroupKanaFilter,
     GSwitch,
     GChipEmployeeStatus,
@@ -300,8 +300,9 @@ export default {
       </v-card-text>
       <v-divider />
       <v-card-actions class="justify-space-between">
-        <g-btn-cancel-icon @click="onClickCancel" />
-        <g-btn-submit-icon
+        <g-btn-cancel icon @click="onClickCancel" />
+        <g-btn-submit
+          icon
           color="primary"
           :disabled="!selectedItems.length"
           @click="onClickSubmit"

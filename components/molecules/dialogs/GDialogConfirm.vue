@@ -3,13 +3,13 @@
  * 処理確認を行うためダイアログコンポーネントです。
  * @author shisyamo4131
  */
-import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
+import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
+import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GBtnCancelIcon, GBtnSubmitIcon },
+  components: { GBtnCancel, GBtnSubmit },
 
   /***************************************************************************
    * PROPS
@@ -87,8 +87,9 @@ export default {
       </v-card-text>
       <v-divider />
       <v-card-actions class="justify-space-between">
-        <g-btn-cancel-icon :disabled="loading" @click="close" />
-        <g-btn-submit-icon
+        <g-btn-cancel icon :disabled="loading" @click="close" />
+        <g-btn-submit
+          icon
           :diasbled="loading"
           :loading="loading"
           color="primary"

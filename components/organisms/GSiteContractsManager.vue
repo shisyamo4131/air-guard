@@ -4,7 +4,7 @@
  * @author shisyamo4131
  */
 import GCardSiteContract from '../molecules/cards/GCardSiteContract.vue'
-import GBtnRegistIcon from '../atoms/btns/GBtnRegistIcon.vue'
+import GBtnRegist from '../atoms/btns/GBtnRegist.vue'
 import GInputSiteContract from '../molecules/inputs/GInputSiteContract.vue'
 import GDialogInput from '../molecules/dialogs/GDialogInput.vue'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
@@ -16,7 +16,7 @@ export default {
    ***************************************************************************/
   components: {
     GCardSiteContract,
-    GBtnRegistIcon,
+    GBtnRegist,
     GInputSiteContract,
     GDialogInput,
   },
@@ -152,7 +152,8 @@ export default {
         :instance="editModel"
       >
         <template #activator="{ attrs, on }">
-          <g-btn-regist-icon
+          <g-btn-regist
+            icon
             v-bind="attrs"
             class="align-self-center"
             color="primary"

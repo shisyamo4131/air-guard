@@ -11,7 +11,7 @@
 import GDialogInput from '../dialogs/GDialogInput.vue'
 import GInputWorkRegulation from '../inputs/GInputWorkRegulation.vue'
 import GCardColorIndicator from './GCardColorIndicator.vue'
-import GBtnEditIcon from '~/components/atoms/btns/GBtnEditIcon.vue'
+import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import WorkRegulation from '~/models/WorkRegulation'
 export default {
@@ -20,7 +20,7 @@ export default {
    ****************************************************************************/
   components: {
     GCheckbox,
-    GBtnEditIcon,
+    GBtnEdit,
     GDialogInput,
     GInputWorkRegulation,
     GCardColorIndicator,
@@ -191,7 +191,8 @@ export default {
       <v-spacer />
       <g-dialog-input edit-mode="UPDATE" :instance="editModel">
         <template #activator="{ attrs, on }">
-          <g-btn-edit-icon
+          <g-btn-edit
+            icon
             v-if="!error.message && docId && !disableEdit"
             v-bind="attrs"
             color="primary"

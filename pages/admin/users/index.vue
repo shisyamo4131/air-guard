@@ -15,10 +15,10 @@ import User from '~/models/User'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import NewUser from '~/models/NewUser'
 import GInputNewUser from '~/components/molecules/inputs/GInputNewUser.vue'
-import GBtnSubmitIcon from '~/components/atoms/btns/GBtnSubmitIcon.vue'
-import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
+import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
+import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
 import GTemplateDocumentsIndex from '~/components/templates/GTemplateDocumentsIndex.vue'
-import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
+import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -33,10 +33,10 @@ export default {
     GDataTableUsers,
     GDialogInput,
     GInputNewUser,
-    GBtnSubmitIcon,
-    GBtnCancelIcon,
+    GBtnSubmit,
+    GBtnCancel,
     GTemplateDocumentsIndex,
-    GBtnRegistIcon,
+    GBtnRegist,
   },
 
   /***************************************************************************
@@ -131,7 +131,8 @@ export default {
         :instance="regist.instance"
       >
         <template #activator="{ attrs, on }">
-          <g-btn-regist-icon
+          <g-btn-regist
+            icon
             v-bind="{ ...buttonProps.attrs, ...attrs }"
             v-on="on"
           />
@@ -156,7 +157,8 @@ export default {
           <v-toolbar color="secondary" dark dense flat>
             <v-toolbar-title>アカウント復元処理</v-toolbar-title>
             <v-spacer />
-            <g-btn-cancel-icon
+            <g-btn-cancel
+              icon
               :disabled="restore.loading"
               @click="restore.dialog = false"
             />
@@ -165,7 +167,8 @@ export default {
             <v-text-field v-model="restore.uid" label="uid" hide-details />
           </v-card-text>
           <v-card-actions class="justify-end">
-            <g-btn-submit-icon
+            <g-btn-submit
+              icon
               color="primary"
               :disabled="!restore.uid || restore.loading"
               :loading="restore.loading"

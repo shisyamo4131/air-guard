@@ -13,15 +13,15 @@
  * @date 2024-06-21
  * @author shisyamo4131
  */
-import GBtnCancelIcon from '../../atoms/btns/GBtnCancelIcon.vue'
-import GBtnSubmitIcon from '../../atoms/btns/GBtnSubmitIcon.vue'
+import GBtnCancel from '../../atoms/btns/GBtnCancel.vue'
+import GBtnSubmit from '../../atoms/btns/GBtnSubmit.vue'
 import GDatePicker from '~/components/atoms/pickers/GDatePicker.vue'
 
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GDatePicker, GBtnCancelIcon, GBtnSubmitIcon },
+  components: { GDatePicker, GBtnCancel, GBtnSubmit },
 
   /***************************************************************************
    * PROPS
@@ -97,9 +97,10 @@ export default {
       type="month"
       no-title
     >
-      <g-btn-cancel-icon @click="dialog = false" />
+      <g-btn-cancel icon @click="dialog = false" />
       <v-spacer />
-      <g-btn-submit-icon
+      <g-btn-submit
+        icon
         color="primary"
         @click="$refs.dialog.save(internalValue)"
       />

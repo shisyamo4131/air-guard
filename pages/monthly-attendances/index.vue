@@ -14,7 +14,7 @@ import GDataTableMonthlyAttendances from '~/components/molecules/tables/GDataTab
 import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
 import MonthlyAttendance from '~/models/MonthlyAttendance'
 import GCalendarDailyAttendances from '~/components/molecules/calendars/GCalendarDailyAttendances.vue'
-import GBtnCancelIcon from '~/components/atoms/btns/GBtnCancelIcon.vue'
+import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
 import GDataTableOperationWorkResults from '~/components/molecules/tables/GDataTableOperationWorkResults.vue'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GInputLeaveRecord from '~/components/molecules/inputs/GInputLeaveRecord.vue'
@@ -35,7 +35,7 @@ export default {
     GTemplateIndex,
     GDataTableMonthlyAttendances,
     GCalendarDailyAttendances,
-    GBtnCancelIcon,
+    GBtnCancel,
     GDataTableOperationWorkResults,
     GDialogInput,
     GInputLeaveRecord,
@@ -329,7 +329,8 @@ export default {
                   />
                 </v-card-text>
                 <v-card-actions class="justify-end">
-                  <g-btn-cancel-icon
+                  <g-btn-cancel
+                    icon
                     @click="dialog.operationWorkResults = false"
                   />
                 </v-card-actions>
@@ -353,7 +354,7 @@ export default {
             </g-dialog-input>
           </v-card-text>
           <v-card-actions class="justify-end">
-            <g-btn-cancel-icon @click="dialog.calendar = false" />
+            <g-btn-cancel icon @click="dialog.calendar = false" />
           </v-card-actions>
         </v-card>
       </v-dialog>

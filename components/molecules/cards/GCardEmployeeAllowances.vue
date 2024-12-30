@@ -1,7 +1,7 @@
 <script>
 import GInputEmployeeAllowance from '../inputs/GInputEmployeeAllowance.vue'
 import GDataTableEmployeeAllowances from '../tables/GDataTableEmployeeAllowances.vue'
-import GBtnRegistIcon from '~/components/atoms/btns/GBtnRegistIcon.vue'
+import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import EmployeeAllowance from '~/models/EmployeeAllowance'
 import AArrayManager from '~/components/atoms/renderless/AArrayManager.vue'
 export default {
@@ -9,7 +9,7 @@ export default {
    * COMPONENTS
    ****************************************************************************/
   components: {
-    GBtnRegistIcon,
+    GBtnRegist,
     GInputEmployeeAllowance,
     AArrayManager,
     GDataTableEmployeeAllowances,
@@ -55,7 +55,7 @@ export default {
         <v-spacer />
         <v-dialog v-bind="dialog.attrs" max-width="360" v-on="dialog.on">
           <template #activator="{ attrs, on }">
-            <g-btn-regist-icon v-bind="attrs" color="primary" v-on="on" />
+            <g-btn-regist icon v-bind="attrs" color="primary" v-on="on" />
           </template>
           <template #default>
             <g-input-employee-allowance v-bind="input.attrs" v-on="input.on" />
