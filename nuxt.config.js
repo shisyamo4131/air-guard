@@ -80,7 +80,7 @@ export default {
   // PWA module configuration: https://go.nuxtjs.dev/pwa
   pwa: {
     manifest: {
-      lang: 'en',
+      lang: 'ja', // head.htmlAttrs で設定しても PWA モジュールが上書きしてしまうため再設定
     },
   },
 
