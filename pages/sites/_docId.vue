@@ -11,13 +11,13 @@
 import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
-import GCardSite from '~/components/molecules/cards/GCardSite.vue'
 import GTemplateDetail from '~/components/templates/GTemplateDetail.vue'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import Site from '~/models/Site'
 import GSiteOperationScheduleManager from '~/components/organisms/GSiteOperationScheduleManager.vue'
 import GSiteContractsManager from '~/components/organisms/GSiteContractsManager.vue'
 import GCardSiteOperationResultsViewer from '~/components/molecules/cards/GCardSiteOperationResultsViewer.vue'
+import GCardSite from '~/components/molecules/cards/GCardSite.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -28,13 +28,13 @@ export default {
    ***************************************************************************/
   components: {
     GCardMap,
-    GCardSite,
     GTemplateDetail,
     GInputSite,
     GDialogInput,
     GSiteOperationScheduleManager,
     GSiteContractsManager,
     GCardSiteOperationResultsViewer,
+    GCardSite,
   },
   /***************************************************************************
    * MIXINS
@@ -117,7 +117,7 @@ export default {
 
     <!-- 現場概要 -->
     <v-container>
-      <g-card-site :instance="listener" outlined />
+      <g-card-site v-bind="listener" outlined />
     </v-container>
 
     <v-container>
