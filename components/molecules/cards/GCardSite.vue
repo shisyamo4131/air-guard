@@ -5,11 +5,12 @@
  */
 import GCardColorIndicator from '../../atoms/cards/GCardColorIndicator.vue'
 import { vueProps } from '~/models/propsDefinition/Site'
+import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GCardColorIndicator },
+  components: { GCardColorIndicator, GBtnEdit },
 
   /***************************************************************************
    * PROPS
@@ -20,13 +21,24 @@ export default {
 
 <template>
   <v-card v-bind="$attrs" v-on="$listeners">
-    <v-card-title>{{ abbr }}</v-card-title>
+    <v-card-title>
+      <span>{{ abbr }}</span>
+      <span v-if="abbrNumber" class="ml-2">【{{ abbrNumber }}】</span>
+    </v-card-title>
     <v-card-subtitle>{{ abbrKana }}</v-card-subtitle>
     <v-container fluid>
       <v-row dense>
-        <v-col cols="12" md="6" lg="3">
+        <v-col cols="12">
           <g-card-color-indicator
             index="0"
+            label="現場名"
+            outlined
+            :value="name"
+          />
+        </v-col>
+        <v-col cols="12" md="6" lg="3">
+          <g-card-color-indicator
+            index="1"
             :item="customer"
             item-text="abbr"
             label="取引先"
@@ -35,7 +47,7 @@ export default {
         </v-col>
         <v-col cols="12" md="6" lg="3">
           <g-card-color-indicator
-            index="1"
+            index="2"
             label="住所"
             outlined
             :value="address"
@@ -43,7 +55,7 @@ export default {
         </v-col>
         <v-col cols="12" md="6" lg="3">
           <g-card-color-indicator
-            index="2"
+            index="3"
             label="警備種別"
             outlined
             :value="$SECURITY_TYPE[securityType]"
@@ -54,6 +66,10 @@ export default {
     <v-card-text v-if="remarks">
       {{ remarks }}
     </v-card-text>
+    <v-card-actions class="justify-end">
+      <v-spacer />
+      <g-btn-edit color="primary" small @click="$emit('click:edit')" />
+    </v-card-actions>
   </v-card>
 </template>
 
