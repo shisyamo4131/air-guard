@@ -16,19 +16,21 @@ export default {
      */
     colors: {
       type: Array,
-      default: () => ['#FF5733', '#33FF57', '#3357FF', '#FF33A8', '#F1C40F'],
+      default: () => [
+        'primary',
+        'secondary',
+        'info',
+        'warning',
+        'success',
+        'highlight',
+      ],
       required: false,
     },
 
     /**
      * 指定された値（数値）をベースにしてラベル冒頭の色を計算します。
      */
-    colorIndex: { type: Number, default: 0, required: false },
-
-    /**
-     * ラベルの冒頭に付与される記号です。
-     */
-    labelPrefix: { type: String, default: '■', required: false },
+    index: { type: [String, Number], default: 0, required: false },
 
     /**
      * 出力するラベル、テキストをプロパティとして持つオブジェクトを指定します。
@@ -44,6 +46,11 @@ export default {
      * item オブジェクトのテキストプロパティ名です。既定値は `text` です。
      */
     itemText: { type: String, default: 'text', required: false },
+
+    /**
+     * ラベルの冒頭に付与されるアイコンです。
+     */
+    prefixIcon: { type: String, default: 'mdi-square', required: false },
   },
 
   /****************************************************************************
@@ -55,7 +62,9 @@ export default {
      */
     dotColor() {
       // indexをカラーパレットの範囲に合わせる（ループさせる）
-      const colorIndex = this.colorIndex % this.colors.length
+      const index = parseInt(this.index, 10)
+      const validIndex = isNaN(index) ? 0 : index // 無効な値はデフォルト値 0 に
+      const colorIndex = validIndex % this.colors.length
       return this.colors[colorIndex]
     },
 
@@ -80,7 +89,9 @@ export default {
   <v-card v-bind="$attrs" v-on="$listeners">
     <v-card-text class="pa-2">
       <h4>
-        <span :style="{ color: dotColor }">{{ labelPrefix }}</span>
+        <v-icon :color="dotColor" x-small>
+          {{ prefixIcon }}
+        </v-icon>
         {{ `${label}` }}
       </h4>
       <div class="px-2">
