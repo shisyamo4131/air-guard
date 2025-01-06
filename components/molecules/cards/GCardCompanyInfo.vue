@@ -6,7 +6,7 @@
  */
 import GDialogInput from '../dialogs/GDialogInput.vue'
 import GInputCompanyInfo from '../inputs/GInputCompanyInfo.vue'
-import GCardColorIndicator from './GCardColorIndicator.vue'
+import GCardColorIndicator from '../../atoms/cards/GCardColorIndicator.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import CompanyInfo from '~/models/CompanyInfo'
 
@@ -153,7 +153,7 @@ export default {
           style="flex: 1"
           min-width="204"
           outlined
-          :color-index="index"
+          :index="index"
           :item="item"
         >
         </g-card-color-indicator>

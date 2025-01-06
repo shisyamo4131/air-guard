@@ -10,7 +10,7 @@
  */
 import GDialogInput from '../dialogs/GDialogInput.vue'
 import GInputWorkRegulation from '../inputs/GInputWorkRegulation.vue'
-import GCardColorIndicator from './GCardColorIndicator.vue'
+import GCardColorIndicator from '../../atoms/cards/GCardColorIndicator.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import WorkRegulation from '~/models/WorkRegulation'
@@ -192,8 +192,8 @@ export default {
       <g-dialog-input edit-mode="UPDATE" :instance="editModel">
         <template #activator="{ attrs, on }">
           <g-btn-edit
-            icon
             v-if="!error.message && docId && !disableEdit"
+            icon
             v-bind="attrs"
             color="primary"
             v-on="on"
@@ -209,7 +209,7 @@ export default {
         class="mb-3"
         style="flex: 1"
         :item="{ label: '所定労働日', text: editModel.scheduledWorkDays }"
-        :color-index="0"
+        :index="0"
         outlined
       >
         <template #default="{ item }">
@@ -237,7 +237,7 @@ export default {
           style="flex: 1"
           min-width="204"
           outlined
-          :color-index="index + 1"
+          :index="index + 1"
           :item="item"
         />
       </div>
