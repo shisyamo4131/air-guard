@@ -48,9 +48,19 @@ export default {
     itemText: { type: String, default: 'text', required: false },
 
     /**
+     * 表示するラベルです。itemLabel で指定されたプロパティ値よりも優先されます。
+     */
+    label: { type: String, default: undefined, required: false },
+
+    /**
      * ラベルの冒頭に付与されるアイコンです。
      */
     prefixIcon: { type: String, default: 'mdi-square', required: false },
+
+    /**
+     * 表示する値です。itemText で指定されたプロパティ値よりも優先されます。
+     */
+    value: { type: [String, Number], default: undefined, required: false },
   },
 
   /****************************************************************************
@@ -71,15 +81,15 @@ export default {
     /**
      * ラベルを返します。
      */
-    label() {
-      return this.item?.[this.itemLabel] || 'N/A'
+    internalLabel() {
+      return this.label || this.item?.[this.itemLabel] || 'N/A'
     },
 
     /**
      * テキストを返します。
      */
     text() {
-      return this.item?.[this.itemText] || 'N/A'
+      return this.value || this.item?.[this.itemText] || 'N/A'
     },
   },
 }
@@ -92,7 +102,7 @@ export default {
         <v-icon :color="dotColor" x-small>
           {{ prefixIcon }}
         </v-icon>
-        {{ `${label}` }}
+        {{ `${internalLabel}` }}
       </h4>
       <div class="px-2">
         <slot name="default" v-bind="{ item }">
