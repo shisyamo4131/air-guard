@@ -2,15 +2,23 @@
 /**
  * 指定されたドキュメントID、インスタンスに基づいて Firestore のドキュメントを
  * 購読し、これをデフォルトスロットプロパティで提供するレンダーレスコンポーネントです。
+ *
+ * - default スロットで提供する各種プロパティを UI コンポーネントに引き渡して使用します。
+ * - 読み込んだドキュメントをダイアログで編集する場合には dialog プロパティを使用することができます。
+ *
  * @author shisyamo4131
  */
 import FireModel from 'air-firebase/dist/firestore/FireModel'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 export default {
   /***************************************************************************
-   * PROPS
+   * MIXINS
    ***************************************************************************/
   mixins: [GMixinEditModeProvider],
+
+  /***************************************************************************
+   * PROPS
+   ***************************************************************************/
   props: {
     /**
      * 管理対象のドキュメントIDです。
@@ -37,9 +45,65 @@ export default {
        * コンポーネントが管理し、デフォルトスロットプロパティで提供するインスタンスです。
        * - props.instance で与えられたインスタンスの clone() メソッドによって複製された
        *   インスタンスがセットされます。
+       * - props.docId で与えられたIDのドキュメントが読み込まれます。
        */
       doc: null,
+
+      /**
+       * 子コンポーネントに提供する編集用のデータモデルインスタンスです。
+       */
+      editModel: null,
+
+      /**
+       * コンポーネント内で発生したエラーのエラーオブジェクトを保持します。
+       */
+      err: {},
+
+      /**
+       * true の場合、読み込んだドキュメントが編集中であることを表します。
+       */
+      isEditing: false,
     }
+  },
+
+  /***************************************************************************
+   * COMPUTED
+   ***************************************************************************/
+  computed: {
+    /**
+     * props.docId で指定されたドキュメントが読み込まれているかどうかを返します。
+     * - 読み込んだドキュメントのIDとprops.docIdを比較します。
+     * - リアルタイムリッスンであるため、ドキュメントの内容が最新かどうかは保証されません。
+     */
+    isFeched() {
+      if (!this._isRequiredPropsSet()) return false
+      return this.docId === this.doc?.docId
+    },
+
+    /**
+     * コンポーネントがドキュメントを読み込み中であるかどうかを返します。
+     * - props.docId と data.doc.docId を比較します。
+     * - 何らかの理由によりドキュメントの読み込みに失敗した場合、必ず true を返します。
+     */
+    isloading() {
+      if (!this._isRequiredPropsSet()) return false
+      return this.docId !== this.doc?.docId
+    },
+  },
+
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    /**
+     * data.isEditing を監視します。
+     * - 編集が終了したら data.editMode を変更モードに初期化します。
+     * - data.editModel を読み込んだドキュメントで初期化します。
+     */
+    isEditing(v) {
+      if (!v) this.editMode = this.UPDATE
+      this.editModel.initialize(this.doc)
+    },
   },
 
   /***************************************************************************
@@ -51,7 +115,16 @@ export default {
      */
     this.$watch(
       () => [this.$props.docId, this.$props.instance],
-      () => this.subscribe(),
+      () => {
+        // props.docId, props.instance のどちらかが設定されていない場合は終了します。
+        if (!this._isRequiredPropsSet()) return
+
+        // data.doc, data.editModel にインスタンスを複製します。
+        this._cloneInstance()
+
+        // ドキュメントの購読を開始します。
+        this.subscribe()
+      },
       { immediate: true }
     )
   },
@@ -68,17 +141,51 @@ export default {
    ***************************************************************************/
   methods: {
     /**
+     * props.docId, props.instance の両方が設定されているかをチェックします。
+     */
+    _isRequiredPropsSet() {
+      return this.docId && this.instance
+    },
+
+    /**
+     * props.instance を data.doc, data.editModel に複製します。
+     */
+    _cloneInstance() {
+      this.doc = this.instance.clone()
+      this.editModel = this.instance.clone()
+    },
+
+    /**
+     * 編集モードを引数に受け取り、ダイアログを開きます。
+     */
+    openDialog({ editMode = this.UPDATE }) {
+      if (editMode !== this.UPDATE && editMode !== this.DELETE) {
+        this.err = new Error(
+          `不正な編集モードが指定されました。editMode: ${editMode}`
+        )
+        // eslint-disable-next-line no-console
+        console.error(this.err)
+        return
+      }
+      this.editMode = editMode
+      this.isEditing = true
+    },
+
+    /**
      * プロパティで与えられたドキュメントID、インスタンスに基づいて
      * ドキュメントの購読を開始します。
      * - 既に購読が開始されている場合はこれを解除します。
      * - ドキュメントID、 インスタンスのどちらか一方でも設定されていない場合は処理を終了します。
      */
     subscribe() {
-      this.unsubscribe()
-      const { docId, instance } = this.$props
-      if (!docId || !instance) return
-      this.doc = instance.clone()
-      this.doc.subscribe(docId)
+      // props.docId, props.instance のどちらか一方でも設定されていない場合は終了します。
+      if (!this._isRequiredPropsSet()) return
+
+      try {
+        this.doc.subscribe(this.docId)
+      } catch (err) {
+        this.err = err
+      }
     },
 
     /**
@@ -95,14 +202,44 @@ export default {
   render(h) {
     if (this.$scopedSlots.default) {
       return this.$scopedSlots.default({
+        // 指定されたドキュメントを読み込んだインスタンス
         doc: this.doc,
 
-        // 編集画面を包括するダイアログコンポーネントへのプロパティ
+        // ドキュメントID
+        docId: this.docId,
+
+        /**
+         * 読み込んだドキュメントをダイアログ上で編集する場合に使用するプロパティ
+         */
         dialog: {
           attrs: {
             editMode: this.editMode,
-            instance: this.doc,
+            instance: this.editModel,
+            value: this.isEditing,
           },
+          on: {
+            input: ($event) => (this.dialog = $event),
+            'update:editMode': ($event) => (this.editMode = $event),
+          },
+        },
+
+        // 編集モード
+        editMode: this.editMode,
+
+        // コンポーネント内で発生したエラーオブジェクト
+        error: this.err,
+
+        // ドキュメントが編集中であるかどうか
+        isEditing: this.isEditing,
+
+        // ダイアログを開くための個別関数
+        openAsEdit: () => this.openDialog({ editMode: this.UPDATE }),
+        openAsDelete: () => this.openDialog({ editMode: this.DELETE }),
+
+        // UI コンポーネントから受け取るイベントを処理するプロパティ
+        triggers: {
+          'click:edit': () => this.openDialog({ editMode: this.UPDATE }),
+          'click:delete': () => this.openDialog({ editMode: this.DELETE }),
         },
       })
     }
