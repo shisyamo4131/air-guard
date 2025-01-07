@@ -98,7 +98,7 @@ export default {
 
 <template>
   <a-document-manager
-    v-slot="{ doc, dialog }"
+    v-slot="{ doc, editMode, isEditing, toggleIsEditing, updateEditMode }"
     :doc-id="docId"
     :instance="instance"
   >
@@ -113,7 +113,14 @@ export default {
         :item="doc.securityRegistration"
       />
       <template #actions>
-        <g-dialog-input v-bind="dialog.attrs" max-width="480" v-on="dialog.on">
+        <g-dialog-input
+          :value="isEditing"
+          :edit-mode="editMode"
+          :instance="doc"
+          max-width="480"
+          @input="toggleIsEditing"
+          @update:editMode="updateEditMode"
+        >
           <template #activator="{ attrs, on }">
             <g-btn-edit v-bind="attrs" icon :color="color" v-on="on" />
           </template>
