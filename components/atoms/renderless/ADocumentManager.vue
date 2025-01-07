@@ -4,7 +4,6 @@
  * 購読し、これをデフォルトスロットプロパティで提供するレンダーレスコンポーネントです。
  *
  * - default スロットで提供する各種プロパティを UI コンポーネントに引き渡して使用します。
- * - 読み込んだドキュメントをダイアログで編集する場合には dialog プロパティを使用することができます。
  *
  * @author shisyamo4131
  */
@@ -127,6 +126,9 @@ export default {
       },
       { immediate: true }
     )
+
+    // 編集モードの初期値を変更モードにします。
+    this.editMode = this.UPDATE
   },
 
   /***************************************************************************
@@ -158,7 +160,15 @@ export default {
     /**
      * 編集モードを引数に受け取り、ダイアログを開きます。
      */
-    openDialog({ editMode = this.UPDATE }) {
+    updateEditMode(editMode) {
+      if (!editMode) {
+        this.err = new Error(
+          `編集モードを指定してください。。editMode: ${editMode}`
+        )
+        // eslint-disable-next-line no-console
+        console.error(this.err)
+        return
+      }
       if (editMode !== this.UPDATE && editMode !== this.DELETE) {
         this.err = new Error(
           `不正な編集モードが指定されました。editMode: ${editMode}`
@@ -208,21 +218,6 @@ export default {
         // ドキュメントID
         docId: this.docId,
 
-        /**
-         * 読み込んだドキュメントをダイアログ上で編集する場合に使用するプロパティ
-         */
-        dialog: {
-          attrs: {
-            editMode: this.editMode,
-            instance: this.editModel,
-            value: this.isEditing,
-          },
-          on: {
-            input: ($event) => (this.dialog = $event),
-            'update:editMode': ($event) => (this.editMode = $event),
-          },
-        },
-
         // 編集モード
         editMode: this.editMode,
 
@@ -232,15 +227,11 @@ export default {
         // ドキュメントが編集中であるかどうか
         isEditing: this.isEditing,
 
-        // ダイアログを開くための個別関数
-        openAsEdit: () => this.openDialog({ editMode: this.UPDATE }),
-        openAsDelete: () => this.openDialog({ editMode: this.DELETE }),
+        // 編集中であるかを切り替えます。
+        toggleIsEditing: ($event) => (this.isEditing = $event),
 
-        // UI コンポーネントから受け取るイベントを処理するプロパティ
-        triggers: {
-          'click:edit': () => this.openDialog({ editMode: this.UPDATE }),
-          'click:delete': () => this.openDialog({ editMode: this.DELETE }),
-        },
+        // 編集モードを更新します。
+        updateEditMode: this.updateEditMode,
       })
     }
     return null // スロットが提供されていない場合、何もレンダリングしない
