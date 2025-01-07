@@ -18,16 +18,22 @@
  */
 import GCalendar from '../../atoms/calendars/GCalendar.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
+import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GCalendar },
+  components: { GCalendar, GBtnRegist },
 
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
+    /**
+     * コンポーネントカラーです。
+     */
+    color: { type: String, default: undefined, required: false },
+
     /**
      * SiteOperationSchedulesドキュメントの配列
      */
@@ -85,9 +91,12 @@ export default {
 </script>
 
 <template>
-  <g-calendar v-bind="$attrs" ref="calendar" v-on="$listeners">
+  <g-calendar v-bind="$attrs" ref="calendar" :color="color" v-on="$listeners">
     <template #append-toolbar>
-      <slot name="append-toolbar" />
+      <slot name="append-toolbar">
+        <v-spacer />
+        <g-btn-regist :color="color" small @click="$emit('click:regist')" />
+      </slot>
     </template>
     <template #day="{ date }">
       <div class="d-flex flex-wrap pa-1" style="gap: 4px">
