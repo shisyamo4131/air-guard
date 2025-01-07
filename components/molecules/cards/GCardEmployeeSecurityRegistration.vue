@@ -4,7 +4,7 @@ import GDialogInput from '../dialogs/GDialogInput.vue'
 import GInputSecurityRegistration from '../inputs/GInputSecurityRegistration.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import Employee from '~/models/Employee'
-import ADocumentSubscriber from '~/components/atoms/renderless/ADocumentSubscriber.vue'
+import ADocumentManager from '~/components/atoms/renderless/ADocumentManager.vue'
 import GListIterator from '~/components/atoms/lists/GListIterator.vue'
 export default {
   /***************************************************************************
@@ -13,7 +13,7 @@ export default {
   components: {
     GBtnEdit,
     GCardFloatingLabel,
-    ADocumentSubscriber,
+    ADocumentManager,
     GListIterator,
     GDialogInput,
     GInputSecurityRegistration,
@@ -97,7 +97,7 @@ export default {
 </script>
 
 <template>
-  <a-document-subscriber
+  <a-document-manager
     v-slot="{ doc, dialog }"
     :doc-id="docId"
     :instance="instance"
@@ -113,9 +113,9 @@ export default {
         :item="doc.securityRegistration"
       />
       <template #actions>
-        <g-dialog-input v-bind="dialog.attrs" max-width="480">
+        <g-dialog-input v-bind="dialog.attrs" max-width="480" v-on="dialog.on">
           <template #activator="{ attrs, on }">
-            <g-btn-edit icon v-bind="attrs" :color="color" v-on="on" />
+            <g-btn-edit v-bind="attrs" icon :color="color" v-on="on" />
           </template>
           <template #default="{ attrs, on }">
             <g-input-security-registration v-bind="attrs" v-on="on" />
@@ -123,7 +123,7 @@ export default {
         </g-dialog-input>
       </template>
     </g-card-floating-label>
-  </a-document-subscriber>
+  </a-document-manager>
 </template>
 
 <style></style>
