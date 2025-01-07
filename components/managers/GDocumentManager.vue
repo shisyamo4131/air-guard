@@ -42,12 +42,27 @@ export default {
 
 <template>
   <a-document-manager :doc-id="docId" :instance="instance">
-    <template #default="{ doc, dialog, triggers }">
+    <template
+      #default="{ doc, editMode, isEditing, updateEditMode, toggleIsEditing }"
+    >
       <div>
-        <slot name="default" v-bind="{ attrs: doc, on: triggers }" />
+        <slot
+          name="default"
+          v-bind="{
+            attrs: doc,
+            on: {
+              'click:edit': () => updateEditMode('UPDATE'),
+              'click:delete': () => updateEditMode('DELETE'),
+            },
+          }"
+        />
         <g-dialog-input
-          v-bind="{ ...dialog.attrs, ...dialogProps }"
-          v-on="dialog.on"
+          v-bind="dialogProps"
+          :value="isEditing"
+          :edit-mode="editMode"
+          :instance="doc"
+          @update:editMode="updateEditMode"
+          @input="toggleIsEditing"
         >
           <template #default="editorProps">
             <slot name="editor" v-bind="editorProps" />
