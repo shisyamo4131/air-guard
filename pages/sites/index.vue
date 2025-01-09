@@ -8,6 +8,7 @@ import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustom
 import Site from '~/models/Site'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GTemplateDocumentsIndex from '~/components/templates/GTemplateDocumentsIndex.vue'
+import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -22,6 +23,7 @@ export default {
     GAutocompleteCustomer,
     GSwitch,
     GTemplateDocumentsIndex,
+    GInputSite,
   },
 
   /***************************************************************************
@@ -72,6 +74,9 @@ export default {
     </template>
     <template #default="{ attrs, on }">
       <g-data-table-sites v-bind="attrs" v-on="on" />
+    </template>
+    <template #input="{ attrs, on }">
+      <g-input-site v-bind="attrs" v-on="on" />
     </template>
   </g-template-documents-index>
 </template>
