@@ -16,6 +16,12 @@ export default {
    * PROPS
    ***************************************************************************/
   props: vueProps,
+
+  computed: {
+    period() {
+      return `${this.startDate || ''} - ${this.endDate || ''}`
+    },
+  },
 }
 </script>
 
@@ -29,16 +35,10 @@ export default {
     <v-container fluid>
       <v-row dense>
         <v-col cols="12">
-          <g-card-color-indicator
-            index="0"
-            label="現場名"
-            outlined
-            :value="name"
-          />
+          <g-card-color-indicator label="現場名" outlined :value="name" />
         </v-col>
         <v-col cols="12" md="6" lg="3">
           <g-card-color-indicator
-            index="1"
             :item="customer"
             item-text="abbr"
             label="取引先"
@@ -46,16 +46,13 @@ export default {
           />
         </v-col>
         <v-col cols="12" md="6" lg="3">
-          <g-card-color-indicator
-            index="2"
-            label="住所"
-            outlined
-            :value="address"
-          />
+          <g-card-color-indicator label="住所" outlined :value="address" />
+        </v-col>
+        <v-col cols="12" md="6" lg="3">
+          <g-card-color-indicator label="期間" outlined :value="period" />
         </v-col>
         <v-col cols="12" md="6" lg="3">
           <g-card-color-indicator
-            index="3"
             label="警備種別"
             outlined
             :value="$SECURITY_TYPE[securityType]"
