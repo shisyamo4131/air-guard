@@ -1,8 +1,9 @@
 <script>
 /**
  * 編集ボタンコンポーネントです。
- *
  * @author shisyamo4131
+ *
+ * @refact 2025-01-09
  */
 import GIconEdit from '../icons/GIconEdit.vue'
 import GBtn from './GBtn.vue'
@@ -11,25 +12,15 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: { GBtn, GIconEdit },
-
-  /***************************************************************************
-   * PROPS
-   ***************************************************************************/
-  props: {
-    /**
-     * ボタンのラベルです。
-     */
-    label: { type: String, default: '編集', required: false },
-  },
 }
 </script>
 
 <template>
-  <g-btn v-bind="{ ...$props, ...$attrs }" v-on="$listeners">
+  <g-btn v-bind="$attrs" v-on="$listeners">
     <template #icon="{ attrs }">
       <g-icon-edit v-bind="attrs" />
     </template>
-    <span>{{ label }}</span>
+    <slot name="default"><span>編集</span></slot>
   </g-btn>
 </template>
 

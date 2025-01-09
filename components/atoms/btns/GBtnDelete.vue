@@ -1,26 +1,26 @@
 <script>
 /**
- * 次へボタンコンポーネントです。
+ * 削除ボタンコンポーネントです。
  * @author shisyamo4131
  *
  * @refact 2025-01-09
  */
-import GIconNext from '../icons/GIconNext.vue'
+import GIconDelete from '../icons/GIconDelete.vue'
 import GBtn from './GBtn.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GBtn, GIconNext },
+  components: { GBtn, GIconDelete },
 }
 </script>
 
 <template>
   <g-btn v-bind="$attrs" v-on="$listeners">
     <template #icon="{ attrs }">
-      <g-icon-next v-bind="attrs" />
+      <g-icon-delete v-bind="attrs" />
     </template>
-    <slot name="default"><span>次へ</span></slot>
+    <slot name="default"><span>削除</span></slot>
   </g-btn>
 </template>
 

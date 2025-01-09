@@ -1,8 +1,9 @@
 <script>
 /**
  * 確定ボタンコンポーネントです。
- *
  * @author shisyamo4131
+ *
+ * @refact 2025-01-09
  */
 import GIconSubmit from '../icons/GIconSubmit.vue'
 import GBtn from './GBtn.vue'
@@ -11,25 +12,15 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: { GBtn, GIconSubmit },
-
-  /***************************************************************************
-   * PROPS
-   ***************************************************************************/
-  props: {
-    /**
-     * ボタンのラベルです。
-     */
-    label: { type: String, default: '確定', required: false },
-  },
 }
 </script>
 
 <template>
-  <g-btn v-bind="{ ...$props, ...$attrs }" v-on="$listeners">
+  <g-btn v-bind="$attrs" v-on="$listeners">
     <template #icon="{ attrs }">
       <g-icon-submit v-bind="attrs" />
     </template>
-    <span>{{ label }}</span>
+    <slot name="default"><span>確定</span></slot>
   </g-btn>
 </template>
 
