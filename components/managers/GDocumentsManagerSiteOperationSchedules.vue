@@ -12,6 +12,8 @@ import GCalendarV2 from '../atoms/calendars/GCalendarV2.vue'
 import GBtnCancel from '../atoms/btns/GBtnCancel.vue'
 import GIconEdit from '../atoms/icons/GIconEdit.vue'
 import GIconStar from '../atoms/icons/GIconStar.vue'
+import GIconDay from '../atoms/icons/GIconDay.vue'
+import GIconNight from '../atoms/icons/GIconNight.vue'
 import GDocumentsManager from './GDocumentsManager.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
@@ -28,6 +30,8 @@ export default {
     GBtnCancel,
     GIconEdit,
     GIconStar,
+    GIconDay,
+    GIconNight,
   },
 
   /***************************************************************************
@@ -289,10 +293,8 @@ export default {
             <v-list>
               <v-list-item v-for="(event, index) of listEvents" :key="index">
                 <v-list-item-icon>
-                  <v-icon v-if="event.doc.workShift === 'day'" color="info"
-                    >mdi-weather-sunny</v-icon
-                  >
-                  <v-icon v-else color="accent">mdi-weather-night</v-icon>
+                  <g-icon-day v-if="event.doc.workShift === 'day'" />
+                  <g-icon-night v-else />
                 </v-list-item-icon>
                 <v-list-item-content>
                   <v-list-item-title v-if="event.doc.isClosed">
