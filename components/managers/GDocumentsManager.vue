@@ -1,17 +1,17 @@
 <script>
 /**
- * ADocumentsManager を拡張したドキュメント群管理用共有コンポーネントです。
+ * ARenderlessArrayManager を拡張したドキュメント群管理用共有コンポーネントです。
  * ドキュメント編集用のダイアログを内包しています。
  * @author shisyamo4131
  */
 import { FireModel } from 'air-firebase'
-import ADocumentsManager from '../atoms/renderless/ADocumentsManager.vue'
+import ARenderlessArrayManager from '../atoms/renderless/ARenderlessArrayManager.vue'
 import GDialogInput from '../molecules/dialogs/GDialogInput.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { ADocumentsManager, GDialogInput },
+  components: { ARenderlessArrayManager, GDialogInput },
 
   /***************************************************************************
    * PROPS
@@ -43,54 +43,55 @@ export default {
       validator: (instance) => instance instanceof FireModel,
     },
   },
+
+  methods: {
+    /**
+     * ダイアログの input イベントを処理します。
+     * - callBack には ARenderlessArrayManager の quitEditing メソッドを受け取ります。
+     * - input イベントのペイロードが false の場合のみ quitEditing メソッドを実行します。
+     */
+    _closeDialog(event, callBack) {
+      if (!event) callBack()
+    },
+  },
 }
 </script>
 
 <template>
-  <a-documents-manager :docs="docs" :instance="instance">
-    <template
-      #default="{
-        isEditing,
-        editMode,
-        editModel,
-        updateEditMode,
-        toggleIsEditing,
-      }"
-    >
+  <a-renderless-array-manager
+    :items="docs"
+    :schema="instance"
+    :item-key="docKey"
+  >
+    <template #default="props">
       <div>
         <slot
           name="default"
           v-bind="{
-            attrs: {
-              items: docs,
-              itemKey: docKey,
+            attrs: { docs: props.items, docKey },
+            on: {
+              'click:regist': props.toRegist,
+              'click:edit': props.toUpdate,
+              'click:delete': props.toDelete,
             },
             docs,
-            on: {
-              'click:regist': () => updateEditMode({ editMode: 'CREATE' }),
-              'click:edit': (event) =>
-                updateEditMode({ editMode: 'UPDATE', item: event }),
-              'click:delete': (event) =>
-                updateEditMode({ editMode: 'DELETE', item: event }),
-            },
-            updateEditMode,
           }"
         />
         <g-dialog-input
           v-bind="dialogProps"
-          :value="isEditing"
-          :edit-mode="editMode"
-          :instance="editModel"
-          @update:editMode="($event) => updateEditMode({ editMode: $event })"
-          @input="toggleIsEditing"
+          :value="props.isEditing"
+          :edit-mode="props.editMode"
+          :instance="props.editItem"
+          @update:editMode="props.toggleEditMode"
+          @input="($event) => _closeDialog($event, props.quitEditing)"
         >
-          <template #default="editorProps">
-            <slot name="editor" v-bind="editorProps" />
+          <template #default="{ attrs, on }">
+            <slot name="editor" v-bind="{ attrs, on }" />
           </template>
         </g-dialog-input>
       </div>
     </template>
-  </a-documents-manager>
+  </a-renderless-array-manager>
 </template>
 
 <style></style>
