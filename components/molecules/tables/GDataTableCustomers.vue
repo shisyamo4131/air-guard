@@ -1,74 +1,58 @@
 <script>
-import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 /**
  * 取引先のDataTableコンポーネントです。
- *
  * @author shisyamo4131
+ *
+ * @refact 2025-01-09
  */
+import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
+import GIconFax from '~/components/atoms/icons/GIconFax.vue'
+import GIconPhone from '~/components/atoms/icons/GIconPhone.vue'
+import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
+import GIconStop from '~/components/atoms/icons/GIconStop.vue'
 import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GDataTable, GChipSyncStatus },
+  components: {
+    GDataTable,
+    GChipSyncStatus,
+    GIconPlay,
+    GIconStop,
+    GIconPhone,
+    GIconFax,
+  },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
     headers() {
-      const result = []
+      const result = [
+        { text: 'CODE', value: 'code', width: 84 },
+        { text: '取引先名', value: 'abbr' },
+      ]
       switch (this.$vuetify.breakpoint.name) {
         case 'xs':
-          result.push(
-            { text: 'CODE', value: 'code', width: 84 },
-            { text: '取引先名', value: 'abbr', cellClass: 'truncate-cell' },
-            {
-              text: '同期状態',
-              value: 'sync',
-              sortable: false,
-              align: 'center',
-            }
-          )
           break
         case 'sm':
-          result.push(
-            { text: 'CODE', value: 'code', width: 84 },
-            { text: '取引先名', value: 'abbr', cellClass: 'truncate-cell' },
-            {
-              text: '同期状態',
-              value: 'sync',
-              sortable: false,
-              align: 'center',
-            }
-          )
           break
         case 'md':
-          result.push(
-            { text: 'CODE', value: 'code', width: 84 },
-            { text: '取引先名', value: 'abbr', cellClass: 'truncate-cell' },
-            { text: '住所', value: 'address1', sortable: false },
-            {
-              text: '同期状態',
-              value: 'sync',
-              sortable: false,
-              align: 'center',
-            }
-          )
+          result.push({ text: '住所', value: 'address1', sortable: false })
           break
         default:
           result.push(
-            { text: 'CODE', value: 'code', width: 84 },
-            { text: '取引先名', value: 'abbr', sortable: false },
             { text: '住所', value: 'address1', sortable: false },
-            { text: 'TEL/FAX', value: 'tel', sortable: false },
-            {
-              text: '同期状態',
-              value: 'sync',
-              sortable: false,
-              align: 'center',
-            }
+            { text: 'TEL/FAX', value: 'tel', sortable: false }
           )
       }
+      result.push({
+        text: '同期状態',
+        value: 'sync',
+        sortable: false,
+        align: 'center',
+      })
       return result
     },
   },
@@ -82,12 +66,10 @@ export default {
     :mobile-breakpoint="600"
     v-on="$listeners"
   >
-    <template #[`item.name1`]="{ item }">
+    <template #[`item.abbr`]="{ item }">
       <div class="d-flex">
-        <v-icon v-if="item.status === 'active'" color="green" left small
-          >mdi-play</v-icon
-        >
-        <v-icon v-else color="red" left small>mdi-stop</v-icon>
+        <g-icon-play v-if="item.status === 'active'" color="green" left small />
+        <g-icon-stop v-else color="red" left small />
         <div>
           <div>{{ item.name1 }}</div>
           <div v-if="item.name2" class="text-caption grey--text text--darken-1">
@@ -97,8 +79,8 @@ export default {
       </div>
     </template>
     <template #[`item.tel`]="{ item }">
-      <div><v-icon left x-small>mdi-phone</v-icon>{{ item.tel }}</div>
-      <div><v-icon left x-small>mdi-fax</v-icon>{{ item.fax }}</div>
+      <div><g-icon-phone left x-small />{{ item.tel }}</div>
+      <div><g-icon-fax left x-small />{{ item.fax }}</div>
     </template>
     <template #[`item.sync`]="{ item }">
       <g-chip-sync-status :value="item.sync" x-small />
