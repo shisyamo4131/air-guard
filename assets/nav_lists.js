@@ -158,10 +158,7 @@ export const allNavList = [
   {
     name: '開発',
     icon: 'mdi-wrench-cog',
-    lists: [
-      { name: 'モデル－インプット', to: '/developments/model-input' },
-      { name: 'コンポーネントテスト', to: '/developments/sandbox' },
-    ],
+    lists: [{ name: 'コンポーネントテスト', to: '/developments/sandbox' }],
   },
   {
     name: 'コンポーネント',

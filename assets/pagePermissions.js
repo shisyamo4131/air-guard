@@ -58,7 +58,6 @@ module.exports = {
   'admin-maintenance': ['admin', 'developer'],
 
   // 以下、開発用ページ
-  'developments-model-input': ['admin', 'developer'],
   'developments-sandbox': ['admin', 'developer'],
 
   // コンポーネント
