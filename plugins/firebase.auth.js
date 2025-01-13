@@ -24,17 +24,30 @@ export default (context) => {
       if (user && ACTIVATE) {
         await context.store.dispatch(ACTIVATE, user)
         await context.store.dispatch('systems/subscribe')
-        await context.store.dispatch('company-info/subscribe')
-        await context.store.dispatch('users/subscribe')
-        await context.store.dispatch('customers/subscribe')
-        await context.store.dispatch('sites/subscribe')
-        await context.store.dispatch('employees/subscribe')
-        await context.store.dispatch('outsourcers/subscribe')
-        await context.store.dispatch('equipments/subscribe')
-        await context.store.dispatch('employee-contracts/subscribe')
-        await context.store.dispatch('allowances/subscribe')
-        await context.store.dispatch('air-guard/subscribe')
-        await context.store.dispatch('monthly-attendances/subscribe')
+        // await context.store.dispatch('company-info/subscribe')
+        // await context.store.dispatch('users/subscribe')
+        // await context.store.dispatch('customers/subscribe')
+        // await context.store.dispatch('sites/subscribe')
+        // await context.store.dispatch('employees/subscribe')
+        // await context.store.dispatch('outsourcers/subscribe')
+        // await context.store.dispatch('equipments/subscribe')
+        // await context.store.dispatch('employee-contracts/subscribe')
+        // await context.store.dispatch('allowances/subscribe')
+        // await context.store.dispatch('air-guard/subscribe')
+        // await context.store.dispatch('monthly-attendances/subscribe')
+        await Promise.all([
+          context.store.dispatch('company-info/subscribe'),
+          context.store.dispatch('users/subscribe'),
+          context.store.dispatch('customers/subscribe'),
+          context.store.dispatch('sites/subscribe'),
+          context.store.dispatch('employees/subscribe'),
+          context.store.dispatch('outsourcers/subscribe'),
+          context.store.dispatch('equipments/subscribe'),
+          context.store.dispatch('employee-contracts/subscribe'),
+          context.store.dispatch('allowances/subscribe'),
+          context.store.dispatch('air-guard/subscribe'),
+          context.store.dispatch('monthly-attendances/subscribe'),
+        ])
       } else if (!user && DISACTIVATE) {
         await context.store.dispatch(DISACTIVATE)
         await context.store.dispatch('systems/unsubscribe')
