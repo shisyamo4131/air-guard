@@ -1,7 +1,7 @@
 /**
- * ## OperationResults ドキュメントプロパティ定義
- *
+ * 稼働実績ドキュメントプロパティ定義
  * @author shisyamo4131
+ * @refact 2025-01-13
  */
 import { generateVueProps, generateClassProps } from './propsUtil'
 import ConsumptionTax from '~/plugins/consumption-tax'
@@ -10,19 +10,30 @@ import ConsumptionTax from '~/plugins/consumption-tax'
  * PROPERTIES
  *****************************************************************************/
 const propsDefinition = {
+  // ドキュメントID
   docId: { type: String, default: '', required: false, requiredByClass: false },
+
+  // 稼働実績code
   code: { type: String, default: '', required: false, requiredByClass: false },
+
+  // 現場ID
   siteId: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 現場オブジェクト（モデルによるフェッチ）
   site: {
     type: Object,
     default: null,
     required: false,
     requiredByClass: true,
   },
+
   // 稼働日（売上計上日）
   date: { type: String, default: '', required: false, requiredByClass: true },
+
   // 稼働月（売上計上月）
   month: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 曜日区分
   dayDiv: {
     type: String,
     default: 'weekdays',
@@ -30,6 +41,8 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+
+  // 勤務区分
   workShift: {
     type: String,
     default: 'day',
@@ -37,18 +50,23 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+
+  // 締日
   closingDate: {
     type: String,
     default: '',
     required: false,
     requiredByClass: true,
   },
+
+  // 従業員配列
   workers: {
     type: Array,
     default: () => [],
     required: false,
     requiredByClass: false,
   },
+
   // workers に含まれる従業員ID
   employeeIds: {
     type: Array,
@@ -56,31 +74,48 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
-  // workers に含まれる外注先ID
-  outsourcerIds: {
-    type: Array,
-    default: () => [],
-    required: false,
-    requiredByClass: false,
-  },
-  remarks: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: false,
-  },
-  siteContract: {
-    type: Object,
-    default: null,
-    required: false,
-    requiredByClass: true,
-  },
+
+  // 外注先配列
   outsourcers: {
     type: Array,
     default: () => [],
     required: false,
     requiredByClass: false,
   },
+
+  // outsourcers に含まれる外注先ID
+  outsourcerIds: {
+    type: Array,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 備考
+  remarks: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 現場取極めID
+  siteContractId: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 現場取極めオブジェクト
+  siteContract: {
+    type: Object,
+    default: null,
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 稼働数情報
   operationCount: {
     type: Object,
     default: () => {
@@ -106,12 +141,8 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
-  siteContractId: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: true,
-  },
+
+  // 単価情報
   unitPrice: {
     type: Object,
     default: () => {
@@ -133,6 +164,8 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+
+  // 売上情報
   sales: {
     type: Object,
     default: () => {
@@ -157,12 +190,15 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+
+  // ロック状態かどうか
   isLocked: {
     type: Boolean,
     default: false,
     required: false,
     requiredByClass: false,
   },
+
   // 消費税額
   consumptionTax: {
     type: Object,
