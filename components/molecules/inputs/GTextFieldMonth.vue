@@ -1,5 +1,6 @@
 <script>
 /**
+ * [使用不可]
  * 年月選択コンポーネント
  * @author shisyamo
  */
