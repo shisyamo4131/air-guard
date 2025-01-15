@@ -215,6 +215,13 @@ export default {
     isDelete() {
       return this.editMode === this.DELETE
     },
+
+    /**
+     * コンポーネントがエラー状態かどうかを表すフラグを返します。
+     */
+    hasError() {
+      return this.errors.length > 0
+    },
   },
 
   /***************************************************************************
@@ -296,7 +303,7 @@ export default {
      */
     async submit() {
       // コンポーネントのエラー状態を初期化
-      this._clearError()
+      this.clearError()
 
       // コンポーネントの状態が編集中でなければエラーを出力して終了
       if (!this.computedIsEditing) {
@@ -351,7 +358,7 @@ export default {
      */
     toggleEditMode(editMode) {
       // コンポーネントのエラー状態を初期化
-      this._clearError()
+      this.clearError()
 
       // 編集モードの妥当性チェック
       if (!this.editModes.includes(editMode)) {
@@ -419,7 +426,7 @@ export default {
     /**
      * コンポーネントのエラー状態を初期化します。
      */
-    _clearError() {
+    clearError() {
       this.errors.splice(0)
     },
 
@@ -554,7 +561,7 @@ export default {
     _initialize() {
       this.editMode = this.CREATE
       this._initializeItem(this.schema)
-      this._clearError()
+      this.clearError()
       this.$emit('initialized')
     },
 
@@ -606,10 +613,10 @@ export default {
         editItem: this.editItem,
 
         // コンポーネント内で発生したエラーのメッセージの配列
-        errors: this.erross,
+        errors: this.errors,
 
         // コンポーネントがエラー状態かどうかです。
-        hasError: !!this.errors.length,
+        hasError: this.hasError,
 
         // コンポーネントの編集モードが `登録` モードかどうかです。
         isCreate: this.isCreate,

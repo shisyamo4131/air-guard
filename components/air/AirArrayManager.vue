@@ -52,6 +52,12 @@ export default {
     label: { type: String, default: 'default label', required: false },
 
     /**
+     * コンポーネントが処理中であることを表します。
+     * - .sync 修飾子が利用可能です。
+     */
+    loading: { type: Boolean, default: false, required: false },
+
+    /**
      * テーブルコンポーネントのページ番号です。
      */
     page: { type: Number, default: 1, required: false },
@@ -79,6 +85,14 @@ export default {
      * 指定すると、VCardのボタンがステッパー用に切り替わります。
      */
     steps: { type: Array, default: () => [], required: false },
+
+    /**
+     * ステッパー利用時に、ステップを進める直前に実行される関数を指定します。
+     * editItem は AirRenderlessArrayManager が管理するオブジェクトへの参照です。
+     * 直接編集せず、updateProperties を使用します。
+     * (editItem, currentStep, updateProperties) => Promise(void)
+     */
+    stepValidator: { type: Function, default: undefined, required: false },
   },
 
   /***************************************************************************
@@ -107,6 +121,11 @@ export default {
        * form スロットに配置されたコンポーネントへの参照です。
        */
       formRef: null,
+
+      /**
+       * コンポーネント内部で管理する、処理中であるかどうかを表すプロパティです。
+       */
+      internalLoading: false,
 
       /**
        * コンポーネント内部で管理するページ番号です。
@@ -158,7 +177,7 @@ export default {
     btnCancelProps() {
       return {
         attrs: {
-          disabled: this.managerRef?.submitting || false,
+          disabled: this.computedLoading,
         },
         on: {
           click: this.onClickCancel,
@@ -174,7 +193,8 @@ export default {
       return {
         attrs: {
           color: this.color,
-          disabled: this.isLastStep || this.managerRef?.submitting || false,
+          disabled: this.isLastStep || this.computedLoading,
+          loading: this.computedLoading,
         },
         on: {
           click: this.onClickStepNext,
@@ -191,7 +211,7 @@ export default {
       return {
         attrs: {
           depressed: true,
-          disabled: this.isFirstStep || this.managerRef?.submitting || false,
+          disabled: this.isFirstStep || this.computedLoading,
         },
         on: {
           click: this.onClickStepPrev,
@@ -208,8 +228,8 @@ export default {
       return {
         attrs: {
           color: this.color,
-          disabled: this.managerRef?.submitting || false,
-          loading: this.managerRef?.submitting || false,
+          disabled: this.computedLoading,
+          loading: this.computedLoading,
         },
         on: {
           click: this.onClickSubmit,
@@ -217,6 +237,21 @@ export default {
         icon: 'mdi-check',
         label: '確定',
       }
+    },
+
+    /**
+     * コンポーネントが使用する、処理中であるかどうかのフラグです。
+     * - AirRenderlessArrayManger の submitting も参照します。
+     * - 値が更新されると `update:loading` イベントを emit します。
+     */
+    computedLoading: {
+      get() {
+        return this.internalLoading || this.managerRef?.submitting || false
+      },
+      set(v) {
+        this.internalLoading = v
+        this.$emit('update:loading', v)
+      },
     },
 
     /**
@@ -344,6 +379,17 @@ export default {
     },
 
     /**
+     * props.loading を監視します。
+     * - data.internalLoading と同期します。
+     */
+    loading: {
+      handler(v) {
+        this.internalLoading = v
+      },
+      immediate: true,
+    },
+
+    /**
      * props.page を監視します。
      * - data.internalPage と同期します。
      */
@@ -463,8 +509,23 @@ export default {
     /**
      * ステップを次に移動させます。
      */
-    stepGoToNext() {
-      this.computedStep += 1
+    async stepGoToNext() {
+      this.managerRef.clearError()
+      this.computedLoading = true
+      try {
+        if (this.stepValidator) {
+          const item = this.managerRef.editItem
+          const updateProperties = this.managerRef.updateProperties
+          await this.stepValidator(item, this.computedStep, updateProperties)
+        }
+        this.computedStep += 1
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error(err)
+        this.managerRef.setError(err.message)
+      } finally {
+        this.computedLoading = false
+      }
     },
 
     /**
@@ -633,7 +694,7 @@ export default {
                 ref: (el) => (cardRef = el),
                 item: props.editItem,
                 editMode: props.editMode,
-                loading: props.submitting,
+                loading: computedLoading,
               },
               on: {
                 cancel: onClickCancel,
@@ -648,11 +709,11 @@ export default {
                 isCreate: props.isCreate,
                 isUpdate: props.isUpdate,
                 isDelete: props.isDelete,
-                loading: props.submitting,
+                loading: computedLoading,
               },
               on: { ...updateEvents },
             },
-            loading: props.submitting,
+            loading: computedLoading,
           }"
         >
           <v-dialog
@@ -687,11 +748,11 @@ export default {
                     isCreate: props.isCreate,
                     isUpdate: props.isUpdate,
                     isDelete: props.isDelete,
-                    loading: props.submitting,
+                    loading: computedLoading,
                   },
                   on: { ...updateEvents },
                 },
-                loading: props.submitting,
+                loading: computedLoading,
               }"
             >
               <v-card :ref="(el) => (cardRef = el)">
@@ -707,10 +768,10 @@ export default {
                     ><v-icon>{{ btnCancelProps.icon }}</v-icon></v-btn
                   >
                 </v-toolbar>
-                <v-card-text :class="[isStep ? 'pa-0' : 'pt-5']">
+                <v-card-text v-if="!isStep" class="pt-5">
                   <v-form
                     :ref="(el) => (formRef = el)"
-                    :disabled="props.submitting"
+                    :disabled="computedLoading"
                     @submit.prevent
                   >
                     <!--
@@ -730,58 +791,11 @@ export default {
                           isUpdate: props.isUpdate,
                           isDelete: props.isDelete,
                           isEditing: props.isEditing,
-                          loading: props.submitting,
+                          loading: computedLoading,
                         },
                         on: { ...updateEvents },
                       }"
                     />
-                    <!--
-                      ステッパー形式での編集を行う際のスロットです。
-                      steps で指定した数だけ `step-${index}` という名前でスロットが提供されます。
-                      NOTE: インデックスは0から始まります。
-                    -->
-                    <v-stepper
-                      v-if="isStep"
-                      v-model="computedStep"
-                      flat
-                      vertical
-                    >
-                      <template v-for="(stepIndex, index) of steps">
-                        <v-stepper-step
-                          :key="`step-${index}`"
-                          :complete="computedStep > index + 1"
-                          :step="index + 1"
-                        >
-                          {{ stepIndex }}
-                        </v-stepper-step>
-                        <v-stepper-content
-                          :key="`content-${index}`"
-                          :step="index + 1"
-                        >
-                          <v-form
-                            :ref="
-                              (el) => (stepperFormRefs[`step${index}`] = el)
-                            "
-                          >
-                            <slot
-                              :name="`step-${index}`"
-                              v-bind="{
-                                attrs: {
-                                  ...props.editItem,
-                                  editMode: props.editMode,
-                                  isCreate: props.isCreate,
-                                  isUpdate: props.isUpdate,
-                                  isDelete: props.isDelete,
-                                  isEditing: props.isEditing,
-                                  loading: props.submitting,
-                                },
-                                on: { ...updateEvents },
-                              }"
-                            />
-                          </v-form>
-                        </v-stepper-content>
-                      </template>
-                    </v-stepper>
 
                     <!-- 削除指示の為のチェックボックス（ステッパー利用時は利用不可） -->
                     <v-checkbox
@@ -793,6 +807,48 @@ export default {
                       @change="props.toggleEditMode($event)"
                     />
                   </v-form>
+                </v-card-text>
+                <v-card-text v-else class="pa-0">
+                  <!--
+                      ステッパー形式の場合のコンポーネントです。
+                      steps で指定した数だけ `step-${index}` という名前でスロットが提供されます。
+                      NOTE: インデックスは0から始まります。
+                    -->
+                  <v-stepper v-if="isStep" v-model="computedStep" flat vertical>
+                    <template v-for="(stepIndex, index) of steps">
+                      <v-stepper-step
+                        :key="`step-${index}`"
+                        :complete="computedStep > index + 1"
+                        :step="index + 1"
+                      >
+                        {{ stepIndex }}
+                      </v-stepper-step>
+                      <v-stepper-content
+                        :key="`content-${index}`"
+                        :step="index + 1"
+                      >
+                        <v-form
+                          :ref="(el) => (stepperFormRefs[`step${index}`] = el)"
+                        >
+                          <slot
+                            :name="`step-${index}`"
+                            v-bind="{
+                              attrs: {
+                                ...props.editItem,
+                                editMode: props.editMode,
+                                isCreate: props.isCreate,
+                                isUpdate: props.isUpdate,
+                                isDelete: props.isDelete,
+                                isEditing: props.isEditing,
+                                loading: computedLoading,
+                              },
+                              on: { ...updateEvents },
+                            }"
+                          />
+                        </v-form>
+                      </v-stepper-content>
+                    </template>
+                  </v-stepper>
                 </v-card-text>
                 <v-expand-transition>
                   <v-container v-show="props.hasError" fluid>
