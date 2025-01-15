@@ -678,60 +678,23 @@ export default {
     <template #default="props">
       <!-- style や class は何故か v-sheet に引き渡される。レンダーレスだから？ -->
       <v-sheet :height="height">
+        <!-- AirRenderlessArrayManager の loading が true の場合に表示するスナックバー -->
+        <v-snackbar
+          :color="color"
+          centered
+          :value="props.loading"
+          :timeout="-1"
+        >
+          <v-progress-circular class="mr-4" indeterminate size="24" />
+          処理しています
+        </v-snackbar>
         <!--
           items を表示するための UI コンポーネントを配置するためのスロットです。
           `table` プロパティは VDataTable や VDataIterator 用に用意されています。
           `activator` プロパティは item を登録するためのトリガーとなります。
           AirRenderlessArrayManager が提供する他のスロットプロパティがすべて提供されます。
         -->
-        <!-- <slot
-          name="default"
-          v-bind="{
-            ...props,
-            color,
-            activator: {
-              attrs: { color },
-              on: { click: props.toRegist },
-            },
-            height,
-            pagination: {
-              attrs: {
-                length: pageCount,
-                value: computedPage,
-              },
-              on: {
-                input: ($event) => (computedPage = $event),
-              },
-            },
-            search: {
-              attrs: {
-                hideDetails: true,
-                placeholder: 'SEARCH',
-                prependInnerIcon: 'mdi-magnify',
-                value: computedSearch,
-              },
-              on: {
-                input: ($event) => (computedSearch = $event),
-              },
-            },
-            table: {
-              attrs: {
-                color,
-                page: computedPage,
-                items: props.items,
-                itemKey: props.itemKey,
-                search: computedSearch,
-              },
-              on: {
-                [eventEdit]: ($event) => props.toUpdate($event),
-                [eventDelete]: ($event) => props.toDelete($event),
-                'page-count': ($event) => (pageCount = $event),
-                'update:page': ($event) => (computedPage = $event),
-              },
-            },
-          }"
-        > -->
-        <slot name="default" v-bind="defaultSlotProps">
+        <slot name="default" v-bind="{ ...props, ...defaultSlotProps }">
           <v-data-table
             :headers="[
               ...Object.keys(props.editItem || {}).map((prop) => ({
@@ -782,7 +745,12 @@ export default {
             -->
             <slot name="card" v-bind="cardSlotProps">
               <v-card :ref="(el) => (cardRef = el)">
-                <v-toolbar class="flex-grow-0" flat>
+                <v-toolbar
+                  class="flex-grow-0"
+                  :color="color"
+                  :dark="!!color"
+                  flat
+                >
                   <v-toolbar-title>{{ label }}</v-toolbar-title>
                   <v-spacer />
 
