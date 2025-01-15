@@ -382,6 +382,18 @@ export default {
    ***************************************************************************/
   methods: {
     /**
+     * コンポーネントの状態を初期化します。
+     * - バリデーションを初期化します。
+     * - VDialog が終了した際に、スクロール位置を初期化します。
+     * - ステッパーの状態を初期化します。
+     */
+    initialize() {
+      this.resetValidation()
+      this.scrollTo()
+      this.computedStep = 1
+    },
+
+    /**
      * VCard コンポーネントのキャンセルボタンがクリックされた時の処理です。
      * AirRenderlessArrayManager の quitEditing を実行します。
      */
@@ -420,28 +432,22 @@ export default {
     },
 
     /**
-     * コンポーネントの状態を初期化します。
-     * - バリデーションを初期化します。
-     * - VDialog が終了した際に、スクロール位置を初期化します。
-     * - ステッパーの状態を初期化します。
-     */
-    initialize() {
-      this.resetValidation()
-      this.scrollTo()
-      this.computedStep = 1
-    },
-
-    /**
      * VForm の Validation を初期化します。
      */
     resetValidation() {
-      if (!this.hasFormRef) return
-      const form = this.formRef
-      if (!form.resetValidation || typeof form.resetValidation !== 'function') {
-        // eslint-disable-next-line
-        console.warn(`VForm does not implement the resetValidation function.`)
+      const targetForms = []
+      if (this.formRef) targetForms.push(this.formRef)
+      Object.values(this.stepperFormRefs).forEach((ref) => {
+        targetForms.push(ref)
+      })
+      for (const form of targetForms) {
+        if (
+          form.resetValidation &&
+          typeof form.resetValidation === 'function'
+        ) {
+          form.resetValidation()
+        }
       }
-      form.resetValidation()
     },
 
     /**
@@ -689,7 +695,7 @@ export default {
               }"
             >
               <v-card :ref="(el) => (cardRef = el)">
-                <v-toolbar flat>
+                <v-toolbar class="flex-grow-0" flat>
                   <v-toolbar-title>{{ label }}</v-toolbar-title>
                   <v-spacer />
 
@@ -757,7 +763,21 @@ export default {
                               (el) => (stepperFormRefs[`step${index}`] = el)
                             "
                           >
-                            <slot :name="`step-${index}`" />
+                            <slot
+                              :name="`step-${index}`"
+                              v-bind="{
+                                attrs: {
+                                  ...props.editItem,
+                                  editMode: props.editMode,
+                                  isCreate: props.isCreate,
+                                  isUpdate: props.isUpdate,
+                                  isDelete: props.isDelete,
+                                  isEditing: props.isEditing,
+                                  loading: props.submitting,
+                                },
+                                on: { ...updateEvents },
+                              }"
+                            />
                           </v-form>
                         </v-stepper-content>
                       </template>
