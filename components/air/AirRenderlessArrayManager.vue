@@ -17,7 +17,7 @@
  * | submit:complete | 配列への更新処理が完了した時にemitされます。                                                |
  *
  * @author shisyamo4131
- * @refact 2025-01-13
+ * @refact 2025-01-15
  */
 export default {
   /***************************************************************************
@@ -577,10 +577,10 @@ export default {
     setError(message, payload) {
       if (payload !== undefined) {
         // eslint-disable-next-line no-console
-        console.error(`[ADocumentsManager] ${message}`, payload)
+        console.error(`[AirRenderlessArrayManager] ${message}`, payload)
       } else {
         // eslint-disable-next-line no-console
-        console.error(`[ADocumentsManager] ${message}`)
+        console.error(`[AirRenderlessArrayManager] ${message}`)
       }
 
       this.errors.push(message)
@@ -652,7 +652,7 @@ export default {
     }
 
     // eslint-disable-next-line no-console
-    console.warn('[ADocumentsManager] No default slot provided.')
+    console.warn('[AirRenderlessArrayManager] No default slot provided.')
     return null // スロットが提供されていない場合、何もレンダリングしない
   },
 }

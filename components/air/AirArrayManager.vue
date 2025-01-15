@@ -4,7 +4,7 @@
  * - テーブルコンポーネントへ容易にプロパティを引き渡すためのプロパティが用意されています。
  * - アイテムを編集するためのダイアログを内包しています。
  * @author shisyamo4131
- * @refact 2025-01-13
+ * @refact 2025-01-15
  */
 import AirRenderlessArrayManager from './AirRenderlessArrayManager.vue'
 export default {
@@ -20,7 +20,7 @@ export default {
     /**
      * コンポーネントのカラーです。
      */
-    color: { type: String, default: undefined, required: false },
+    color: { type: String, default: 'primary', required: false },
 
     /**
      * ダイアログに引き渡すプロパティです。
@@ -67,6 +67,18 @@ export default {
      * - .sync 修飾子で同期することが可能です。
      */
     search: { type: String, default: undefined, required: false },
+
+    /**
+     * ステッパーの現在値です。
+     * .sync 修飾子が利用可能です。
+     */
+    step: { type: Number, default: 1, required: false },
+
+    /**
+     * ステッパー形式での編集時に使用します。
+     * 指定すると、VCardのボタンがステッパー用に切り替わります。
+     */
+    steps: { type: Array, default: () => [], required: false },
   },
 
   /***************************************************************************
@@ -98,15 +110,23 @@ export default {
 
       /**
        * コンポーネント内部で管理するページ番号です。
-       * .sync修飾子を使用可能です。
        */
       internalPage: 1,
 
       /**
        * コンポーネント内部で管理する配列の検索文字列です。
-       * .sync修飾子を使用可能です。
        */
       internalSearch: undefined,
+
+      /**
+       * コンポーネント内部で管理するステッパーの現在値です。
+       */
+      internalStep: 1,
+
+      /**
+       * AirRenderlessArrayManager への参照です。
+       */
+      managerRef: null,
 
       /**
        * テーブルコンポーネントのページ数です。
@@ -119,6 +139,12 @@ export default {
        * VDialog の終了時にスクロール位置を初期化するために使用します。
        */
       scrollTargets: [],
+
+      /**
+       * ステッパー利用時の form コンポーネントへの参照です。
+       * - ステッパーのインデックスをキーとしたオブジェクトで管理します。
+       */
+      stepperFormRefs: {},
     }
   },
 
@@ -126,6 +152,73 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    /**
+     * キャンセルボタンにバインドするオブジェクトを返します。
+     */
+    btnCancelProps() {
+      return {
+        attrs: {
+          disabled: this.managerRef?.submitting || false,
+        },
+        on: {
+          click: this.onClickCancel,
+        },
+        icon: 'mdi-close',
+      }
+    },
+
+    /**
+     * ステッパー利用時の戻るボタンにバインドするオブジェクトを返します。
+     */
+    btnStepNextProps() {
+      return {
+        attrs: {
+          color: this.color,
+          disabled: this.isLastStep || this.managerRef?.submitting || false,
+        },
+        on: {
+          click: this.onClickStepNext,
+        },
+        icon: 'mdi-chevron-right',
+        label: '次へ',
+      }
+    },
+
+    /**
+     * ステッパー利用時の戻るボタンにバインドするオブジェクトを返します。
+     */
+    btnStepPrevProps() {
+      return {
+        attrs: {
+          depressed: true,
+          disabled: this.isFirstStep || this.managerRef?.submitting || false,
+        },
+        on: {
+          click: this.onClickStepPrev,
+        },
+        icon: 'mdi-chevron-left',
+        label: '戻る',
+      }
+    },
+
+    /**
+     * 確定ボタンにバインドするオブジェクトを返します。
+     */
+    btnSubmitProps() {
+      return {
+        attrs: {
+          color: this.color,
+          disabled: this.managerRef?.submitting || false,
+          loading: this.managerRef?.submitting || false,
+        },
+        on: {
+          click: this.onClickSubmit,
+        },
+        icon: 'mdi-check',
+        label: '確定',
+      }
+    },
+
     /**
      * コンポーネントが使用するページ番号です。
      * 値が更新されると `update:page` イベントを emit します。
@@ -155,6 +248,20 @@ export default {
     },
 
     /**
+     * コンポーネントが使用するステッパーの現在値です。
+     * 値が更新されると `update:step` イベントを emit します。
+     */
+    computedStep: {
+      get() {
+        return this.internalStep
+      },
+      set(v) {
+        this.internalStep = v
+        this.$emit('update:step', v)
+      },
+    },
+
+    /**
      * コンポーネントが VForm への参照を保持しているかどうかを返します。
      */
     hasFormRef() {
@@ -167,18 +274,43 @@ export default {
     },
 
     /**
+     * ステッパーの現在値が最初のステップであるかどうかを返します。
+     * - ステッパー形式での編集でない場合は常に true を返します。
+     */
+    isFirstStep() {
+      if (!this.isStep) return true
+      return this.computedStep === 1
+    },
+
+    /**
+     * ステッパーの現在値が最後のステップであるかどうかを返します。
+     * - ステッパー形式での編集でない場合は常に true を返します。
+     */
+    isLastStep() {
+      if (!this.isStep) return true
+      return this.computedStep === this.steps.length
+    },
+
+    /**
+     * ステッパー形式での編集かどうかを返します。
+     */
+    isStep() {
+      return this.steps.length > 0
+    },
+
+    /**
      * props.schema で与えられたデータ構造をもとに `update:${prop}` イベントを生成して返します。
      * - inputs スロットに配置される子コンポーネントに引き渡されるプロパティです。
      * - 各イベントは AirRenderlessArrayManager の updateProperties を実行し、
      *   編集中のアイテムのプロパティを更新します。
      */
     updateEvents() {
-      if (!this.schema) return {}
+      if (!this.managerRef || !this.schema) return {}
       const schemaProps = Object.keys(this.schema)
       const updates = schemaProps.reduce((result, prop) => {
         // result[`update:${prop}`] = (event) => (this.editItem[prop] = event)
         result[`update:${prop}`] = ($event) => {
-          this.$refs.manager.updateProperties({ [prop]: $event })
+          this.managerRef.updateProperties({ [prop]: $event })
         }
         return result
       }, {})
@@ -204,12 +336,11 @@ export default {
 
     /**
      * data.dialog を監視します。
-     * - VDialog が終了した際に、スクロール位置を初期化します。
+     * - ダイアログが終了した際はコンポーネントの状態を初期化します。
      */
     dialog(v) {
       if (v) return
-      this.resetValidation()
-      this.scrollTo()
+      this.initialize()
     },
 
     /**
@@ -233,12 +364,73 @@ export default {
       },
       immediate: true,
     },
+
+    /**
+     * props.step を監視します。
+     * - 値を data.internalStep と同期します。
+     */
+    step: {
+      handler(v) {
+        this.internalStep = v
+      },
+      immediate: true,
+    },
   },
 
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
+    /**
+     * VCard コンポーネントのキャンセルボタンがクリックされた時の処理です。
+     * AirRenderlessArrayManager の quitEditing を実行します。
+     */
+    onClickCancel() {
+      if (!this.managerRef) return
+      this.managerRef.quitEditing()
+    },
+
+    /**
+     * VCard コンポーネントの確定ボタンがクリックされた時の処理です。
+     * submit 関数を実行します。
+     */
+    onClickSubmit() {
+      if (!this.managerRef) return
+      this.submit()
+    },
+
+    /**
+     * ステッパー利用時の次へボタンがクリックされた時の処理です。
+     * - 現在表示されているステップのバリデーションを実行します。
+     * - バリデーションが通った場合のみ、次のステップへ移動します。
+     */
+    onClickStepNext() {
+      if (!this.managerRef) return
+      const stepIndex = this.computedStep - 1
+      const formRef = this.stepperFormRefs[`step${stepIndex}`]
+      if (!this.validate(formRef)) return
+      this.stepGoToNext()
+    },
+
+    /**
+     * ステッパー利用時の戻るボタンがクリックされた時の処理です。
+     */
+    onClickStepPrev() {
+      this.stepGoToPrev()
+    },
+
+    /**
+     * コンポーネントの状態を初期化します。
+     * - バリデーションを初期化します。
+     * - VDialog が終了した際に、スクロール位置を初期化します。
+     * - ステッパーの状態を初期化します。
+     */
+    initialize() {
+      this.resetValidation()
+      this.scrollTo()
+      this.computedStep = 1
+    },
+
     /**
      * VForm の Validation を初期化します。
      */
@@ -263,32 +455,47 @@ export default {
     },
 
     /**
-     * 引数で受け取ったオブジェクトを編集後のアイテムとし、
-     * AirRenderlessArrayManager の submit 関数を実行します。
+     * ステップを次に移動させます。
      */
-    submit() {
-      if (!this.validate()) return
-      this.$refs.manager.submit()
+    stepGoToNext() {
+      this.computedStep += 1
     },
 
     /**
-     * VForm コンポーネント内の Validation を実行し、結果を Bool 値で返します。
-     * - data.formRef が存在しない場合は警告を出力して true を返します。
-     * - data.formRef が validate 関数を実装していない場合は警告を出力して true を返します。
+     * ステップを前に移動させます。
      */
-    validate() {
-      if (!this.hasFormRef) return true
-      const form = this.formRef
-      if (!form.validate || typeof form.validate !== 'function') {
+    stepGoToPrev() {
+      if (this.isFirstStep) return
+      this.computedStep -= 1
+    },
+
+    /**
+     * 編集の確定処理です。
+     * AirRenderlessArrayManager の submit 関数を実行します。
+     */
+    submit() {
+      // if (!this.managerRef || !this.validate()) return
+      if (!this.managerRef || !this.validate(this.formRef)) return
+      this.managerRef.submit()
+    },
+
+    /**
+     * 引数で VForm への参照を受け取り、Validation を実行し、結果を Bool 値で返します。
+     * @param {Object} formRef - バリデーションを実行する VForm への参照です。
+     * @return {boolean} - バリデーションの実行結果です。
+     */
+    validate(formRef) {
+      if (!formRef) return true
+      if (!formRef.validate || typeof formRef.validate !== 'function') {
         // eslint-disable-next-line
         console.warn(`VForm does not implement the validate function.`)
         return true
       }
-      const result = form.validate()
+      const result = formRef.validate()
       if (!result) {
         // eslint-disable-next-line no-console
         console.error('There are some fields required value.')
-        this.$refs.manager.setError(`Required fields have not been filled in.`)
+        this.managerRef.setError(`Required fields have not been filled in.`)
       }
       return result
     },
@@ -299,7 +506,7 @@ export default {
 <template>
   <air-renderless-array-manager
     v-bind="$attrs"
-    ref="manager"
+    :ref="(el) => (managerRef = el)"
     :is-editing.sync="dialog"
     :schema="schema"
     v-on="$listeners"
@@ -423,7 +630,7 @@ export default {
                 loading: props.submitting,
               },
               on: {
-                cancel: props.quitEditing,
+                cancel: onClickCancel,
                 submit,
               },
             },
@@ -461,7 +668,7 @@ export default {
                   editMode: props.editMode,
                 },
                 on: {
-                  cancel: props.quitEditing,
+                  cancel: onClickCancel,
                   submit,
                 },
                 color,
@@ -482,8 +689,19 @@ export default {
               }"
             >
               <v-card :ref="(el) => (cardRef = el)">
-                <v-card-title>{{ label }}</v-card-title>
-                <v-card-text class="pt-5">
+                <v-toolbar flat>
+                  <v-toolbar-title>{{ label }}</v-toolbar-title>
+                  <v-spacer />
+
+                  <!-- キャンセルボタン -->
+                  <v-btn
+                    v-bind="btnCancelProps.attrs"
+                    icon
+                    v-on="btnCancelProps.on"
+                    ><v-icon>{{ btnCancelProps.icon }}</v-icon></v-btn
+                  >
+                </v-toolbar>
+                <v-card-text :class="[isStep ? 'pa-0' : 'pt-5']">
                   <v-form
                     :ref="(el) => (formRef = el)"
                     :disabled="props.submitting"
@@ -510,25 +728,44 @@ export default {
                         },
                         on: { ...updateEvents },
                       }"
+                    />
+                    <!--
+                      ステッパー形式での編集を行う際のスロットです。
+                      steps で指定した数だけ `step-${index}` という名前でスロットが提供されます。
+                      NOTE: インデックスは0から始まります。
+                    -->
+                    <v-stepper
+                      v-if="isStep"
+                      v-model="computedStep"
+                      flat
+                      vertical
                     >
-                      <!-- PLACE INPUT COMPONENT HERE. -->
-                      <v-alert type="warning">
-                        これは GArrayManager が inputs スロットで提供する UI
-                        コンポーネントの例です。
-                      </v-alert>
-                      <v-text-field
-                        v-for="(prop, index) of Object.keys(props.editItem)"
-                        :key="index"
-                        :label="prop"
-                        :rules="[(v) => !!v || 'This field is required.']"
-                        :value="props.editItem[prop]"
-                        @input="
-                          ($event) => props.updateProperties({ [prop]: $event })
-                        "
-                      />
-                    </slot>
+                      <template v-for="(stepIndex, index) of steps">
+                        <v-stepper-step
+                          :key="`step-${index}`"
+                          :complete="computedStep > index + 1"
+                          :step="index + 1"
+                        >
+                          {{ stepIndex }}
+                        </v-stepper-step>
+                        <v-stepper-content
+                          :key="`content-${index}`"
+                          :step="index + 1"
+                        >
+                          <v-form
+                            :ref="
+                              (el) => (stepperFormRefs[`step${index}`] = el)
+                            "
+                          >
+                            <slot :name="`step-${index}`" />
+                          </v-form>
+                        </v-stepper-content>
+                      </template>
+                    </v-stepper>
+
+                    <!-- 削除指示の為のチェックボックス（ステッパー利用時は利用不可） -->
                     <v-checkbox
-                      v-if="props.editMode !== props.editModes[0]"
+                      v-if="props.editMode !== props.editModes[0] && !isStep"
                       :input-value="props.editMode"
                       :true-value="props.editModes[2]"
                       :false-value="props.editModes[1]"
@@ -550,17 +787,41 @@ export default {
                     </v-alert>
                   </v-container>
                 </v-expand-transition>
-                <v-card-actions class="justify-space-between">
-                  <v-btn :disabled="props.submitting" @click="props.quitEditing"
-                    >CANCEL</v-btn
-                  >
+                <v-card-actions>
+                  <!-- 戻るボタン -->
                   <v-btn
-                    :color="color"
-                    :disabled="props.submitting"
-                    :loading="props.submitting"
-                    @click="submit"
-                    >SUBMIT</v-btn
+                    v-if="isStep"
+                    v-bind="btnStepPrevProps.attrs"
+                    small
+                    v-on="btnStepPrevProps.on"
                   >
+                    <v-icon left>{{ btnStepPrevProps.icon }}</v-icon>
+                    {{ btnStepPrevProps.label }}
+                  </v-btn>
+
+                  <!-- 次へボタン -->
+                  <v-btn
+                    v-if="isStep && !isLastStep"
+                    class="ml-auto"
+                    v-bind="btnStepNextProps.attrs"
+                    small
+                    v-on="btnStepNextProps.on"
+                  >
+                    {{ btnStepNextProps.label }}
+                    <v-icon right>{{ btnStepNextProps.icon }}</v-icon>
+                  </v-btn>
+
+                  <!-- 確定ボタン -->
+                  <v-btn
+                    v-else
+                    class="ml-auto"
+                    v-bind="btnSubmitProps.attrs"
+                    small
+                    v-on="btnSubmitProps.on"
+                  >
+                    <v-icon left>{{ btnSubmitProps.icon }}</v-icon>
+                    {{ btnSubmitProps.label }}
+                  </v-btn>
                 </v-card-actions>
               </v-card>
             </slot>
