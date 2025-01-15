@@ -240,13 +240,34 @@ export default {
     },
 
     /**
+     * card スロットで提供するプロパティを返します。
+     */
+    cardSlotProps() {
+      return {
+        attrs: {
+          ref: (el) => (this.cardRef = el),
+          item: this.managerRef?.editItem || {},
+          editMode: this.managerRef?.editMode || undefined,
+        },
+        on: {
+          cancel: this.onClickCancel,
+          submit: this.submit,
+        },
+        color: this.color,
+        label: this.label,
+        inputs: this.inputsSlotProps,
+        loading: this.computedLoading,
+      }
+    },
+
+    /**
      * コンポーネントが使用する、処理中であるかどうかのフラグです。
-     * - AirRenderlessArrayManger の submitting も参照します。
+     * - AirRenderlessArrayManger の loading も参照します。
      * - 値が更新されると `update:loading` イベントを emit します。
      */
     computedLoading: {
       get() {
-        return this.internalLoading || this.managerRef?.submitting || false
+        return this.internalLoading || this.managerRef?.loading || false
       },
       set(v) {
         this.internalLoading = v
@@ -297,15 +318,72 @@ export default {
     },
 
     /**
-     * コンポーネントが VForm への参照を保持しているかどうかを返します。
+     * default スロットで提供するプロパティを返します。
+     * NOTE: AirRenderlessArrayManager の default スロットプロパティはテンプレートで提供します。
      */
-    hasFormRef() {
-      const result = !!this.formRef
-      if (!result) {
-        // eslint-disable-next-line no-console
-        console.warn(`Cannot found form component.`)
+    defaultSlotProps() {
+      return {
+        color: this.color,
+        activator: {
+          attrs: { color: this.color },
+          on: { click: () => this.managerRef?.toRegist() },
+        },
+        height: this.height,
+        pagination: {
+          attrs: {
+            length: this.pageCount,
+            value: this.computedPage,
+          },
+          on: {
+            input: ($event) => (this.computedPage = $event),
+          },
+        },
+        search: {
+          attrs: {
+            hideDetails: true,
+            placeholder: 'SEARCH',
+            prependInnerIcon: 'mdi-magnify',
+            value: this.computedSearch,
+          },
+          on: {
+            input: ($event) => (this.computedSearch = $event),
+          },
+        },
+        table: {
+          attrs: {
+            color: this.color,
+            items: this.managerRef?.items || [],
+            itemKey: this.managerRef?.itemKey || undefined,
+            search: this.computedSearch,
+          },
+          on: {
+            [this.eventEdit]: ($event) => this.managerRef?.toUpdate($event),
+            [this.eventDelete]: ($event) => this.managerRef?.toDelete($event),
+            'page-count': ($event) => (this.pageCount = $event),
+            'update:page': ($event) => (this.computedPage = $event),
+          },
+        },
       }
-      return result
+    },
+
+    /**
+     * dialog スロットで提供するプロパティを返します。
+     */
+    dialogSlotProps() {
+      return {
+        attrs: {
+          ...this.dialogProps,
+          ref: (el) => (this.dialogRef = el),
+          scrollable: true,
+          value: this.dialog,
+        },
+        on: {
+          input: ($event) => (this.dialog = $event),
+        },
+        card: this.cardSlotProps,
+        inputs: this.inputsSlotProps,
+        loading: this.computedLoading,
+      }
     },
 
     /**
@@ -315,6 +393,25 @@ export default {
     isFirstStep() {
       if (!this.isStep) return true
       return this.computedStep === 1
+    },
+
+    /**
+     * inputs スロットで提供するプロパティを返します。
+     */
+    inputsSlotProps() {
+      const editItem = this.managerRef?.editItem || {}
+      return {
+        attrs: {
+          ...editItem,
+          editMode: this.managerRef?.editMode || undefined,
+          isCreate: this.managerRef?.isCreate || false,
+          isUpdate: this.managerRef?.isUpdate || false,
+          isDelete: this.managerRef?.isDelete || false,
+          isEditing: this.managerRef?.isEditing || false,
+          loading: this.computedLoading,
+        },
+        on: this.updateEvents,
+      }
     },
 
     /**
@@ -587,7 +684,7 @@ export default {
           `activator` プロパティは item を登録するためのトリガーとなります。
           AirRenderlessArrayManager が提供する他のスロットプロパティがすべて提供されます。
         -->
-        <slot
+        <!-- <slot
           name="default"
           v-bind="{
             ...props,
@@ -633,7 +730,8 @@ export default {
               },
             },
           }"
-        >
+        > -->
+        <slot name="default" v-bind="defaultSlotProps">
           <v-data-table
             :headers="[
               ...Object.keys(props.editItem || {}).map((prop) => ({
@@ -676,85 +774,13 @@ export default {
         <!--
           VDialog のためのスロットです。
         -->
-        <slot
-          name="dialog"
-          v-bind="{
-            attrs: {
-              ...dialogProps,
-              ref: (el) => (dialogRef = el),
-              scrollable: true,
-              value: dialog,
-            },
-            on: {
-              input: ($event) => (dialog = $event),
-            },
-            // dialog スロットの配下にある card スロットのためのプロパティ
-            card: {
-              attrs: {
-                ref: (el) => (cardRef = el),
-                item: props.editItem,
-                editMode: props.editMode,
-                loading: computedLoading,
-              },
-              on: {
-                cancel: onClickCancel,
-                submit,
-              },
-            },
-            // card スロットの配下にある inputs スロットのためのプロパティ
-            inputs: {
-              attrs: {
-                ...props.editItem,
-                editMode: props.editMode,
-                isCreate: props.isCreate,
-                isUpdate: props.isUpdate,
-                isDelete: props.isDelete,
-                loading: computedLoading,
-              },
-              on: { ...updateEvents },
-            },
-            loading: computedLoading,
-          }"
-        >
-          <v-dialog
-            :ref="(el) => (dialogRef = el)"
-            v-model="dialog"
-            v-bind="dialogProps"
-            scrollable
-          >
+        <slot name="dialog" v-bind="dialogSlotProps">
+          <v-dialog v-bind="dialogSlotProps.attrs" v-on="dialogSlotProps.on">
             <!--
               VCard のためのスロットです。
               UI コンポーネント群をラップする Card コンポーネントを置換する際に使用します。
             -->
-            <slot
-              name="card"
-              v-bind="{
-                attrs: {
-                  ref: (el) => (cardRef = el),
-                  item: props.editItem,
-                  editMode: props.editMode,
-                },
-                on: {
-                  cancel: onClickCancel,
-                  submit,
-                },
-                color,
-                label,
-                // card スロットの配下にある inputs スロットのためのプロパティ
-                inputs: {
-                  attrs: {
-                    ...props.editItem,
-                    editMode: props.editMode,
-                    isCreate: props.isCreate,
-                    isUpdate: props.isUpdate,
-                    isDelete: props.isDelete,
-                    loading: computedLoading,
-                  },
-                  on: { ...updateEvents },
-                },
-                loading: computedLoading,
-              }"
-            >
+            <slot name="card" v-bind="cardSlotProps">
               <v-card :ref="(el) => (cardRef = el)">
                 <v-toolbar class="flex-grow-0" flat>
                   <v-toolbar-title>{{ label }}</v-toolbar-title>
@@ -781,21 +807,7 @@ export default {
                       emit してください。
                       当該コンポーネントはこのイベントを受けて item のプロパティを更新します。
                     -->
-                    <slot
-                      name="inputs"
-                      v-bind="{
-                        attrs: {
-                          ...props.editItem,
-                          editMode: props.editMode,
-                          isCreate: props.isCreate,
-                          isUpdate: props.isUpdate,
-                          isDelete: props.isDelete,
-                          isEditing: props.isEditing,
-                          loading: computedLoading,
-                        },
-                        on: { ...updateEvents },
-                      }"
-                    />
+                    <slot name="inputs" v-bind="inputsSlotProps" />
 
                     <!-- 削除指示の為のチェックボックス（ステッパー利用時は利用不可） -->
                     <v-checkbox
@@ -832,18 +844,7 @@ export default {
                         >
                           <slot
                             :name="`step-${index}`"
-                            v-bind="{
-                              attrs: {
-                                ...props.editItem,
-                                editMode: props.editMode,
-                                isCreate: props.isCreate,
-                                isUpdate: props.isUpdate,
-                                isDelete: props.isDelete,
-                                isEditing: props.isEditing,
-                                loading: computedLoading,
-                              },
-                              on: { ...updateEvents },
-                            }"
+                            v-bind="inputsSlotProps"
                           />
                         </v-form>
                       </v-stepper-content>
