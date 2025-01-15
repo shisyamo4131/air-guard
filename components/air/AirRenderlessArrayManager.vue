@@ -65,7 +65,7 @@ export default {
 
     /**
      * 配列の要素を削除する処理を上書きします。
-     * (item, index, items) => Promise({boolean})
+     * (item, index, items) => Promise<boolean>
      */
     handleDelete: {
       type: Function,
@@ -79,6 +79,20 @@ export default {
      * - .sync 修飾子による同期が可能です。
      */
     isEditing: { type: Boolean, default: false, required: false },
+
+    /**
+     * `変更` または `削除` モードに切り替える際、対象アイテムの初期化処理を
+     * カスタムすることができます。
+     * NOTE:
+     * schema には本来のモデルを指定しているものの、配列に格納されているアイテムは
+     * 別のデータである場合などに使用します。
+     * (item) => Promise<Object>
+     */
+    itemConverter: {
+      type: Function,
+      default: undefined,
+      required: false,
+    },
 
     /**
      * 配列内の要素を特定するためのキーです。
@@ -147,9 +161,9 @@ export default {
       internalIsEditing: false,
 
       /**
-       * submit 処理の実行中であることを表します。
+       * コンポーネントが処理中であることを表すフラグです。
        */
-      submitting: false,
+      loading: false,
     }
   },
 
@@ -291,11 +305,35 @@ export default {
    ***************************************************************************/
   methods: {
     /**
+     * コンポーネントのエラー状態を初期化します。
+     */
+    clearError() {
+      this.errors.splice(0)
+    },
+
+    /**
      * コンポーネントの状態を編集終了にします。
      * - ウォッチャーによりコンポーネントの初期化処理が実行されます。
      */
     quitEditing() {
       this.computedIsEditing = false
+    },
+
+    /**
+     * エラーメッセージと詳細情報をコンソールに出力し、コンポーネントをエラー状態にします。
+     * @param {string} message - エラーの内容を説明するメッセージ。
+     * @param {any} [payload] - エラーに関連する追加情報（オブジェクトや値など）。省略可能。
+     */
+    setError(message, payload) {
+      if (payload !== undefined) {
+        // eslint-disable-next-line no-console
+        console.error(`[AirRenderlessArrayManager] ${message}`, payload)
+      } else {
+        // eslint-disable-next-line no-console
+        console.error(`[AirRenderlessArrayManager] ${message}`)
+      }
+
+      this.errors.push(message)
     },
 
     /**
@@ -326,7 +364,7 @@ export default {
         return
       }
 
-      this.submitting = true
+      this.loading = true
 
       try {
         // 編集モードに合わせて処理
@@ -347,7 +385,7 @@ export default {
         // eslint-disable-next-line no-console
         console.error(`Failed to submit process.`, err)
       } finally {
-        this.submitting = false
+        this.loading = false
       }
     },
 
@@ -382,21 +420,55 @@ export default {
     /**
      * コンポーネントの編集モードを `変更` にし、コンポーネントの状態を編集中にします。
      * - data.editItem が item で初期化されます。
+     * - itemConverter が指定されている場合、これを実行します。
      */
-    toUpdate(item) {
-      this.toggleEditMode(this.UPDATE)
-      this._initializeItem(item)
-      this.computedIsEditing = true
+    async toUpdate(item) {
+      this.clearError()
+      this.loading = true
+      try {
+        this.toggleEditMode(this.UPDATE)
+        const initItem = this.itemConverter
+          ? await this.itemConverter(item).catch((err) => {
+              const message = `Failed to convert item.`
+              this.setError(message, err)
+              throw err
+            })
+          : item
+        this._initializeItem(initItem)
+        this.computedIsEditing = true
+      } catch (err) {
+        const message = `An error has occured at toUpdate().`
+        this.setError(message, err)
+      } finally {
+        this.loading = false
+      }
     },
 
     /**
      * コンポーネントの編集モードを `削除` にし、コンポーネントの状態を編集中にします。
      * - data.editItem が item で初期化されます。
+     * - itemConverter が指定されている場合、これを実行します。
      */
-    toDelete(item) {
-      this.toggleEditMode(this.DELETE)
-      this._initializeItem(item)
-      this.computedIsEditing = true
+    async toDelete(item) {
+      this.clearError()
+      this.loading = true
+      try {
+        this.toggleEditMode(this.DELETE)
+        const initItem = this.itemConverter
+          ? await this.itemConverter(item).catch((err) => {
+              const message = `Failed to convert item.`
+              this.setError(message, err)
+              throw err
+            })
+          : item
+        this._initializeItem(initItem)
+        this.computedIsEditing = true
+      } catch (err) {
+        const message = `An error has occured at toDelete().`
+        this.setError(message, err)
+      } finally {
+        this.loading = false
+      }
     },
 
     /**
@@ -421,13 +493,6 @@ export default {
           console.warn(`Property "${key}" does not exist in editItem.`)
         }
       })
-    },
-
-    /**
-     * コンポーネントのエラー状態を初期化します。
-     */
-    clearError() {
-      this.errors.splice(0)
     },
 
     /**
@@ -575,23 +640,6 @@ export default {
         if (key in this.editItem) this.editItem[key] = value
       })
     },
-
-    /**
-     * エラーメッセージと詳細情報をコンソールに出力し、コンポーネントをエラー状態にします。
-     * @param {string} message - エラーの内容を説明するメッセージ。
-     * @param {any} [payload] - エラーに関連する追加情報（オブジェクトや値など）。省略可能。
-     */
-    setError(message, payload) {
-      if (payload !== undefined) {
-        // eslint-disable-next-line no-console
-        console.error(`[AirRenderlessArrayManager] ${message}`, payload)
-      } else {
-        // eslint-disable-next-line no-console
-        console.error(`[AirRenderlessArrayManager] ${message}`)
-      }
-
-      this.errors.push(message)
-    },
   },
 
   /***************************************************************************
@@ -633,6 +681,9 @@ export default {
         // コンポーネントが管理している配列
         items: this.internalItems,
 
+        // コンポーネントが処理中であることを表します。
+        loading: this.loading,
+
         // コンポーネントの状態を初期化します。
         quitEditing: this.quitEditing,
 
@@ -641,9 +692,6 @@ export default {
 
         // 編集を確定するための関数です。
         submit: this.submit,
-
-        // submit 処理中であることを表します。
-        submitting: this.submitting,
 
         // コンポーネントの編集モードのみを切り替えます。
         toggleEditMode: this.toggleEditMode,
