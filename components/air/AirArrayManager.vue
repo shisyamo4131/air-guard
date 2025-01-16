@@ -354,6 +354,7 @@ export default {
             color: this.color,
             items: this.managerRef?.items || [],
             itemKey: this.managerRef?.itemKey || undefined,
+            page: this.computedPage,
             search: this.computedSearch,
           },
           on: {
