@@ -337,7 +337,7 @@ export default {
     },
 
     /**
-     * 現在編集のアイテムの編集内容を確定させます。
+     * 現在編集中のアイテムの編集内容を確定させます。
      */
     async submit() {
       // コンポーネントのエラー状態を初期化
@@ -382,8 +382,10 @@ export default {
         // `submit:complete` イベントを emit
         this.$emit('submit:complete', { editMode: this.editMode })
       } catch (err) {
+        const message = `Failed to submit process.`
         // eslint-disable-next-line no-console
-        console.error(`Failed to submit process.`, err)
+        console.error(message, err)
+        this.setError(message, err)
       } finally {
         this.loading = false
       }
