@@ -413,7 +413,7 @@ export default {
         this.$emit('input', this.internalItem)
         this.$emit(this.UPDATE, this.internalItem)
       } catch (err) {
-        this.setError(`Failed to modify item.`, err)
+        this.setError(`Failed to modify item. ${err.message}`, err)
         throw err
       }
     },
@@ -428,7 +428,7 @@ export default {
         if (this.handleDelete) await this.handleDelete(this.editItem)
         this.$emit(this.DELETE, this.editItem)
       } catch (err) {
-        this.setError(`Failed to remove item.`, err)
+        this.setError(`Failed to remove item. ${err.message}`, err)
         throw err
       }
     },
