@@ -66,7 +66,7 @@ export default {
     /**
      * コンポーネントの高さです。
      */
-    height: { type: [String, Number], default: undefined, required: false },
+    height: { type: [String, Number], default: 'auto', required: false },
 
     /**
      * カードコンポーネントのタイトルとして引き渡されます。
@@ -280,6 +280,16 @@ export default {
         inputs: this.inputsSlotProps,
         loading: this.computedLoading,
       }
+    },
+
+    /**
+     * コンポーネントのルートに適用する height を返します。
+     */
+    computedHeight() {
+      if (typeof this.height === 'number') {
+        return { height: `${this.height}px` } // 数値は "px" を付与
+      }
+      return { height: this.height } // 文字列はそのまま適用
     },
 
     /**
@@ -743,8 +753,8 @@ export default {
     v-on="$listeners"
   >
     <template #default="props">
-      <!-- style や class は何故か v-sheet に引き渡される。レンダーレスだから？ -->
-      <v-sheet :height="height">
+      <!-- style や class は何故か div に引き渡される。レンダーレスだから？ -->
+      <div :style="computedHeight">
         <!-- AirRenderlessArrayManager の loading が true の場合に表示するスナックバー -->
         <v-snackbar
           :color="color"
@@ -939,7 +949,7 @@ export default {
             </slot>
           </v-dialog>
         </slot>
-      </v-sheet>
+      </div>
     </template>
   </air-renderless-array-manager>
 </template>
