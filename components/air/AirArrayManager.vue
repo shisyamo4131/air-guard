@@ -42,6 +42,28 @@ export default {
     eventEdit: { type: String, default: 'click:edit', required: false },
 
     /**
+     * eventDelete で指定されたイベントを受け取った時の動作を上書きします。
+     * 文字列を指定した場合はその名前でイベントを emit します。
+     * 関数を指定した場合はその関数を実行します。
+     */
+    eventDeleteHandler: {
+      type: [String, Function],
+      default: undefined,
+      required: false,
+    },
+
+    /**
+     * eventEdit で指定されたイベントを受け取った時の動作を上書きします。
+     * 文字列を指定した場合はその名前でイベントを emit します。
+     * 関数を指定した場合はその関数を実行します。
+     */
+    eventEditHandler: {
+      type: [String, Function],
+      default: undefined,
+      required: false,
+    },
+
+    /**
      * コンポーネントの高さです。
      */
     height: { type: [String, Number], default: undefined, required: false },
@@ -358,8 +380,8 @@ export default {
             search: this.computedSearch,
           },
           on: {
-            [this.eventEdit]: ($event) => this.managerRef?.toUpdate($event),
-            [this.eventDelete]: ($event) => this.managerRef?.toDelete($event),
+            [this.eventEdit]: ($event) => this._handleToUpdate($event),
+            [this.eventDelete]: ($event) => this._handleToDelete($event),
             'page-count': ($event) => (this.pageCount = $event),
             'update:page': ($event) => (this.computedPage = $event),
           },
@@ -664,6 +686,50 @@ export default {
       }
       return result
     },
+
+    /**
+     * props.editEvent で指定されたイベントを受け取った際の処理です。
+     */
+    _handleToUpdate(event) {
+      // eventEditHandler が指定されていない場合
+      if (!this.eventEditHandler) {
+        this.managerRef?.toUpdate(event)
+        return
+      }
+
+      // eventEditHandler が文字列の場合（イベント名として emit）
+      if (typeof this.eventEditHandler === 'string') {
+        this.$emit(this.eventEditHandler, event)
+        return
+      }
+
+      // eventEditHandler が関数の場合
+      if (typeof this.eventEditHandler === 'function') {
+        this.eventEditHandler(event)
+      }
+    },
+
+    /**
+     * props.editDelete で指定されたイベントを受け取った際の処理です。
+     */
+    _handleToDelete(event) {
+      // eventDeleteHandler が指定されていない場合
+      if (!this.eventDeleteHandler) {
+        this.managerRef?.toDelete(event)
+        return
+      }
+
+      // eventDeleteHandler が文字列の場合（イベント名として emit）
+      if (typeof this.eventDeleteHandler === 'string') {
+        this.$emit(this.eventDeleteHandler, event)
+        return
+      }
+
+      // eventDeleteHandler が関数の場合
+      if (typeof this.eventDeleteHandler === 'function') {
+        this.eventDeleteHandler(event)
+      }
+    },
   },
 }
 </script>
@@ -729,8 +795,8 @@ export default {
               </v-toolbar>
             </template>
             <template #[`item.actions`]="{ item }">
-              <v-btn :color="color" @click="props.toUpdate(item)">変更</v-btn>
-              <v-btn :color="color" @click="props.toDelete(item)">削除</v-btn>
+              <v-btn :color="color" @click="_handleToUpdate(item)">変更</v-btn>
+              <v-btn :color="color" @click="_handleToDelete(item)">削除</v-btn>
             </template>
           </v-data-table>
         </slot>
