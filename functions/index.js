@@ -19,6 +19,7 @@ import * as newUsers from './triggers/new-users.js'
 import * as users from './triggers/users.js'
 import * as system from './modules/system.js'
 import * as masterDocuments from './triggers/master-documents.js'
+import * as equipments from './triggers/equipments.js'
 
 /**
  * APIによる同期処理
@@ -44,4 +45,5 @@ export {
   system,
   access,
   masterDocuments,
+  equipments,
 }
