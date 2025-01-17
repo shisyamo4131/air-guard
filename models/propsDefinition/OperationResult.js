@@ -3,6 +3,8 @@
  * @author shisyamo4131
  * @refact 2025-01-13
  */
+import { SiteMinimal } from '../Site'
+import { SiteContractMinimal } from '../SiteContract'
 import { generateVueProps, generateClassProps } from './propsUtil'
 import ConsumptionTax from '~/plugins/consumption-tax'
 
@@ -22,7 +24,7 @@ const propsDefinition = {
   // 現場オブジェクト（モデルによるフェッチ）
   site: {
     type: Object,
-    default: null,
+    default: () => new SiteMinimal(),
     required: false,
     requiredByClass: true,
   },
@@ -110,7 +112,9 @@ const propsDefinition = {
   // 現場取極めオブジェクト
   siteContract: {
     type: Object,
-    default: null,
+    // 2025-01-13 既定値に現場取極めのインスタンスを定義
+    // default: null,
+    default: () => new SiteContractMinimal(),
     required: false,
     requiredByClass: true,
   },

@@ -2,7 +2,7 @@
 import GCardFloatingLabel from '../../atoms/cards/GCardFloatingLabel.vue'
 import EmploymentInsurance from '~/models/EmploymentInsurance'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
-import GCardEmploymentInsurance from '~/components/atoms/cards/GCardEmploymentInsurance.vue'
+import GCardEmploymentInsurance from '~/components/molecules/cards/GCardEmploymentInsurance.vue'
 export default {
   /***************************************************************************
    * COMPONENTS

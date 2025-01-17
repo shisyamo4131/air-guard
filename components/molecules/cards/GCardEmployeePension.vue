@@ -2,7 +2,7 @@
 import GCardFloatingLabel from '../../atoms/cards/GCardFloatingLabel.vue'
 import Pension from '~/models/Pension'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
-import GCardPension from '~/components/atoms/cards/GCardPension.vue'
+import GCardPension from '~/components/molecules/cards/GCardPension.vue'
 export default {
   /***************************************************************************
    * COMPONENTS

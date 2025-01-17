@@ -2,7 +2,7 @@
 import GCardFloatingLabel from '../../atoms/cards/GCardFloatingLabel.vue'
 import HealthInsurance from '~/models/HealthInsurance'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
-import GCardHealthInsurance from '~/components/atoms/cards/GCardHealthInsurance.vue'
+import GCardHealthInsurance from '~/components/molecules/cards/GCardHealthInsurance.vue'
 export default {
   /***************************************************************************
    * COMPONENTS

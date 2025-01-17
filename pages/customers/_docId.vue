@@ -1,30 +1,22 @@
 <script>
 /**
- * 現場の詳細画面です。
+ * 取引先情報詳細画面
  * @author shisyamo4131
  * @refact 2025-01-17
  */
+import GManagerCustomer from '~/components/managers/GManagerCustomer.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
-import GManagerSite from '~/components/managers/GManagerSite.vue'
-import GManagerSiteOperationSchedules from '~/components/managers/GManagerSiteOperationSchedules.vue'
-import GCardFloatingLabel from '~/components/atoms/cards/GCardFloatingLabel.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 export default {
   /***************************************************************************
    * NAME
    ***************************************************************************/
-  name: 'SiteDetail',
+  name: 'CustomerDetail',
 
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: {
-    GTemplateDefault,
-    GManagerSite,
-    GManagerSiteOperationSchedules,
-    GCardFloatingLabel,
-    GBtnEdit,
-  },
+  components: { GTemplateDefault, GManagerCustomer, GBtnEdit },
 
   /***************************************************************************
    * ASYNCDATA
@@ -44,8 +36,8 @@ export default {
     breadcrumbs() {
       return [
         { text: 'TOP', to: '/' },
-        { text: '現場', to: this.parentPath, exact: true },
-        { text: '現場詳細', to: `${this.parentPath}/${this.docId}` },
+        { text: '取引先', to: this.parentPath, exact: true },
+        { text: '取引先詳細', to: `${this.parentPath}/${this.docId}` },
       ]
     },
 
@@ -54,8 +46,10 @@ export default {
      */
     mainProps() {
       return [
-        { text: '現場名', value: 'name' },
-        { text: '住所', value: 'address' },
+        { text: '住所1', value: 'address1' },
+        { text: '住所2', value: 'address2' },
+        { text: 'TEL', value: 'tel' },
+        { text: 'FAX', value: 'fax' },
       ]
     },
   },
@@ -67,9 +61,13 @@ export default {
     <v-breadcrumbs :items="breadcrumbs" />
     <v-container>
       <v-row>
-        <!-- 現場概要 -->
+        <!-- 取引先概要 -->
         <v-col cols="4">
-          <g-manager-site :doc-id="docId">
+          <g-manager-customer
+            :doc-id="docId"
+            color="primary"
+            @DELETE="$router.replace('/customers')"
+          >
             <template #default="{ attrs, on }">
               <v-card>
                 <v-card-title>{{ attrs.abbr }}</v-card-title>
@@ -95,25 +93,12 @@ export default {
                 </v-card-actions>
               </v-card>
             </template>
-          </g-manager-site>
+          </g-manager-customer>
         </v-col>
-
-        <!-- 稼働予定 -->
         <v-col cols="8">
-          <g-card-floating-label
-            v-slot="{ attrs }"
-            label="稼働予定"
-            color="primary"
-            icon="mdi-calendar"
-            outlined
+          <v-alert type="info"
+            >その他の情報を表示できる機能を実装予定です。</v-alert
           >
-            <v-container fluid class="pt-0">
-              <g-manager-site-operation-schedules
-                v-bind="attrs"
-                :site-id="docId"
-              />
-            </v-container>
-          </g-card-floating-label>
         </v-col>
       </v-row>
     </v-container>

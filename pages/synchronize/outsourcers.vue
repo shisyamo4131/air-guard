@@ -35,7 +35,7 @@ import {
 import { database } from 'air-firebase'
 import Outsourcer from '~/models/Outsourcer'
 import Autonumber from '~/models/Autonumber'
-import GDataTableOutsourcers from '~/components/molecules/tables/GDataTableOutsourcers.vue'
+import GDataTableOutsourcers from '~/components/atoms/tables/GDataTableOutsourcers.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
   /***************************************************************************

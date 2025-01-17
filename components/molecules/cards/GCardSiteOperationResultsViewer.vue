@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import GDataTableOperationResults from '../tables/GDataTableOperationResults.vue'
+import GDataTableOperationResults from '../../atoms/tables/GDataTableOperationResults.vue'
 import OperationResult from '~/models/OperationResult'
 export default {
   /***************************************************************************

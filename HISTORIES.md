@@ -34,17 +34,40 @@
 4. 会社の予定を追加できるようにしても良いかもしれない。（祝日管理機能に実装？？？）
 5. 同期処理で同期済みのマスタデータが未同期として出てきてしまう。
 6. 現場選択で取引先をフィルタリングしたい。
+7. ユーザー追加時、同一メールアドレスをはじけ。
+8. ADoucmentManager が削除後に正常に動く？
+9. GCalendar のツールバーの左右余白・・・（現場管理の稼働予定管理でバランスが悪い？）
+10. SiteOperationSchedule の人数 0 が表示されないために更新できない。
 
 - DataTable コンポーネントを ATOMS に移動させる。
 
 ## 実装計画
 
 - 同期したマスタデータの同期解除処理
-- 誤って作成してしまった現場マスタの統合処理
-- AArrayManager のようなレンダーレスコンポーネントでドキュメントを管理したい。（MIXINS は見通しが悪くてメンテナンスがしづらい）
-  - ADocumentManager として実装可能だが、影響範囲が大きいため後回し。
+- 誤って作成してしまった現場マスタの統合処理（現場稼働予定のみ統合処理機能実装済み）
 - Cloud Functions の syncDependentDocumentsV2 を配列に対してテスト（非正規化ドキュメントの同期処理について配列にも対応したバージョン）
 - インデックスの作成・更新処理をアプリ側のモデルに持たせて Cloud Functions への依存を解消 -> アプリ側のインデックス作成・更新処理が失敗した場合のリカバリー方法は？
+
+## xxxx-xx-xx - ver 0.9.5
+
+### システムメンテナンス
+
+- 現場稼働予定の統合機能を実装
+
+### 新規実装: GDocumentsManagerSiteOperationSchedules
+
+- 現場稼働予定の管理コンポーネントとして新規実装
+- GSiteOperationScheduleManager の使用を停止（但し、更新履歴の表示機能を後で参照できるようにコンポーネントは削除せずに保存）
+- GSiteOperationScheduleManager を使用していたコンポーネントは GDocumentsManagerSiteOperationSchedules に差し替え
+
+### その他
+
+- GAlertError コンポーネントを新規実装
+- ドキュメント管理用レンダーレスコンポーネント ADocumentManager を実装
+- ドキュメント管理用共有コンポーネント GDocumentManager を実装
+- 配列管理用レンダーレスコンポーネント ARenderlessArrayManager を実装
+- ドキュメント群管理用共有コンポーネント GDocumentsManager を実装
+- その他軽微なリファクト
 
 ## 2025-01-02 - ver 0.9.4
 

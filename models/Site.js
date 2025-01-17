@@ -4,12 +4,8 @@ import Customer from './Customer'
 import { classProps } from './propsDefinition/Site'
 
 /**
- * ## Sitesドキュメントデータモデル【論理削除】
- *
- * @version 2.0.0
+ * 現場ドキュメントデータモデル【論理削除】
  * @author shisyamo4131
- * @updates
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
  */
 export default class Site extends FireModel {
   /****************************************************************************
@@ -213,5 +209,41 @@ export default class Site extends FireModel {
       // エラーを再スローして呼び出し元に通知
       throw err
     }
+  }
+}
+
+/**
+ * Site クラスから createAt, updateAt, uid, remarks, tokenMap を削除したクラスです。
+ * - 非正規化した site プロパティを持つドキュメントに保存するデータを提供するためのクラス
+ * - 不要なプロパティを削除することでデータ量を抑制するために使用します。
+ * - 更新系のメソッドは利用できません。
+ */
+export class SiteMinimal extends Site {
+  /****************************************************************************
+   * INITIALIZE
+   ****************************************************************************/
+  initialize(item = {}) {
+    super.initialize(item)
+
+    delete this.createAt
+    delete this.updateAt
+    delete this.uid
+    delete this.remarks
+    delete this.tokenMap
+  }
+
+  /****************************************************************************
+   * 更新系メソッドは使用不可
+   ****************************************************************************/
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
+  }
+
+  update() {
+    return Promise.reject(new Error('このクラスの update は使用できません。'))
+  }
+
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
   }
 }

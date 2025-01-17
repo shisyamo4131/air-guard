@@ -88,7 +88,7 @@ export default {
       v-on="$listeners"
     >
       <div class="flex-grow-1">
-        <slot name="default" />
+        <slot name="default" v-bind="{ attrs: { color } }" />
       </div>
       <v-card-actions
         v-if="$scopedSlots.actions"

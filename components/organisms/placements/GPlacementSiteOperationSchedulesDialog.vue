@@ -1,16 +1,18 @@
 <script>
 /**
  * 配置管理用の現場稼働予定管理ダイアログコンポーネントです。
+ * @author shisyamo4131
+ * @refact 2025-01-16
  */
 import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
-import GDocumentsManagerSiteOperationSchedules from '~/components/managers/GDocumentsManagerSiteOperationSchedules.vue'
+import GManagerSiteOperationSchedules from '~/components/managers/GManagerSiteOperationSchedules.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
     GBtnCancel,
-    GDocumentsManagerSiteOperationSchedules,
+    GManagerSiteOperationSchedules,
   },
 
   /***************************************************************************
@@ -95,7 +97,7 @@ export default {
         <g-btn-cancel icon @click="dialog = false" />
       </v-toolbar>
       <v-card-text class="flex-grow-1 py-0 px-0 px-md-4">
-        <g-documents-manager-site-operation-schedules :site-id="siteId" />
+        <g-manager-site-operation-schedules :site-id="siteId" />
       </v-card-text>
     </v-card>
   </v-dialog>

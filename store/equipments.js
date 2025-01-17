@@ -1,9 +1,9 @@
 /**
- * ## Vuex.sites.js
+ * ## Vuex.equipments.js
  *
- * Realtime Database から取得した `Sites` データを管理するVuexです。
+ * Realtime Database から取得した `Equipments` データを管理するVuexです。
  *
- * - Realtime Database の `Sites` に登録されているインデックスデータを管理します。
+ * - Realtime Database の `Equipments` に登録されているインデックスデータを管理します。
  * - インデックスデータの作成や同期の処理は Cloud Functions で行われます。
  * - `Actions.subscribe` を実行すると、インデックスデータへのリアルタイムリスナーがセットされます。
  * - `Actions.unsubscribe` を実行すると、取得済みのインデックスデータはすべてクリアされます。

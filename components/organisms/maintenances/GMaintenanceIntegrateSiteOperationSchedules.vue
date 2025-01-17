@@ -7,7 +7,6 @@
  *
  * @author shisyamo4131
  */
-import GAlertError from '~/components/atoms/alerts/GAlertError.vue'
 import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
 import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
 import GCalendarSiteOperationSchedules from '~/components/molecules/calendars/GCalendarSiteOperationSchedules.vue'
@@ -20,7 +19,6 @@ export default {
     GBtnSubmit,
     GAutocompleteSite,
     GCalendarSiteOperationSchedules,
-    GAlertError,
   },
 
   /***************************************************************************
@@ -121,7 +119,9 @@ export default {
     </v-form>
     <v-expand-transition>
       <v-container v-show="err.message" fluid>
-        <g-alert-error v-model="err" />
+        <v-alert type="error">
+          {{ err?.message || 'N/A' }}
+        </v-alert>
       </v-container>
     </v-expand-transition>
     <v-card-actions class="justify-end">

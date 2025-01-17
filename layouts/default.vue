@@ -83,12 +83,12 @@ export default {
     keepAlivePages() {
       const topLevelPath = this.$route.path.split('/').slice(0, 2).join('/')
       switch (topLevelPath) {
-        case '/customers':
-          return ['CustomersIndex']
-        case '/sites':
-          return ['SitesIndex']
-        case '/employees':
-          return ['EmployeesIndex']
+        // case '/customers':
+        //   return ['CustomersIndex']
+        // case '/sites':
+        //   return ['SitesIndex']
+        // case '/employees':
+        //   return ['EmployeesIndex']
         default:
           return []
       }
@@ -276,17 +276,38 @@ tr.g-row.g-row-no-hover:hover {
 }
 
 /**
- * 親コンテナにdisplay: flexとheightが指定されていること。
+ * 可変高のデータテーブル用クラス
  */
+.flex-table-container {
+  display: flex;
+  flex-grow: 1;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.flex-table-container > .v-data-table {
+  display: flex;
+  flex-grow: 1;
+  width: 100%;
+  overflow: hidden;
+}
+
+.flex-table-container > .v-data-table > .v-data-table__wrapper {
+  width: 100%;
+}
+
+/* 以下、削除したい */
 .flex-table {
   display: flex;
   flex-grow: 1;
   width: 100%;
+  overflow: hidden;
 }
 
 .flex-table > div {
   width: 100%;
 }
+/* ここまで */
 
 /*****************************************************************************
  * vue-draggable で ドラッグ用アイコンのポインターを指定

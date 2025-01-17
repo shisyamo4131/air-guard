@@ -1,24 +1,28 @@
 import { FireModel, firestore } from 'air-firebase'
 import { doc } from 'firebase/firestore'
 import { accessor, classProps } from './propsDefinition/OperationResult'
-import Site from './Site'
+import { SiteMinimal } from './Site'
 import OperationResultWorker from './OperationResultWorker'
-import SiteContract from './SiteContract'
+import { SiteContractMinimal } from './SiteContract'
 import OperationWorkResult from './OperationWorkResult'
 import OperationResultOutsourcer from './OperationResultOutsourcer'
 import { getClosingDate, isValidDateFormat } from '~/utils/utility'
 
 /**
- * ## OperationResults ドキュメントデータモデル【物理削除】
- *
- * 稼働実績のデータモデルです。
+ * 稼働実績ドキュメントデータモデル
  *
  * - `OperationWorkerResults`ドキュメントが同期的に作成・更新・削除されます。
  *   -> `OperationResults`ドキュメントがアプリ外から削除された場合に備えて
  *      Cloud Functionsでも同期削除の処理が必要です。
  *   -> 更新に対する同期はアプリ側のみで行います。
  *
+ * - 現場取極め情報はドキュメント作成時のみ、該当するものを Firestore から抽出して
+ *   自動的に適用します。該当するものが存在しない場合、適用されません。
+ *   適用する現場取極めを指定・変更するのは稼働請求管理で行います。
+ *   但し、現場ID、勤務区分が変更されていた場合はドキュメントの変更時に再度適用を行います。
+ *
  * @author shisyamo4131
+ * @refact 2025-01-14
  */
 export default class OperationResult extends FireModel {
   /****************************************************************************
@@ -32,8 +36,8 @@ export default class OperationResult extends FireModel {
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
-    site: Site,
-    siteContract: SiteContract,
+    site: SiteMinimal,
+    siteContract: SiteContractMinimal,
     workers: OperationResultWorker,
     outsourcers: OperationResultOutsourcer,
   }
@@ -53,6 +57,53 @@ export default class OperationResult extends FireModel {
       sales: accessor.sales,
       consumptionTax: accessor.consumptionTax,
     })
+  }
+
+  /****************************************************************************
+   * beforeCreate をオーバーライドします。
+   * - 現場IDから現場ドキュメントを取得して自身の site プロパティにセットします。
+   * - 取引先情報から締日を計算してセットします。
+   ****************************************************************************/
+  async beforeCreate() {
+    // 現場情報を取得して自身に反映
+    await this.site.fetch(this.siteId).catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error(`[beforeCreate] 現場情報の取得に失敗しました。`)
+      throw err
+    })
+
+    // 締日を現場情報が保有する取引先情報から取得してセット
+    try {
+      this.refreshClosingDate()
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(`[beforeCreate] 締日の設定に失敗しました。`)
+      throw err
+    }
+  }
+
+  /****************************************************************************
+   * beforeUpdate をオーバーライドします。
+   * - 現場IDが変更されている場合は現場情報と締日を更新します。
+   ****************************************************************************/
+  async beforeUpdate() {
+    // 現場IDが変更されていれば現場情報、締日を更新
+    if (this.siteId !== this.site?.docId) {
+      await this.site.fetch(this.siteId).catch((err) => {
+        // eslint-disable-next-line no-console
+        console.error(`[beforeUpdate] 現場情報の取得に失敗しました。`)
+        throw err
+      })
+
+      // 締日を現場情報が保有する取引先情報から取得してセット
+      try {
+        this.refreshClosingDate()
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error(`[beforeUpdate] 締日の設定に失敗しました。`)
+        throw err
+      }
+    }
   }
 
   /****************************************************************************
@@ -229,7 +280,10 @@ export default class OperationResult extends FireModel {
    * @param {Object} item 従業員の稼働実績オブジェクト
    ****************************************************************************/
   addWorker(item) {
-    const worker = new OperationResultWorker(item)
+    const worker = new OperationResultWorker({
+      ...item,
+      date: item.date || this.date,
+    })
     if (!worker.employeeId) {
       throw new Error('従業員IDが指定されていません。')
     }
@@ -395,6 +449,7 @@ export default class OperationResult extends FireModel {
   }
 
   /****************************************************************************
+   * [2025-01-14 GInputOperationResult(旧)を削除したら削除可能]
    * 適用される契約情報を現在設定されている現場、日付、勤務区分で更新します。
    * - 現場（site）、日付（date）、勤務区分（workShift）がすべて設定されている場合にのみ契約情報を取得します。
    * - siteContractプロパティが契約情報で更新されます。
@@ -422,7 +477,7 @@ export default class OperationResult extends FireModel {
     const params = { siteId: site.docId, date, workShift }
 
     try {
-      const contract = new SiteContract()
+      const contract = new SiteContractMinimal()
 
       // 契約情報のロード
       await contract.loadContract(params)

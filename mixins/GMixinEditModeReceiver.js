@@ -17,6 +17,11 @@ export default {
       validator: (v) => ['CREATE', 'UPDATE', 'DELETE'].includes(v),
       required: true,
     },
+
+    isCreate: { type: Boolean, default: false, required: false },
+    isUpdate: { type: Boolean, default: false, required: false },
+    isDelete: { type: Boolean, default: false, required: false },
+    isEditing: { type: Boolean, default: false, required: false },
   },
 
   /***************************************************************************

@@ -1,9 +1,11 @@
 <script>
-import GDataTableEmploymentInsurances from '~/components/atoms/tables/GDataTableEmploymentInsurances.vue'
-import GAutocompleteEmployee from '~/components/molecules/inputs/GAutocompleteEmployee.vue'
-import GInputEmploymentInsurance from '~/components/molecules/inputs/GInputEmploymentInsurance.vue'
-import GTemplateDocumentsIndex from '~/components/templates/GTemplateDocumentsIndex.vue'
-import EmploymentInsurance from '~/models/EmploymentInsurance'
+/**
+ * 雇用保険情報の一覧ページです。
+ * @author shisyamo4131
+ * @refact 2025-01-13
+ */
+import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
+import GManagerEmploymentInsurances from '~/components/managers/GManagerEmploymentInsurances.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -14,90 +16,18 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GAutocompleteEmployee,
-    GInputEmploymentInsurance,
-    GDataTableEmploymentInsurances,
-    GTemplateDocumentsIndex,
-  },
-
-  /***************************************************************************
-   * DATA
-   ***************************************************************************/
-  data() {
-    return {
-      docs: [],
-      instance: new EmploymentInsurance(),
-      selectedEmployeeId: null,
-    }
-  },
-
-  /***************************************************************************
-   * WATCH
-   ***************************************************************************/
-  watch: {
-    selectedEmployeeId(v) {
-      this.subscribe()
-    },
-  },
-
-  /***************************************************************************
-   * MOUNTED
-   ***************************************************************************/
-  mounted() {
-    this.subscribe()
-  },
-
-  /***************************************************************************
-   * DESTROYED
-   ***************************************************************************/
-  destroyed() {
-    this.unsubscribe()
-  },
-
-  /***************************************************************************
-   * METHODS
-   ***************************************************************************/
-  methods: {
-    /**
-     * 雇用保険ドキュメントへの購読を開始します。
-     */
-    subscribe() {
-      this.unsubscribe()
-      this.docs = this.instance.subscribeDocs([
-        ['where', 'isLossed', '==', false],
-      ])
-    },
-
-    /**
-     * 雇用保険ドキュメントへの購読を解除します。
-     */
-    unsubscribe() {
-      this.docs.splice(0)
-      this.instance.unsubscribe()
-    },
+    GTemplateDefault,
+    GManagerEmploymentInsurances,
   },
 }
 </script>
 
 <template>
-  <g-template-documents-index
-    label="雇用保険管理"
-    :items="docs"
-    :instance="instance"
-  >
-    <template #input="{ attrs, on }">
-      <g-input-employment-insurance v-bind="attrs" v-on="on" />
-    </template>
-    <template #search="{ inputAttrs }">
-      <g-autocomplete-employee
-        v-model="selectedEmployeeId"
-        v-bind="inputAttrs"
-      />
-    </template>
-    <template #default="{ attrs, on }">
-      <g-data-table-employment-insurances v-bind="attrs" v-on="on" />
-    </template>
-  </g-template-documents-index>
+  <g-template-default v-slot="{ height }">
+    <v-container fluid :style="{ height: `${height}px` }">
+      <g-manager-employment-insurances color="primary" height="100%" />
+    </v-container>
+  </g-template-default>
 </template>
 
 <style></style>
