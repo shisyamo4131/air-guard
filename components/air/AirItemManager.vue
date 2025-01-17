@@ -199,8 +199,8 @@ export default {
           ...this.managerRef?.item,
         },
         on: {
-          'click:edit': () => this.managerRef?.toUpdate(),
-          'click:delete': () => this.managerRef.toDelete(),
+          [this.eventEdit]: () => this.managerRef?.toUpdate(),
+          [this.eventDelete]: () => this.managerRef.toDelete(),
         },
       }
     },
