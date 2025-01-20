@@ -2,6 +2,7 @@ import colors from 'vuetify/es5/util/colors'
 import { CONTRACT_TYPE } from '~/models/constants/contract-types'
 import { HEALTH_INSURANCE_TYPE } from '~/models/constants/health-insurance-types'
 import { MEDICAL_CHECKUP_TYPES } from '~/models/constants/medical-checkup-types'
+import { PAYMENT_TYPE } from '~/models/constants/payment-types'
 import { SOCIAL_SECURITY_PROCESSING_STATUS } from '~/models/constants/processing-status'
 
 /**
@@ -353,14 +354,6 @@ const OUTSOURCER_STATUS_ARRAY = [
   { value: 'active', text: '契約中' },
   { value: 'expired', text: '契約終了' },
 ]
-
-/**
- * 支給形態
- */
-const PAYMENT_TYPE = {
-  monthly: '1:月給（月ごと）',
-  daily: '2:日給（日ごと）',
-}
 
 const PAYMENT_TYPE_ARRAY = Object.entries(PAYMENT_TYPE).map(([key, value]) => {
   return { value: key, text: value }

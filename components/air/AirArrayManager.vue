@@ -4,7 +4,7 @@
  * - テーブルコンポーネントへ容易にプロパティを引き渡すためのプロパティが用意されています。
  * - アイテムを編集するためのダイアログを内包しています。
  * @author shisyamo4131
- * @refact 2025-01-15
+ * @refact 2025-01-20
  */
 import AirRenderlessArrayManager from './AirRenderlessArrayManager.vue'
 export default {
@@ -363,6 +363,7 @@ export default {
         height: this.height,
         pagination: {
           attrs: {
+            color: this.color,
             length: this.pageCount,
             value: this.computedPage,
           },

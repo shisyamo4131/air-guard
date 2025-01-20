@@ -495,7 +495,7 @@ export default {
                       >
                         <v-container>
                           <v-data-table
-                            v-bind="table"
+                            v-bind="table.attrs"
                             :headers="[
                               { text: '受診日', value: 'date' },
                               { text: '受診機関', value: 'agency' },
@@ -505,6 +505,7 @@ export default {
                             hide-default-footer
                             sort-by="date"
                             sort-desc
+                            v-on="table.on"
                           />
                           <v-container fluid>
                             <v-row justify="center">
@@ -535,23 +536,32 @@ export default {
                         icon="mdi-file-sign"
                       >
                         <v-data-table
-                          v-bind="table"
+                          v-bind="table.attrs"
                           :headers="[
                             { text: '契約日', value: 'startDate' },
                             {
-                              text: '就業規則',
-                              value: 'workRegulation',
+                              text: '雇用形態',
+                              value: 'contractType',
                               sortable: false,
                             },
                             {
-                              text: '基本給',
-                              value: 'basicWage',
-                              align: 'right',
+                              text: '支給形態',
+                              value: 'paymentType',
                               sortable: false,
                             },
                           ]"
                           hide-default-footer
+                          :items-per-page="3"
+                          sort-by="startDate"
+                          sort-desc
+                          v-on="table.on"
                         >
+                          <template #[`item.contractType`]="{ item }">
+                            {{ $CONTRACT_TYPE[item.contractType] }}
+                          </template>
+                          <template #[`item.paymentType`]="{ item }">
+                            {{ $PAYMENT_TYPE[item.paymentType] }}
+                          </template>
                         </v-data-table>
                         <v-container fluid>
                           <v-row justify="center">

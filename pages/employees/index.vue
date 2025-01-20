@@ -2,7 +2,7 @@
 /**
  * 従業員情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-17
+ * @refact 2025-01-20
  */
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
@@ -86,7 +86,6 @@ export default {
   <g-template-default v-slot="{ height }">
     <v-container fluid :style="{ height: `${height}px` }">
       <air-array-manager
-        v-bind="$attrs"
         :dialog-props="{
           maxWidth: 600,
         }"
@@ -99,7 +98,6 @@ export default {
         :items="items"
         label="従業員情報"
         :schema="schema"
-        v-on="$listeners"
       >
         <template #default="{ activator, pagination, search, table }">
           <v-sheet class="d-flex flex-column" height="100%">
