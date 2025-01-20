@@ -2,7 +2,7 @@
 /**
  * 取引先情報入力コンポーネントです。
  * @author shisyamo4131
- * @refact 2025-01-13
+ * @refact 2025-01-20
  */
 import GTextField from '../../atoms/inputs/GTextField.vue'
 import GSelect from '../../atoms/inputs/GSelect.vue'

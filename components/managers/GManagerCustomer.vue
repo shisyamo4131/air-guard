@@ -2,7 +2,7 @@
 /**
  * 取引先ドキュメント管理コンポーネント
  * @author shisyamo4131
- * @refact 2025-01-16
+ * @refact 2025-01-20
  */
 import AirItemManager from '../air/AirItemManager.vue'
 import GInputCustomer from '../molecules/inputs/GInputCustomer.vue'
