@@ -4,6 +4,7 @@
  * @author shisyamo4131
  * @refact 2025-01-20
  */
+import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GInputEmploymentInsurance from '~/components/molecules/inputs/GInputEmploymentInsurance.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
@@ -21,6 +22,7 @@ export default {
     GTemplateDefault,
     GBtnRegist,
     GInputEmploymentInsurance,
+    AirArrayManager,
   },
 
   /***************************************************************************

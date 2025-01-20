@@ -4,6 +4,7 @@
  * @author shisyamo4131
  * @refact 2025-01-20
  */
+import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
@@ -27,6 +28,7 @@ export default {
     GIconStop,
     GInputEmployee,
     GChipSyncStatus,
+    AirArrayManager,
   },
 
   /***************************************************************************
