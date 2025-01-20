@@ -2,15 +2,13 @@
 /**
  * 就業規則情報の一覧ページです。
  * @author shisyamo4131
+ * @refact 2025-01-20
  */
-import GInputWorkRegulation from '~/components/molecules/inputs/GInputWorkRegulation.vue'
-import GDataTableWorkRegulations from '~/components/molecules/tables/GDataTableWorkRegulations.vue'
+import AirArrayManager from '~/components/air/AirArrayManager.vue'
+import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
+import GInputWorkRegulationV2 from '~/components/molecules/inputs/GInputWorkRegulationV2.vue'
+import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import WorkRegulation from '~/models/WorkRegulation'
-import GDialogConfirm from '~/components/molecules/dialogs/GDialogConfirm.vue'
-import GSnackbarError from '~/components/atoms/snackbars/GSnackbarError.vue'
-import GDialogMessage from '~/components/molecules/dialogs/GDialogMessage.vue'
-import GSelectYear from '~/components/atoms/inputs/GSelectYear.vue'
-import GTemplateDocumentsIndex from '~/components/templates/GTemplateDocumentsIndex.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -21,13 +19,10 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GInputWorkRegulation,
-    GDataTableWorkRegulations,
-    GDialogConfirm,
-    GSnackbarError,
-    GDialogMessage,
-    GSelectYear,
-    GTemplateDocumentsIndex,
+    GTemplateDefault,
+    AirArrayManager,
+    GBtnRegist,
+    GInputWorkRegulationV2,
   },
 
   /***************************************************************************
@@ -35,151 +30,111 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      error: {
-        snackbar: false,
-        message: null,
-      },
-      instance: new WorkRegulation(),
       items: [],
-      loading: false,
-      selectedYear: `${new Date().getFullYear()}`,
+      schema: new WorkRegulation(),
     }
   },
 
   /***************************************************************************
-   * COMPUTED
+   * MOUNTED
    ***************************************************************************/
-  computed: {
-    /**
-     * 過去3年から未来3年までの年を返します。
-     */
-    yearList() {
-      const currentYear = new Date().getFullYear()
-      const years = Array.from({ length: 7 }, (_, index) => {
-        const year = currentYear - 3 + index // 過去3年から未来3年まで
-        return {
-          text: `${year}年`, // 表示用のテキスト
-          value: String(year), // 値は文字列
-        }
-      })
-
-      return years
-    },
-  },
-
-  /***************************************************************************
-   * WATCH
-   ***************************************************************************/
-  watch: {
-    /**
-     * `data.selectedYear`を監視します。
-     * - `subscribeDocs()`を実行します。
-     * - 初回起動時にも実行させるため、immediateを指定しています。
-     */
-    selectedYear: {
-      handler() {
-        this.subscribeDocs()
-      },
-      immediate: true,
-    },
+  mounted() {
+    this.items = this.schema.subscribeDocs()
   },
 
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.instance.unsubscribe()
+    this.schema.unsubscribe()
   },
 
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    /**
-     * `data.selectedYear`をクエリ条件として`data.instance`のsubscribeDocsを実行します。
-     */
-    subscribeDocs() {
-      this.items = this.instance.subscribeDocs([
-        ['where', 'year', '==', this.selectedYear],
-      ])
+    async handleCreate(item) {
+      await item.create()
     },
-
-    /**
-     * 翌年度の就業規則を一括作成します。
-     */
-    async createNextWorkRegulations() {
-      this.$refs['error-snackbar'].initialize()
-      this.loading = true
-      try {
-        this.selectedYear = await WorkRegulation.createNextYear(
-          this.selectedYear
-        )
-        this.$refs['create-next-work-regulations-dialog'].close()
-        this.$refs['create-next-work-regulations-complete'].open()
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.error(err)
-        this.error.message = err.message
-        this.error.snackbar = true
-      } finally {
-        this.loading = false
-      }
+    async handleUpdate(item) {
+      await item.update()
+    },
+    async handleDelete(item) {
+      await item.delete()
     },
   },
 }
 </script>
 
 <template>
-  <g-template-documents-index
-    label="就業規則管理"
-    :items="items"
-    :instance="instance"
-  >
-    <template #append-label>
-      <v-spacer />
-      <v-toolbar-items>
-        <g-dialog-confirm
-          ref="create-next-work-regulations-dialog"
-          :loading="loading"
-          @submit="createNextWorkRegulations"
-        >
-          <template #activator="{ attrs, on }">
-            <v-btn v-bind="attrs" :disabled="!items.length" text v-on="on"
-              >年度更新</v-btn
-            >
-          </template>
-          現在表示されている就業規則の年度更新（翌年度作成処理）を行います。よろしいですか？
-        </g-dialog-confirm>
-        <g-dialog-message ref="create-next-work-regulations-complete">
-          翌年度の就業規則を作成しました。月平均所定労働日数など、年度に合わせた更新処理を行ってください。
-        </g-dialog-message>
-      </v-toolbar-items>
-    </template>
-    <template #prepend-search="{ attrs, inputAttrs }">
-      <g-select-year
-        v-model="selectedYear"
-        style="max-width: 120px"
-        v-bind="{ ...attrs, ...inputAttrs }"
-      />
-    </template>
-    <template #input="{ attrs, on }">
-      <g-input-work-regulation v-bind="attrs" v-on="on" />
-    </template>
-    <template #default="{ attrs, on }">
-      <g-data-table-work-regulations
-        v-bind="attrs"
-        sort-by="code"
-        sort-desc
-        v-on="on"
-      />
-      <g-snackbar-error
-        ref="error-snackbar"
-        v-model="error.snackbar"
-        :message.sync="error.message"
-        top
-      />
-    </template>
-  </g-template-documents-index>
+  <g-template-default v-slot="{ height }">
+    <v-container fluid :style="{ height: `${height}px` }">
+      <air-array-manager
+        :dialog-props="{
+          maxWidth: 600,
+        }"
+        event-edit="click:row"
+        :handle-create="handleCreate"
+        :handle-update="handleUpdate"
+        :handle-delete="handleDelete"
+        height="100%"
+        :items="items"
+        label="就業規則情報"
+        :schema="schema"
+      >
+        <template #default="props">
+          <v-sheet class="d-flex flex-column" :height="props.height">
+            <v-toolbar class="flex-grow-0" flat>
+              <v-text-field
+                v-bind="props.search.attrs"
+                v-on="props.search.on"
+              />
+              <g-btn-regist
+                v-bind="props.activator.attrs"
+                icon
+                v-on="props.activator.on"
+              />
+            </v-toolbar>
+            <div class="flex-table-container">
+              <v-data-table
+                v-bind="props.table.attrs"
+                :headers="[
+                  { text: '適用年度', value: 'year' },
+                  { text: '就業規則名', value: 'name' },
+                  { text: '所定労働日', value: 'scheduledWorkDays' },
+                  {
+                    text: '月平均所定労働日数',
+                    value: 'averageMonthlyScheduledWorkDays',
+                    align: 'center',
+                  },
+                  { text: '法定休日', value: 'legalHoliday', align: 'center' },
+                  { text: '時間外', value: 'overtimePayRate', align: 'center' },
+                  { text: '休日', value: 'holidayPayRate', align: 'center' },
+                  { text: '賞与', value: 'bonusEligibility', align: 'center' },
+                ]"
+                hide-default-footer
+                v-on="props.table.on"
+              >
+              </v-data-table>
+            </div>
+            <v-container fluid>
+              <v-row justify="center">
+                <v-col cols="10">
+                  <v-pagination
+                    v-bind="props.pagination.attrs"
+                    v-on="props.pagination.on"
+                  />
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-sheet>
+        </template>
+        <template #inputs="{ attrs, on }">
+          <g-input-work-regulation-v-2 v-bind="attrs" v-on="on" />
+        </template>
+      </air-array-manager>
+    </v-container>
+  </g-template-default>
 </template>
 
 <style></style>
