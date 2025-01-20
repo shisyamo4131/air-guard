@@ -8,8 +8,8 @@ import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
-import GInputNewUserV2 from '~/components/molecules/inputs/GInputNewUserV2.vue'
-import GInputUserV2 from '~/components/molecules/inputs/GInputUserV2.vue'
+import GInputNewUser from '~/components/molecules/inputs/GInputNewUser.vue'
+import GInputUser from '~/components/molecules/inputs/GInputUser.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import NewUser from '~/models/NewUser'
 import User from '~/models/User'
@@ -26,8 +26,8 @@ export default {
     GTemplateDefault,
     AirArrayManager,
     GBtnRegist,
-    GInputUserV2,
-    GInputNewUserV2,
+    GInputUser,
+    GInputNewUser,
     GBtnCancel,
     GBtnSubmit,
   },
@@ -145,7 +145,7 @@ export default {
                   />
                 </template>
                 <template #inputs="{ attrs, on }">
-                  <g-input-new-user-v-2 v-bind="attrs" v-on="on" />
+                  <g-input-new-user v-bind="attrs" v-on="on" />
                 </template>
               </air-array-manager>
               <!-- 復元処理ダイアログ -->
@@ -210,7 +210,7 @@ export default {
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">
-          <g-input-user-v-2 v-bind="attrs" v-on="on" />
+          <g-input-user v-bind="attrs" v-on="on" />
         </template>
       </air-array-manager>
     </v-container>

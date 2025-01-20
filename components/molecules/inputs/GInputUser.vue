@@ -1,19 +1,14 @@
 <script>
 /**
- * ## Users コレクションドキュメント入力コンポーネント
- *
- * - Users コレクションドキュメントは Authentication のアカウント作成時に、Cloud Functionsによって同期作成されます。
- * - よって、当該コンポーネントは編集専用となります。
- * - uidは読み取り専用です。
- *
+ * ユーザー情報入力コンポーネントです。
  * @author shisyamo4131
+ * @refact 2025-01-20
  */
 import GTextField from '../../atoms/inputs/GTextField.vue'
-import GCardInputForm from '../cards/GCardInputForm.vue'
-import User from '~/models/User'
-import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GAutocompleteEmployee from '~/components/molecules/inputs/GAutocompleteEmployee.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
+import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
+import { vueProps } from '~/models/propsDefinition/User'
 
 export default {
   /***************************************************************************
@@ -21,65 +16,69 @@ export default {
    ***************************************************************************/
   components: {
     GTextField,
-    GCardInputForm,
     GAutocompleteEmployee,
     GCheckbox,
   },
+
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GInputSubmitMixin],
+  mixins: [GMixinEditModeReceiver],
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  props: {
-    instance: {
-      type: Object,
-      required: true,
-      validator(instance) {
-        return instance instanceof User
-      },
-    },
-  },
-  /***************************************************************************
-   * DATA
-   ***************************************************************************/
-  data() {
-    return {
-      editModel: new User(),
-    }
-  },
+  props: vueProps,
 }
 </script>
 
 <template>
-  <g-card-input-form
-    v-bind="$attrs"
-    label="ユーザー情報編集"
-    :edit-mode="editMode"
-    :loading="loading"
-    @click:submit="submit"
-    v-on="$listeners"
-  >
+  <div>
     <g-text-field
-      v-model="editModel.docId"
+      :value="docId"
       label="uid"
       readonly
       hint="読み取り専用"
       persistent-hint
+      @input="$emit('update:docId', $event)"
     />
-    <g-text-field v-model="editModel.displayName" label="表示名" required />
-    <g-text-field v-model="editModel.email" label="email" required />
-    <g-autocomplete-employee v-model="editModel.employeeId" label="従業員" />
+    <g-text-field
+      :value="displayName"
+      label="表示名"
+      required
+      @input="$emit('update:displayName', $event)"
+    />
+    <g-text-field
+      :value="email"
+      label="email"
+      required
+      @input="$emit('update:email', $event)"
+    />
+    <g-autocomplete-employee
+      :value="employeeId"
+      label="従業員"
+      @input="$emit('update:employeeId', $event)"
+    />
     <g-checkbox
-      v-model="editModel.isAdmin"
+      :input-value="isAdmin"
       class="mt-0"
       label="アドミニストレータ"
       hide-details
+      @change="$emit('update:isAdmin', $event)"
     />
-    <g-checkbox v-model="editModel.isDeveloper" label="開発者" hide-details />
-    <g-checkbox v-model="editModel.isManager" label="管理者" hide-details />
-  </g-card-input-form>
+    <g-checkbox
+      :input-value="isDeveloper"
+      label="開発者"
+      hide-details
+      @change="$emit('update:isDeveloper', $event)"
+    />
+    <g-checkbox
+      :input-value="isManager"
+      label="管理者"
+      hide-details
+      @change="$emit('update:isManager', $event)"
+    />
+  </div>
 </template>
 
 <style></style>

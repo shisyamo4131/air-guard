@@ -1,71 +1,60 @@
 <script>
 /**
  * NewUsersドキュメント入力コンポーネント
- *
  * @author shisyamo4131
+ * @refact 2025-01-20
  */
 import GTextField from '../../atoms/inputs/GTextField.vue'
-import GCardInputForm from '../cards/GCardInputForm.vue'
-import NewUser from '~/models/NewUser'
-import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
 import GAutocompleteEmployee from '~/components/molecules/inputs/GAutocompleteEmployee.vue'
+import { vueProps } from '~/models/propsDefinition/NewUser'
+import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
 
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTextField, GCardInputForm, GAutocompleteEmployee },
+  components: { GTextField, GAutocompleteEmployee },
+
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GInputSubmitMixin],
+  mixins: [GMixinEditModeReceiver],
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  props: {
-    instance: {
-      type: Object,
-      required: true,
-      validator(instance) {
-        return instance instanceof NewUser
-      },
-    },
-  },
-  /***************************************************************************
-   * DATA
-   ***************************************************************************/
-  data() {
-    return {
-      editModel: new NewUser(),
-    }
-  },
+  props: vueProps,
 }
 </script>
 
 <template>
-  <g-card-input-form
-    v-bind="$attrs"
-    label="新規ユーザー情報入力"
-    :edit-mode="editMode"
-    :loading="loading"
-    @click:submit="submit"
-    v-on="$listeners"
-  >
+  <div>
     <g-text-field
-      v-model="editModel.email"
+      :value="email"
       label="email"
       required
       input-type="email"
+      @input="$emit('update:email', $event)"
     />
     <g-text-field
-      v-model="editModel.password"
+      :value="password"
       label="password"
       required
       type="password"
+      @input="$emit('update:password', $event)"
     />
-    <g-autocomplete-employee v-model="editModel.employeeId" label="従業員" />
-    <g-text-field v-model="editModel.displayName" label="表示名" required />
-  </g-card-input-form>
+    <g-autocomplete-employee
+      :value="employeeId"
+      label="従業員"
+      @input="$emit('update:employeeId', $event)"
+    />
+    <g-text-field
+      :value="displayName"
+      label="表示名"
+      required
+      @input="$emit('update:displayName', $event)"
+    />
+  </div>
 </template>
 
 <style></style>
