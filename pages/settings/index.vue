@@ -2,11 +2,12 @@
 /**
  * 設定画面です。
  * @author shisyamo4131
+ * @refact 2025-01-20
  */
 import CompanyInfo from '~/models/CompanyInfo'
 import AirItemManager from '~/components/air/AirItemManager.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
-import GInputCompanyInfoV2 from '~/components/molecules/inputs/GInputCompanyInfoV2.vue'
+import GInputCompanyInfo from '~/components/molecules/inputs/GInputCompanyInfo.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 export default {
   /***************************************************************************
@@ -20,7 +21,7 @@ export default {
   components: {
     AirItemManager,
     GBtnEdit,
-    GInputCompanyInfoV2,
+    GInputCompanyInfo,
     GTemplateDefault,
   },
 
@@ -124,7 +125,7 @@ export default {
           </v-card>
         </template>
         <template #inputs="{ attrs, on }">
-          <g-input-company-info-v-2 v-bind="attrs" v-on="on" />
+          <g-input-company-info v-bind="attrs" v-on="on" />
         </template>
       </air-item-manager>
     </v-container>
