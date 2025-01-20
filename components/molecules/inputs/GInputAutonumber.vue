@@ -5,7 +5,7 @@
  * よって、一度登録されたドキュメントのコレクション名は変更できません。
  * 運用として、コレクション名を変更する必要が生じた場合は削除⇒作成します。
  * @author shisyamo4131
- * @refact 2025-01-13
+ * @refact 2025-01-20
  */
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'

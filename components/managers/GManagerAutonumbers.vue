@@ -2,11 +2,11 @@
 /**
  * 自動採番管理コンポーネント
  * @author shisyamo4131
- * @refact 2025-01-16
+ * @refact 2025-01-20
  */
 import GDataTableAutonumbers from '../atoms/tables/GDataTableAutonumbers.vue'
 import GBtnRegist from '../atoms/btns/GBtnRegist.vue'
-import GInputAutonumberV2 from '../molecules/inputs/GInputAutonumberV2.vue'
+import GInputAutonumber from '../molecules/inputs/GInputAutonumber.vue'
 import AirArrayManager from '../air/AirArrayManager.vue'
 import Autonumber from '~/models/Autonumber'
 export default {
@@ -16,7 +16,7 @@ export default {
   components: {
     GDataTableAutonumbers,
     GBtnRegist,
-    GInputAutonumberV2,
+    GInputAutonumber,
     AirArrayManager,
   },
 
@@ -99,7 +99,7 @@ export default {
       </v-sheet>
     </template>
     <template #inputs="{ attrs, on }">
-      <g-input-autonumber-v-2 v-bind="attrs" v-on="on" />
+      <g-input-autonumber v-bind="attrs" v-on="on" />
     </template>
   </air-array-manager>
 </template>
