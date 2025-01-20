@@ -19,7 +19,7 @@ import EmployeeContract from '~/models/EmployeeContract'
 import GListIterator from '~/components/atoms/lists/GListIterator.vue'
 import Employee from '~/models/Employee'
 import AirItemManager from '~/components/air/AirItemManager.vue'
-import GInputEmployeeV2 from '~/components/molecules/inputs/GInputEmployeeV2.vue'
+import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 import GInputSecurityRegistrationV2 from '~/components/molecules/inputs/GInputSecurityRegistrationV2.vue'
 export default {
   /***************************************************************************
@@ -40,7 +40,7 @@ export default {
     GCardFloatingLabel,
     GListIterator,
     AirItemManager,
-    GInputEmployeeV2,
+    GInputEmployee,
     GInputSecurityRegistrationV2,
   },
 
@@ -624,7 +624,7 @@ export default {
         </v-container>
       </template>
       <template #inputs="{ attrs, on }">
-        <g-input-employee-v-2 v-bind="attrs" v-on="on" />
+        <g-input-employee v-bind="attrs" v-on="on" />
       </template>
     </air-item-manager>
   </g-template-default>

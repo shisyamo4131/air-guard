@@ -8,7 +8,7 @@ import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
 import GIconStop from '~/components/atoms/icons/GIconStop.vue'
-import GInputEmployeeV2 from '~/components/molecules/inputs/GInputEmployeeV2.vue'
+import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import Employee from '~/models/Employee'
 export default {
@@ -25,7 +25,7 @@ export default {
     GBtnRegist,
     GIconPlay,
     GIconStop,
-    GInputEmployeeV2,
+    GInputEmployee,
     GChipSyncStatus,
   },
 
@@ -148,7 +148,7 @@ export default {
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">
-          <g-input-employee-v-2 v-bind="attrs" v-on="on" />
+          <g-input-employee v-bind="attrs" v-on="on" />
         </template>
       </air-array-manager>
     </v-container>
