@@ -5,13 +5,13 @@
  * @refact 2025-01-16
  */
 import AirItemManager from '../air/AirItemManager.vue'
-import GInputCustomerV2 from '../molecules/inputs/GInputCustomerV2.vue'
+import GInputCustomer from '../molecules/inputs/GInputCustomer.vue'
 import Customer from '~/models/Customer'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { AirItemManager, GInputCustomerV2 },
+  components: { AirItemManager, GInputCustomer },
 
   /***************************************************************************
    * PROPS
@@ -74,7 +74,7 @@ export default {
       <slot name="default" v-bind="props" />
     </template>
     <template #inputs="{ attrs, on }">
-      <g-input-customer-v-2 v-bind="attrs" v-on="on" />
+      <g-input-customer v-bind="attrs" v-on="on" />
     </template>
   </air-item-manager>
 </template>

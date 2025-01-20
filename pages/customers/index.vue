@@ -8,7 +8,7 @@ import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
 import GIconStop from '~/components/atoms/icons/GIconStop.vue'
-import GInputCustomerV2 from '~/components/molecules/inputs/GInputCustomerV2.vue'
+import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import Customer from '~/models/Customer'
 export default {
@@ -25,7 +25,7 @@ export default {
     GBtnRegist,
     GIconPlay,
     GIconStop,
-    GInputCustomerV2,
+    GInputCustomer,
     GChipSyncStatus,
   },
 
@@ -153,7 +153,7 @@ export default {
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">
-          <g-input-customer-v-2 v-bind="attrs" v-on="on" />
+          <g-input-customer v-bind="attrs" v-on="on" />
         </template>
       </air-array-manager>
     </v-container>
