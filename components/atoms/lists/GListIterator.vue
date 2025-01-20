@@ -55,7 +55,7 @@ export default {
 <template>
   <v-list v-bind="$attrs" v-on="$listeners">
     <template v-for="(list, index) of lists">
-      <v-list-item :key="index">
+      <v-list-item v-if="item && list.value in item" :key="index">
         <!-- slot: list-item -->
         <slot :name="`list-item.${list.value}`" v-bind="{ item, index }">
           <v-list-item-content>

@@ -36,6 +36,11 @@ export default {
     },
 
     /**
+     * 削除指示ができなくなります。
+     */
+    disableDelete: { type: Boolean, default: false, required: false },
+
+    /**
      * アイテムの削除開始トリガーとなるイベントの名前です。
      */
     eventDelete: { type: String, default: 'click:delete', required: false },
@@ -469,6 +474,7 @@ export default {
 
                     <!-- 削除指示の為のチェックボックス -->
                     <v-checkbox
+                      v-if="!disableDelete"
                       :input-value="props.editMode"
                       :true-value="props.editModes[1]"
                       :false-value="props.editModes[0]"
@@ -495,6 +501,7 @@ export default {
                   <v-btn
                     class="ml-auto"
                     v-bind="btnSubmitProps.attrs"
+                    :dark="!!color"
                     small
                     v-on="btnSubmitProps.on"
                   >
