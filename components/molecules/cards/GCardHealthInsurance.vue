@@ -3,14 +3,8 @@
  * 健康保険資格情報を表示するためのカードコンポーネントです。
  * @author shisyamo4131
  */
-import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import { vueProps } from '~/models/propsDefinition/HealthInsurance'
 export default {
-  /***************************************************************************
-   * COMPONENTS
-   ***************************************************************************/
-  components: { GBtnEdit },
-
   /***************************************************************************
    * PROPS
    ***************************************************************************/
@@ -40,9 +34,6 @@ export default {
   <v-card v-bind="$attrs">
     <v-list>
       <v-list-item>
-        <v-list-item-icon>
-          <v-icon :color="color" x-large>mdi-card-account-details</v-icon>
-        </v-list-item-icon>
         <v-list-item-content>
           <v-list-item-subtitle> 資格取得日 </v-list-item-subtitle>
           <v-list-item-title class="pb-2">
@@ -62,9 +53,7 @@ export default {
         </v-list-item-content>
       </v-list-item>
     </v-list>
-    <v-card-actions class="justify-end">
-      <g-btn-edit :color="color" small dark @click="$emit('click:edit')" />
-    </v-card-actions>
+    <slot name="actions" />
   </v-card>
 </template>
 

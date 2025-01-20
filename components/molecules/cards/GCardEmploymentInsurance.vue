@@ -3,21 +3,22 @@
  * 雇用保険資格情報を表示するためのカードコンポーネントです。
  * @author shisyamo4131
  */
+import { vueProps } from '~/models/propsDefinition/EmploymentInsurance'
+
 export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
     color: { type: String, default: undefined, required: false },
-    acquisitionDate: { type: String, default: undefined, required: false },
-    policyNumber: { type: String, default: undefined, required: false },
+    ...vueProps,
   },
 
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   computed: {
-    date() {
+    computedDate() {
       if (!this.acquisitionDate) return null
       return this.$dayjs(this.acquisitionDate).format('YYYY年MM月DD日')
     },
@@ -35,7 +36,7 @@ export default {
         <v-list-item-content>
           <v-list-item-subtitle> 資格取得日 </v-list-item-subtitle>
           <v-list-item-title class="pb-2">
-            {{ date }}
+            {{ computedDate }}
           </v-list-item-title>
           <v-list-item-subtitle> 被保険者整理番号 </v-list-item-subtitle>
           <v-list-item-title>
@@ -44,6 +45,7 @@ export default {
         </v-list-item-content>
       </v-list-item>
     </v-list>
+    <slot name="actions" />
   </v-card>
 </template>
 
