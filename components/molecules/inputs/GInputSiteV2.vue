@@ -3,7 +3,7 @@
  * 現場情報入力コンポーネントです。
  * - 登録モードでは、入力された現場名に類似する既登録現場が存在した場合、アラートを出します。
  * @author shisyamo4131
- * @refact 2025-01-13
+ * @refact 2025-01-20
  */
 import GDate from '~/components/atoms/inputs/GDate.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'

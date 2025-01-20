@@ -6,7 +6,7 @@
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
-import GInputHealthInsuranceV2 from '~/components/molecules/inputs/GInputHealthInsuranceV2.vue'
+import GInputHealthInsurance from '~/components/molecules/inputs/GInputHealthInsurance.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import HealthInsurance from '~/models/HealthInsurance'
 export default {
@@ -20,7 +20,7 @@ export default {
    ***************************************************************************/
   components: {
     GTemplateDefault,
-    GInputHealthInsuranceV2,
+    GInputHealthInsurance,
     AirArrayManager,
     GBtnRegist,
   },
@@ -123,7 +123,7 @@ export default {
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">
-          <g-input-health-insurance-v-2 v-bind="attrs" v-on="on" />
+          <g-input-health-insurance v-bind="attrs" v-on="on" />
         </template>
       </air-array-manager>
     </v-container>

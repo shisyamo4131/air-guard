@@ -6,7 +6,7 @@
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
-import GInputPensionV2 from '~/components/molecules/inputs/GInputPensionV2.vue'
+import GInputPension from '~/components/molecules/inputs/GInputPension.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import Pension from '~/models/Pension'
 export default {
@@ -20,7 +20,7 @@ export default {
    ***************************************************************************/
   components: {
     GTemplateDefault,
-    GInputPensionV2,
+    GInputPension,
     AirArrayManager,
     GBtnRegist,
   },
@@ -123,7 +123,7 @@ export default {
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">
-          <g-input-pension-v-2 v-bind="attrs" v-on="on" />
+          <g-input-pension v-bind="attrs" v-on="on" />
         </template>
       </air-array-manager>
     </v-container>
