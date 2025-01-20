@@ -2,7 +2,7 @@
 /**
  * 従業員雇用保険情報入力コンポーネント
  * @author shisayamo4131
- * @refact 2025-01-13
+ * @refact 2025-01-20
  */
 import GAutocompleteEmployee from './GAutocompleteEmployee.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
