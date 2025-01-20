@@ -2,14 +2,14 @@
 /**
  * 手当マスタ情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-17
+ * @refact 2025-01-20
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
 import GIconStop from '~/components/atoms/icons/GIconStop.vue'
-import GInputAllowanceV2 from '~/components/molecules/inputs/GInputAllowanceV2.vue'
+import GInputAllowance from '~/components/molecules/inputs/GInputAllowance.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import Allowance from '~/models/Allowance'
 export default {
@@ -26,7 +26,7 @@ export default {
     GBtnRegist,
     GIconPlay,
     GIconStop,
-    GInputAllowanceV2,
+    GInputAllowance,
     GChipSyncStatus,
     AirArrayManager,
   },
@@ -153,7 +153,7 @@ export default {
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">
-          <g-input-allowance-v-2 v-bind="attrs" v-on="on" />
+          <g-input-allowance v-bind="attrs" v-on="on" />
         </template>
       </air-array-manager>
     </v-container>
