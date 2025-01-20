@@ -5,7 +5,6 @@
  * @refact 2025-01-20
  */
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
-import GDataTableEmploymentInsurances from '~/components/atoms/tables/GDataTableEmploymentInsurances.vue'
 import GInputEmploymentInsurance from '~/components/molecules/inputs/GInputEmploymentInsurance.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import EmploymentInsurance from '~/models/EmploymentInsurance'
@@ -20,7 +19,6 @@ export default {
    ***************************************************************************/
   components: {
     GTemplateDefault,
-    GDataTableEmploymentInsurances,
     GBtnRegist,
     GInputEmploymentInsurance,
   },
@@ -95,12 +93,20 @@ export default {
                 v-on="props.activator.on"
               />
             </v-toolbar>
-            <div class="d-flex flex-grow-1 overflow-y-hidden">
-              <g-data-table-employment-insurances
-                class="flex-table"
+            <div class="flex-table-container">
+              <v-data-table
                 v-bind="props.table.attrs"
+                :headers="[
+                  { text: 'CODE', value: 'employee.code' },
+                  { text: '従業員', value: 'employee.fullName' },
+                  { text: '被保険者整理番号', value: 'policyNumber' },
+                  { text: '資格取得日', value: 'acquisitionDate' },
+                  { text: '資格喪失日', value: 'lossDateJp' },
+                ]"
+                hide-default-footer
                 v-on="props.table.on"
-              />
+              >
+              </v-data-table>
             </div>
             <v-container fluid>
               <v-row justify="center">
