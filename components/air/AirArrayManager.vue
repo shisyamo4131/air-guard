@@ -355,12 +355,13 @@ export default {
      */
     defaultSlotProps() {
       return {
-        color: this.color,
         activator: {
           attrs: { color: this.color },
           on: { click: () => this.managerRef?.toRegist() },
         },
+        color: this.color,
         height: this.height,
+        label: this.label,
         pagination: {
           attrs: {
             color: this.color,
