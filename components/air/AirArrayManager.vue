@@ -774,7 +774,7 @@ export default {
           AirRenderlessArrayManager が提供する他のスロットプロパティがすべて提供されます。
         -->
         <slot name="default" v-bind="{ ...props, ...defaultSlotProps }">
-          <v-data-table
+          <!-- <v-data-table
             :headers="[
               ...Object.keys(props.editItem || {}).map((prop) => ({
                 text: prop,
@@ -810,7 +810,7 @@ export default {
               <v-btn :color="color" @click="_handleToUpdate(item)">変更</v-btn>
               <v-btn :color="color" @click="_handleToDelete(item)">削除</v-btn>
             </template>
-          </v-data-table>
+          </v-data-table> -->
         </slot>
 
         <!--
