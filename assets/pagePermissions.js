@@ -16,6 +16,7 @@ module.exports = {
 
   // 人事管理
   employees: ['admin', 'developer'],
+  'employee-contracts': ['admin', 'developer'],
   'employement-insurances': ['admin', 'developer'],
   'health-insurances': ['admin', 'developer'],
   pensions: ['admin', 'developer'],

@@ -37,6 +37,7 @@ export const allNavList = [
     icon: 'mdi-account-group',
     lists: [
       { name: '従業員', to: '/employees', icon: 'mdi-account' },
+      { name: '雇用契約', to: '/employee-contracts', icon: 'mdi-file-sign' },
       {
         name: '雇用保険',
         to: '/employment-insurances',
