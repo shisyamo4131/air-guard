@@ -30,6 +30,13 @@ export default {
    ***************************************************************************/
   props: {
     /**
+     * コンポーネントが編集モードに入る直前に実行される関数を指定します。
+     * - toggleEditMode を使って編集モードを切り替える際は実行されません。
+     * (editMode) => Promise({void})
+     */
+    beforeEdit: { type: Function, default: undefined, required: false },
+
+    /**
      * コンポーネントの編集モードを表す固定値を要素とした配列を指定します。
      * 配列の要素順に、登録、変更、削除を表す固定値を指定してください。
      * - 基本的に変更する必要はありません。
@@ -413,9 +420,29 @@ export default {
      * コンポーネントの編集モードを `登録` にし、コンポーネントの状態を編集中にします。
      * - data.editItem が props.schema で初期化されます。
      */
-    toRegist() {
+    async toRegist() {
+      // コンポーネントのエラー状態を初期化
+      this.clearError()
+
+      // 編集モードを `登録` に変更
       this.toggleEditMode(this.CREATE)
+
+      // props.beforeEdit が指定されている場合はこれを実行
+      if (this.beforeEdit) {
+        await this.beforeEdit({
+          isCreate: this.isCreate,
+          isUpdate: this.isUpdate,
+          isDelete: this.isDelete,
+        }).catch((err) => {
+          this.setError(`An error has occured at beforeEdit.`, err)
+          throw err
+        })
+      }
+
+      // data.editItem を props.schema の内容で初期化
       this._initializeItem(this.schema)
+
+      // コンポーネントを編集状態に変更
       this.computedIsEditing = true
     },
 
@@ -425,10 +452,27 @@ export default {
      * - itemConverter が指定されている場合、これを実行します。
      */
     async toUpdate(item) {
+      // コンポーネントのエラー状態を初期化
       this.clearError()
+
+      // 編集モードを `変更` に変更
+      this.toggleEditMode(this.UPDATE)
+
       this.loading = true
       try {
-        this.toggleEditMode(this.UPDATE)
+        // props.beforeEdit が指定されている場合はこれを実行
+        if (this.beforeEdit) {
+          await this.beforeEdit({
+            isCreate: this.isCreate,
+            isUpdate: this.isUpdate,
+            isDelete: this.isDelete,
+          }).catch((err) => {
+            this.setError(`An error has occured at beforeEdit.`, err)
+            throw err
+          })
+        }
+
+        // props.itemConverter を実行
         const initItem = this.itemConverter
           ? await this.itemConverter(item).catch((err) => {
               const message = `Failed to convert item.`
@@ -436,7 +480,11 @@ export default {
               throw err
             })
           : item
+
+        // data.editItem を 初期化
         this._initializeItem(initItem)
+
+        // コンポーネントを編集状態に変更
         this.computedIsEditing = true
       } catch (err) {
         const message = `An error has occured at toUpdate().`
@@ -452,10 +500,27 @@ export default {
      * - itemConverter が指定されている場合、これを実行します。
      */
     async toDelete(item) {
+      // コンポーネントのエラー状態を初期化
       this.clearError()
+
+      // 編集モードを `変更` に変更
+      this.toggleEditMode(this.DELETE)
+
       this.loading = true
       try {
-        this.toggleEditMode(this.DELETE)
+        // props.beforeEdit が指定されている場合はこれを実行
+        if (this.beforeEdit) {
+          await this.beforeEdit({
+            isCreate: this.isCreate,
+            isUpdate: this.isUpdate,
+            isDelete: this.isDelete,
+          }).catch((err) => {
+            this.setError(`An error has occured at beforeEdit.`, err)
+            throw err
+          })
+        }
+
+        // props.itemConverter を実行
         const initItem = this.itemConverter
           ? await this.itemConverter(item).catch((err) => {
               const message = `Failed to convert item.`
@@ -463,7 +528,11 @@ export default {
               throw err
             })
           : item
+
+        // data.editItem を 初期化
         this._initializeItem(initItem)
+
+        // コンポーネントを編集状態に変更
         this.computedIsEditing = true
       } catch (err) {
         const message = `An error has occured at toDelete().`
