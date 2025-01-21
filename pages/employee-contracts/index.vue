@@ -7,7 +7,7 @@
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GDialogEmployeeSelector from '~/components/molecules/dialogs/GDialogEmployeeSelector.vue'
-import GInputEmployeeContractV2 from '~/components/molecules/inputs/GInputEmployeeContractV2.vue'
+import GInputEmployeeContract from '~/components/molecules/inputs/GInputEmployeeContract.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import EmployeeContract from '~/models/EmployeeContract'
 export default {
@@ -23,7 +23,7 @@ export default {
     GTemplateDefault,
     GBtnRegist,
     AirArrayManager,
-    GInputEmployeeContractV2,
+    GInputEmployeeContract,
     GDialogEmployeeSelector,
   },
 
@@ -186,7 +186,7 @@ export default {
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">
-          <g-input-employee-contract-v-2 v-bind="attrs" v-on="on" />
+          <g-input-employee-contract v-bind="attrs" v-on="on" />
         </template>
       </air-array-manager>
     </v-container>
