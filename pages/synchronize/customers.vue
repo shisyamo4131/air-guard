@@ -1,30 +1,21 @@
 <script>
 /**
- * ### pages.synchronize/customers
+ * 取引先の同期処理画面です。
  *
  * #### 概要
- * Realtime DatabaseのAirGuard/Customersに取り込まれているデータが
- * FirestoreのCustomersドキュメントと同期されるように設定する画面です。
+ * Realtime DatabaseのAirGuard/Outsourcersに取り込まれているデータが
+ * FirestoreのOutsourcersドキュメントと同期されるように設定する画面です。
  *
  * #### 機能詳細
- * - Realtime DatabaseのAirGuard/Customers下のデータについて、同期設定が行われていないものを一覧表示します。
+ * - Realtime DatabaseのAirGuard/Outsourcers下のデータについて、同期設定が行われていないものを一覧表示します。
  * - ユーザーから選択された上記データの同期先ドキュメントをユーザーが選択します。
  * - 同期先ドキュメントは`sync`プロパティがfalseのもののみ、一覧表示されます。
  * - 同期先ドキュメントは新規登録させることも可能です。
  * - `sync`プロパティがfalseである既存ドキュメントが存在しない場合のみ、
  *   同期設定が行われていないデータを複数選択して新規登録することが可能です。
  *
- * #### 注意事項
- *
  * @author shisyamo4131
- * @version 1.1.0
- *
- * @updates
- * - version 1.1.0 - 2024-07-12 - すべて強制登録を廃止
- *                              - AirGuardから複数選択 -> 強制登録を可能にした。
- * - version 1.0.2 - 2024-07-11 - forceRegist()を1件ずつ丁寧に処理するように改修。
- * - version 1.0.1 - 2024-07-10 - submit()のバグを解消。
- * - version 1.0.0 - 2024-07-09 - 初版作成
+ * @refact 2025-01-21
  */
 import {
   equalTo,
@@ -46,24 +37,33 @@ export default {
    * NAME
    ***************************************************************************/
   name: 'SynchronizeCustomers',
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
   components: { GDataTable, GTemplateDefault },
+
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
   asyncData() {
     /**
-     * `AirGuard/Customers`の同期設定がされていないデータへのリスナーをセット
+     * 取引先のデータを格納するための変数を用意
+     * airGuard: Realtimte Database の 取引先データ
+     * unsync: Firestore の未同期取引先ドキュメント
      */
     const items = { airGuard: [], unsync: [] }
+
+    /**
+     * Realtime Database, Firestore ドキュメントへのリスナーを用意
+     */
     const listeners = {
       added: null,
       changed: null,
       removed: null,
       unsync: new Customer(),
     }
+
     /**
      * `AirGuard/Customers`の同期設定がされていないデータへのリスナーをセット
      */
@@ -80,53 +80,105 @@ export default {
     listeners.added = onChildAdded(q, (data) => updateItem(data, 'add'))
     listeners.changed = onChildChanged(q, (data) => updateItem(data, 'change'))
     listeners.removed = onChildRemoved(q, (data) => updateItem(data, 'remove'))
+
     /**
-     * 同期設定がされていないSiteドキュメントコレクションへのリスナーをセット
+     * 同期設定がされていない取引先ドキュメントコレクションへのリスナーをセット
      */
     items.unsync = listeners.unsync.subscribeDocs([
       ['where', 'sync', '==', false],
     ])
     return { items, listeners }
   },
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
+      /**
+       * 選択された AirGuard のデータを新規取引先として扱うかどうかのフラグ
+       */
       asNewItem: false,
+
+      /**
+       * 処理中であることを表すフラグ
+       */
       loading: false,
+
+      /**
+       * 未同期の AirGuard データを複数選択できるようにするかどうかのフラグ
+       */
       multiple: false,
+
+      /**
+       * ページネーション用変数
+       */
       page: { toSync: 1, airGuard: 1 },
       pageCount: { toSync: 1, airGuard: 1 },
+
+      /**
+       * 選択された未同期の取引先データの配列
+       */
       selectedUnsync: [],
+
+      /**
+       * 選択された未同期の取引先ドキュメントの配列
+       */
       selectedToSync: [],
+
+      /**
+       * スナックバー用変数
+       */
       snackbar: false,
+
+      /**
+       * ステップ管理用変数
+       */
       step: 0,
     }
   },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/
   watch: {
+    /**
+     * data.asNewItem を監視します。
+     * true に変更されたら未同期取引先ドキュメントの選択を初期化します。
+     */
     asNewItem(v) {
       if (v) this.selectedToSync.splice(0)
     },
+
+    /**
+     * data.multiple を監視します。
+     * false に変更されたら未同期取引先データの選択を初期化します。
+     */
     multiple(v) {
       if (!v) this.selectedUnsync.splice(0)
     },
   },
+
   /***************************************************************************
    * DESTROYED
    ***************************************************************************/
   destroyed() {
+    /**
+     * リアルタイムリスナーによる購読をすべて解除します。
+     */
     this.listeners.added()
     this.listeners.changed()
     this.listeners.removed()
+    this.listeners.unsync.unsubscribe()
   },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
+    /**
+     * コンポーネントを初期化します。
+     */
     initialize() {
       this.step = 0
       this.selectedUnsync.splice(0)
@@ -136,6 +188,7 @@ export default {
       this.page.airGuard = 1
       this.page.toSync = 1
     },
+
     /**
      * 同期設定を行います。
      * - 実際の同期処理はCloud Functionsで行われます。
@@ -187,6 +240,7 @@ export default {
         this.loading = false
       }
     },
+
     /**
      * 同期設定が行われていないAirGuard/Customersデータをすべて新規ドキュメントとして
      * Firestoreに登録し、同期設定を行います。
