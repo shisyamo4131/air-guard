@@ -2,7 +2,7 @@
 /**
  * 従業員の休暇申請を入力するためのコンポーネントです。
  * @author shisyamo4131
- * @refact 2025-01-13
+ * @refact 2025-01-21
  */
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
@@ -37,7 +37,7 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
-    date: {
+    computedDate: {
       get() {
         return this.isCreate ? this.dates : this.date
       },
@@ -64,7 +64,7 @@ export default {
     />
     <g-combobox-date
       v-if="!hideDate"
-      v-model="date"
+      v-model="computedDate"
       label="日付"
       :multiple="isCreate"
       required
