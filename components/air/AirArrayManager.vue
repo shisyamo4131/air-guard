@@ -742,6 +742,19 @@ export default {
         this.eventDeleteHandler(event)
       }
     },
+
+    /*******************************************
+     * AirRenderlessArrayManager のメソッドを提供
+     *******************************************/
+    async toRegist() {
+      await this.managerRef.toRegist()
+    },
+    async toUpdate(item) {
+      await this.managerRef.toUpdate(item)
+    },
+    async toDelete(item) {
+      await this.managerRef.toDelete(item)
+    },
   },
 }
 </script>
