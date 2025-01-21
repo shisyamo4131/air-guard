@@ -1,14 +1,17 @@
 <script>
 /**
  * 現場稼働予定ドキュメント管理コンポーネントです。
+ * - コンポーネントとしての処理が比較的複雑であるため、SFC で定義しています。
+ * - props.siteId で現場IDを受け取ると、現在コンポーネントが管理している期間中の
+ *   現場稼働予定ドキュメントを Firestore から取得してカレンダーに表示します。
+ *
  * @author shisyamo4131
- * @refact 2025-01-16
+ * @refact 2025-01-21
  */
 import ja from 'dayjs/locale/ja'
 import GBtnPrev from '../atoms/btns/GBtnPrev.vue'
 import GBtnNext from '../atoms/btns/GBtnNext.vue'
 import GBtnRegist from '../atoms/btns/GBtnRegist.vue'
-import GCalendarV2 from '../atoms/calendars/GCalendarV2.vue'
 import GBtnCancel from '../atoms/btns/GBtnCancel.vue'
 import GIconEdit from '../atoms/icons/GIconEdit.vue'
 import GIconStar from '../atoms/icons/GIconStar.vue'
@@ -16,6 +19,7 @@ import GIconDay from '../atoms/icons/GIconDay.vue'
 import GIconNight from '../atoms/icons/GIconNight.vue'
 import AirArrayManager from '../air/AirArrayManager.vue'
 import GInputSiteOperationScheduleV2 from '../molecules/inputs/GInputSiteOperationScheduleV2.vue'
+import GSiteOperationScheduleCalendar from '../atoms/calendars/GSiteOperationScheduleCalendar.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
   /***************************************************************************
@@ -25,7 +29,6 @@ export default {
     GBtnPrev,
     GBtnNext,
     GBtnRegist,
-    GCalendarV2,
     GBtnCancel,
     GIconEdit,
     GIconStar,
@@ -33,6 +36,7 @@ export default {
     GIconNight,
     AirArrayManager,
     GInputSiteOperationScheduleV2,
+    GSiteOperationScheduleCalendar,
   },
 
   /***************************************************************************
@@ -40,14 +44,19 @@ export default {
    ***************************************************************************/
   props: {
     /**
-     * コンポーネントカラーです。
-     */
-    color: { type: String, default: undefined, required: false },
-
-    /**
      * 管理対象の現場IDです。
      */
     siteId: { type: String, required: true },
+
+    /**
+     * `カレンダーの期間を決定する日付` です。
+     * v-model でのバインドが可能です。
+     */
+    value: {
+      type: [String, Number, Date],
+      default: undefined,
+      required: false,
+    },
   },
 
   /***************************************************************************
@@ -55,13 +64,25 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      /**
+       * 現場稼働予定ドキュメントの配列です。
+       */
       items: [],
+
+      /**
+       * 現場稼働予定ドキュメントのクラスインスタンスです。
+       */
       schema: new SiteOperationSchedule(),
 
-      docs: [], // 購読している現場稼働予定ドキュメントの配列
-      instance: new SiteOperationSchedule(),
+      /**
+       * コンポーネント内部で管理する `カレンダーの期間を決定する日付` です。
+       * 当該日付を含む期間のカレンダーが表示されます。
+       */
       internalValue: this.$dayjs().format('YYYY-MM-DD'),
-      list: false,
+
+      /**
+       * カレンダーでクリックされた日の日付文字列です。
+       */
       selectedDate: undefined,
     }
   },
@@ -71,34 +92,41 @@ export default {
    ***************************************************************************/
   computed: {
     /**
-     * 購読中の現場稼働予定ドキュメントの配列を Calendar コンポーネント用の
-     * events 配列に変換して返します。
+     * コンポーネント内部で使用する `カレンダーの期間を決定する日付` です。
+     * - 更新されると input イベントを emit します。
      */
-    events() {
-      return this.items.map((item) => {
-        const name = item.isClosed
-          ? '休工'
-          : item.qualification
-          ? `★${item.requiredWorkers}名`
-          : `${item.requiredWorkers}名`
-        const start = item.isClosed
-          ? new Date(`${item.date}`)
-          : new Date(`${item.date}T${item.startTime}`)
-        const end = item.isClosed
-          ? new Date(`${item.date}`)
-          : new Date(`${item.date}T${item.endTime}`)
-        const color = item.workShift === 'day' ? 'info' : 'accent'
-        return { name, start, end, color, item }
-      })
+    computedValue: {
+      get() {
+        return this.internalValue
+      },
+      set(v) {
+        this.internalValue = v
+        this.$emit('input', v)
+      },
     },
 
     /**
-     * 選択された日のイベント配列を返します。
+     * カレンダーで日付が選択されているかどうかです。
+     * - data.selectedDate に値が設定されているかどうかを Bool 値で返します。
+     * - false をセットすると、data.selectedDate が初期化されます。
+     * - リスト表示のためのダイアログ制御に使用しています。
      */
-    listEvents() {
+    dateIsSelected: {
+      get() {
+        return !!this.selectedDate
+      },
+      set(v) {
+        if (!v) this.selectedDate = undefined
+      },
+    },
+
+    /**
+     * data.selectedDate で選択された日の現場稼働予定ドキュメントの配列を返します。
+     */
+    selectedSchedules() {
       if (!this.selectedDate) return []
-      return this.events
-        .filter((event) => event.item.date === this.selectedDate)
+      return this.items
+        .filter((item) => item.date === this.selectedDate)
         .sort((a, b) => a.item.workShift.localeCompare(b.item.workShift))
     },
 
@@ -107,7 +135,7 @@ export default {
      * - 現場稼働予定ドキュメントを抽出対象となる日付範囲の開始日になります。
      */
     from() {
-      return this.$dayjs(this.internalValue)
+      return this.$dayjs(this.computedValue)
         .startOf('month')
         .startOf('week')
         .format('YYYY-MM-DD')
@@ -117,7 +145,7 @@ export default {
      * 基準日の年月を返します。
      */
     month() {
-      return this.$dayjs(this.internalValue).format('YYYY年MM月')
+      return this.$dayjs(this.computedValue).format('YYYY年MM月')
     },
 
     /**
@@ -135,7 +163,7 @@ export default {
      * - 現場稼働予定ドキュメントを抽出対象となる日付範囲の最終日になります。
      */
     to() {
-      return this.$dayjs(this.internalValue)
+      return this.$dayjs(this.computedValue)
         .endOf('month')
         .endOf('week')
         .format('YYYY-MM-DD')
@@ -147,12 +175,20 @@ export default {
    ***************************************************************************/
   watch: {
     /**
-     * data.list を監視します。
-     * - リストが閉じられたら data.selectedDate を初期化します。
-     * - 現場稼働予定の登録ダイアログで、日付の初期値設定に影響します。
+     * props.value を監視します。
+     * - data.internalValue と同期します。
+     * - 値が null または undefined の場合は強制的に現在の data.internalValue を
+     *   input イベントで emit します。
      */
-    list(v) {
-      if (!v) this.selectedDate = undefined
+    value: {
+      handler(v) {
+        if (v === null || v === undefined) {
+          this.$emit('input', this.internalValue)
+        } else {
+          this.internalValue = v
+        }
+      },
+      immediate: true,
     },
   },
 
@@ -198,6 +234,17 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    /**
+     * Manager に引き渡す処理です。
+     */
+    beforeEdit({ isCreate }) {
+      return new Promise((resolve) => {
+        if (isCreate) {
+          this.schema.dates = this.selectedDate ? [this.selectedDate] : []
+        }
+        resolve()
+      })
+    },
     async handleCreate(item) {
       await item.create()
     },
@@ -207,39 +254,22 @@ export default {
     async handleDelete(item) {
       await item.delete()
     },
+
     /**
      * 基準日（interanalValue）を翌月月初にします。
      */
     next() {
-      this.internalValue = this.$dayjs(this.internalValue)
+      this.computedValue = this.$dayjs(this.computedValue)
         .startOf('month')
         .add(1, 'month')
         .format('YYYY-MM-DD')
     },
 
     /**
-     * ダイアログを登録モードで開きます。
-     * - AirArrayManager の toRegist を callback で受け取ります。
-     * - 日付が選択されている場合はインスタンスに初期値として設定します。
-     */
-    openDialogAsRegist(callback) {
-      this.schema.dates = this.selectedDate ? [this.selectedDate] : []
-      callback()
-    },
-
-    /**
-     * 現場稼働予定リストダイアログを開きます。
-     */
-    openList(event) {
-      this.selectedDate = event.date
-      this.list = true
-    },
-
-    /**
-     * 基準日（internalValue）を前月月初に設定します。
+     * 基準日（computedValue）を前月月初に設定します。
      */
     prev() {
-      this.internalValue = this.$dayjs(this.internalValue)
+      this.computedValue = this.$dayjs(this.computedValue)
         .startOf('month')
         .subtract(1, 'month')
         .format('YYYY-MM-DD')
@@ -271,6 +301,8 @@ export default {
 <template>
   <air-array-manager
     v-bind="$attrs"
+    ref="manager"
+    :before-edit="beforeEdit"
     :dialog-props="{ maxWidth: 360 }"
     :handle-create="handleCreate"
     :handle-update="handleUpdate"
@@ -284,61 +316,64 @@ export default {
       <slot name="header">
         <v-toolbar flat>
           <v-spacer />
-          <g-btn-prev :color="color" icon @click="prev" />
+          <g-btn-prev :color="props.color" icon @click="prev" />
           <span class="text-h6">{{ month }}</span>
-          <g-btn-next :color="color" icon @click="next" />
+          <g-btn-next :color="props.color" icon @click="next" />
           <v-spacer />
         </v-toolbar>
       </slot>
       <slot name="default" v-bind="props">
-        <g-calendar-v-2
-          v-model="internalValue"
-          :color="color"
-          :events="events"
-          @click:date="openList"
+        <g-site-operation-schedule-calendar
+          v-model="computedValue"
+          :color="props.color"
+          :items="items"
+          @click:date="selectedDate = $event.date"
           @click:event="
             ($event) => props.table.on['click:edit']($event.event.item)
           "
         />
       </slot>
       <slot name="list">
-        <v-dialog v-model="list" max-width="360">
+        <v-dialog v-model="dateIsSelected" max-width="360">
           <v-card>
-            <v-toolbar :color="color" dark dense flat>
+            <v-toolbar :color="props.color" dark dense flat>
               <v-toolbar-title>
                 {{ listTitle }}
               </v-toolbar-title>
               <v-spacer />
-              <g-btn-cancel icon @click="list = false" />
+              <g-btn-cancel icon @click="dateIsSelected = false" />
             </v-toolbar>
             <v-list>
-              <v-list-item v-for="(event, index) of listEvents" :key="index">
+              <v-list-item
+                v-for="(item, index) of selectedSchedules"
+                :key="index"
+              >
                 <v-list-item-icon>
-                  <g-icon-day v-if="event.item.workShift === 'day'" />
+                  <g-icon-day v-if="item.workShift === 'day'" />
                   <g-icon-night v-else />
                 </v-list-item-icon>
                 <v-list-item-content>
-                  <v-list-item-title v-if="event.item.isClosed">
+                  <v-list-item-title v-if="item.isClosed">
                     <span>休工</span>
                   </v-list-item-title>
                   <v-list-item-title v-else>
-                    {{ `${event.item.startTime} ～ ${event.item.endTime}` }}
+                    {{ `${item.startTime} ～ ${item.endTime}` }}
                   </v-list-item-title>
                 </v-list-item-content>
-                <v-list-item-content v-if="!event.item.isClosed">
+                <v-list-item-content v-if="!item.isClosed">
                   <v-list-item-title>
                     <g-icon-star
-                      v-if="event.item.qualification"
+                      v-if="item.qualification"
                       color="yellow darken-3"
                       small
                     />
-                    {{ `${event.item.requiredWorkers} 名` }}
+                    {{ `${item.requiredWorkers} 名` }}
                   </v-list-item-title>
                 </v-list-item-content>
                 <v-list-item-action>
                   <g-icon-edit
-                    :color="color"
-                    @click="() => props.table.on['click:edit'](event.item)"
+                    :color="props.color"
+                    @click="() => props.table.on['click:edit'](item)"
                   />
                 </v-list-item-action>
               </v-list-item>
@@ -346,10 +381,10 @@ export default {
             <v-card-actions>
               <g-btn-regist
                 block
-                :color="color"
+                :color="props.color"
                 label="新しい予定を登録"
                 small
-                @click="() => openDialogAsRegist(props.activator.on['click'])"
+                @click="props.activator.on['click']"
               />
             </v-card-actions>
           </v-card>
@@ -359,9 +394,9 @@ export default {
         <v-toolbar dense flat>
           <v-spacer />
           <g-btn-regist
-            :color="color"
+            :color="props.color"
             icon
-            @click="() => openDialogAsRegist(props.activator.on['click'])"
+            @click="props.activator.on['click']"
           />
         </v-toolbar>
       </slot>
