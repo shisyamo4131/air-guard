@@ -28,10 +28,10 @@ import {
   update,
 } from 'firebase/database'
 import { database } from 'air-firebase'
-import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import Customer from '~/models/Customer'
 import Autonumber from '~/models/Autonumber'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
+import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -41,7 +41,7 @@ export default {
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
-  components: { GDataTable, GTemplateDefault },
+  components: { GTemplateDefault, GCheckbox },
 
   /***************************************************************************
    * ASYNCDATA
@@ -99,6 +99,11 @@ export default {
        * 選択された AirGuard のデータを新規取引先として扱うかどうかのフラグ
        */
       asNewItem: false,
+
+      /**
+       * DataTable に表示するアイテムの件数です。
+       */
+      itemsPerPage: 10,
 
       /**
        * 処理中であることを表すフラグ
@@ -288,8 +293,8 @@ export default {
         <v-window v-model="step" style="height: 100%">
           <v-window-item style="height: inherit">
             <v-container class="d-flex flex-column" style="height: inherit">
-              <v-card-text class="d-flex justify-end">
-                <v-checkbox
+              <v-card-text class="d-flex justify-space-between">
+                <g-checkbox
                   v-model="multiple"
                   label="選択した取引先を強制登録する"
                   :disabled="
@@ -297,11 +302,20 @@ export default {
                   "
                   hide-details
                 />
+                <air-select
+                  v-model="itemsPerPage"
+                  style="width: 120px; max-width: 120px"
+                  label="表示件数"
+                  :items="[
+                    { text: '10件', value: 10 },
+                    { text: '20件', value: 20 },
+                  ]"
+                  hide-details
+                />
               </v-card-text>
-              <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
-                <g-data-table
+              <v-card class="flex-table-container" outlined>
+                <v-data-table
                   v-model="selectedUnsync"
-                  class="flex-table"
                   disable-sort
                   :headers="[
                     { text: 'CODE', value: 'code' },
@@ -309,8 +323,10 @@ export default {
                     { text: '住所', value: 'address1' },
                     { text: '電話番号', value: 'tel' },
                   ]"
+                  hide-default-footer
                   :items="items.airGuard"
                   item-key="code"
+                  :items-per-page="itemsPerPage"
                   show-select
                   :single-select="!multiple"
                   :page.sync="page.airGuard"
@@ -320,7 +336,7 @@ export default {
                     <div>{{ item.name1 }}</div>
                     <div>{{ item.name2 }}</div>
                   </template>
-                </g-data-table>
+                </v-data-table>
               </v-card>
               <v-container class="text-center">
                 <v-pagination
@@ -351,16 +367,16 @@ export default {
           </v-window-item>
           <v-window-item style="height: inherit">
             <v-container class="d-flex flex-column" style="height: inherit">
-              <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
-                <g-data-table
+              <v-card class="flex-table-container" outlined>
+                <v-data-table
                   v-model="selectedToSync"
-                  class="flex-table"
                   disable-sort
                   :headers="[
                     { text: 'CODE', value: 'code' },
                     { text: '取引先名1', value: 'name1' },
                     { text: '取引先名2', value: 'name2' },
                   ]"
+                  hide-default-footer
                   :items="items.unsync"
                   item-key="docId"
                   :show-select="!asNewItem"

@@ -28,7 +28,6 @@ import {
   update,
 } from 'firebase/database'
 import { database } from 'air-firebase/dist/firebase.init'
-import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import Site from '~/models/Site'
 import Autonumber from '~/models/Autonumber'
@@ -43,7 +42,7 @@ export default {
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
-  components: { GDataTable, GCheckbox, GTemplateDefault },
+  components: { GCheckbox, GTemplateDefault },
 
   /***************************************************************************
    * ASYNCDATA
@@ -363,16 +362,16 @@ export default {
                   hide-details
                 />
               </v-card-text>
-              <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
-                <g-data-table
+              <v-card class="flex-table-container" outlined>
+                <v-data-table
                   v-model="selectedUnsync"
-                  class="flex-table"
                   disable-sort
                   :headers="[
                     { text: 'CODE', value: 'code', width: '108' },
                     { text: '現場名', value: 'name' },
                     { text: '住所', value: 'address' },
                   ]"
+                  hide-default-footer
                   item-key="code"
                   :items="items.airGuard"
                   :items-per-page="itemsPerPage"
@@ -393,7 +392,7 @@ export default {
                       {{ item?.customer?.abbr || 'N/A' }}
                     </div>
                   </template>
-                </g-data-table>
+                </v-data-table>
               </v-card>
               <v-container class="text-center">
                 <v-pagination
@@ -424,16 +423,16 @@ export default {
           </v-window-item>
           <v-window-item style="height: inherit">
             <v-container class="d-flex flex-column" style="height: inherit">
-              <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
-                <g-data-table
+              <v-card class="flex-table-container" outlined>
+                <v-data-table
                   v-model="selectedToSync"
-                  class="flex-table"
                   disable-sort
                   :headers="[
                     { text: 'CODE', value: 'code', width: '96' },
                     { text: '現場名', value: 'name' },
                     { text: '住所', value: 'address' },
                   ]"
+                  hide-default-footer
                   :items="items.unsync"
                   item-key="docId"
                   :show-select="!asNewItem"
@@ -447,7 +446,7 @@ export default {
                       {{ item?.customer?.abbr || 'N/A' }}
                     </div>
                   </template>
-                </g-data-table>
+                </v-data-table>
               </v-card>
               <v-container class="text-center">
                 <v-pagination

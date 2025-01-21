@@ -28,7 +28,6 @@ import {
   update,
 } from 'firebase/database'
 import { database } from 'air-firebase'
-import GDataTable from '~/components/atoms/tables/GDataTable.vue'
 import Employee from '~/models/Employee'
 import Autonumber from '~/models/Autonumber'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
@@ -38,10 +37,12 @@ export default {
    * NAME
    ***************************************************************************/
   name: 'SynchronizeEmployees',
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
-  components: { GDataTable, GCheckbox, GTemplateDefault },
+  components: { GCheckbox, GTemplateDefault },
+
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
@@ -97,6 +98,11 @@ export default {
        * 選択された AirGuard のデータを新規従業員として扱うかどうかのフラグ
        */
       asNewItem: false,
+
+      /**
+       * DataTable に表示するアイテムの件数です。
+       */
+      itemsPerPage: 10,
 
       /**
        * 処理中であることを表すフラグ
@@ -306,15 +312,15 @@ export default {
                   hide-details
                 />
               </v-card-text>
-              <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
-                <g-data-table
+              <v-card class="flex-table-container" outlined>
+                <v-data-table
                   v-model="selectedUnsync"
-                  class="flex-table"
                   disable-sort
                   :headers="[
                     { text: 'CODE', value: 'code' },
                     { text: '従業員名', value: 'name' },
                   ]"
+                  hide-default-footer
                   :items="items.airGuard"
                   item-key="code"
                   :items-per-page="itemsPerPage"
@@ -326,7 +332,7 @@ export default {
                   <template #[`item.name`]="{ item }">
                     {{ `${item.lastName} ${item.firstName}` }}
                   </template>
-                </g-data-table>
+                </v-data-table>
               </v-card>
               <v-container class="text-center">
                 <v-pagination
@@ -357,15 +363,15 @@ export default {
           </v-window-item>
           <v-window-item style="height: inherit">
             <v-container class="d-flex flex-column" style="height: inherit">
-              <v-card class="d-flex flex-grow-1 overflow-hidden" outlined>
-                <g-data-table
+              <v-card class="flex-table-container" outlined>
+                <v-data-table
                   v-model="selectedToSync"
-                  class="flex-table"
                   disable-sort
                   :headers="[
                     { text: 'CODE', value: 'code' },
                     { text: '従業員名', value: 'fullName' },
                   ]"
+                  hide-default-footer
                   :items="items.unsync"
                   item-key="docId"
                   :show-select="!asNewItem"
