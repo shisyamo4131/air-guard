@@ -751,7 +751,6 @@ export default {
       await this.managerRef.toRegist()
     },
     async toUpdate(item) {
-      console.log(item)
       await this.managerRef.toUpdate(item)
     },
     async toDelete(item) {
