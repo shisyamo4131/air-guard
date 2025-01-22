@@ -25,11 +25,12 @@ export default {
     /**
      * ダイアログに引き渡すプロパティです。
      */
-    dialogProps: {
-      type: Object,
-      default: () => ({}),
-      required: false,
-    },
+    dialogProps: { type: Object, default: () => ({}), required: false },
+
+    /**
+     * 編集モード `変更` の際にアイテムの削除指示を受け付けるかどうかです。
+     */
+    disableDelete: { type: Boolean, default: false, required: false },
 
     /**
      * アイテムの削除開始トリガーとなるイベントの名前です。
@@ -750,6 +751,7 @@ export default {
       await this.managerRef.toRegist()
     },
     async toUpdate(item) {
+      console.log(item)
       await this.managerRef.toUpdate(item)
     },
     async toDelete(item) {
@@ -871,7 +873,11 @@ export default {
 
                     <!-- 削除指示の為のチェックボックス（ステッパー利用時は利用不可） -->
                     <v-checkbox
-                      v-if="props.editMode !== props.editModes[0] && !isStep"
+                      v-if="
+                        props.editMode !== props.editModes[0] &&
+                        !isStep &&
+                        !disableDelete
+                      "
                       :input-value="props.editMode"
                       :true-value="props.editModes[2]"
                       :false-value="props.editModes[1]"
