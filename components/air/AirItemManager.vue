@@ -398,6 +398,19 @@ export default {
       }
       return result
     },
+
+    /*******************************************
+     * AirRenderlessItemManager のメソッドを提供
+     *******************************************/
+    async toRegist() {
+      await this.managerRef.toRegist()
+    },
+    async toUpdate() {
+      await this.managerRef.toUpdate()
+    },
+    async toDelete() {
+      await this.managerRef.toDelete()
+    },
   },
 }
 </script>
