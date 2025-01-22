@@ -53,7 +53,6 @@ export default {
   data() {
     return {
       dialog: {
-        calendar: false,
         leaveRecord: false,
         operationWorkResults: false,
       },
@@ -62,7 +61,15 @@ export default {
       listener: new MonthlyAttendance(),
       loading: false,
       month: this.$dayjs().format('YYYY-MM'),
+
+      /**
+       * 勤怠カレンダー上で選択された日の日付文字列が保存されます。
+       */
       selectedDate: null,
+
+      /**
+       * DataTable で選択された従業員IDが保存されます。
+       */
       selectedEmployeeId: null,
     }
   },
@@ -104,17 +111,34 @@ export default {
         'YYYY-MM-DD'
       )
     },
+
+    /**
+     * 現在選択されている従業員の、現在選択されている日の勤怠実績ドキュメントを返します。
+     * - 従業員が選択されていない場合は undefined を返します。
+     * - 日が選択されていない場合は undefined を返します。
+     * - 該当する勤怠実績ドキュメントが存在しない場合は undefined を返します。
+     */
     dailyAttendance() {
+      if (!this.selectedEmployeeId) return undefined
+      if (!this.selectedDate) return undefined
       return this.dailyAttendances.find(
         ({ date }) => date === this.selectedDate
       )
     },
+
+    /**
+     * 現在選択されている従業員の月間勤怠実績ドキュメントから前月, 当月, 翌月の
+     * 勤怠実績ドキュメントの配列を取得し、これらを結合して1つの配列として返します。
+     * - 従業員が選択されていない場合は空の配列を返します。
+     * - 月間勤怠実績が undefined の場合は空の配列を返します。
+     */
     dailyAttendances() {
+      if (!this.selectedEmployeeId) return []
+      if (!this.monthlyAttendance) return []
       const current = this.monthlyAttendance?.dailyAttendances || []
       const prev = this.monthlyAttendance?.dailyAttendancesPrev || []
       const next = this.monthlyAttendance?.dailyAttendancesNext || []
       return current.concat(prev, next)
-      // return this.monthlyAttendance?.dailyAttendances || []
     },
     dateLabel() {
       if (
@@ -137,12 +161,75 @@ export default {
     isCalculating() {
       return this.$store.state.systems.calcAttendance?.status !== 'ready'
     },
+
+    /**
+     * 日が選択状態かどうかを返します。
+     */
+    isDateSelected: {
+      get() {
+        return !!this.selectedDate
+      },
+      set(v) {
+        if (!v) this.selectedDate = null
+      },
+    },
+
+    /**
+     * 従業員が選択状態かどうかを返します。
+     * - 勤怠カレンダーダイアログの制御に使用します。
+     */
+    isEmployeeSelected: {
+      get() {
+        return !!this.selectedEmployeeId
+      },
+      set(v) {
+        if (!v) this.selectedEmployeeId = null
+      },
+    },
+
+    /**
+     * 現在選択されている従業員, 日において勤怠実績ドキュメントに稼働実績ドキュメント（配列）が
+     * 存在するかを返します。
+     * - 従業員が選択されていない場合は false を返します。
+     * - 日が選択されていない場合は false を返します。
+     * - 該当する勤怠実績ドキュメントが存在しない場合は false を返します。
+     * - 稼働実績ドキュメントの配列が空の場合は false を返します。
+     */
+    isOperationExist() {
+      if (!this.selectedEmployeeId) return false
+      if (!this.selectedDate) return false
+      if (!this.dailyAttendance) return false
+      return this.dailyAttendance.operationWorkResults.length > 0
+    },
+
+    /**
+     * 現在選択されている従業員、日における休暇実績情報のドキュメントIDを返します。
+     * - 従業員が選択されていない場合は undefined を返します。
+     * - 日が選択されていない場合は undefined を返します。
+     * - 該当する勤怠実績ドキュメントが存在しない場合は undefined を返します。
+     * - 勤怠実績ドキュメントに休暇実績情報が存在しない場合は undefined を返します。
+     */
+    leaveRecordId() {
+      if (!this.selectedEmployeeId) return undefined
+      if (!this.selectedDate) return undefined
+      if (!this.dailyAttendance) return undefined
+      if (!this.dailyAttendance.leaveRecord) return undefined
+      return this.dailyAttendance.leaveRecord.docId || undefined
+    },
+
     monthLabel() {
       if (!this.monthlyAttendance) return null
       const result = this.$dayjs(`${this.month}-01`).format('YYYY年MM月')
       return result
     },
+
+    /**
+     * 現在選択されている従業員の月間勤怠実績を返します。
+     * - 従業員が選択されていない場合は undefined を返します。
+     * - 月間勤怠実績ドキュメントの配列に該当するものが存在しない場合は undefined を返します。
+     */
     monthlyAttendance() {
+      if (!this.selectedEmployeeId) return undefined
       return this.items.find(
         ({ employeeId }) => employeeId === this.selectedEmployeeId
       )
@@ -180,6 +267,11 @@ export default {
    * METHODS
    ***************************************************************************/
   methods: {
+    /**
+     * freee 用の csv ファイルをダウンロードします。
+     * - data.items 配列内の MonthlyAttendance ドキュメントのについて
+     *   インスタンスが保有する toFreee を使用して freee 用のデータを生成します。
+     */
     downloadCsv() {
       const data = this.items.map((item) => item.toFreee())
 
@@ -202,21 +294,14 @@ export default {
       // リンクを削除
       document.body.removeChild(link)
     },
-    onClickRow(item) {
-      this.selectedEmployeeId = item.employeeId
-      this.dialog.calendar = true
-    },
+
     onClickDate({ date }) {
       this.selectedDate = date
 
       // 稼働実績が存在する場合は、稼働実績の詳細ダイアログを開く
-      if (
-        this.dailyAttendance &&
-        this.dailyAttendance.operationWorkResults.length > 0
-      ) {
+      if (this.isOperationExist) {
         this.dialog.operationWorkResults = true
       } else if (this.dailyAttendance) {
-        // alert('ここから先はまだ開発中です。')
         const { employeeId, date } = this.dailyAttendance
         this.instance.initialize({
           ...this.dailyAttendance.leaveRecord,
@@ -297,13 +382,13 @@ export default {
       <g-data-table-monthly-attendances
         v-else
         v-bind="attrs"
-        @click:row="onClickRow"
+        @click:row="selectedEmployeeId = $event.employeeId"
         v-on="on"
       />
       <v-dialog
-        v-model="dialog.calendar"
+        v-model="isEmployeeSelected"
         scrollable
-        max-width="960"
+        max-width="840"
         :fullscreen="$vuetify.breakpoint.mobile"
       >
         <v-card>
@@ -354,7 +439,7 @@ export default {
             </g-dialog-input>
           </v-card-text>
           <v-card-actions class="justify-end">
-            <g-btn-cancel icon @click="dialog.calendar = false" />
+            <g-btn-cancel icon @click="isEmployeeSelected = false" />
           </v-card-actions>
         </v-card>
       </v-dialog>
