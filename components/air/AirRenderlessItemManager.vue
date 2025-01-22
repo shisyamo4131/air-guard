@@ -28,6 +28,13 @@ export default {
    ***************************************************************************/
   props: {
     /**
+     * コンポーネントが編集モードに入る直前に実行される関数を指定します。
+     * - toggleEditMode を使って編集モードを切り替える際は実行されません。
+     * (editMode) => Promise({void})
+     */
+    beforeEdit: { type: Function, default: undefined, required: false },
+
+    /**
      * コンポーネントの編集モードを表す固定値を要素とした配列を指定します。
      * 配列の要素順に、変更、削除を表す固定値を指定してください。
      * - 基本的に変更する必要はありません。
@@ -72,6 +79,21 @@ export default {
      * 管理対象のオブジェクトです。
      */
     item: { type: Object, default: () => ({}), required: false },
+
+    /**
+     * `変更` または `削除` モードに切り替える際、対象アイテムの初期化処理を
+     * カスタムすることができます。
+     * NOTE:
+     * item には本来のオブジェクトまたはインスタンスを指定しているものの、
+     * データの補完が必要になる場合などに使用します。
+     * 例）簡易データを受け取り、本来のデータとして編集する場合など。
+     * (item) => Promise<Object>
+     */
+    itemConverter: {
+      type: Function,
+      default: undefined,
+      required: false,
+    },
   },
 
   /***************************************************************************
@@ -311,42 +333,17 @@ export default {
     },
 
     /**
-     * コンポーネントの編集モードを `変更` にし、コンポーネントの状態を編集中にします。
-     * - data.editItem が data.interanalItem で初期化されます。
+     * コンポーネントを編集モード `変更` の編集状態にします。
      */
-    toUpdate() {
-      this.clearError()
-      this.loading = true
-      try {
-        this.toggleEditMode(this.UPDATE)
-        this._intializeEditItem(this.internalItem)
-        this.computedIsEditing = true
-      } catch (err) {
-        const message = `An error has occured at toUpdate().`
-        this.setError(message, err)
-      } finally {
-        this.loading = false
-      }
+    async toUpdate() {
+      await this._toEdit(this.UPDATE)
     },
 
     /**
-     * コンポーネントの編集モードを `削除` にし、コンポーネントの状態を編集中にします。
-     * - data.editItem が data.internalItem で初期化されます。
-     * - itemConverter が指定されている場合、これを実行します。
+     * コンポーネントを編集モード `削除` の編集状態にします。
      */
-    toDelete() {
-      this.clearError()
-      this.loading = true
-      try {
-        this.toggleEditMode(this.DELETE)
-        this._intializeEditItem(this.internalItem)
-        this.computedIsEditing = true
-      } catch (err) {
-        const message = `An error has occured at toDelete().`
-        this.setError(message, err)
-      } finally {
-        this.loading = false
-      }
+    async toDelete() {
+      await this._toEdit(this.DELETE)
     },
 
     /**
@@ -446,12 +443,58 @@ export default {
     },
 
     /**
-     * data.internalItem で data.editItem を初期化します。
+     * data.editItem の初期化処理を行います。
+     * - props.itemConverter が指定されている場合は、これの返り値で初期化します。
+     *   指定されていない場合は data.internalItem で初期化されます。
      */
-    _intializeEditItem() {
-      Object.entries(this.internalItem).forEach(([key, value]) => {
+    async _intializeEditItem() {
+      const initItem = this.itemConverter
+        ? await this.itemConverter(this.internalItem).catch((err) => {
+            const message = `Failed to convert item.`
+            this.setError(message, err)
+            throw err
+          })
+        : this.internalItem
+
+      Object.entries(initItem).forEach(([key, value]) => {
         if (key in this.editItem) this.editItem[key] = value
       })
+    },
+
+    /**
+     * toUpdate, toDelete からコールされる関数です。
+     * コンポーネントを編集状態にします。
+     */
+    async _toEdit(editMode) {
+      this.loading = true
+      try {
+        // props.beforeEdit が指定されている場合はこれを実行
+        if (this.beforeEdit) {
+          await this.beforeEdit({
+            isUpdate: this.isUpdate,
+            isDelete: this.isDelete,
+          }).catch((err) => {
+            this.setError(`An error has occured at beforeEdit.`, err)
+          })
+        }
+
+        // コンポーネントのエラー状態を初期化
+        this.clearError()
+
+        // 編集モードを `削除` に変更
+        this.toggleEditMode(editMode)
+
+        // data.editItem を初期化
+        await this._intializeEditItem()
+
+        // コンポーネントを編集状態に変更
+        this.computedIsEditing = true
+      } catch (err) {
+        const message = `An error occurred in the process of putting the file into edit status. editMode: ${editMode}`
+        this.setError(message, err)
+      } finally {
+        this.loading = false
+      }
     },
   },
 
