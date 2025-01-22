@@ -493,7 +493,7 @@ export default {
       // } finally {
       //   this.loading = false
       // }
-      await this.toEdit(this.UPDATE, item)
+      await this._toEdit(this.UPDATE, item)
     },
 
     /**
