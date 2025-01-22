@@ -741,13 +741,14 @@ export default {
           })
         }
 
-        // props.itemConverter を実行
-        const initItem = this.itemConverter
-          ? await this.itemConverter(item).catch((err) => {
-              const message = `Failed to convert item.`
-              this.setError(message, err)
-            })
-          : item
+        // `追加` モード以外で props.itemConverter が指定されている場合はこれを実行
+        const initItem =
+          !this.isCreate && this.itemConverter
+            ? await this.itemConverter(item).catch((err) => {
+                const message = `Failed to convert item.`
+                this.setError(message, err)
+              })
+            : item
 
         // data.editItem を 初期化
         this._initializeItem(initItem)
