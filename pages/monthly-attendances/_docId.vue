@@ -7,7 +7,7 @@
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
 import GCalendarDailyAttendances from '~/components/molecules/calendars/GCalendarDailyAttendances.vue'
-import GInputLeaveRecordV2 from '~/components/molecules/inputs/GInputLeaveRecordV2.vue'
+import GInputLeaveRecord from '~/components/molecules/inputs/GInputLeaveRecord.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import DailyAttendance from '~/models/DailyAttendance'
 import Employee from '~/models/Employee'
@@ -26,7 +26,7 @@ export default {
     GCalendarDailyAttendances,
     GTemplateDefault,
     AirArrayManager,
-    GInputLeaveRecordV2,
+    GInputLeaveRecord,
     GBtnCancel,
   },
 
@@ -407,7 +407,7 @@ export default {
         :schema="instance.leave"
       >
         <template #inputs="{ attrs, on }">
-          <g-input-leave-record-v-2
+          <g-input-leave-record
             v-bind="attrs"
             :allowed-dates-for-substitute="allowedDatesForSubstitute"
             hide-date
