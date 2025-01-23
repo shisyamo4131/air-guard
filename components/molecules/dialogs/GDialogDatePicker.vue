@@ -1,21 +1,8 @@
 <script>
 /**
- * ### GDialogDatePicker
  * 日付選択用のダイアログピッカーコンポーネントです。
- *
- * GDialogMonthPickerが不要では・・・・？
- *
- * @component
- * @example
- * <GDialogDatePicker v-model="value" />
- *
- * @props {String} value - v-modelバインディング用の月データ
- *
  * @author shisyamo4131
- * @version 1.0.0
- * @updates
- * - version 1.1.0 - 2024-10-07 - `allowedDates` プロパティを実装。
- * - version 1.0.0 - 2024-09-07 - 初版作成
+ * @refact 2025-01-23
  */
 import GBtnCancel from '../../atoms/btns/GBtnCancel.vue'
 import GBtnSubmit from '../../atoms/btns/GBtnSubmit.vue'
@@ -32,6 +19,14 @@ export default {
    ***************************************************************************/
   props: {
     allowedDates: { type: Function, default: null, required: false },
+
+    /**
+     * ダイアログを再度開いたときに当月が表示されるようになります。
+     * 既定値は true です。
+     * false にすると、最後に閉じた月が表示されます。
+     */
+    initCurrentMonth: { type: Boolean, default: true, required: false },
+
     type: {
       type: String,
       default: 'date',
@@ -47,8 +42,8 @@ export default {
   data() {
     return {
       dialog: false,
-      pickerDate: undefined,
-      pickerValue: undefined,
+      pickerDate: this.$dayjs().format('YYYY-MM'),
+      internalValue: undefined,
     }
   },
 
@@ -56,12 +51,17 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    /**
+     * コンポーネント内部で使用する value です。ダイアログの return-value と バインドされます。
+     * DatePicker で行われた日付操作は data.internalValue に反映されます。
+     * DatePicker で確定された日付が return-value.sync で computedValue に引き渡されます。
+     * 引き渡された値は setter でイベントとして emit されるのみです。
+     */
     computedValue: {
       get() {
-        return this.pickerValue
+        return this.internalValue
       },
       set(v) {
-        if (this.pickerValue === this.value) return
         this.$emit('input', v)
         this.$emit('change', v)
       },
@@ -72,12 +72,29 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
+    /**
+     * data.dialog を監視します。
+     * - ダイアログ終了時、props.initCurrentMonth が true の場合は
+     *   ピッカーの表示年月を当月に戻します。
+     * - data.internalValue を props.value で初期化します。
+     *   この処理がないと、日付選択 -> キャンセル -> 再度開いたときに
+     *   ピッカーの日付（internalValue）と入力値（value）に相違が発生します。
+     */
     dialog(v) {
-      if (!v) this.pickerDate = undefined
+      if (v) return
+      if (this.initCurrentMonth) {
+        this.pickerDate = this.$dayjs().format('YYYY-MM')
+      }
+      this.internalValue = this.value
     },
+
+    /**
+     * props.value を監視します。
+     * - data.internalValue と同期します。
+     */
     value: {
-      handler(newVal, oldVal) {
-        this.pickerValue = newVal
+      handler(v) {
+        this.internalValue = v
       },
       immediate: true,
     },
@@ -103,7 +120,7 @@ export default {
       />
     </template>
     <g-date-picker
-      v-model="pickerValue"
+      v-model="internalValue"
       :allowed-dates="allowedDates"
       :picker-date.sync="pickerDate"
       :type="type"
@@ -114,7 +131,7 @@ export default {
       <g-btn-submit
         icon
         color="primary"
-        @click="$refs.dialog.save(pickerValue)"
+        @click="$refs.dialog.save(internalValue)"
       />
     </g-date-picker>
   </v-dialog>
