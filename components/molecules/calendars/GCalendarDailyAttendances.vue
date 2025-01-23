@@ -4,10 +4,8 @@
  * @author shisyamo4131
  */
 import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
 import GCalendar from '../../atoms/calendars/GCalendar.vue'
 import GChipDayType from '~/components/atoms/chips/GChipDayType.vue'
-dayjs.extend(utc)
 
 export default {
   /***************************************************************************
@@ -29,10 +27,10 @@ export default {
     events() {
       return this.items.reduce((acc, item) => {
         const startTimeFormatted = item?.startTime
-          ? dayjs(item.startTime).utc().format('HH:mm')
+          ? dayjs(item.startTime).format('HH:mm')
           : null
         const endTimeFormatted = item?.endTime
-          ? dayjs(item.endTime).utc().format('HH:mm')
+          ? dayjs(item.endTime).format('HH:mm')
           : null
         acc[item.date] = { ...item, startTimeFormatted, endTimeFormatted }
         return acc
