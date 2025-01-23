@@ -53,11 +53,9 @@ const propsDefinition = {
     default: '',
     validator: (v) =>
       !v ||
-      Object.fromEntries(
-        Object.entries(DAY_TYPE).filter(
-          ([key, value]) => value.type === 'holiday'
-        )
-      ).includes(v),
+      Object.keys(DAY_TYPE)
+        .filter((key) => DAY_TYPE[key].type === 'holiday')
+        .includes(v),
     required: false,
     requiredByClass: false,
   },
