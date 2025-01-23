@@ -68,7 +68,8 @@ export default {
      * `AirGuard/Employees`の同期設定がされていないデータへのリスナーをセット
      */
     const dbRef = ref(database, 'AirGuard/Employees')
-    const q = query(dbRef, orderByChild('docId'), equalTo(null))
+    // const q = query(dbRef, orderByChild('docId'), equalTo(null))
+    const q = query(dbRef, orderByChild('docId'), equalTo(false))
     const updateItem = (data, type) => {
       const index = items.airGuard.findIndex((item) => item.code === data.key)
       if (type === 'add') items.airGuard.push(data.val())

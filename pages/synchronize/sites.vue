@@ -69,7 +69,8 @@ export default {
      * `AirGuard/Sites`の同期設定がされていないデータへのリスナーをセット
      */
     const dbRef = ref(database, 'AirGuard/Sites')
-    const q = query(dbRef, orderByChild('docId'), equalTo(null))
+    // const q = query(dbRef, orderByChild('docId'), equalTo(null))
+    const q = query(dbRef, orderByChild('docId'), equalTo(false))
     const updateItem = (data, type) => {
       const item = data.val()
 

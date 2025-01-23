@@ -72,7 +72,8 @@ export default {
       ;['Customers', 'Sites', 'Employees'].forEach((type) => {
         // `docId` が null のみを抽出するクエリを作成
         const dbRef = ref(database, `AirGuard/${type}`)
-        const queryRef = query(dbRef, orderByChild('docId'), equalTo(null))
+        // const queryRef = query(dbRef, orderByChild('docId'), equalTo(null))
+        const queryRef = query(dbRef, orderByChild('docId'), equalTo(false))
 
         // リスナーを設定
         const listener = onChildAdded(queryRef, (snapshot) => {
