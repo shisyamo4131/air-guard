@@ -1,4 +1,3 @@
-import colors from 'vuetify/es5/util/colors'
 import {
   ATTENDANCE_STATUS,
   ATTENDANCE_STATUS_ARRAY,
@@ -6,6 +5,7 @@ import {
   LEAVE_TYPE_ARRAY,
 } from '~/models/constants/attendance-status'
 import { CONTRACT_TYPE } from '~/models/constants/contract-types'
+import { DAY_TYPE, DAY_TYPE_ARRAY } from '~/models/constants/day-types'
 import { HEALTH_INSURANCE_TYPE } from '~/models/constants/health-insurance-types'
 import { MEDICAL_CHECKUP_TYPES } from '~/models/constants/medical-checkup-types'
 import { PAYMENT_TYPE } from '~/models/constants/payment-types'
@@ -119,65 +119,6 @@ const DAY_OF_WEEK_JA = {
     long: '土曜日',
   },
 }
-
-const DAY_TYPE = {}
-Object.defineProperties(DAY_TYPE, {
-  scheduled: {
-    value: {
-      short: '所定',
-      toString() {
-        return '所定労働日'
-      },
-      color: colors.blue.lighten2,
-    },
-    writable: false,
-    configurable: false,
-    enumerable: true,
-  },
-  'non-statutory-holiday': {
-    value: {
-      short: '法外',
-      toString() {
-        return '法定外休日'
-      },
-      color: colors.green.lighten2,
-    },
-    writable: false,
-    configurable: false,
-    enumerable: true,
-  },
-  'legal-holiday': {
-    value: {
-      short: '法休',
-      toString() {
-        return '法定休日'
-      },
-      color: colors.red.lighten2,
-    },
-    writable: false,
-    configurable: false,
-    enumerable: true,
-  },
-  undefined: {
-    value: {
-      short: '不明',
-      toString() {
-        return '不明'
-      },
-      color: colors.grey.darken1,
-    },
-    writable: false,
-    configurable: false,
-    enumerable: true,
-  },
-})
-
-const DAY_TYPE_ARRAY = [
-  { text: '所定労働日', value: 'scheduled' },
-  { text: '法定外休日', value: 'non-statutory-holiday' },
-  { text: '法定休日', value: 'legal-holiday' },
-  { text: '不明', value: 'undefined' },
-]
 
 const DEADLINE = {
   '05': '5日',
