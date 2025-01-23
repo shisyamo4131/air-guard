@@ -10,17 +10,10 @@ import {
   httpsCallable,
 } from 'firebase/functions'
 import 'dayjs/locale/ja'
-import GDataTableMonthlyAttendances from '~/components/molecules/tables/GDataTableMonthlyAttendances.vue'
-import GTemplateIndex from '~/components/templates/GTemplateIndex.vue'
+// import GDataTableMonthlyAttendances from '~/components/molecules/tables/GDataTableMonthlyAttendances.vue'
 import MonthlyAttendance from '~/models/MonthlyAttendance'
-import GCalendarDailyAttendances from '~/components/molecules/calendars/GCalendarDailyAttendances.vue'
-import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
-import GDataTableOperationWorkResults from '~/components/molecules/tables/GDataTableOperationWorkResults.vue'
-import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
-import GInputLeaveRecord from '~/components/molecules/inputs/GInputLeaveRecord.vue'
-import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
-import LeaveRecord from '~/models/LeaveRecord'
-import GTextFieldMonth from '~/components/molecules/inputs/GTextFieldMonth.vue'
+import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
+import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 
 export default {
   /***************************************************************************
@@ -32,45 +25,20 @@ export default {
    * COMPONENTS
    ***************************************************************************/
   components: {
-    GTemplateIndex,
-    GDataTableMonthlyAttendances,
-    GCalendarDailyAttendances,
-    GBtnCancel,
-    GDataTableOperationWorkResults,
-    GDialogInput,
-    GInputLeaveRecord,
-    GTextFieldMonth,
+    // GDataTableMonthlyAttendances,
+    GTemplateDefault,
+    GDialogMonthPicker,
   },
-
-  /***************************************************************************
-   * MIXINS
-   ***************************************************************************/
-  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      dialog: {
-        leaveRecord: false,
-        operationWorkResults: false,
-      },
-      instance: new LeaveRecord(),
       items: [],
       listener: new MonthlyAttendance(),
       loading: false,
       month: this.$dayjs().format('YYYY-MM'),
-
-      /**
-       * 勤怠カレンダー上で選択された日の日付文字列が保存されます。
-       */
-      selectedDate: null,
-
-      /**
-       * DataTable で選択された従業員IDが保存されます。
-       */
-      selectedEmployeeId: null,
     }
   },
 
@@ -78,161 +46,8 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
-    // 休暇情報で振替休日が選択された際に選択可能な日を判定する関数を返します
-    allowedDatesForSubstitute() {
-      const func = (date) => {
-        // 選択された日（selectedDate）日を含む週の開始日と終了日を取得
-        const selectedDate = this.$dayjs(this.selectedDate)
-        const from = selectedDate.startOf('week').format('YYYY-MM-DD')
-        const to = selectedDate.endOf('week').format('YYYY-MM-DD')
-
-        // 期間外であれば対象外
-        if (date < from || date > to) return false
-
-        // 期間内で法定外休日または法定休日である出勤簿を取得
-        const substitutable = this.dailyAttendances.find((attendance) => {
-          return (
-            attendance.date === date &&
-            ['non-statutory-holiday', 'legal-holiday'].includes(
-              attendance.dayType
-            ) &&
-            attendance.totalWorkingMinutes > 0
-          )
-        })
-
-        // 該当する出勤簿が存在するかを判定して返す
-        return !!substitutable
-      }
-      return func
-    },
-    currentDate() {
-      if (!this.monthlyAttendance) return this.$dayjs().format('YYYY-MM-DD')
-      return this.$dayjs(`${this.monthlyAttendance.month}-01`).format(
-        'YYYY-MM-DD'
-      )
-    },
-
-    /**
-     * 現在選択されている従業員の、現在選択されている日の勤怠実績ドキュメントを返します。
-     * - 従業員が選択されていない場合は undefined を返します。
-     * - 日が選択されていない場合は undefined を返します。
-     * - 該当する勤怠実績ドキュメントが存在しない場合は undefined を返します。
-     */
-    dailyAttendance() {
-      if (!this.selectedEmployeeId) return undefined
-      if (!this.selectedDate) return undefined
-      return this.dailyAttendances.find(
-        ({ date }) => date === this.selectedDate
-      )
-    },
-
-    /**
-     * 現在選択されている従業員の月間勤怠実績ドキュメントから前月, 当月, 翌月の
-     * 勤怠実績ドキュメントの配列を取得し、これらを結合して1つの配列として返します。
-     * - 従業員が選択されていない場合は空の配列を返します。
-     * - 月間勤怠実績が undefined の場合は空の配列を返します。
-     */
-    dailyAttendances() {
-      if (!this.selectedEmployeeId) return []
-      if (!this.monthlyAttendance) return []
-      const current = this.monthlyAttendance?.dailyAttendances || []
-      const prev = this.monthlyAttendance?.dailyAttendancesPrev || []
-      const next = this.monthlyAttendance?.dailyAttendancesNext || []
-      return current.concat(prev, next)
-    },
-    dateLabel() {
-      if (
-        !this.monthlyAttendance ||
-        !this.dailyAttendance ||
-        !this.dailyAttendance.operationWorkResults?.length
-      ) {
-        return null
-      }
-      return this.$dayjs(this.dailyAttendance.operationWorkResults[0].date)
-        .locale('ja')
-        .format('YYYY年MM月DD日(ddd)')
-    },
-    employeeLabel() {
-      if (!this.monthlyAttendance) return null
-      const employeeId = this.monthlyAttendance.employeeId
-      const result = this.$store.getters['employees/get'](employeeId).abbr
-      return result
-    },
     isCalculating() {
       return this.$store.state.systems.calcAttendance?.status !== 'ready'
-    },
-
-    /**
-     * 日が選択状態かどうかを返します。
-     */
-    isDateSelected: {
-      get() {
-        return !!this.selectedDate
-      },
-      set(v) {
-        if (!v) this.selectedDate = null
-      },
-    },
-
-    /**
-     * 従業員が選択状態かどうかを返します。
-     * - 勤怠カレンダーダイアログの制御に使用します。
-     */
-    isEmployeeSelected: {
-      get() {
-        return !!this.selectedEmployeeId
-      },
-      set(v) {
-        if (!v) this.selectedEmployeeId = null
-      },
-    },
-
-    /**
-     * 現在選択されている従業員, 日において勤怠実績ドキュメントに稼働実績ドキュメント（配列）が
-     * 存在するかを返します。
-     * - 従業員が選択されていない場合は false を返します。
-     * - 日が選択されていない場合は false を返します。
-     * - 該当する勤怠実績ドキュメントが存在しない場合は false を返します。
-     * - 稼働実績ドキュメントの配列が空の場合は false を返します。
-     */
-    isOperationExist() {
-      if (!this.selectedEmployeeId) return false
-      if (!this.selectedDate) return false
-      if (!this.dailyAttendance) return false
-      return this.dailyAttendance.operationWorkResults.length > 0
-    },
-
-    /**
-     * 現在選択されている従業員、日における休暇実績情報のドキュメントIDを返します。
-     * - 従業員が選択されていない場合は undefined を返します。
-     * - 日が選択されていない場合は undefined を返します。
-     * - 該当する勤怠実績ドキュメントが存在しない場合は undefined を返します。
-     * - 勤怠実績ドキュメントに休暇実績情報が存在しない場合は undefined を返します。
-     */
-    leaveRecordId() {
-      if (!this.selectedEmployeeId) return undefined
-      if (!this.selectedDate) return undefined
-      if (!this.dailyAttendance) return undefined
-      if (!this.dailyAttendance.leaveRecord) return undefined
-      return this.dailyAttendance.leaveRecord.docId || undefined
-    },
-
-    monthLabel() {
-      if (!this.monthlyAttendance) return null
-      const result = this.$dayjs(`${this.month}-01`).format('YYYY年MM月')
-      return result
-    },
-
-    /**
-     * 現在選択されている従業員の月間勤怠実績を返します。
-     * - 従業員が選択されていない場合は undefined を返します。
-     * - 月間勤怠実績ドキュメントの配列に該当するものが存在しない場合は undefined を返します。
-     */
-    monthlyAttendance() {
-      if (!this.selectedEmployeeId) return undefined
-      return this.items.find(
-        ({ employeeId }) => employeeId === this.selectedEmployeeId
-      )
     },
   },
 
@@ -240,16 +55,8 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
-    'dialog.leaveRecord'(v) {
-      if (!v) {
-        this.instance.initialize()
-        this.editMode = this.CREATE
-      }
-    },
     month: {
       handler(v) {
-        this.items.splice(0)
-        if (!v) this.listener.unsubscribe()
         this.subscribe()
       },
       immediate: true,
@@ -260,7 +67,7 @@ export default {
    * DESTROYED
    ***************************************************************************/
   destroyed() {
-    this.listener.unsubscribe()
+    this.unsubscribe()
   },
 
   /***************************************************************************
@@ -295,29 +102,11 @@ export default {
       document.body.removeChild(link)
     },
 
-    onClickDate({ date }) {
-      this.selectedDate = date
-
-      // 稼働実績が存在する場合は、稼働実績の詳細ダイアログを開く
-      if (this.isOperationExist) {
-        this.dialog.operationWorkResults = true
-      } else if (this.dailyAttendance) {
-        const { employeeId, date } = this.dailyAttendance
-        this.instance.initialize({
-          ...this.dailyAttendance.leaveRecord,
-          employeeId,
-          date,
-        })
-        this.editMode = this.instance.docId ? this.UPDATE : this.CREATE
-        this.dialog.leaveRecord = true
-      }
-    },
-    subscribe() {
-      this.items = this.listener.subscribeDocs([
-        ['where', 'month', '==', this.month],
-      ])
-    },
+    /**
+     * 全従業員の月間勤怠実績を更新します。
+     */
     async recalc() {
+      this.unsubscribe()
       this.loading = true
       try {
         const firebaseApp = getApp()
@@ -334,117 +123,165 @@ export default {
       } catch (err) {
         console.error('Error calling function:', err) // eslint-disable-line no-console
       } finally {
+        this.subscribe()
         this.loading = false
       }
+    },
+
+    /**
+     * 月間勤務実績ドキュメントへの購読を開始します。
+     */
+    subscribe() {
+      this.items = this.listener.subscribeDocs([
+        ['where', 'month', '==', this.month],
+      ])
+    },
+
+    /**
+     * 月間勤務実績ドキュメントへの購読を解除します。
+     */
+    unsubscribe() {
+      this.listener.unsubscribe()
     },
   },
 }
 </script>
 
 <template>
-  <g-template-index
-    label="従業員勤怠"
-    :items="items"
-    :hide-pagination="isCalculating"
-  >
-    <template #append-label>
-      <v-spacer />
-      <v-toolbar-items>
-        <v-btn
-          :disabled="isCalculating || loading"
-          :loading="isCalculating || loading"
-          text
-          @click="recalc"
-          ><v-icon left>mdi-reload</v-icon>実績更新</v-btn
-        >
-        <v-btn
-          :disabled="isCalculating || loading"
-          :loading="isCalculating || loading"
-          text
-          @click="downloadCsv"
-          ><v-icon left>mdi-download</v-icon>CSV出力</v-btn
-        >
-      </v-toolbar-items>
-    </template>
-    <template #search="{ attrs, inputAttrs }">
-      <g-text-field-month
-        v-model="month"
-        :options="{ ...attrs, ...inputAttrs }"
-      />
-      <v-spacer />
-    </template>
-    <template #default="{ attrs, on }">
-      <v-skeleton-loader
-        v-if="isCalculating"
-        class="flex-grow-1"
-        type="table"
-      />
-      <g-data-table-monthly-attendances
-        v-else
-        v-bind="attrs"
-        @click:row="selectedEmployeeId = $event.employeeId"
-        v-on="on"
-      />
-      <v-dialog
-        v-model="isEmployeeSelected"
-        scrollable
-        max-width="840"
-        :fullscreen="$vuetify.breakpoint.mobile"
-      >
-        <v-card>
-          <v-card-title class="justify-space-between">
-            <div>{{ employeeLabel }}</div>
-            <div>{{ monthLabel }}</div>
-          </v-card-title>
-          <v-card-text class="px-0 px-md-6">
-            <g-calendar-daily-attendances
-              style="height: auto"
-              :value="currentDate"
-              :items="dailyAttendances"
-              @click:date="onClickDate"
-            />
-            <v-dialog v-model="dialog.operationWorkResults" max-width="960">
-              <v-card>
-                <v-card-title>
-                  <div>{{ dateLabel }}</div>
-                </v-card-title>
-                <v-card-text class="px-0 px-md-6">
-                  <g-data-table-operation-work-results
-                    :items="dailyAttendance?.operationWorkResults || []"
+  <g-template-default v-slot="{ height }">
+    <v-container :style="{ height: `${height}px` }">
+      <air-array-manager :items="items" height="100%">
+        <template #default="props">
+          <v-sheet class="d-flex flex-column" height="100%">
+            <v-toolbar class="flex-grow-0" flat>
+              <g-dialog-month-picker v-model="month">
+                <template #activator="{ attrs, on }">
+                  <v-text-field
+                    style="max-width: 132px"
+                    class="center-input"
+                    v-bind="attrs"
+                    hide-details
+                    prepend-inner-icon="mdi-calendar"
+                    @click:prepend-inner="on['click']"
+                    v-on="on"
                   />
-                </v-card-text>
-                <v-card-actions class="justify-end">
-                  <g-btn-cancel
-                    icon
-                    @click="dialog.operationWorkResults = false"
+                </template>
+              </g-dialog-month-picker>
+              <v-spacer />
+              <v-toolbar-items>
+                <v-btn
+                  :disabled="isCalculating || loading"
+                  :loading="isCalculating || loading"
+                  text
+                  @click="recalc"
+                  ><v-icon left>mdi-reload</v-icon>実績更新</v-btn
+                >
+                <v-btn
+                  :disabled="isCalculating || loading"
+                  :loading="isCalculating || loading"
+                  text
+                  @click="downloadCsv"
+                  ><v-icon left>mdi-download</v-icon>CSV出力</v-btn
+                >
+              </v-toolbar-items>
+            </v-toolbar>
+            <div class="flex-table-container">
+              <v-skeleton-loader
+                v-if="isCalculating"
+                class="flex-grow-1"
+                type="table"
+              />
+              <v-data-table
+                v-else
+                v-bind="props.table.attrs"
+                fixed-header
+                :headers="[
+                  { text: 'CODE', value: 'employee.code' },
+                  {
+                    text: '従業員',
+                    value: 'employee.fullName',
+                    sortable: false,
+                  },
+                  {
+                    text: '所定内労働日数',
+                    value: 'totalScheduledWorkingDays',
+                    align: 'right',
+                  },
+                  {
+                    text: '法定内残業時間',
+                    value: 'statutoryOvertimeMinutes',
+                    align: 'right',
+                  },
+                  {
+                    text: '法定外残業時間',
+                    value: 'nonStatutoryOvertimeMinutes',
+                    align: 'right',
+                  },
+                  {
+                    text: '休日労働時間',
+                    value: 'holidayWorkingMinutes',
+                    align: 'right',
+                  },
+                  {
+                    text: '時間外合計',
+                    value: 'overtimeTotal',
+                    align: 'right',
+                  },
+                ]"
+                hide-default-footer
+                @click:row="
+                  $router.push(`/monthly-attendances/${$event.docId}`)
+                "
+                v-on="props.table.on"
+              >
+                <template #[`item.employee.code`]="{ item }">
+                  {{ $store.getters['employees/get'](item.employeeId).code }}
+                </template>
+                <template #[`item.employee.fullName`]="{ item }">
+                  {{
+                    $store.getters['employees/get'](item.employeeId).fullName
+                  }}
+                </template>
+                <template #[`item.totalScheduledWorkingDays`]="{ item }">
+                  {{ `${item.totalScheduledWorkingDays} 日` }}
+                </template>
+                <template #[`item.statutoryOvertimeMinutes`]="{ item }">
+                  {{ `${(item.statutoryOvertimeMinutes / 60).toFixed(1)} H` }}
+                </template>
+                <template #[`item.nonStatutoryOvertimeMinutes`]="{ item }">
+                  {{
+                    `${(item.nonStatutoryOvertimeMinutes / 60).toFixed(1)} H`
+                  }}
+                </template>
+                <template #[`item.holidayWorkingMinutes`]="{ item }">
+                  {{ `${(item.holidayWorkingMinutes / 60).toFixed(1)} H` }}
+                </template>
+                <template #[`item.overtimeTotal`]="{ item }">
+                  {{
+                    `${(
+                      (item.nonStatutoryOvertimeMinutes +
+                        item.holidayWorkingMinutes) /
+                      60
+                    ).toFixed(1)} H`
+                  }}
+                </template>
+              </v-data-table>
+            </div>
+            <v-container fluid>
+              <v-row justify="center">
+                <v-col cols="10">
+                  <v-pagination
+                    v-bind="props.pagination.attrs"
+                    v-on="props.pagination.on"
                   />
-                </v-card-actions>
-              </v-card>
-            </v-dialog>
-            <g-dialog-input
-              v-model="dialog.leaveRecord"
-              :edit-mode.sync="editMode"
-              :instance="instance"
-              max-width="360"
-            >
-              <template #default="props">
-                <g-input-leave-record
-                  v-bind="props.attrs"
-                  :allowe-dates-for-substitute="allowedDatesForSubstitute"
-                  hide-employee
-                  hide-date
-                  v-on="props.on"
-                />
-              </template>
-            </g-dialog-input>
-          </v-card-text>
-          <v-card-actions class="justify-end">
-            <g-btn-cancel icon @click="isEmployeeSelected = false" />
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-    </template>
-  </g-template-index>
+                </v-col>
+              </v-row>
+            </v-container>
+          </v-sheet>
+        </template>
+      </air-array-manager>
+    </v-container>
+  </g-template-default>
 </template>
 
 <style></style>
