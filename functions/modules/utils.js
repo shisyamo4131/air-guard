@@ -5,8 +5,101 @@
 import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc.js'
+import timezone from 'dayjs/plugin/timezone.js'
+
+// dayjsのプラグインを有効化
+dayjs.extend(utc)
+dayjs.extend(timezone)
+
 const firestore = getFirestore()
 const BATCH_LIMIT = 500
+
+/**
+ * 深夜時間帯の設定
+ */
+const NIGHT_TIME_START = '22:00'
+const NIGHT_TIME_END = '05:00'
+
+/*****************************************************************************
+ * 指定した日時を基準に、夜間時間帯（22:00～翌朝5:00）の開始・終了を計算します。
+ *
+ * @param {string|Date|number} dateTime - 基準となる日時
+ *   - ISO8601形式、Dateオブジェクト、またはタイムスタンプで指定可能
+ * @returns {Object} 夜間時間帯の開始・終了
+ *   - { before: { start: dayjs, end: dayjs }, after: { start: dayjs, end: dayjs } }
+ *     - `before`: 基準日時の前日から当日の夜間時間帯
+ *     - `after`: 基準日時の当日から翌日の夜間時間帯
+ *****************************************************************************/
+export const getNighttimeRange = (dateTime) => {
+  // 夜間時間帯の開始・終了時刻を取得
+  const [NIGHT_START_HOUR, NIGHT_START_MINUTE] =
+    NIGHT_TIME_START.split(':').map(Number)
+  const [NIGHT_END_HOUR, NIGHT_END_MINUTE] =
+    NIGHT_TIME_END.split(':').map(Number)
+
+  // 指定日時を日本時間（JST）に変換
+  const jst = dayjs(dateTime).tz('Asia/Tokyo')
+
+  /**
+   * 指定日を基準に夜間時間帯を計算するヘルパー関数
+   * @param {number} offsetDays - 基準日からのオフセット（日単位）
+   * @returns {{ start: dayjs, end: dayjs }} 夜間時間帯の開始と終了
+   */
+  const calculateNighttime = (offsetDays) => {
+    const start = jst
+      .clone()
+      .add(offsetDays, 'day')
+      .set('hour', NIGHT_START_HOUR)
+      .set('minute', NIGHT_START_MINUTE)
+      .set('second', 0)
+      .set('millisecond', 0)
+
+    const end = jst
+      .clone()
+      .add(offsetDays + (NIGHT_END_HOUR < NIGHT_START_HOUR ? 1 : 0), 'day') // 夜間終了が翌日にまたがる場合に1日追加
+      .set('hour', NIGHT_END_HOUR)
+      .set('minute', NIGHT_END_MINUTE)
+      .set('second', 0)
+      .set('millisecond', 0)
+
+    return { start, end }
+  }
+
+  // 前日と翌日の夜間時間帯を計算
+  const before = calculateNighttime(-1)
+  const after = calculateNighttime(0)
+
+  return { before, after }
+}
+
+/*****************************************************************************
+ * 2つの与えられた時間帯のオーバーラップを分単位で計算して返します。
+ * @param {Object} range1 時間帯1
+ * @param {string} range1.start - 開始日時（ISO8601タイムスタンプまたはタイムゾーン付き）
+ * @param {string} range1.end - 終了日時（ISO8601タイムスタンプまたはタイムゾーン付き）
+ * @param {Object} range2 時間帯2
+ * @param {string} range2.start - 開始日時（ISO8601タイムスタンプまたはタイムゾーン付き）
+ * @param {string} range2.end - 終了日時（ISO8601タイムスタンプまたはタイムゾーン付き）
+ * @returns {number} オーバーラップする時間（分単位）
+ *****************************************************************************/
+export const calcOverlapMinutes = (range1, range2) => {
+  // タイムスタンプを UTC に変換
+  const start1 = dayjs.tz(range1.start).utc().valueOf()
+  const end1 = dayjs.tz(range1.end).utc().valueOf()
+  const start2 = dayjs.tz(range2.start).utc().valueOf()
+  const end2 = dayjs.tz(range2.end).utc().valueOf()
+
+  // オーバーラップの開始と終了を計算
+  const overlapStart = Math.max(start1, start2)
+  const overlapEnd = Math.min(end1, end2)
+
+  // オーバーラップ時間を計算（ミリ秒）
+  const overlapMillis = Math.max(0, overlapEnd - overlapStart)
+
+  // 分に変換して返す
+  return Math.floor(overlapMillis / (1000 * 60))
+}
 
 /**
  * Firestore のドキュメント更新イベントを受け取り、差分に関するデータを返します。

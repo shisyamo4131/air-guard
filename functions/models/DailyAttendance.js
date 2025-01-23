@@ -1,16 +1,32 @@
 import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
+
+/**
+ * dayjs
+ */
 import dayjs from 'dayjs'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore.js'
+import isSameOrAfter from 'dayjs/plugin/isSameOrAfter.js'
+import minMax from 'dayjs/plugin/minMax.js'
 import isoWeek from 'dayjs/plugin/isoWeek.js'
+import utc from 'dayjs/plugin/utc.js'
+import timezone from 'dayjs/plugin/timezone.js'
+
+import { calcOverlapMinutes, getNighttimeRange } from '../modules/utils.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/DailyAttendance.js'
 import Employee from './Employee.js'
 import { EmployeeContractForDailyAttendance } from './EmployeeContract.js'
 import { LeaveRecordMinimal } from './LeaveRecord.js'
 import { OperationWorkResultMinimal } from './OperationWorkResult.js'
+
 dayjs.extend(isSameOrBefore)
+dayjs.extend(isSameOrAfter)
 dayjs.extend(isoWeek)
+dayjs.extend(minMax)
+dayjs.extend(utc)
+dayjs.extend(timezone)
+
 const firestore = getFirestore()
 const BATCH_LIMIT = 500
 
@@ -227,6 +243,13 @@ export default class DailyAttendance extends FireModel {
         },
         set(v) {},
       },
+
+      /**
+       * 始業時刻
+       * - 稼働実績のうち、一番早い時刻をタイムスタンプで返します。
+       * - 稼働実績が存在しない場合は無条件で null を返します。
+       * @refact 2025-01-23
+       */
       startTime: {
         configurable: true,
         enumerable: true,
@@ -234,22 +257,27 @@ export default class DailyAttendance extends FireModel {
           // operationWorkResults が空の場合は null を返す
           if (!this.operationWorkResults.length) return null
 
-          // 最も早い startTime を取得
-          const startTime = this.operationWorkResults.reduce((earliest, i) => {
-            // earliest が null なら、最初の startTime を設定
-            if (!earliest) return i.startTime
+          // 各エントリの終了時刻を dayjs オブジェクトとして取得
+          const times = this.operationWorkResults.map((entry) => {
+            return dayjs.tz(
+              `${entry.date} ${entry.startTime}`,
+              'YYYY-MM-DD HH:mm',
+              'Asia/Tokyo'
+            )
+          })
 
-            // HH:MM 形式の文字列はそのまま比較できる
-            return earliest < i.startTime ? earliest : i.startTime
-          }, null)
-
-          // startTime が null か確認して、日付を生成
-          return startTime
-            ? dayjs(`${this.date} ${startTime}`, 'YYYY-MM-DD HH:mm').toDate()
-            : null
+          // 最も早い時刻を取得し、Date オブジェクトとして返す
+          return dayjs.min(times).toDate()
         },
         set(v) {},
       },
+
+      /**
+       * 終業時刻
+       * - 稼働実績のうち、一番遅い時刻をタイムスタンプで返します。
+       * - 稼働実績が存在しない場合は無条件で null を返します。
+       * @refact 2025-01-23
+       */
       endTime: {
         configurable: true,
         enumerable: true,
@@ -257,30 +285,28 @@ export default class DailyAttendance extends FireModel {
           // operationWorkResults が空の場合は null を返す
           if (!this.operationWorkResults.length) return null
 
-          // 最も遅い endTime を取得
-          const endTime = this.operationWorkResults.reduce((latest, i) => {
-            // endAtNextday が true の場合は翌日の日時として処理
-            const endDate = i.endAtNextday
-              ? dayjs(i.date).add(1, 'day').format('YYYY-MM-DD')
-              : i.date
-
-            const currentEndTime = dayjs(
-              `${endDate} ${i.endTime}`,
-              'YYYY-MM-DD HH:mm'
+          // 各エントリの終了時刻を dayjs オブジェクトとして取得
+          const times = this.operationWorkResults.map((entry) => {
+            const time = dayjs.tz(
+              `${entry.date} ${entry.endTime}`,
+              'YYYY-MM-DD HH:mm',
+              'Asia/Tokyo'
             )
+            return entry.endAtNextday ? time.add(1, 'day') : time
+          })
 
-            // latest が null なら、最初の endTime を設定
-            if (!latest) return currentEndTime
-
-            // 最新の endTime を保持
-            return latest.isAfter(currentEndTime) ? latest : currentEndTime
-          }, null)
-
-          // endTime が null か確認して、Date オブジェクトとして返す
-          return endTime ? endTime.toDate() : null
+          // 最も遅い時刻を取得し、Date オブジェクトとして返す
+          return dayjs.max(times).toDate()
         },
         set(v) {},
       },
+
+      /**
+       * 休憩時間
+       * - 稼働実績の休憩時間の合計を返します。
+       * - 稼働実績が存在しない場合は無条件で 0 を返します。
+       * @refact 2025-01-23
+       */
       breakMinutes: {
         configurable: true,
         enumerable: true,
@@ -296,90 +322,87 @@ export default class DailyAttendance extends FireModel {
         },
         set(v) {},
       },
+
+      /*************************************************************
+       * 総労働時間（分）
+       * - 始業時刻と終業時刻から総労働時間を計算して分単位で返します。
+       * - 休憩時間が差し引かれます。
+       * @refact 2025-01-23
+       *************************************************************/
       totalWorkingMinutes: {
         configurable: true,
         enumerable: true,
         get() {
-          // date, startTime, endTime のどれかが存在しない場合は 0 を返す
-          if (!this.startTime || !this.endTime) return 0
-
-          // startTime と endTime が Date オブジェクトであるため、直接 diff を計算
-          const diffInMinutes = (this.endTime - this.startTime) / (1000 * 60) // ミリ秒から分に変換
-
-          // 実働時間から休憩時間を引く
-          const totalMinutes = diffInMinutes - this.breakMinutes
-
-          // 結果が負の場合は 0 を返す
-          return Math.max(totalMinutes, 0)
-        },
-        set(v) {},
-      },
-      nextDayWorkingMinutes: {
-        configurable: true,
-        enumerable: true,
-        get() {
-          // startTime, endTime, breakMinutes が存在しない場合は 0 を返す
+          // 必要なプロパティが存在しない場合は 0 を返す
           if (
             !this.startTime ||
             !this.endTime ||
             typeof this.breakMinutes !== 'number'
-          )
+          ) {
             return 0
+          }
 
-          // 日本標準時（UTC+9）で startTime と endTime を dayjs オブジェクトに変換
-          const from = dayjs(this.startTime).utcOffset(9)
-          const to = dayjs(this.endTime).utcOffset(9)
+          // startTime と endTime の差分をミリ秒から分に変換
+          const diffInMinutes =
+            (this.endTime.getTime() - this.startTime.getTime()) / (1000 * 60)
 
-          // 翌日の 0:00 を取得（startTime の翌日を基準にする）
-          const nextDayStart = dayjs(from)
-            .utcOffset(9)
-            .add(1, 'day')
-            .startOf('day')
+          // 実働時間から休憩時間を引く
+          const totalMinutes = diffInMinutes - this.breakMinutes
 
-          // endTime が 0 時を超えているかを判定
-          const isNextDay = to.isAfter(nextDayStart)
-
-          // 日付を跨いでいない場合は 0 を返す
-          if (!isNextDay) return 0
-
-          // 当日の労働時間の合計を取得
-          const minutesOnSameDay = nextDayStart.diff(from, 'minute')
-
-          // 休憩時間を当日の労働時間から引く
-          const breakTimeOnSameDay = Math.min(
-            this.breakMinutes,
-            minutesOnSameDay
-          )
-          const breakTimeRemaining = this.breakMinutes - breakTimeOnSameDay
-
-          // 翌日分の労働時間を計算（残りの休憩時間を引く）
-          const nextDayMinutes = to.diff(nextDayStart, 'minute')
-          const nextDayWorkingMinutes = Math.max(
-            nextDayMinutes - breakTimeRemaining,
-            0
-          )
-
-          return nextDayWorkingMinutes
+          // 実働時間が負の場合は 0 を返す
+          return Math.max(totalMinutes, 0)
         },
         set(v) {},
       },
+
+      /*************************************************************
+       * 翌日労働時間（分）
+       * - 総労働時間から当日労働時間を差し引いた時間を分単位で返します。
+       * - 休憩時間は総労働時間から差し引かれているため考慮する必要はありません。
+       * @refact 2025-01-23
+       *************************************************************/
+      nextDayWorkingMinutes: {
+        configurable: true,
+        enumerable: true,
+        get() {
+          return this.totalWorkingMinutes - this.currentDayWorkingMinutes
+        },
+        set(v) {},
+      },
+
+      /*************************************************************
+       * 当日分労働時間（分）
+       * - 始業時刻と終業時刻から当日分の労働時間を計算して返します。
+       * - 休憩時間は当日分労働時間から差し引けるだけ差し引かれます。
+       * @refact 2025-01-23
+       *************************************************************/
       currentDayWorkingMinutes: {
         configurable: true,
         enumerable: true,
         get() {
-          // 総労働時間と翌日分労働時間が存在しない場合は 0 を返す
-          const totalWorkingMinutes = this.totalWorkingMinutes || 0
-          const nextDayWorkingMinutes = this.nextDayWorkingMinutes || 0
+          // 開始時間または終了時間が存在しない場合は 0 を返す
+          if (!this.startTime || !this.endTime) return 0
 
-          // 当日分労働時間を計算（総労働時間から翌日分を引く）
-          const currentDayWorkingMinutes =
-            totalWorkingMinutes - nextDayWorkingMinutes
+          // 開始時間を dayjs オブジェクトとして取得
+          const from = dayjs(this.startTime).tz('Asia/Tokyo')
 
-          // 結果が負にならないように 0 以上の値を返す
-          return Math.max(currentDayWorkingMinutes, 0)
+          // 終了時間が翌日を超えないように制限
+          const deadline = from.clone().startOf('day').add(1, 'day')
+          const to = dayjs.min(dayjs(this.endTime), deadline)
+
+          // 開始時間と終了時間のオーバーラップを計算し分単位に変換
+          const overlap = Math.max(0, to.diff(from, 'milliseconds'))
+          const overlapMinutes = Math.floor(overlap / (1000 * 60))
+
+          // 休憩時間を差し引けるだけ差し引く
+          const result = Math.max(0, overlapMinutes - this.breakMinutes)
+
+          // 結果を返す
+          return result
         },
         set(v) {},
       },
+
       holidayWorkingMinutes: {
         configurable: true,
         enumerable: true,
@@ -615,63 +638,31 @@ export default class DailyAttendance extends FireModel {
         },
         set(v) {},
       },
+
+      /*************************************************************
+       * 深夜労働時間（分）
+       * @refact 2025-01-23
+       *************************************************************/
       nighttimeWorkingMinutes: {
         configurable: true,
         enumerable: true,
         get() {
           if (!this.startTime || !this.endTime) return 0
 
-          // 開始日時、終了日時を dayjs オブジェクトに変換
-          const start = dayjs(this.startTime).utcOffset(9)
-          const end = dayjs(this.endTime).utcOffset(9)
+          // 深夜手当の支給対象時間帯を用意
+          const { before, after } = getNighttimeRange(this.startTime)
 
-          // before の深夜時間帯 (前日22:00 ~ 当日5:00)
-          const beforeNightStart = dayjs(this.startTime)
-            .subtract(1, 'day')
-            .set('hour', 22)
-            .set('minute', 0)
-            .utcOffset(9)
-          const beforeNightEnd = dayjs(this.startTime)
-            .set('hour', 5)
-            .set('minute', 0)
-            .utcOffset(9)
+          // 前日、当日分のオーバーラップしている時間数（分）を取得
+          const beforeNightMinutes = calcOverlapMinutes(
+            { start: this.startTime, end: this.endTime },
+            { start: before.start, end: before.end }
+          )
+          const currentNightMinutes = calcOverlapMinutes(
+            { start: this.startTime, end: this.endTime },
+            { start: after.start, end: after.end }
+          )
 
-          // current の深夜時間帯 (当日22:00 ~ 翌日5:00)
-          const currentNightStart = dayjs(this.startTime)
-            .set('hour', 22)
-            .set('minute', 0)
-            .utcOffset(9)
-          const currentNightEnd = dayjs(this.startTime)
-            .add(1, 'day')
-            .set('hour', 5)
-            .set('minute', 0)
-            .utcOffset(9)
-
-          // 6つの日時オブジェクトを配列に入れて昇順に並び替え
-          const times = [
-            start,
-            end,
-            beforeNightStart,
-            beforeNightEnd,
-            currentNightStart,
-            currentNightEnd,
-          ].sort((a, b) => a - b)
-
-          let beforeNightTime = 0
-          let currentNightTime = 0
-
-          // 4. beforeNightEnd より開始時間が前であれば、2番目と3番目の要素の差を計算
-          if (start.isBefore(beforeNightEnd)) {
-            beforeNightTime = times[2].diff(times[1], 'minute')
-          }
-
-          // 5. currentNightStart より終了時間が後であれば、4番目と5番目の要素の差を計算
-          if (end.isAfter(currentNightStart)) {
-            currentNightTime = times[4].diff(times[3], 'minute')
-          }
-
-          // 深夜労働時間の合計を返す
-          return Math.max(beforeNightTime, 0) + Math.max(currentNightTime, 0)
+          return beforeNightMinutes + currentNightMinutes
         },
         set(v) {},
       },
