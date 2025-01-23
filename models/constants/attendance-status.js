@@ -1,5 +1,5 @@
 /**
- * 定数定義: 勤怠結果
+ * 定数定義: 勤怠結果 / 休暇種別
  */
 export const ATTENDANCE_STATUS = Object.freeze({
   undefined: { short: '未定', full: '未定', type: 'undefined' },
@@ -10,3 +10,21 @@ export const ATTENDANCE_STATUS = Object.freeze({
   compOff: { short: '代休', full: '代休', type: 'leave' },
   leave: { short: '補休', full: '補償休暇', type: 'leave' },
 })
+
+export const ATTENDANCE_STATUS_ARRAY = Object.entries(ATTENDANCE_STATUS).map(
+  ([key, value]) => {
+    return { value: key, text: value.full }
+  }
+)
+
+export const LEAVE_TYPE = Object.fromEntries(
+  Object.entries(ATTENDANCE_STATUS).filter(
+    ([key, value]) => value.type === 'leave'
+  ) // type が leave のものを抽出
+)
+
+export const LEAVE_TYPE_ARRAY = Object.entries(LEAVE_TYPE).map(
+  ([key, value]) => {
+    return { value: key, text: value.full }
+  }
+)

@@ -1,5 +1,10 @@
 import colors from 'vuetify/es5/util/colors'
-import { ATTENDANCE_STATUS } from '~/models/constants/attendance-status'
+import {
+  ATTENDANCE_STATUS,
+  ATTENDANCE_STATUS_ARRAY,
+  LEAVE_TYPE,
+  LEAVE_TYPE_ARRAY,
+} from '~/models/constants/attendance-status'
 import { CONTRACT_TYPE } from '~/models/constants/contract-types'
 import { HEALTH_INSURANCE_TYPE } from '~/models/constants/health-insurance-types'
 import { MEDICAL_CHECKUP_TYPES } from '~/models/constants/medical-checkup-types'
@@ -26,15 +31,6 @@ const FUTURE_COLOR_INDEX = (index) => {
   const colorIndex = index % colorCount
   return Object.values(FUTURE_COLORS)[colorIndex]
 }
-
-/**
- * 勤怠結果
- */
-const ATTENDANCE_STATUS_ARRAY = Object.entries(ATTENDANCE_STATUS).map(
-  ([key, value]) => {
-    return { value: key, text: value.full }
-  }
-)
 
 const CHAR_REGEXP = {
   全: '[ァ-ンヴー]',
@@ -264,18 +260,6 @@ const LEAVE_APPLICATION_TYPE_ARRAY = [
   { value: 'non-paid', text: '1: 休暇' },
   { value: 'paid', text: '2: 有給休暇' },
 ]
-
-/**
- * 休暇種別
- */
-export const LEAVE_TYPE = Object.fromEntries(
-  Object.entries(ATTENDANCE_STATUS).filter(
-    ([key, value]) => value.type === 'leave'
-  ) // type が leave のものを抽出
-)
-export const LEAVE_TYPE_ARRAY = Object.entries(ATTENDANCE_STATUS)
-  .filter(([key, value]) => value.type === 'leave') // type が leave のものを抽出
-  .map(([key, value]) => ({ value: key, text: value.full })) // {key, value} の形式に変換
 
 /**
  * 健康診断受診区分
