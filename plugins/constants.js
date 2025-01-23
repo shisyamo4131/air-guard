@@ -1,4 +1,5 @@
 import colors from 'vuetify/es5/util/colors'
+import { ATTENDANCE_STATUS } from '~/models/constants/attendance-status'
 import { CONTRACT_TYPE } from '~/models/constants/contract-types'
 import { HEALTH_INSURANCE_TYPE } from '~/models/constants/health-insurance-types'
 import { MEDICAL_CHECKUP_TYPES } from '~/models/constants/medical-checkup-types'
@@ -26,86 +27,14 @@ const FUTURE_COLOR_INDEX = (index) => {
   return Object.values(FUTURE_COLORS)[colorIndex]
 }
 
-const ATTENDANCE_STATUS = {}
-Object.defineProperties(ATTENDANCE_STATUS, {
-  undefined: {
-    value: {
-      short: '未定',
-      toString() {
-        return '未定'
-      },
-    },
-    writable: false,
-    configurable: false,
-    enumerable: true,
-  },
-  present: {
-    value: {
-      short: '出勤',
-      toString() {
-        return '出勤'
-      },
-    },
-    writable: false,
-    configurable: false,
-    enumerable: true,
-  },
-  absent: {
-    value: {
-      short: '欠勤',
-      toString() {
-        return '欠勤'
-      },
-    },
-    writable: false,
-    configurable: false,
-    enumerable: true,
-  },
-  paidLeave: {
-    value: {
-      short: '有給',
-      toString() {
-        return '有給休暇'
-      },
-    },
-    writable: false,
-    configurable: false,
-    enumerable: true,
-  },
-  substitute: {
-    value: {
-      short: '振休',
-      toString() {
-        return '振替休日'
-      },
-    },
-    writable: false,
-    configurable: false,
-    enumerable: true,
-  },
-  compOff: {
-    value: {
-      short: '代休',
-      toString() {
-        return '代休'
-      },
-    },
-    writable: false,
-    configurable: false,
-    enumerable: true,
-  },
-  leave: {
-    value: {
-      short: '補休',
-      toString() {
-        return '補償休暇'
-      },
-    },
-    writable: false,
-    configurable: false,
-    enumerable: true,
-  },
-})
+/**
+ * 勤怠結果
+ */
+const ATTENDANCE_STATUS_ARRAY = Object.entries(ATTENDANCE_STATUS).map(
+  ([key, value]) => {
+    return { value: key, text: value.full }
+  }
+)
 
 const CHAR_REGEXP = {
   全: '[ァ-ンヴー]',
@@ -337,6 +266,18 @@ const LEAVE_APPLICATION_TYPE_ARRAY = [
 ]
 
 /**
+ * 休暇種別
+ */
+export const LEAVE_TYPE = Object.fromEntries(
+  Object.entries(ATTENDANCE_STATUS).filter(
+    ([key, value]) => value.type === 'leave'
+  ) // type が leave のものを抽出
+)
+export const LEAVE_TYPE_ARRAY = Object.entries(ATTENDANCE_STATUS)
+  .filter(([key, value]) => value.type === 'leave') // type が leave のものを抽出
+  .map(([key, value]) => ({ value: key, text: value.full })) // {key, value} の形式に変換
+
+/**
  * 健康診断受診区分
  */
 const MEDICAL_CHECKUP_TYPES_ARRAY = Object.entries(MEDICAL_CHECKUP_TYPES).map(
@@ -465,6 +406,8 @@ export default (context, inject) => {
   inject('FUTURE_COLOR_INDEX', (index) => FUTURE_COLOR_INDEX(index))
 
   inject('ATTENDANCE_STATUS', ATTENDANCE_STATUS)
+  inject('ATTENDANCE_STATUS_ARRAY', ATTENDANCE_STATUS_ARRAY)
+
   inject('CHAR_REGEXP', CHAR_REGEXP)
   inject('CHAR_REGEXP_ARRAY', CHAR_REGEXP_ARRAY)
   inject('CONTRACT_TYPE', CONTRACT_TYPE)
@@ -490,6 +433,10 @@ export default (context, inject) => {
   inject('LEAVE_APPLICATION_STATUS_ARRAY', LEAVE_APPLICATION_STATUS_ARRAY)
   inject('LEAVE_APPLICATION_TYPE', LEAVE_APPLICATION_TYPE)
   inject('LEAVE_APPLICATION_TYPE_ARRAY', LEAVE_APPLICATION_TYPE_ARRAY)
+
+  inject('LEAVE_TYPE', LEAVE_TYPE)
+  inject('LEAVE_TYPE_ARRAY', LEAVE_TYPE_ARRAY)
+
   inject('MEDICAL_CHECKUP_TYPES', MEDICAL_CHECKUP_TYPES)
   inject('MEDICAL_CHECKUP_TYPES_ARRAY', MEDICAL_CHECKUP_TYPES_ARRAY)
   inject('OUTSOURCER_STATUS', OUTSOURCER_STATUS)
