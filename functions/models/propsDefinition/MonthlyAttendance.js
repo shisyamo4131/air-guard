@@ -93,6 +93,16 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
+  // 所定労働時間（分）
+  scheduledWorkMinutes: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: false,
+  },
+
   // 所定内労働時間（分）
   scheduledWorkingMinutes: {
     type: Number,
@@ -101,6 +111,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 法定内労働時間（分）
   statutoryOvertimeMinutes: {
     type: Number,
@@ -199,4 +210,40 @@ const propsDefinition = {
 const vueProps = generateVueProps(propsDefinition)
 const classProps = generateClassProps(propsDefinition)
 
-export { vueProps, classProps }
+/*****************************************************************************
+ * ACCESSOR
+ *****************************************************************************/
+/**
+ * 所定労働時間（分）
+ * - dailyAttendances の scheduledWorkMinutes の合計を返します。
+ */
+const scheduledWorkMinutes = {
+  configurable: true,
+  enumerable: true,
+  get() {
+    return this.dailyAttendances.reduce(
+      (sum, i) => sum + i.scheduledWorkMinutes,
+      0
+    )
+  },
+  set(v) {},
+}
+
+/**
+ * 所定内労働時間（分）
+ * - dailyAttendances の scheduledWorkingMinutes の合計を返します。
+ */
+const scheduledWorkingMinutes = {
+  configurable: true,
+  enumerable: true,
+  get() {
+    return this.dailyAttendances.reduce(
+      (sum, i) => sum + i.scheduledWorkingMinutes,
+      0
+    )
+  },
+  set(v) {},
+}
+
+const accessor = { scheduledWorkMinutes, scheduledWorkingMinutes }
+export { vueProps, classProps, accessor }

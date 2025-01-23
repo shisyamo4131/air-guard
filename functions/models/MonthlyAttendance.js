@@ -5,7 +5,7 @@ import isSameOrBefore from 'dayjs/plugin/isSameOrBefore.js'
 import isoWeek from 'dayjs/plugin/isoWeek.js'
 import updateLocale from 'dayjs/plugin/updateLocale.js'
 import FireModel from './FireModel.js'
-import { classProps } from './propsDefinition/MonthlyAttendance.js'
+import { classProps, accessor } from './propsDefinition/MonthlyAttendance.js'
 import Employee from './Employee.js'
 import { DailyAttendanceForMonthlyAttendance } from './DailyAttendance.js'
 dayjs.extend(isSameOrBefore)
@@ -123,6 +123,17 @@ export default class MonthlyAttendance extends FireModel {
         },
         set(v) {},
       },
+
+      /**
+       * 所定労働時間（分）
+       */
+      scheduledWorkMinutes: accessor.scheduledWorkMinutes,
+
+      /**
+       * 所定内労働時間（分）
+       */
+      scheduledWorkingMinutes: accessor.scheduledWorkingMinutes,
+
       statutoryOvertimeMinutes: {
         configurable: true,
         enumerable: true,
