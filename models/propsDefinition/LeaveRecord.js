@@ -1,6 +1,8 @@
 /**
  * 休暇実績データモデル
  */
+import { LEAVE_TYPE } from '../constants/attendance-status'
+import { DAY_TYPE } from '../constants/day-types'
 import { generateVueProps, generateClassProps } from './propsUtil'
 
 const propsDefinition = {
@@ -23,18 +25,13 @@ const propsDefinition = {
     requiredByClass: true,
   },
 
-  // 休暇種別
+  /**
+   * 休暇種別
+   */
   leaveType: {
     type: String,
     default: '',
-    validator: (v) =>
-      !v ||
-      [
-        'absent', // 欠勤
-        'substitute', // 振替休日
-        'compOff', // 代休
-        'leave', // 休暇
-      ].includes(v),
+    validator: (v) => !v || Object.keys(LEAVE_TYPE).includes(v),
     required: false,
     requiredByClass: true,
   },
@@ -47,12 +44,20 @@ const propsDefinition = {
     requiredByClass: false,
   },
 
-  // 振替出勤日区分
+  /**
+   * 振替出勤日区分
+   * - non-statutory-holiday または leagal-holiday
+   */
   substitutedDayType: {
     type: String,
     default: '',
     validator: (v) =>
-      !v || ['non-statutory-holiday', 'legal-holiday'].includes(v),
+      !v ||
+      Object.fromEntries(
+        Object.entries(DAY_TYPE).filter(
+          ([key, value]) => value.type === 'holiday'
+        )
+      ).includes(v),
     required: false,
     requiredByClass: false,
   },
