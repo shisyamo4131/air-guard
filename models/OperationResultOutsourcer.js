@@ -1,51 +1,36 @@
-import OperationResultDetail from './OperationResultDetail'
-
 /**
- * ## OperationResultOutsourcer（稼働実績明細）データモデル
- *
- * - `OperationResultDetail` を継承し、`outsourcerId` プロパティを追加しています。
- * - `OperationResult.outsourcers` に同一外注先が複数登録される可能性があるため、枝番として `branch` を追加しています。
- * - `id` プロパティで `outsourcerId` と `branch` の組み合わせを表現しています。
- * - 自身が外注先の稼働実績であることを表すため、`isEmployee` プロパティは false、`isOutsourcer` プロパティは true に固定されます。
- *
- * NOTE:
- * - OperationResultDetail は FireModel を継承したクラスではないため、
- *   toObject は自前で調整する必要があります。
- *
- * @version 2.1.1
+ * 外注先稼働実績明細データモデル
  * @author shisyamo4131
- * @updates
- * - version 2.1.1 - 2024-10-18 - toObject プロパティの不具合を修正
- * - version 2.1.0 - 2024-10-03 - `isEmployee`、`isOutsourcer` プロパティを追加。
- * - version 2.0.0 - 2024-10-02 - 初版作成
+ * @refact 2025-01-24
  */
-export default class OperationResultOutsourcer extends OperationResultDetail {
+import {
+  accessor,
+  classProps,
+} from './propsDefinition/OperationResultOutsourcer'
+export default class OperationResultOutsourcer {
   /****************************************************************************
    * CONSTRUCTOR
    ****************************************************************************/
   constructor(item = {}) {
-    super(item)
-    this.isEmployee = false
-    this.isOutsourcer = true
-    Object.defineProperties(this, {
-      id: {
-        configurable: true,
-        enumerable: true,
-        get() {
-          return `${this.outsourcerId}-${this.branch}`
-        },
-        set(v) {},
-      },
-    })
+    this.initialize(item)
   }
 
   /****************************************************************************
    * INITIALIZE
    ****************************************************************************/
   initialize(item = {}) {
-    this.outsourcerId = item?.outsourcerId || ''
-    this.branch = item?.branch === 0 || item?.branch ? item.branch : null
-    super.initialize(item)
+    // classProps に定義されたプロパティを自身のインスタンスに設定
+    Object.keys(classProps).forEach((key) => {
+      const propDefault = classProps[key].default
+      this[key] =
+        typeof propDefault === 'function' ? propDefault() : propDefault
+
+      // item が key を持っているようであれば値をプロパティにセット
+      if (key in item) this[key] = item[key]
+    })
+
+    // Accessor を利用した自動計算プロパティへの変換
+    Object.defineProperties(this, accessor)
   }
 
   /****************************************************************************
@@ -53,13 +38,6 @@ export default class OperationResultOutsourcer extends OperationResultDetail {
    * @returns {Object} - クラスのプロパティを含むオブジェクト
    ****************************************************************************/
   toObject() {
-    return {
-      ...super.toObject(),
-      outsourcerId: this.outsourcerId,
-      branch: this.branch,
-      isEmployee: this.isEmployee,
-      isOutsourcer: this.isOutsourcer,
-      id: this.id,
-    }
+    return { ...this }
   }
 }

@@ -3,6 +3,8 @@
  * @author shisyamo4131
  * @refact 2025-01-13
  */
+import OperationCount from '../OperationCount'
+import OperationUnitPrice from '../OperationUnitPrice'
 import { SiteMinimal } from '../Site'
 import { SiteContractMinimal } from '../SiteContract'
 import { generateVueProps, generateClassProps } from './propsUtil'
@@ -112,8 +114,6 @@ const propsDefinition = {
   // 現場取極めオブジェクト
   siteContract: {
     type: Object,
-    // 2025-01-13 既定値に現場取極めのインスタンスを定義
-    // default: null,
     default: () => new SiteContractMinimal(),
     required: false,
     requiredByClass: true,
@@ -122,26 +122,7 @@ const propsDefinition = {
   // 稼働数情報
   operationCount: {
     type: Object,
-    default: () => {
-      return {
-        standard: {
-          normal: 0,
-          half: 0,
-          cancel: 0,
-          total: 0,
-          overtimeMinutes: 0,
-        },
-        qualified: {
-          normal: 0,
-          half: 0,
-          cancel: 0,
-          total: 0,
-          overtimeMinutes: 0,
-        },
-        total: 0,
-        overtimeMinutes: 0,
-      }
-    },
+    default: () => new OperationCount(),
     required: false,
     requiredByClass: true,
   },
@@ -149,22 +130,7 @@ const propsDefinition = {
   // 単価情報
   unitPrice: {
     type: Object,
-    default: () => {
-      return {
-        standard: {
-          normal: null,
-          half: null,
-          cancel: null,
-          overtime: null,
-        },
-        qualified: {
-          normal: null,
-          half: null,
-          cancel: null,
-          overtime: null,
-        },
-      }
-    },
+    default: () => new OperationUnitPrice(),
     required: false,
     requiredByClass: true,
   },
@@ -266,13 +232,16 @@ const month = {
   set(v) {},
 }
 
-// 稼働数
+/**
+ * 稼働数を workers, outsourcers から自動計算させる Accessor です。
+ * - 稼働実績ドキュメントの編集時に使用します。
+ */
 const operationCount = {
   configurable: true,
   enumerable: true,
   get() {
-    const defaultValue = propsDefinition.operationCount.default()
-    const result = this.workers.concat(this.outsourcers).reduce((sum, i) => {
+    const instance = new OperationCount()
+    return this.workers.concat(this.outsourcers).reduce((sum, i) => {
       if (!i.qualification) {
         sum.standard[i.workResult] += 1
         sum.standard.total += 1
@@ -285,53 +254,44 @@ const operationCount = {
       sum.total += 1
       sum.overtimeMinutes += i.overtimeMinutes
       return sum
-    }, defaultValue)
-
-    return result
+    }, instance)
   },
   set(v) {},
 }
 
-// 単価
+/**
+ * 単価情報を現場取極め情報から自動計算させる Accessor です。
+ */
 const unitPrice = {
   configurable: true,
   enumerable: true,
   get() {
+    const instance = new OperationUnitPrice()
+
     // dayDivが設定されていない場合
-    if (!this.dayDiv) return null
+    if (!this.dayDiv) return instance
 
     // siteContractが設定されていない場合
-    if (!this.siteContract?.docId) return null
+    if (!this.siteContract?.docId) return instance
 
     // unitPricesの取得に失敗した場合
     const unitPrices = this.siteContract?.unitPrices?.[this.dayDiv]
-    if (!unitPrices) return null
+    if (!unitPrices) return instance
 
     // 結果を構築して返す
-    return {
-      standard: {
-        normal: unitPrices.standard?.price ?? null,
-        half:
-          ((unitPrices.standard?.price ?? null) * this.siteContract.halfRate) /
-          100,
-        cancel:
-          ((unitPrices.standard?.price ?? null) *
-            this.siteContract.cancelRate) /
-          100,
-        overtime: unitPrices.standard?.overtime ?? null,
-      },
-      qualified: {
-        normal: unitPrices.qualified?.price ?? null,
-        half:
-          ((unitPrices.qualified?.price ?? null) * this.siteContract.halfRate) /
-          100,
-        cancel:
-          ((unitPrices.qualified?.price ?? null) *
-            this.siteContract.cancelRate) /
-          100,
-        overtime: unitPrices.qualified?.overtime ?? null,
-      },
-    }
+    const calculateRates = (unitPrice) => ({
+      normal: unitPrice?.price ?? 0,
+      half: ((unitPrice?.price ?? 0) * this.siteContract.halfRate) / 100,
+      cancel: ((unitPrice?.price ?? 0) * this.siteContract.cancelRate) / 100,
+      overtime: unitPrice?.overtime ?? 0,
+    })
+
+    instance.initialize({
+      standard: calculateRates(unitPrices.standard),
+      qualified: calculateRates(unitPrices.qualified),
+    })
+
+    return instance
   },
   set(v) {
     // 空のsetメソッドを残す (Vueのリアクティブシステムのために必要)

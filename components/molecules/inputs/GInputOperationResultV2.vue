@@ -5,6 +5,9 @@
  * @refact 2025-01-13
  */
 import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
+import GDialogEmployeeSelector from '../dialogs/GDialogEmployeeSelector.vue'
+import GDialogOutsourcerSelector from '../dialogs/GDialogOutsourcerSelector.vue'
+import GInputOperationResultWorkerV2 from './GInputOperationResultWorkerV2.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
@@ -13,6 +16,10 @@ import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GDate from '~/components/atoms/inputs/GDate.vue'
 import { getDayType } from '~/utils/utility'
+import OperationResultWorker from '~/models/OperationResultWorker'
+import OperationResultOutsourcer from '~/models/OperationResultOutsourcer'
+import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
+import OperationResult from '~/models/OperationResult'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -24,6 +31,10 @@ export default {
     GDialogDatePicker,
     GSelect,
     GDate,
+    GDialogEmployeeSelector,
+    GInputOperationResultWorkerV2,
+    GBtnRegist,
+    GDialogOutsourcerSelector,
   },
 
   /***************************************************************************
@@ -39,12 +50,24 @@ export default {
   },
 
   /***************************************************************************
+   * DATA
+   ***************************************************************************/
+  data() {
+    return {
+      schema: {
+        worker: new OperationResultWorker(),
+        outsourcer: new OperationResultOutsourcer(),
+      },
+    }
+  },
+
+  /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
     /**
      * 日付が変更された時の処理です。
-     * - 自身の現場取極め情報を更新します。
+     * - 曜日区分を更新します。
      */
     async onDateChanged(event) {
       if (!event) return
@@ -57,6 +80,58 @@ export default {
         }
       }
       this.$emit('update:dayDiv', dayType)
+    },
+    workerHandleUpdate(item) {
+      const instance = new OperationResult(this.$props)
+      instance.changeWorker(item)
+      this.$emit('update:workers', [...instance.workers])
+      return Promise.resolve()
+    },
+    workerHandleDelete(item) {
+      const instance = new OperationResult(this.$props)
+      instance.removeWorker(item)
+      this.$emit('update:workers', [...instance.workers])
+      return Promise.resolve()
+    },
+    outsourcerHandleUpdate(item) {
+      const instance = new OperationResult(this.$props)
+      instance.changeWorker(item)
+      this.$emit('update:outsourcers', [...instance.outsourcers])
+      return Promise.resolve()
+    },
+    outsourcerHandleDelete(item) {
+      const instance = new OperationResult(this.$props)
+      instance.removeWorker(item)
+      this.$emit('update:outsourcers', [...instance.outsourcers])
+      return Promise.resolve()
+    },
+    onEmployeesSelected(items) {
+      try {
+        const instance = new OperationResult(this.$props)
+        for (const item of items) {
+          instance.addWorker({ employeeId: item.docId })
+        }
+        this.$emit('update:workers', [...instance.workers])
+        return Promise.resolve()
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error(err)
+        alert(err.message)
+      }
+    },
+    onOutsourcersSelected(items) {
+      try {
+        const instance = new OperationResult(this.$props)
+        for (const item of items) {
+          instance.addOutsourcer({ outsourcerId: item.docId })
+        }
+        this.$emit('update:outsourcers', [...instance.outsourcers])
+        return Promise.resolve()
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error(err)
+        alert(err.message)
+      }
     },
   },
 }
@@ -116,52 +191,108 @@ export default {
         <v-alert v-show="isLocked" type="info" dense text>
           ロックされているため、更新・削除できません。
         </v-alert>
-        <!-- <v-input>
-          <div class="d-flex flex-column flex-grow-1">
+        <air-array-manager
+          :dialog-props="{ maxWidth: 480 }"
+          event-edit="click:row"
+          :handle-update="workerHandleUpdate"
+          :handle-delete="workerHandleDelete"
+          item-key="id"
+          :items="workers"
+          :schema="schema.worker"
+        >
+          <template #default="{ table }">
             <v-card outlined>
-              <g-input-operation-result-details
-                :disable-edit="editModel.isLocked"
-                :value="editModel.workers.concat(editModel.outsourcers)"
-                @changeWorker="changeWorker($event)"
-                @removeWorker="removeWorker($event)"
-                @changeOutsourcer="changeOutsourcer($event)"
-                @removeOutsourcer="removeOutsourcer($event)"
-              />
+              <v-toolbar dense flat>
+                <v-toolbar-title>従業員</v-toolbar-title>
+                <v-spacer />
+                <g-dialog-employee-selector
+                  :items="$store.getters['employees/items']"
+                  @click:submit="onEmployeesSelected"
+                >
+                  <template #activator="{ attrs, on }">
+                    <g-btn-regist v-bind="attrs" icon v-on="on" />
+                  </template>
+                </g-dialog-employee-selector>
+              </v-toolbar>
+              <v-container fluid>
+                <v-data-table
+                  v-bind="table.attrs"
+                  :headers="[
+                    { text: '従業員', value: 'employeeId' },
+                    { text: '勤務日', value: 'date' },
+                    { text: '開始時刻', value: 'startTime' },
+                    { text: '終了時刻', value: 'endTime' },
+                    { text: '休憩時間', value: 'breakMinutes' },
+                  ]"
+                  hide-default-footer
+                  :items-per-page="-1"
+                  v-on="table.on"
+                >
+                  <template #[`item.employeeId`]="{ item }">
+                    {{
+                      $store.getters['employees/get'](item.employeeId)
+                        ?.fullName || 'N/A'
+                    }}
+                  </template>
+                </v-data-table>
+              </v-container>
             </v-card>
-            <div class="text-right mt-2">
-              <g-dialog-employee-selector
-                :items="selectableEmployees"
-                @click:submit="addWorker"
-              >
-                <template #activator="{ attrs, on }">
-                  <v-btn
-                    v-bind="attrs"
-                    :disabled="!isValidDate || noContract || editModel.isLocked"
-                    small
-                    color="primary"
-                    v-on="on"
-                    >従業員を追加</v-btn
-                  >
-                </template>
-              </g-dialog-employee-selector>
-              <g-dialog-outsourcer-selector
-                :items="selectableOutsourcers"
-                @click:submit="addOutsourcer"
-              >
-                <template #activator="{ attrs, on }">
-                  <v-btn
-                    v-bind="attrs"
-                    :disabled="!isValidDate || noContract || editModel.isLocked"
-                    small
-                    color="secondary"
-                    v-on="on"
-                    >外注先を追加</v-btn
-                  >
-                </template>
-              </g-dialog-outsourcer-selector>
-            </div>
-          </div>
-        </v-input> -->
+          </template>
+          <template #inputs="{ attrs, on }">
+            <g-input-operation-result-worker-v-2 v-bind="attrs" v-on="on" />
+          </template>
+        </air-array-manager>
+        <air-array-manager
+          :dialog-props="{ maxWidth: 480 }"
+          event-edit="click:row"
+          :handle-update="outsourcerHandleUpdate"
+          :handle-delete="outsourcerHandleDelete"
+          item-key="id"
+          :items="outsourcers"
+          :schema="schema.outsourcer"
+        >
+          <template #default="{ table }">
+            <v-card outlined>
+              <v-toolbar dense flat>
+                <v-toolbar-title>外注先</v-toolbar-title>
+                <v-spacer />
+                <g-dialog-outsourcer-selector
+                  :items="$store.getters['outsourcers/items']"
+                  @click:submit="onOutsourcersSelected"
+                >
+                  <template #activator="{ attrs, on }">
+                    <g-btn-regist v-bind="attrs" icon v-on="on" />
+                  </template>
+                </g-dialog-outsourcer-selector>
+              </v-toolbar>
+              <v-container fluid>
+                <v-data-table
+                  v-bind="table.attrs"
+                  :headers="[
+                    { text: '外注先', value: 'outsourcerId' },
+                    { text: '勤務日', value: 'date' },
+                    { text: '開始時刻', value: 'startTime' },
+                    { text: '終了時刻', value: 'endTime' },
+                    { text: '休憩時間', value: 'breakMinutes' },
+                  ]"
+                  hide-default-footer
+                  :items-per-page="-1"
+                  v-on="table.on"
+                >
+                  <template #[`item.outsourcerId`]="{ item }">
+                    {{
+                      $store.getters['outsourcers/get'](item.outsourcerId)
+                        ?.abbr || 'N/A'
+                    }}
+                  </template>
+                </v-data-table>
+              </v-container>
+            </v-card>
+          </template>
+          <template #inputs="{ attrs, on }">
+            <g-input-operation-result-worker-v-2 v-bind="attrs" v-on="on" />
+          </template>
+        </air-array-manager>
       </v-col>
     </v-row>
   </div>

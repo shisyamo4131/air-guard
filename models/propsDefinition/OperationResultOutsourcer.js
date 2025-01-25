@@ -1,5 +1,5 @@
 /**
- * 従業員稼働実績明細のプロパティ定義です。
+ * 外注先稼働実績明細のプロパティ定義です。
  * - 稼働実績明細のプロパティ定義を拡張しています。
  */
 import { generateVueProps, generateClassProps } from './propsUtil'
@@ -16,12 +16,15 @@ const propsDefinition = {
 
   /**
    * データを一意に識別するための id
-   * - Accessor によって employeeId がセットされることを想定
+   * - Accessor によって outsourcerId と branch の組み合わせがセットされることを想定
    */
   id: { type: String, default: '', required: false },
 
-  // 従業員ID
-  employeeId: { type: String, default: '', required: false },
+  // 外注先ID
+  outsourcerId: { type: String, default: '', required: false },
+
+  // 枝番
+  branch: { type: Number, default: null, required: false },
 }
 
 /*****************************************************************************
@@ -35,27 +38,27 @@ const accessor = {
     configurable: true,
     enumerable: true,
     get() {
-      return this.employeeId
+      return `${this.outsourcerId}-${this.branch}`
     },
     set(v) {},
   },
 
-  // 従業員フラグは必ず true を返します。
+  // 従業員フラグは必ず false を返します。
   isEmployee: {
     configurable: true,
     enumerable: true,
     get() {
-      return true
+      return false
     },
     set(v) {},
   },
 
-  // 外注先フラグは必ず false を返します。
+  // 外注先フラグは必ず true を返します。
   isOutsourcer: {
     configurable: true,
     enumerable: true,
     get() {
-      return false
+      return true
     },
     set(v) {},
   },

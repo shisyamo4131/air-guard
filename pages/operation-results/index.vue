@@ -10,11 +10,9 @@ import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 import GInputOperationResultSelectDate from '~/components/molecules/inputs/GInputOperationResultSelectDate.vue'
 import GInputOperationResultSelectSite from '~/components/molecules/inputs/GInputOperationResultSelectSite.vue'
-import GInputOperationResultSelectWorkers from '~/components/molecules/inputs/GInputOperationResultSelectWorkers.vue'
 import GInputOperationResultSelectWorkShift from '~/components/molecules/inputs/GInputOperationResultSelectWorkShift.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import OperationResult from '~/models/OperationResult'
-import SiteContract from '~/models/SiteContract'
 export default {
   /***************************************************************************
    * NAME
@@ -26,7 +24,6 @@ export default {
    ***************************************************************************/
   components: {
     GTemplateDefault,
-    GInputOperationResultSelectWorkers,
     GInputOperationResultSelectWorkShift,
     GInputOperationResultSelectDate,
     GInputOperationResultSelectSite,
@@ -86,28 +83,6 @@ export default {
     },
 
     /**
-     * ステップごとに適用する処理です。
-     */
-    async stepValidator(item, step, updateProperties) {
-      if (step === 3) await this.reloadContract(item, updateProperties)
-    },
-
-    /**
-     * 現場取極め情報を取得・更新します。
-     */
-    async reloadContract(item, updateProperties) {
-      const siteContractId = item.siteContractId
-      const isMatched = siteContractId === item.siteContract.docId
-      if (siteContractId && isMatched) return
-      const { siteId, date, workShift } = item
-      const instance = new SiteContract()
-      await instance.loadContract({ siteId, date, workShift }).catch((err) => {
-        throw new Error(`現場取極め情報の取得に失敗しました: ${err.message}`)
-      })
-      updateProperties({ siteContract: instance })
-    },
-
-    /**
      * 稼働実績ドキュメントの購読を開始します。
      */
     subscribe() {
@@ -136,8 +111,8 @@ export default {
         :items="items"
         label="稼働実績情報"
         :schema="schema"
-        :steps="['現場選択', '日付選択', '勤務区分選択', '従業員選択']"
-        :step-validator="stepValidator"
+        :steps="['現場選択', '日付選択', '勤務区分選択']"
+        @CREATE="$router.push(`/operation-results/${$event.docId}`)"
         v-on="$listeners"
       >
         <template #default="{ activator, pagination, table }">
@@ -193,7 +168,7 @@ export default {
                 hide-default-footer
                 sort-by="date"
                 sort-desc
-                v-on="table.on"
+                @click:row="$router.push(`/operation-results/${$event.docId}`)"
               >
                 <template #[`item.dayDiv`]="{ item }">
                   {{ $DAY_DIV[item.dayDiv] }}
@@ -241,9 +216,6 @@ export default {
             v-bind="attrs"
             v-on="on"
           />
-        </template>
-        <template #step-3="{ attrs, on }">
-          <g-input-operation-result-select-workers v-bind="attrs" v-on="on" />
         </template>
       </air-array-manager>
     </v-container>
