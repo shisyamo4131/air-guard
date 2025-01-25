@@ -208,6 +208,7 @@ export default {
      */
     defaultSlotProps() {
       return {
+        color: this.color,
         attrs: {
           color: this.color,
           height: this.height,
