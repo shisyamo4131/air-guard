@@ -6,7 +6,7 @@
  */
 import AirItemManager from '~/components/air/AirItemManager.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
-import GInputOperationResultV2 from '~/components/molecules/inputs/GInputOperationResultV2.vue'
+import GInputOperationResult from '~/components/molecules/inputs/GInputOperationResult.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import OperationResult from '~/models/OperationResult'
 export default {
@@ -21,7 +21,7 @@ export default {
   components: {
     GTemplateDefault,
     AirItemManager,
-    GInputOperationResultV2,
+    GInputOperationResult,
     GBtnEdit,
   },
 
@@ -166,7 +166,7 @@ export default {
           </v-card>
         </template>
         <template #inputs="{ attrs, on }">
-          <g-input-operation-result-v-2 v-bind="attrs" v-on="on" />
+          <g-input-operation-result v-bind="attrs" v-on="on" />
         </template>
       </air-item-manager>
     </v-container>
