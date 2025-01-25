@@ -2,7 +2,7 @@
 /**
  * 稼働実績の詳細画面です。
  * @author shisyamo4131
- * @refact 2025-01-24
+ * @refact 2025-01-25
  */
 import AirItemManager from '~/components/air/AirItemManager.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
@@ -162,9 +162,6 @@ export default {
                   </span>
                 </template>
               </v-data-table>
-              <div>
-                {{ instance.unitPrice }}
-              </div>
             </v-container>
           </v-card>
         </template>
