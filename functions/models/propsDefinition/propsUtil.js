@@ -55,7 +55,11 @@ function generateClassProps(propsDefinition) {
       requiredByClass,
       validator,
     } = propsDefinition[key]
-    result[key] = { type, default: defaultValue, required: requiredByClass }
+    result[key] = {
+      type,
+      default: defaultValue,
+      required: requiredByClass || false,
+    }
     if (validator) {
       result[key].validator = validator
     }
