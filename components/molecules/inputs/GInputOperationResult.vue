@@ -7,7 +7,7 @@
 import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
 import GDialogEmployeeSelector from '../dialogs/GDialogEmployeeSelector.vue'
 import GDialogOutsourcerSelector from '../dialogs/GDialogOutsourcerSelector.vue'
-import GInputOperationResultWorkerV2 from './GInputOperationResultWorkerV2.vue'
+import GInputOperationResultWorker from './GInputOperationResultWorker.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
@@ -32,7 +32,7 @@ export default {
     GSelect,
     GDate,
     GDialogEmployeeSelector,
-    GInputOperationResultWorkerV2,
+    GInputOperationResultWorker,
     GBtnRegist,
     GDialogOutsourcerSelector,
   },
@@ -239,7 +239,7 @@ export default {
             </v-card>
           </template>
           <template #inputs="{ attrs, on }">
-            <g-input-operation-result-worker-v-2 v-bind="attrs" v-on="on" />
+            <g-input-operation-result-worker v-bind="attrs" v-on="on" />
           </template>
         </air-array-manager>
         <air-array-manager
@@ -290,7 +290,7 @@ export default {
             </v-card>
           </template>
           <template #inputs="{ attrs, on }">
-            <g-input-operation-result-worker-v-2 v-bind="attrs" v-on="on" />
+            <g-input-operation-result-worker v-bind="attrs" v-on="on" />
           </template>
         </air-array-manager>
       </v-col>
