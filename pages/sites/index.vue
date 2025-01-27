@@ -9,7 +9,7 @@ import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
 import GIconStop from '~/components/atoms/icons/GIconStop.vue'
-import GInputSiteV2 from '~/components/molecules/inputs/GInputSiteV2.vue'
+import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import Site from '~/models/Site'
 export default {
@@ -26,7 +26,7 @@ export default {
     GBtnRegist,
     GIconPlay,
     GIconStop,
-    GInputSiteV2,
+    GInputSite,
     GChipSyncStatus,
     AirArrayManager,
   },
@@ -155,7 +155,7 @@ export default {
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">
-          <g-input-site-v-2 v-bind="attrs" v-on="on" />
+          <g-input-site v-bind="attrs" v-on="on" />
         </template>
       </air-array-manager>
     </v-container>

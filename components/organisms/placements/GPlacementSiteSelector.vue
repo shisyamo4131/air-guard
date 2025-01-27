@@ -3,12 +3,12 @@
  * 配置管理で現場を選択するためのコンポーネントです。
  */
 import { mapGetters } from 'vuex'
+import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
 import GChipSiteStatus from '~/components/atoms/chips/GChipSiteStatus.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
-import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GRadioGroupWorkShift from '~/components/molecules/inputs/GRadioGroupWorkShift.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
@@ -25,9 +25,9 @@ export default {
     GSwitch,
     GRadioGroupWorkShift,
     GBtnRegist,
-    GDialogInput,
-    GInputSite,
     GChipSiteStatus,
+    AirArrayManager,
+    GInputSite,
   },
   /***************************************************************************
    * MIXINS
@@ -120,14 +120,23 @@ export default {
       <v-toolbar class="flex-grow-0" color="secondary" dark dense flat>
         <v-toolbar-title>現場選択</v-toolbar-title>
         <v-spacer />
-        <g-dialog-input :edit-mode.sync="editMode" :instance="instance">
-          <template #activator="{ attrs, on }">
-            <g-btn-regist icon v-bind="attrs" v-on="on" />
+        <air-array-manager
+          :schema="instance"
+          label="現場登録"
+          :dialog-props="{ maxWidth: 600 }"
+        >
+          <template #default="{ activator }">
+            <g-btn-regist
+              icon
+              v-bind="activator.attrs"
+              color="white"
+              v-on="activator.on"
+            />
           </template>
-          <template #default="{ attrs, on }">
+          <template #inputs="{ attrs, on }">
             <g-input-site v-bind="attrs" v-on="on" />
           </template>
-        </g-dialog-input>
+        </air-array-manager>
       </v-toolbar>
       <v-toolbar class="flex-grow-0" flat>
         <g-text-field-search v-model="search" />

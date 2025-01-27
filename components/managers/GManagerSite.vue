@@ -5,13 +5,13 @@
  * @refact 2025-01-16
  */
 import AirItemManager from '../air/AirItemManager.vue'
-import GInputSiteV2 from '../molecules/inputs/GInputSiteV2.vue'
+import GInputSite from '../molecules/inputs/GInputSite.vue'
 import Site from '~/models/Site'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { AirItemManager, GInputSiteV2 },
+  components: { AirItemManager, GInputSite },
 
   /***************************************************************************
    * PROPS
@@ -75,7 +75,7 @@ export default {
       <slot name="default" v-bind="props" />
     </template>
     <template #inputs="{ attrs, on }">
-      <g-input-site-v-2 v-bind="attrs" v-on="on" />
+      <g-input-site v-bind="attrs" v-on="on" />
     </template>
   </air-item-manager>
 </template>

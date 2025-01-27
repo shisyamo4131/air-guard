@@ -1,19 +1,17 @@
 <script>
 /**
  * 現場情報入力コンポーネントです。
- *
  * - 登録モードでは、入力された現場名に類似する既登録現場が存在した場合、アラートを出します。
- *
  * @author shisyamo4131
+ * @refact 2025-01-20
  */
-import GCardInputForm from '../cards/GCardInputForm.vue'
 import GDate from '~/components/atoms/inputs/GDate.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
-import Site from '~/models/Site'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
-import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
+import { vueProps } from '~/models/propsDefinition/Site'
 
 export default {
   /***************************************************************************
@@ -25,23 +23,18 @@ export default {
     GTextField,
     GAutocompleteCustomer,
     GTextarea,
-    GCardInputForm,
   },
+
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GInputSubmitMixin],
+  mixins: [GMixinEditModeReceiver],
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
-    instance: {
-      type: Object,
-      required: true,
-      validator(instance) {
-        return instance instanceof Site
-      },
-    },
+    ...vueProps,
     hideCustomer: { type: Boolean, default: false, required: false },
   },
 
@@ -50,28 +43,31 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      editModel: new Site(),
       fuzzySeachItems: [],
     }
+  },
+
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    isEditing(v) {
+      if (!v) this.fuzzySeachItems.splice(0)
+    },
   },
 
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    afterInitialize() {
-      this.fuzzySeachItems = []
-    },
-
     setFuzzySearchItems() {
       this.fuzzySeachItems = []
-      if (this.editMode !== this.CREATE) return
-      if (!this.editModel.customerId) return
-      if (!this.editModel.name) return
-      const regex = new RegExp(this.editModel.name.split('').join('.*'), 'i') // 'i'は大文字小文字を無視
+      if (!this.isCreate) return
+      if (!this.customerId) return
+      if (!this.name) return
+      const regex = new RegExp(this.name.split('').join('.*'), 'i') // 'i'は大文字小文字を無視
       this.fuzzySeachItems = this.$store.getters['sites/items'].filter(
-        (item) =>
-          regex.test(item.name) && item.customerId === this.editModel.customerId
+        (item) => regex.test(item.name) && item.customerId === this.customerId
       )
     },
   },
@@ -79,26 +75,21 @@ export default {
 </script>
 
 <template>
-  <g-card-input-form
-    v-bind="$attrs"
-    label="現場情報編集"
-    :edit-mode="editMode"
-    :loading="loading"
-    @click:submit="submit"
-    v-on="$listeners"
-  >
+  <div>
     <g-autocomplete-customer
-      v-if="!editModel.hideCustomer"
-      v-model="editModel.customerId"
+      v-if="!hideCustomer"
+      :value="customerId"
       label="取引先"
       required
+      @input="$emit('update:customerId', $event)"
       @blur="setFuzzySearchItems"
     />
     <g-text-field
-      v-model="editModel.name"
+      :value="name"
       label="現場名"
       required
-      @change="editModel.abbr = editModel.name"
+      @input="$emit('update:name', $event)"
+      @change="$emit('update:abbr', $event)"
       @blur="setFuzzySearchItems"
     />
 
@@ -119,38 +110,62 @@ export default {
       </v-alert>
     </v-expand-transition>
     <g-text-field
-      v-model="editModel.abbr"
+      :value="abbr"
       label="略称"
       required
       hint="検索に使用されます"
       ignore-surrogate-pair
+      @input="$emit('update:abbr', $event)"
     />
     <g-text-field
-      v-model="editModel.abbrKana"
+      :value="abbrKana"
       label="略称カナ"
       required
       hint="検索に使用されます"
       ignore-surrogate-pair
       input-type="katakana"
+      @input="$emit('update:abbrKana', $event)"
     />
-    <g-text-field v-model="editModel.abbrNumber" label="略称番号" />
-    <g-text-field v-model="editModel.address" label="住所" required />
+    <g-text-field
+      :value="abbrNumber"
+      label="略称番号"
+      @input="$emit('update:abbrNumber', $event)"
+    />
+    <g-text-field
+      :value="address"
+      label="住所"
+      required
+      @input="$emit('update:address', $event)"
+    />
     <v-row>
       <v-col cols="6">
-        <g-date v-model="editModel.startAt" label="開始日" />
+        <g-date
+          :value="startAt"
+          label="開始日"
+          @input="$emit('update:startAt', $event)"
+        />
       </v-col>
       <v-col cols="6">
-        <g-date v-model="editModel.endAt" label="終了日" />
+        <g-date
+          :value="endAt"
+          label="終了日"
+          @input="$emit('update:endAt', $event)"
+        />
       </v-col>
     </v-row>
     <g-select
-      v-model="editModel.securityType"
+      :value="securityType"
       label="警備種別"
       :items="$SECURITY_TYPE_ARRAY"
       required
+      @input="$emit('update:securityType', $event)"
     />
-    <g-textarea v-model="editModel.remarks" label="備考" />
-  </g-card-input-form>
+    <g-textarea
+      :value="remarks"
+      label="備考"
+      @input="$emit('update:remarks', $event)"
+    />
+  </div>
 </template>
 
 <style></style>
