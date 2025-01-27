@@ -39,7 +39,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
-  endTimeNextday: {
+  endAtNextday: {
     type: Boolean,
     default: false,
     required: false,
@@ -51,6 +51,15 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+
+  // 実働時間（分）
+  workMinutes: {
+    type: Number,
+    default: null,
+    required: false,
+    requiredByClass: true,
+  },
+
   unitPrices: {
     type: Object,
     default: () => {

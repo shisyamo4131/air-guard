@@ -1,15 +1,11 @@
 import { FireModel } from 'air-firebase'
-import Site from './Site'
-import { classProps } from './propsDefinition/SiteContract'
+import { accessor, classProps } from './propsDefinition/SiteContract'
 import { isValidDateFormat } from '~/utils/utility'
 
 /**
- * ## SiteContractsドキュメントデータモデル【物理削除】
- *
- * @version 2.0.0
+ * 現場取極めドキュメントデータモデル【物理削除】
  * @author shisyamo4131
- * @updates
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
+ * @refact 2025-01-27
  */
 export default class SiteContract extends FireModel {
   /****************************************************************************
@@ -17,39 +13,31 @@ export default class SiteContract extends FireModel {
    ****************************************************************************/
   static collectionPath = 'SiteContracts'
   static classProps = classProps
+  static hasMany = [
+    {
+      collection: 'OperationResults',
+      field: 'siteContractId',
+      condition: '==',
+      type: 'collection',
+    },
+  ]
 
   /****************************************************************************
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
-  static customClassMap = {
-    site: Site,
-  }
+  static customClassMap = this.customClassMap
 
-  /****************************************************************************
-   * CONSTRUCTOR
-   ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
+  initialize(item = {}) {
+    super.initialize(item)
     Object.defineProperties(this, {
-      workMinutes: {
-        enumerable: true,
-        get() {
-          if (!this.startDate) return 0
-          if (!this.startTime || !this.endTime) return 0
-          const start = new Date(`${this.startDate} ${this.startTime}`)
-          const end = new Date(`${this.startDate} ${this.endTime}`)
-          if (this.endTimeNextday) end.setDate(end.getDate() + 1)
-          const diff = (end.getTime() - start.getTime()) / 60 / 1000
-          return diff - (this.breakMinutes || 0)
-        },
-        set(v) {},
-      },
+      ...accessor,
     })
   }
 
   /****************************************************************************
    * beforeCreateをオーバーライドします。
    * - 同一の現場、開始日、勤務区分での取極めが存在する場合は作成不可です。
+   * - 現場オブジェクトを取得して自身のプロパティにセットします。
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
    ****************************************************************************/
   async beforeCreate() {
@@ -72,13 +60,7 @@ export default class SiteContract extends FireModel {
         throw new Error('同一の取極めが既に登録されています。')
       }
 
-      const site = await new Site().fetchDoc(this.siteId)
-      if (!site) {
-        throw new Error('現場情報が取得できませんでした。')
-      }
-
-      this.site = site
-      await super.beforeCreate()
+      await this.site.fetch(this.siteId)
     } catch (err) {
       // eslint-disable-next-line no-console
       console.error(
@@ -91,6 +73,7 @@ export default class SiteContract extends FireModel {
   /****************************************************************************
    * beforeUpdateをオーバーライドします。
    * - 現場、開始日、勤務区分が変更されていないか確認します。
+   * - 現場IDと現場オブジェクトに相違がある場合は再度現場オブジェクトを更新します。
    * @returns {Promise<void>} - 成功すると解決されるPromise
    * @throws {Error} - 現場、開始日、勤務区分が変更されている場合にエラーをスローします。
    ****************************************************************************/
@@ -107,8 +90,17 @@ export default class SiteContract extends FireModel {
       throw new Error('現場、開始日、勤務区分は変更できません。')
     }
 
-    // 親クラスの beforeUpdate メソッドを呼び出す
-    await super.beforeUpdate()
+    try {
+      if (this.siteId !== this.site.docId) {
+        await this.site.fetch(this.siteId)
+      }
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error(
+        `[SiteContract.js beforeCreate] Error: ${err.message}. Stack: ${err.stack}`
+      )
+      throw err
+    }
   }
 
   /****************************************************************************

@@ -2,16 +2,17 @@
 /**
  * 現場取極め情報入力コンポーネント
  * @author shisyamo4131
+ * @refact 2025-01-27
  */
-import GCardInputForm from '../cards/GCardInputForm.vue'
-import SiteContract from '~/models/SiteContract'
+import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
-import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
-import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import { UnitPrices, vueProps } from '~/models/propsDefinition/SiteContract'
+import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
+import GDate from '~/components/atoms/inputs/GDate.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -19,36 +20,31 @@ export default {
   components: {
     GTextField,
     GTextarea,
-    GComboboxDate,
     GNumeric,
     GSwitch,
     GAutocompleteSite,
-    GCardInputForm,
+    GDialogDatePicker,
+    GDate,
   },
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GInputSubmitMixin],
+  mixins: [GMixinEditModeReceiver],
+
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
-    instance: {
-      type: Object,
-      required: true,
-      validator(instance) {
-        return instance instanceof SiteContract
-      },
-    },
+    ...vueProps,
     allowedDates: { type: Function, default: null, required: false },
     hideSite: { type: Boolean, default: false, required: false },
   },
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
     return {
-      editModel: new SiteContract(),
       dayDivs: [
         { text: '平日', value: 'weekdays' },
         { text: '土曜', value: 'saturday' },
@@ -70,6 +66,7 @@ export default {
       tab: null,
     }
   },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/
@@ -79,7 +76,7 @@ export default {
     },
     updateUnitPrices(val, path) {
       const keys = path.split('.')
-      const obj = JSON.parse(JSON.stringify(this.unitPrices))
+      const obj = new UnitPrices(this.unitPrices)
       let ref = obj
       keys.slice(0, -1).forEach((key) => {
         ref = ref[key]
@@ -92,36 +89,40 @@ export default {
 </script>
 
 <template>
-  <g-card-input-form
-    v-bind="$attrs"
-    label="現場取極め情報編集"
-    :edit-mode="editMode"
-    :loading="loading"
-    @click:submit="submit"
-    v-on="$listeners"
-  >
+  <div>
     <g-autocomplete-site
       v-if="!hideSite"
-      v-model="editModel.siteId"
+      :value="siteId"
       required
       :disabled="editMode !== CREATE"
+      @input="$emit('update:siteId', $event)"
     />
     <v-row dense>
       <v-col cols="12" md="6">
-        <g-combobox-date
-          v-model="editModel.startDate"
+        <g-dialog-date-picker
+          :value="startDate"
           :allowed-dates="allowedDates"
-          label="開始日"
-          required
-          :disabled="editMode !== CREATE"
-        />
+          @input="$emit('update:startDate', $event)"
+        >
+          <template #activator="{ attrs, on }">
+            <g-date
+              class="center-input"
+              v-bind="attrs"
+              label="開始日"
+              required
+              :disabled="editMode !== CREATE"
+              v-on="on"
+            />
+          </template>
+        </g-dialog-date-picker>
       </v-col>
       <v-col cols="12" md="6">
         <v-radio-group
-          v-model="editModel.workShift"
+          :value="workShift"
           class="mt-1 mb-2"
           row
           :disabled="editMode !== CREATE"
+          @change="$emit('update:workShift', $event)"
         >
           <v-radio label="日勤" value="day" />
           <v-radio label="夜勤" value="night" />
@@ -129,37 +130,41 @@ export default {
       </v-col>
       <v-col cols="6">
         <g-text-field
-          v-model="editModel.startTime"
+          :value="startTime"
           class="center-input"
           label="開始時刻"
           required
           input-type="time"
+          @input="$emit('update:startTime', $event)"
         />
       </v-col>
       <v-col cols="6">
         <g-text-field
-          v-model="editModel.endTime"
+          :value="endTime"
           class="center-input"
           label="終了時刻"
           required
           input-type="time"
+          @input="$emit('update:endTime', $event)"
         />
       </v-col>
       <v-col cols="6">
         <g-switch
-          v-model="editModel.endTimeNextday"
+          :input-value="endAtNextday"
           class="mt-1"
           label="翌日終了"
           required
+          @change="$emit('update:endAtNextday', $event)"
         />
       </v-col>
       <v-col cols="6">
         <g-numeric
-          v-model="editModel.breakMinutes"
+          :value="breakMinutes"
           class="center-input"
           label="休憩時間"
           required
           suffix="分"
+          @input="$emit('update:breakMinutes', $event)"
         />
       </v-col>
     </v-row>
@@ -183,15 +188,19 @@ export default {
                     cols="6"
                   >
                     <g-numeric
-                      v-model="
-                        editModel.unitPrices[dayDiv.value][qualified.value][
-                          num.value
-                        ]
+                      :value="
+                        unitPrices[dayDiv.value][qualified.value][num.value]
                       "
                       class="right-input"
                       :label="`${num.text}`"
                       required
                       suffix="円"
+                      @input="
+                        updateUnitPrices(
+                          $event,
+                          `${dayDiv.value}.${qualified.value}.${num.value}`
+                        )
+                      "
                     />
                   </v-col>
                 </template>
@@ -204,25 +213,31 @@ export default {
     <v-row dense>
       <v-col cols="6">
         <g-numeric
-          v-model="editModel.halfRate"
+          :value="halfRate"
           class="right-input"
           label="半勤請求割合"
           required
           suffix="%"
+          @input="$emit('update:halfRate', $event)"
         />
       </v-col>
       <v-col cols="6">
         <g-numeric
-          v-model="editModel.cancelRate"
+          :value="cancelRate"
           class="right-input"
           label="中止請求割合"
           required
           suffix="%"
+          @input="$emit('update:cancelRate', $event)"
         />
       </v-col>
     </v-row>
-    <g-textarea v-model="editModel.remarks" label="備考" />
-  </g-card-input-form>
+    <g-textarea
+      :value="remarks"
+      label="備考"
+      @input="$emit('update:remarks', $event)"
+    />
+  </div>
 </template>
 
 <style></style>

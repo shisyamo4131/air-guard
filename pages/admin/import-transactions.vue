@@ -96,8 +96,9 @@ export default {
               )
               // 2. dataにsite、siteIdを付与
               data.forEach((item) => {
-                item.site = getSite(item.siteCode)
-                item.siteId = item.site?.docId || undefined
+                // item.site = getSite(item.siteCode)
+                // item.siteId = item.site?.docId || undefined
+                item.siteId = getSite(item.siteCode)?.docId || undefined
               })
               // 3. siteIdが取得できなかったdataが存在すればエラー
               const unknownSite = data.filter((item) => !item.siteId)
@@ -115,7 +116,7 @@ export default {
                   data.map(({ siteId }) => siteId)
                 )
               for (const item of data) {
-                item.endAtNextday = item.endAtNextday === 1
+                item.endAtNextday = item.endAtNextday === '1'
                 item.breakMinutes = parseInt(item.breakTime)
                 item.halfRate = parseInt(item.halfRate) * 100
                 item.cancelRate = parseInt(item.cancelRate) * 100
