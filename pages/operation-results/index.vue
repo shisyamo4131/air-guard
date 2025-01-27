@@ -169,6 +169,7 @@ export default {
                 sort-by="date"
                 sort-desc
                 @click:row="$router.push(`/operation-results/${$event.docId}`)"
+                v-on="table.on"
               >
                 <template #[`item.dayDiv`]="{ item }">
                   {{ $DAY_DIV[item.dayDiv] }}

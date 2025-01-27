@@ -102,7 +102,11 @@ export default {
             <v-toolbar flat>
               <v-toolbar-title>稼働実績詳細</v-toolbar-title>
               <v-spacer />
-              <g-btn-edit icon @click="defaultProps.toUpdate" />
+              <g-btn-edit
+                :disabled="instance.isLocked"
+                icon
+                @click="defaultProps.toUpdate"
+              />
             </v-toolbar>
             <v-container fluid>
               <v-row>

@@ -109,6 +109,10 @@ class OperationCount {
     })
   }
 
+  clone() {
+    return new this.constructor(this)
+  }
+
   /***************************************************************************
    * TO OBJECT
    ***************************************************************************/
@@ -593,4 +597,11 @@ const accessor = {
   },
 }
 
-export { vueProps, classProps, accessor, customClassMap }
+export {
+  vueProps,
+  classProps,
+  accessor,
+  customClassMap,
+  OperationCount,
+  OperationUnitPrice,
+}
