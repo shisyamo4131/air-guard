@@ -98,8 +98,8 @@ const workMinutes = {
 
     // 開始時刻、終了時刻から dayjs オブジェクトを生成
     const from = dayjs(`${this.date} ${this.startTime}`)
-    const to = dayjs(`${this.date} ${this.endTime}`)
-    if (this.endAtNextday) to.add(1, 'day') // 翌日終了フラグによる日の加算
+    let to = dayjs(`${this.date} ${this.endTime}`)
+    if (this.endAtNextday) to = to.add(1, 'day') // 翌日終了フラグによる日の加算
 
     // 時間差（分）を算出し、休憩時間を差し引く
     const total = to.diff(from, 'minute') - this.breakMinutes
@@ -130,8 +130,8 @@ const overtimeMinutes = {
 
     // 開始時刻、終了時刻から dayjs オブジェクトを生成
     const from = dayjs(`${this.date} ${this.startTime}`)
-    const to = dayjs(`${this.date} ${this.endTime}`)
-    if (this.endAtNextday) to.add(1, 'day') // 翌日終了フラグによる日の加算
+    let to = dayjs(`${this.date} ${this.endTime}`)
+    if (this.endAtNextday) to = to.add(1, 'day') // 翌日終了フラグによる日の加算
 
     // 時間差（分）を算出し、休憩時間を差し引く
     const total = to.diff(from, 'minute') - this.breakMinutes
@@ -191,8 +191,8 @@ const isValid = {
 
     // 開始時刻、終了時刻から dayjs オブジェクトを生成
     const from = dayjs(`${this.date} ${this.startTime}`)
-    const to = dayjs(`${this.date} ${this.endTime}`)
-    if (this.endAtNextday) to.add(1, 'day') // 翌日終了フラグによる日の加算
+    let to = dayjs(`${this.date} ${this.endTime}`)
+    if (this.endAtNextday) to = to.add(1, 'day') // 翌日終了フラグによる日の加算
 
     // 時間差（分）を算出
     const total = to.diff(from, 'minute')
