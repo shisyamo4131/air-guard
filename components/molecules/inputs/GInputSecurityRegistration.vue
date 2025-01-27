@@ -3,35 +3,34 @@
  * 従業員警備員登録情報入力コンポーネント
  * - Employee クラスの securityRegistration プロパティを編集するためのコンポーネントです。
  * @author shisyamo4131
+ * @refact 2025-01-20
  */
-import GCardInputForm from '../cards/GCardInputForm.vue'
-import GInputSubmitMixin from '~/mixins/GInputSubmitMixin'
+import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
-import Employee from '~/models/Employee'
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
+import SecurityRegistration from '~/models/SecurityRegistration'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GNumeric, GCardInputForm, GComboboxDate, GSelect, GTextField },
+  components: { GNumeric, GComboboxDate, GSelect, GTextField },
 
   /***************************************************************************
    * MIXINS
    ***************************************************************************/
-  mixins: [GInputSubmitMixin],
+  mixins: [GMixinEditModeReceiver],
 
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
-    instance: {
+    securityRegistration: {
       type: Object,
-      required: true,
-      validator(instance) {
-        return instance instanceof Employee
-      },
+      default: () => new SecurityRegistration(),
+      required: false,
+      validator: (instance) => instance instanceof SecurityRegistration,
     },
   },
 
@@ -40,7 +39,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      editModel: new Employee(),
+      editItem: new SecurityRegistration(),
     }
   },
 
@@ -49,41 +48,53 @@ export default {
    ***************************************************************************/
   computed: {
     experiencePeriod() {
-      const { years, months } =
-        this.editModel.securityRegistration.experiencePeriod
+      const { years, months } = this.editItem.experiencePeriod
       return `${years}年${months}ヶ月`
+    },
+  },
+
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    editItem: {
+      handler(v) {
+        this.$emit('update:securityRegistration', v)
+      },
+      deep: true,
+    },
+    securityRegistration: {
+      handler(v) {
+        Object.entries(v).forEach(([key, value]) => {
+          this.editItem[key] = value
+        })
+      },
+      immediate: true,
     },
   },
 }
 </script>
 
 <template>
-  <g-card-input-form
-    v-bind="$attrs"
-    label="警備員登録情報"
-    :edit-mode="editMode"
-    :loading="loading"
-    @click:submit="submit"
-    v-on="$listeners"
-  >
+  <div>
     <v-row dense>
       <v-col cols="12" md="6">
         <g-combobox-date
-          v-model="editModel.securityRegistration.registrationDate"
+          v-model="editItem.registrationDate"
           label="警備員登録日"
           required
         />
       </v-col>
       <v-col cols="12" md="6">
         <g-combobox-date
-          v-model="editModel.securityRegistration.securityStartDate"
+          v-model="editItem.securityStartDate"
           label="警備経験開始日"
           required
         />
       </v-col>
       <v-col cols="12" md="6">
         <g-numeric
-          v-model="editModel.securityRegistration.blankMonths"
+          v-model="editItem.blankMonths"
           class="right-input"
           label="ブランク"
           required
@@ -100,7 +111,7 @@ export default {
       </v-col>
     </v-row>
     <g-text-field
-      v-model="editModel.securityRegistration.honseki"
+      v-model="editItem.honseki"
       label="本籍地"
       required
       hint="外国籍の場合は国籍を入力"
@@ -110,39 +121,37 @@ export default {
       <v-subheader>緊急連絡先</v-subheader>
       <v-card-text>
         <g-text-field
-          v-model="editModel.securityRegistration.emergencyContactName"
+          v-model="editItem.emergencyContactName"
           label="氏名"
           required
         />
         <g-select
-          v-model="editModel.securityRegistration.emergencyContactRelation"
+          v-model="editItem.emergencyContactRelation"
           label="続柄"
           :items="$RELATION_ARRAY"
           required
         />
         <g-text-field
-          v-model="
-            editModel.securityRegistration.emergencyContactRelationDetail
-          "
+          v-model="editItem.emergencyContactRelationDetail"
           label="続柄詳細"
           required
           counter
           maxlength="5"
         />
         <g-text-field
-          v-model="editModel.securityRegistration.emergencyContactAddress"
+          v-model="editItem.emergencyContactAddress"
           label="住所"
           required
         />
         <g-text-field
-          v-model="editModel.securityRegistration.emergencyContactTel"
+          v-model="editItem.emergencyContactTel"
           label="電話番号"
           required
           input-type="tel"
         />
       </v-card-text>
     </v-card>
-  </g-card-input-form>
+  </div>
 </template>
 
 <style></style>

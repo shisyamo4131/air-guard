@@ -20,7 +20,7 @@ import GListIterator from '~/components/atoms/lists/GListIterator.vue'
 import Employee from '~/models/Employee'
 import AirItemManager from '~/components/air/AirItemManager.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
-import GInputSecurityRegistrationV2 from '~/components/molecules/inputs/GInputSecurityRegistrationV2.vue'
+import GInputSecurityRegistration from '~/components/molecules/inputs/GInputSecurityRegistration.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -40,7 +40,7 @@ export default {
     GListIterator,
     AirItemManager,
     GInputEmployee,
-    GInputSecurityRegistrationV2,
+    GInputSecurityRegistration,
   },
 
   /***************************************************************************
@@ -605,10 +605,7 @@ export default {
                       </g-card-floating-label>
                     </template>
                     <template #inputs="{ attrs, on }">
-                      <g-input-security-registration-v-2
-                        v-bind="attrs"
-                        v-on="on"
-                      />
+                      <g-input-security-registration v-bind="attrs" v-on="on" />
                     </template>
                   </air-item-manager>
                 </v-col>
