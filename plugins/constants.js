@@ -11,6 +11,7 @@ import { MEDICAL_CHECKUP_TYPES } from '~/models/constants/medical-checkup-types'
 import { PAYMENT_TYPE } from '~/models/constants/payment-types'
 import { SOCIAL_SECURITY_PROCESSING_STATUS } from '~/models/constants/processing-status'
 import { WORK_RESULT, WORK_RESULT_ARRAY } from '~/models/constants/work-results'
+import { WORK_SHIFT, WORK_SHIFT_ARRAY } from '~/models/constants/work-shifts'
 
 /**
  * 将来適用したいカラーパレット
@@ -311,21 +312,11 @@ const TRANSPORTATION_COST_APPLICATION_STATUS_ARRAY = [
   { value: '9:expired', text: '期限切れ' },
 ]
 
-// const WORK_RESULT = {
-//   normal: '通常',
-//   half: '半勤',
-//   cancel: '中止',
-// }
+// const WORK_SHIFT = { day: '日勤', night: '夜勤' }
 
-// const WORK_RESULT_ARRAY = Object.entries(WORK_RESULT).map(([key, value]) => {
+// const WORK_SHIFT_ARRAY = Object.entries(WORK_SHIFT).map(([key, value]) => {
 //   return { value: key, text: value }
 // })
-
-const WORK_SHIFT = { day: '日勤', night: '夜勤' }
-
-const WORK_SHIFT_ARRAY = Object.entries(WORK_SHIFT).map(([key, value]) => {
-  return { value: key, text: value }
-})
 
 export default (context, inject) => {
   inject('FUTURE_COLORS', FUTURE_COLORS)
