@@ -2,7 +2,7 @@
 /**
  * 現場取極め情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-27
+ * @refact 2025-01-28
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
@@ -112,7 +112,7 @@ export default {
 
 <template>
   <g-template-default v-slot="{ height }">
-    <v-container fluid :style="{ height: `${height}px` }">
+    <v-container :style="{ height: `${height}px` }">
       <air-array-manager
         :dialog-props="{
           maxWidth: 600,
@@ -168,6 +168,9 @@ export default {
                 sort-desc
                 v-on="props.table.on"
               >
+                <template #[`item.workShift`]="{ item }">
+                  {{ $WORK_SHIFT[item.workShift] }}
+                </template>
               </v-data-table>
             </div>
             <v-container fluid>
