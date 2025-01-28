@@ -8,10 +8,7 @@
  *   -> インスタンスが Minimal などであった場合に情報が欠落してしまう為
  * @author shisyamo4131
  */
-import GDialogInput from '../dialogs/GDialogInput.vue'
-import GInputWorkRegulation from '../inputs/GInputWorkRegulation.vue'
 import GCardColorIndicator from '../../atoms/cards/GCardColorIndicator.vue'
-import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import WorkRegulation from '~/models/WorkRegulation'
 export default {
@@ -20,9 +17,6 @@ export default {
    ****************************************************************************/
   components: {
     GCheckbox,
-    GBtnEdit,
-    GDialogInput,
-    GInputWorkRegulation,
     GCardColorIndicator,
   },
 
@@ -30,11 +24,6 @@ export default {
    * PROPS
    ****************************************************************************/
   props: {
-    /**
-     * 当該就業規則を編集不可能にします。
-     */
-    disableEdit: { type: Boolean, default: false, required: false },
-
     /**
      * 就業規則ドキュメントID
      * - 指定された ID に該当するドキュメントを Firestore から取得します。
@@ -189,20 +178,6 @@ export default {
     <v-toolbar dense flat>
       <v-toolbar-title class="text-subtitle-1">{{ title }}</v-toolbar-title>
       <v-spacer />
-      <g-dialog-input edit-mode="UPDATE" :instance="editModel">
-        <template #activator="{ attrs, on }">
-          <g-btn-edit
-            v-if="!error.message && docId && !disableEdit"
-            icon
-            v-bind="attrs"
-            color="primary"
-            v-on="on"
-          />
-        </template>
-        <template #default="{ attrs, on }">
-          <g-input-work-regulation v-bind="attrs" v-on="on" />
-        </template>
-      </g-dialog-input>
     </v-toolbar>
     <v-card-text class="pt-0">
       <g-card-color-indicator
