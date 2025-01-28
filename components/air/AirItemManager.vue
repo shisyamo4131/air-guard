@@ -404,12 +404,15 @@ export default {
      * AirRenderlessItemManager のメソッドを提供
      *******************************************/
     async toRegist() {
+      this.initialize()
       await this.managerRef.toRegist()
     },
     async toUpdate() {
+      this.initialize()
       await this.managerRef.toUpdate()
     },
     async toDelete() {
+      this.initialize()
       await this.managerRef.toDelete()
     },
   },
