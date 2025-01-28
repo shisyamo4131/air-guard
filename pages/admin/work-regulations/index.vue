@@ -6,7 +6,7 @@
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
-import GInputWorkRegulationV2 from '~/components/molecules/inputs/GInputWorkRegulationV2.vue'
+import GInputWorkRegulation from '~/components/molecules/inputs/GInputWorkRegulation.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import WorkRegulation from '~/models/WorkRegulation'
 export default {
@@ -22,7 +22,7 @@ export default {
     GTemplateDefault,
     AirArrayManager,
     GBtnRegist,
-    GInputWorkRegulationV2,
+    GInputWorkRegulation,
   },
 
   /***************************************************************************
@@ -130,7 +130,7 @@ export default {
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">
-          <g-input-work-regulation-v-2 v-bind="attrs" v-on="on" />
+          <g-input-work-regulation v-bind="attrs" v-on="on" />
         </template>
       </air-array-manager>
     </v-container>
