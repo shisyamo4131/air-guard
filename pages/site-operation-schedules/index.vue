@@ -22,14 +22,15 @@ import { onValue, ref, set } from 'firebase/database'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
-import GDialogInput from '~/components/molecules/dialogs/GDialogInput.vue'
-import GInputSiteOperationSchedule from '~/components/molecules/inputs/GInputSiteOperationSchedule.vue'
 import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
 import GSosRequiredWorkersChip from '~/components/organisms/site-operation-schedules/GSosRequiredWorkersChip.vue'
 import GSiteOrderManager from '~/components/organisms/GSiteOrderManager.vue'
 import GIconCancel from '~/components/atoms/icons/GIconCancel.vue'
 import GSnackbarError from '~/components/atoms/snackbars/GSnackbarError.vue'
+import AirArrayManager from '~/components/air/AirArrayManager.vue'
+import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
+import GInputSiteOperationScheduleV2 from '~/components/molecules/inputs/GInputSiteOperationScheduleV2.vue'
 
 export default {
   /***************************************************************************
@@ -43,13 +44,14 @@ export default {
   components: {
     GTemplateDefault,
     GSelect,
-    GDialogInput,
-    GInputSiteOperationSchedule,
     GChipWorkShift,
     GSosRequiredWorkersChip,
     GSiteOrderManager,
     GIconCancel,
     GSnackbarError,
+    AirArrayManager,
+    GBtnRegist,
+    GInputSiteOperationScheduleV2,
   },
 
   /***************************************************************************
@@ -86,7 +88,6 @@ export default {
       dbRef: ref(database, `SiteOperationSchedules/siteOrder`),
       columns: [],
       currentDate: this.$dayjs().format('YYYY-MM-DD'),
-      dialog: false,
       instance: new SiteOperationSchedule(),
       listeners: {},
       months: [
@@ -194,18 +195,6 @@ export default {
         })
       },
       immediate: true,
-    },
-
-    /**
-     * data.dialog を監視します。
-     * - 稼働予定編集画面が閉じられたことを意味するため、data.instance を初期化し、
-     *   editMode を CREATE に初期化します。
-     */
-    dialog(v) {
-      if (!v) {
-        this.instance.initialize()
-        this.editMode = this.CREATE
-      }
     },
 
     /**
@@ -331,18 +320,6 @@ export default {
         })
         resolve()
       })
-    },
-
-    /**
-     * 編集ボタン（稼働数表示チップコンポーネント）がクリックされた時の処理です。
-     * 引数に現場稼働予定のインスタンスを受け取り、稼働予定編集画面を UPDATE モードで開きます。
-     */
-    onClickEdit(instance) {
-      this.instance.initialize(instance)
-      if (instance.docId) {
-        this.editMode = this.UPDATE
-      }
-      this.dialog = true
     },
 
     /**
@@ -483,140 +460,155 @@ export default {
 
 <template>
   <g-template-default>
-    <v-card class="d-flex flex-column" height="100%">
-      <v-toolbar class="flex-grow-0" flat>
-        <g-select
-          v-model="selectedMonths"
-          style="max-width: 120px"
-          label="表示月数"
-          :items="months"
-          hide-details
-        />
-        <v-toolbar-items>
-          <v-btn
-            class="ml-2"
-            color="primary"
-            text
-            @click="scrollToCurrentColumn"
+    <air-array-manager
+      :dialog-props="{ maxWidth: 360 }"
+      :handle-create="async (item) => await item.create()"
+      :handle-update="async (item) => await item.update()"
+      :handle-delete="async (item) => await item.delete()"
+      :items="schedules"
+      label="現場稼働予定"
+      :schema="instance"
+    >
+      <template #default="{ activator, toUpdate }">
+        <v-card class="d-flex flex-column" height="100%">
+          <v-toolbar class="flex-grow-0" flat>
+            <g-select
+              v-model="selectedMonths"
+              style="max-width: 120px"
+              label="表示月数"
+              :items="months"
+              hide-details
+            />
+            <v-toolbar-items>
+              <v-btn
+                class="ml-2"
+                color="primary"
+                text
+                @click="scrollToCurrentColumn"
+              >
+                <v-icon left>mdi-target</v-icon>
+                今日
+              </v-btn>
+            </v-toolbar-items>
+            <v-spacer />
+            <v-toolbar-items>
+              <g-btn-regist v-bind="activator.attrs" text v-on="activator.on"
+                >新規登録</g-btn-regist
+              >
+              <g-site-order-manager
+                v-model="computedSiteOrder"
+                color="primary"
+                text
+              />
+            </v-toolbar-items>
+          </v-toolbar>
+          <div class="px-2 pb-2 overflow-hidden d-flex flex-column flex-grow-1">
+            <div
+              class="d-flex flex-grow-1 overflow-hidden"
+              style="border: 1px solid lightgray"
+            >
+              <v-simple-table
+                id="site-operation-schedule-table"
+                :ref="(el) => (scrollContainerRef = el)"
+                fixed-header
+                class="flex-table"
+              >
+                <thead>
+                  <tr>
+                    <th>現場名</th>
+                    <th>勤務区分</th>
+                    <th
+                      v-for="column of columns"
+                      :key="column.date"
+                      :class="{
+                        ...column.class,
+                        [`g-col-${column.date}`]: true,
+                      }"
+                    >
+                      <div>{{ column.col }}</div>
+                      <div>
+                        <v-icon v-if="column.isHoliday" color="red" small
+                          >mdi-flag-variant</v-icon
+                        >{{ column.colDay }}
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(order, index) of siteOrder" :key="index">
+                    <td>
+                      <div class="site-name">
+                        <g-icon-cancel small @click="deleteSite(order)" />
+                        {{
+                          $store.getters['sites/get'](order.siteId)?.abbr ||
+                          'N/A'
+                        }}
+                      </div>
+                    </td>
+                    <td>
+                      <g-chip-work-shift :value="order.workShift" x-small />
+                    </td>
+                    <td
+                      v-for="column of columns"
+                      :key="column.date"
+                      :class="column.class"
+                    >
+                      <div class="d-flex justify-center">
+                        <!-- <g-sos-required-workers-chip
+                          v-bind="{ date: column.date, ...order }"
+                          :schedules="schedules"
+                          @click="onClickEdit"
+                        /> -->
+                        <g-sos-required-workers-chip
+                          v-bind="{ date: column.date, ...order }"
+                          :schedules="schedules"
+                          @click="toUpdate"
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+                <tfoot>
+                  <tr>
+                    <th>稼働数</th>
+                    <th></th>
+                    <th
+                      v-for="column of columns"
+                      :key="column.date"
+                      :class="column.class"
+                    >
+                      <div class="grey--text text--darken-2 text-subtitle-2">
+                        {{ dayWorkersCount(column.date) }}
+                      </div>
+                      <div class="grey--text text--darken-2 text-subtitle-2">
+                        {{ `(${monthTotalCount(column.date)})` }}
+                      </div>
+                    </th>
+                  </tr>
+                </tfoot>
+              </v-simple-table>
+            </div>
+          </div>
+
+          <!-- スナックバー -->
+          <g-snackbar-error
+            :value="!!hiddenOrders.length"
+            :timeout="-1"
+            centered
           >
-            <v-icon left>mdi-target</v-icon>
-            今日
-          </v-btn>
-        </v-toolbar-items>
-        <v-spacer />
-        <v-toolbar-items>
-          <g-dialog-input
-            v-model="dialog"
-            :edit-mode.sync="editMode"
-            :instance="instance"
-            max-width="480"
-          >
-            <template #activator="{ attrs, on }">
-              <v-btn v-bind="attrs" color="primary" text v-on="on">
-                <v-icon left>mdi-plus</v-icon>
-                新規追加
+            <span>表示されていない現場があります。</span>
+            <template #action="{ attrs }">
+              <v-btn v-bind="attrs" outlined small @click="showHiddenOrders">
+                表示
               </v-btn>
             </template>
-            <template #default="{ attrs, on }">
-              <g-input-site-operation-schedule v-bind="attrs" v-on="on" />
-            </template>
-          </g-dialog-input>
-          <g-site-order-manager
-            v-model="computedSiteOrder"
-            color="primary"
-            text
-          />
-        </v-toolbar-items>
-      </v-toolbar>
-      <div class="px-2 pb-2 overflow-hidden d-flex flex-column flex-grow-1">
-        <div
-          class="d-flex flex-grow-1 overflow-hidden"
-          style="border: 1px solid lightgray"
-        >
-          <v-simple-table
-            id="site-operation-schedule-table"
-            :ref="(el) => (scrollContainerRef = el)"
-            fixed-header
-            class="flex-table"
-          >
-            <thead>
-              <tr>
-                <th>現場名</th>
-                <th>勤務区分</th>
-                <th
-                  v-for="column of columns"
-                  :key="column.date"
-                  :class="{ ...column.class, [`g-col-${column.date}`]: true }"
-                >
-                  <div>{{ column.col }}</div>
-                  <div>
-                    <v-icon v-if="column.isHoliday" color="red" small
-                      >mdi-flag-variant</v-icon
-                    >{{ column.colDay }}
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(order, index) of siteOrder" :key="index">
-                <td>
-                  <div class="site-name">
-                    <g-icon-cancel small @click="deleteSite(order)" />
-                    {{
-                      $store.getters['sites/get'](order.siteId)?.abbr || 'N/A'
-                    }}
-                  </div>
-                </td>
-                <td>
-                  <g-chip-work-shift :value="order.workShift" x-small />
-                </td>
-                <td
-                  v-for="column of columns"
-                  :key="column.date"
-                  :class="column.class"
-                >
-                  <div class="d-flex justify-center">
-                    <g-sos-required-workers-chip
-                      v-bind="{ date: column.date, ...order }"
-                      :schedules="schedules"
-                      @click="onClickEdit"
-                    />
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <th>稼働数</th>
-                <th></th>
-                <th
-                  v-for="column of columns"
-                  :key="column.date"
-                  :class="column.class"
-                >
-                  <div class="grey--text text--darken-2 text-subtitle-2">
-                    {{ dayWorkersCount(column.date) }}
-                  </div>
-                  <div class="grey--text text--darken-2 text-subtitle-2">
-                    {{ `(${monthTotalCount(column.date)})` }}
-                  </div>
-                </th>
-              </tr>
-            </tfoot>
-          </v-simple-table>
-        </div>
-      </div>
-
-      <!-- スナックバー -->
-      <g-snackbar-error :value="!!hiddenOrders.length" :timeout="-1" centered>
-        <span>表示されていない現場があります。</span>
-        <template #action="{ attrs }">
-          <v-btn v-bind="attrs" outlined small @click="showHiddenOrders">
-            表示
-          </v-btn>
-        </template>
-      </g-snackbar-error>
-    </v-card>
+          </g-snackbar-error>
+        </v-card>
+      </template>
+      <template #inputs="{ attrs, on }">
+        <g-input-site-operation-schedule-v-2 v-bind="attrs" v-on="on" />
+      </template>
+    </air-array-manager>
   </g-template-default>
 </template>
 
