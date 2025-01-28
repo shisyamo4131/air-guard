@@ -753,6 +753,15 @@ export default {
         // data.editItem を 初期化
         this._initializeItem(initItem)
 
+        // `追加` モード以外で computed.editIndex が -1 の場合はエラー
+        if (!this.isCreate && this.editIndex === -1) {
+          const err = new Error(
+            `Could not find the specified item in the items.`
+          )
+          this.setError(err.message, err)
+          throw err
+        }
+
         // コンポーネントを編集状態に変更
         this.computedIsEditing = true
       } catch (err) {
