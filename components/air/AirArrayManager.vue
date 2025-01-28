@@ -787,45 +787,7 @@ export default {
           `activator` プロパティは item を登録するためのトリガーとなります。
           AirRenderlessArrayManager が提供する他のスロットプロパティがすべて提供されます。
         -->
-        <slot name="default" v-bind="{ ...props, ...defaultSlotProps }">
-          <!-- <v-data-table
-            :headers="[
-              ...Object.keys(props.editItem || {}).map((prop) => ({
-                text: prop,
-                value: prop,
-              })),
-              { text: 'actions', value: 'actions', align: 'right' },
-            ]"
-            :items="props.items"
-            :item-key="props.itemKey"
-            :page="computedPage"
-            :search="computedSearch"
-            @page-count="pageCount = $event"
-            @update:page="computedPage = $event"
-          >
-            <template #top>
-              <v-toolbar flat>
-                <v-toolbar-title>{{ label }}</v-toolbar-title>
-                <v-divider class="mx-4" inset vertical />
-                <v-text-field
-                  v-model="computedSearch"
-                  clearable
-                  dense
-                  flat
-                  hide-details
-                  placeholder="SEARCH"
-                  prepend-inner-icon="mdi-magnify"
-                />
-                <v-spacer />
-                <v-btn :color="color" @click="props.toRegist">登録</v-btn>
-              </v-toolbar>
-            </template>
-            <template #[`item.actions`]="{ item }">
-              <v-btn :color="color" @click="_handleToUpdate(item)">変更</v-btn>
-              <v-btn :color="color" @click="_handleToDelete(item)">削除</v-btn>
-            </template>
-          </v-data-table> -->
-        </slot>
+        <slot name="default" v-bind="{ ...props, ...defaultSlotProps }" />
 
         <!--
           VDialog のためのスロットです。
