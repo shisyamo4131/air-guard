@@ -2,7 +2,7 @@
 /**
  * 制服装備品情報入力コンポーネント
  * @author shisayamo4131
- * @refact 2025-01-17
+ * @refact 2025-01-28
  */
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'

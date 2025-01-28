@@ -2,7 +2,7 @@
 /**
  * 外注先入力コンポーネント
  * @author shisyamo4131
- * @refact 2025-01-13
+ * @refact 2025-01-28
  */
 import GTextField from '../../atoms/inputs/GTextField.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'

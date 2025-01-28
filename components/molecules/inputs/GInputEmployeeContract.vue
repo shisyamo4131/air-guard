@@ -2,11 +2,11 @@
 /**
  * 従業員の雇用契約情報編集用コンポーネントです。
  * @author shisayamo4131
- * @refact 2025-01-21
+ * @refact 2025-01-28
  */
 import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
 import GCardWorkRegulation from '../cards/GCardWorkRegulation.vue'
-import GCardEmployeeAllowances from '../cards/GCardEmployeeAllowances.vue'
+import GInputEmployeeAllowance from './GInputEmployeeAllowance.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
@@ -20,6 +20,9 @@ import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GAutocompletePaymentType from '~/components/atoms/inputs/GAutocompletePaymentType.vue'
 import { vueProps } from '~/models/propsDefinition/EmployeeContract'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
+import EmployeeAllowance from '~/models/EmployeeAllowance'
+import AirArrayManager from '~/components/air/AirArrayManager.vue'
+import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -36,7 +39,9 @@ export default {
     GSwitch,
     GCardWorkRegulation,
     GAutocompletePaymentType,
-    GCardEmployeeAllowances,
+    AirArrayManager,
+    GBtnRegist,
+    GInputEmployeeAllowance,
   },
 
   /***************************************************************************
@@ -72,6 +77,8 @@ export default {
         sat: '土',
         sun: '日',
       },
+
+      schema: new EmployeeAllowance(),
 
       /**
        * 就業規則の表示切替です。
@@ -293,12 +300,52 @@ export default {
       </v-card-text>
     </v-card>
     <!-- 支給手当 -->
-    <g-card-employee-allowances
-      :value="allowances"
-      outlined
-      class="mb-8"
+    <air-array-manager
+      :dialog-props="{ maxWidth: 360 }"
+      event-edit="click:row"
+      :items="allowances"
+      :schema="schema"
+      label="支給手当"
       @input="$emit('update:allowances', $event)"
-    />
+    >
+      <template #default="{ activator, table }">
+        <v-card outlined class="mb-8">
+          <v-toolbar dense flat>
+            <v-toolbar-title class="text-subtitle-1">支給手当</v-toolbar-title>
+            <v-spacer />
+            <g-btn-regist
+              icon
+              v-bind="activator.attrs"
+              color="primary"
+              v-on="activator.on"
+            />
+          </v-toolbar>
+          <v-card-text class="pt-0">
+            <v-data-table
+              v-bind="table.attrs"
+              :headers="[
+                { text: '手当名', value: 'docId' },
+                { text: '金額', value: 'amount' },
+              ]"
+              hide-default-footer
+              :items="allowances"
+              :items-per-page="-1"
+              v-on="table.on"
+            >
+              <template #[`item.docId`]="{ item }">
+                {{
+                  $store.getters['allowances/get'](item.docId)?.name || 'N/A'
+                }}
+              </template>
+            </v-data-table>
+          </v-card-text>
+        </v-card>
+      </template>
+      <template #inputs="{ attrs, on }">
+        <g-input-employee-allowance v-bind="attrs" v-on="on" />
+      </template>
+    </air-array-manager>
+
     <g-textarea
       :value="remarks"
       label="備考"

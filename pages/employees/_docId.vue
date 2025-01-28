@@ -2,10 +2,9 @@
 /**
  * 従業員の詳細画面です。
  * @author shisyamo4131
- * @refact 2025-01-20
+ * @refact 2025-01-28
  */
 import GCardMap from '~/components/molecules/cards/GCardMap.vue'
-import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import GImgEmployee from '~/components/molecules/images/GImgEmployee.vue'
@@ -42,11 +41,6 @@ export default {
     GInputEmployee,
     GInputSecurityRegistration,
   },
-
-  /***************************************************************************
-   * MIXINS
-   ***************************************************************************/
-  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * ASYNCDATA

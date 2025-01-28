@@ -1,6 +1,8 @@
 <script>
 /**
  * 配置管理で現場を選択するためのコンポーネントです。
+ * @author shisyamo4131
+ * @refact 2025-01-28
  */
 import { mapGetters } from 'vuex'
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
@@ -12,7 +14,6 @@ import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GRadioGroupWorkShift from '~/components/molecules/inputs/GRadioGroupWorkShift.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
-import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import Site from '~/models/Site'
 export default {
   /***************************************************************************
@@ -29,10 +30,7 @@ export default {
     AirArrayManager,
     GInputSite,
   },
-  /***************************************************************************
-   * MIXINS
-   ***************************************************************************/
-  mixins: [GMixinEditModeProvider],
+
   /***************************************************************************
    * DATA
    ***************************************************************************/
@@ -53,6 +51,7 @@ export default {
       workShift: 'day',
     }
   },
+
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
@@ -64,6 +63,7 @@ export default {
       })
     },
   },
+
   /***************************************************************************
    * WATCH
    ***************************************************************************/
@@ -81,6 +81,7 @@ export default {
       this.scrollTo()
     },
   },
+
   /***************************************************************************
    * METHODS
    ***************************************************************************/

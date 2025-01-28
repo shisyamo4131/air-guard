@@ -2,14 +2,14 @@
 /**
  * 外注先情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-17
+ * @refact 2025-01-28
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
 import GIconStop from '~/components/atoms/icons/GIconStop.vue'
-import GInputOutsourcerV2 from '~/components/molecules/inputs/GInputOutsourcerV2.vue'
+import GInputOutsourcer from '~/components/molecules/inputs/GInputOutsourcer.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import Outsourcer from '~/models/Outsourcer'
 export default {
@@ -26,7 +26,7 @@ export default {
     GBtnRegist,
     GIconPlay,
     GIconStop,
-    GInputOutsourcerV2,
+    GInputOutsourcer,
     GChipSyncStatus,
     AirArrayManager,
   },
@@ -156,7 +156,7 @@ export default {
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">
-          <g-input-outsourcer-v-2 v-bind="attrs" v-on="on" />
+          <g-input-outsourcer v-bind="attrs" v-on="on" />
         </template>
       </air-array-manager>
     </v-container>
