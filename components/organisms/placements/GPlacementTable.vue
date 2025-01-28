@@ -1,26 +1,25 @@
 <script>
 /**
- * GPlacementTable
- *
  * 配置管理用のテーブルコンポーネントです。
- *
  * @author shisyamo4131
+ * @refact 2025-01-28 - 現場稼働予定編集用コンポーネントを差し替え
+ *                    - GMixinEditModeProvider を削除
  */
 import ja from 'dayjs/locale/ja'
 import { get, ref } from 'firebase/database'
 import { database } from 'air-firebase'
 import GPlacementDraggableCell from './GPlacementDraggableCell.vue'
-import GPlacementSiteOperationScheduleEditDialog from './GPlacementSiteOperationScheduleEditDialog.vue'
 import GPlacementEmployeePlacementEditDialog from './GPlacementEmployeePlacementEditDialog.vue'
 import GPlacementOutsourcerPlacementEditDialog from './GPlacementOutsourcerPlacementEditDialog.vue'
 import GPlacementSiteOperationSchedulesDialog from './GPlacementSiteOperationSchedulesDialog.vue'
 import GDialogEmployeeSelector from '~/components/molecules/dialogs/GDialogEmployeeSelector.vue'
 import GDialogOutsourcerSelector from '~/components/molecules/dialogs/GDialogOutsourcerSelector.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
-import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import { PlacedEmployee, PlacedOutsourcer } from '~/models/Placement'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
+import GInputSiteOperationScheduleV2 from '~/components/molecules/inputs/GInputSiteOperationScheduleV2.vue'
+import AirItemManager from '~/components/air/AirItemManager.vue'
 
 export default {
   /***************************************************************************
@@ -30,18 +29,14 @@ export default {
     GPlacementDraggableCell,
     GDialogEmployeeSelector,
     GDialogOutsourcerSelector,
-    GPlacementSiteOperationScheduleEditDialog,
     GPlacementEmployeePlacementEditDialog,
     GPlacementOutsourcerPlacementEditDialog,
     GPlacementSiteOperationSchedulesDialog,
     GSwitch,
     GBtnCancel,
+    GInputSiteOperationScheduleV2,
+    AirItemManager,
   },
-
-  /***************************************************************************
-   * MIXINS
-   ***************************************************************************/
-  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * PROPS
@@ -459,7 +454,7 @@ export default {
 
       // 編集対象のモデルにインスタンスを設定し、ダイアログを開く
       this.schedule.editModel = instance
-      this.$refs['schedule-editor'].open()
+      this.$refs['schedule-editor'].toUpdate()
     },
 
     /**
@@ -879,11 +874,17 @@ export default {
       :site-id="siteDetail.item?.docId || ''"
     />
 
-    <!-- schedule dialog -->
-    <g-placement-site-operation-schedule-edit-dialog
+    <!-- 現場稼働予定編集コンポーネント -->
+    <air-item-manager
       ref="schedule-editor"
-      :instance="schedule.editModel"
-    />
+      :dialog-props="{ maxWidth: 360 }"
+      :item="schedule.editModel"
+      label="現場稼働予定"
+    >
+      <template #inputs="{ attrs, on }">
+        <g-input-site-operation-schedule-v-2 v-bind="attrs" v-on="on" />
+      </template>
+    </air-item-manager>
 
     <!-- employee placement dialog -->
     <g-placement-employee-placement-edit-dialog

@@ -22,7 +22,6 @@ import { onValue, ref, set } from 'firebase/database'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
-import GMixinEditModeProvider from '~/mixins/GMixinEditModeProvider'
 import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
 import GSosRequiredWorkersChip from '~/components/organisms/site-operation-schedules/GSosRequiredWorkersChip.vue'
 import GSiteOrderManager from '~/components/organisms/GSiteOrderManager.vue'
@@ -53,11 +52,6 @@ export default {
     GBtnRegist,
     GInputSiteOperationScheduleV2,
   },
-
-  /***************************************************************************
-   * MIXINS
-   ***************************************************************************/
-  mixins: [GMixinEditModeProvider],
 
   /***************************************************************************
    * ASYNCDATA
