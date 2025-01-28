@@ -29,7 +29,7 @@ import GIconCancel from '~/components/atoms/icons/GIconCancel.vue'
 import GSnackbarError from '~/components/atoms/snackbars/GSnackbarError.vue'
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
-import GInputSiteOperationScheduleV2 from '~/components/molecules/inputs/GInputSiteOperationScheduleV2.vue'
+import GInputSiteOperationSchedule from '~/components/molecules/inputs/GInputSiteOperationSchedule.vue'
 
 export default {
   /***************************************************************************
@@ -50,7 +50,7 @@ export default {
     GSnackbarError,
     AirArrayManager,
     GBtnRegist,
-    GInputSiteOperationScheduleV2,
+    GInputSiteOperationSchedule,
   },
 
   /***************************************************************************
@@ -600,7 +600,7 @@ export default {
         </v-card>
       </template>
       <template #inputs="{ attrs, on }">
-        <g-input-site-operation-schedule-v-2 v-bind="attrs" v-on="on" />
+        <g-input-site-operation-schedule v-bind="attrs" v-on="on" />
       </template>
     </air-array-manager>
   </g-template-default>

@@ -18,7 +18,7 @@ import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import { PlacedEmployee, PlacedOutsourcer } from '~/models/Placement'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
-import GInputSiteOperationScheduleV2 from '~/components/molecules/inputs/GInputSiteOperationScheduleV2.vue'
+import GInputSiteOperationSchedule from '~/components/molecules/inputs/GInputSiteOperationSchedule.vue'
 import AirItemManager from '~/components/air/AirItemManager.vue'
 
 export default {
@@ -34,7 +34,7 @@ export default {
     GPlacementSiteOperationSchedulesDialog,
     GSwitch,
     GBtnCancel,
-    GInputSiteOperationScheduleV2,
+    GInputSiteOperationSchedule,
     AirItemManager,
   },
 
@@ -882,7 +882,7 @@ export default {
       label="現場稼働予定"
     >
       <template #inputs="{ attrs, on }">
-        <g-input-site-operation-schedule-v-2 v-bind="attrs" v-on="on" />
+        <g-input-site-operation-schedule v-bind="attrs" v-on="on" />
       </template>
     </air-item-manager>
 

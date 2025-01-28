@@ -18,7 +18,7 @@ import GIconStar from '../atoms/icons/GIconStar.vue'
 import GIconDay from '../atoms/icons/GIconDay.vue'
 import GIconNight from '../atoms/icons/GIconNight.vue'
 import AirArrayManager from '../air/AirArrayManager.vue'
-import GInputSiteOperationScheduleV2 from '../molecules/inputs/GInputSiteOperationScheduleV2.vue'
+import GInputSiteOperationSchedule from '../molecules/inputs/GInputSiteOperationSchedule.vue'
 import GSiteOperationScheduleCalendar from '../atoms/calendars/GSiteOperationScheduleCalendar.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
@@ -35,7 +35,7 @@ export default {
     GIconDay,
     GIconNight,
     AirArrayManager,
-    GInputSiteOperationScheduleV2,
+    GInputSiteOperationSchedule,
     GSiteOperationScheduleCalendar,
   },
 
@@ -402,7 +402,7 @@ export default {
       </slot>
     </template>
     <template #inputs="{ attrs, on }">
-      <g-input-site-operation-schedule-v-2
+      <g-input-site-operation-schedule
         v-bind="attrs"
         :hide-site="!!siteId"
         v-on="on"

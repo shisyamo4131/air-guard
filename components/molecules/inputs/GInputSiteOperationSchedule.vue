@@ -2,7 +2,7 @@
 /**
  * 現場の稼働予定を入力するためのコンポーネントです。
  * @author shisyamo4131
- * @refact 2025-01-16
+ * @refact 2025-01-28
  */
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
