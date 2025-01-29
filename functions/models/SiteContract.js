@@ -1,7 +1,3 @@
-import {
-  extractDiffsFromDocUpdatedEvent,
-  syncDependentDocuments,
-} from '../modules/utils.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/SiteContract.js'
 import { SiteMinimal } from './Site.js'
@@ -38,26 +34,6 @@ export default class SiteContract extends FireModel {
 
   delete() {
     return Promise.reject(new Error('このクラスの delete は使用できません。'))
-  }
-
-  /****************************************************************************
-   * SiteContracts ドキュメントの site プロパティを更新します。
-   * - 引数 event は Firestore の更新トリガーオブジェクトを受け取ります。
-   * - event の before, after を比較し、更新が不要な場合は処理をスキップします。
-   * @param {Object} event - Firestore の更新トリガーオブジェクト
-   ****************************************************************************/
-  static async refreshSite(event) {
-    const isChanged = extractDiffsFromDocUpdatedEvent({
-      event,
-      ComparisonClass: SiteContract.customClassMap.site,
-    })
-    if (isChanged.length === 0) return
-    await syncDependentDocuments(
-      SiteContract.collectionPath,
-      'site.docId',
-      'site',
-      isChanged.data
-    )
   }
 }
 
