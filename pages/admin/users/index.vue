@@ -2,12 +2,13 @@
 /**
  * ユーザー情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-20
+ * @refact 2025-01-29
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 import GInputNewUser from '~/components/molecules/inputs/GInputNewUser.vue'
 import GInputUser from '~/components/molecules/inputs/GInputUser.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
@@ -30,6 +31,7 @@ export default {
     GInputNewUser,
     GBtnCancel,
     GBtnSubmit,
+    GPagination,
   },
 
   /***************************************************************************
@@ -197,16 +199,10 @@ export default {
               >
               </v-data-table>
             </div>
-            <v-container fluid>
-              <v-row justify="center">
-                <v-col cols="10">
-                  <v-pagination
-                    v-bind="props.pagination.attrs"
-                    v-on="props.pagination.on"
-                  />
-                </v-col>
-              </v-row>
-            </v-container>
+            <g-pagination
+              v-bind="props.pagination.attrs"
+              v-on="props.pagination.on"
+            />
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">

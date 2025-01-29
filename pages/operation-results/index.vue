@@ -2,11 +2,12 @@
 /**
  * 稼働実績情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-21
+ * @refact 2025-01-29
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 import GInputOperationResultSelectDate from '~/components/molecules/inputs/GInputOperationResultSelectDate.vue'
 import GInputOperationResultSelectSite from '~/components/molecules/inputs/GInputOperationResultSelectSite.vue'
@@ -31,6 +32,7 @@ export default {
     GDialogMonthPicker,
     AirArrayManager,
     GBtnRegist,
+    GPagination,
   },
 
   /***************************************************************************
@@ -194,16 +196,7 @@ export default {
                 </template>
               </v-data-table>
             </div>
-            <v-container fluid>
-              <v-row justify="center">
-                <v-col cols="10">
-                  <v-pagination
-                    v-bind="pagination.attrs"
-                    v-on="pagination.on"
-                  />
-                </v-col>
-              </v-row>
-            </v-container>
+            <g-pagination v-bind="pagination.attrs" v-on="pagination.on" />
           </v-sheet>
         </template>
         <template #step-0="{ attrs, on }">

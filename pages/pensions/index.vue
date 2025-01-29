@@ -2,10 +2,11 @@
 /**
  * 厚生年金情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-20
+ * @refact 2025-01-29
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 import GInputPension from '~/components/molecules/inputs/GInputPension.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import Pension from '~/models/Pension'
@@ -23,6 +24,7 @@ export default {
     GInputPension,
     AirArrayManager,
     GBtnRegist,
+    GPagination,
   },
 
   /***************************************************************************
@@ -110,16 +112,10 @@ export default {
               >
               </v-data-table>
             </div>
-            <v-container fluid>
-              <v-row justify="center">
-                <v-col cols="10">
-                  <v-pagination
-                    v-bind="props.pagination.attrs"
-                    v-on="props.pagination.on"
-                  />
-                </v-col>
-              </v-row>
-            </v-container>
+            <g-pagination
+              v-bind="props.pagination.attrs"
+              v-on="props.pagination.on"
+            />
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">

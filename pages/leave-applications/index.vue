@@ -2,10 +2,11 @@
 /**
  * 休暇申請情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-21
+ * @refact 2025-01-29
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 import GInputLeaveApplication from '~/components/molecules/inputs/GInputLeaveApplication.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import LeaveApplication from '~/models/LeaveApplication'
@@ -23,6 +24,7 @@ export default {
     AirArrayManager,
     GBtnRegist,
     GInputLeaveApplication,
+    GPagination,
   },
 
   /***************************************************************************
@@ -99,16 +101,7 @@ export default {
                 v-on="table.on"
               />
             </div>
-            <v-container fluid>
-              <v-row justify="center">
-                <v-col cols="10">
-                  <v-pagination
-                    v-bind="pagination.attrs"
-                    v-on="pagination.on"
-                  />
-                </v-col>
-              </v-row>
-            </v-container>
+            <g-pagination v-bind="pagination.attrs" v-on="pagination.on" />
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">

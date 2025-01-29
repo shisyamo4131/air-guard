@@ -2,7 +2,7 @@
 /**
  * 配置管理で現場を選択するためのコンポーネントです。
  * @author shisyamo4131
- * @refact 2025-01-28
+ * @refact 2025-01-29
  */
 import { mapGetters } from 'vuex'
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
@@ -11,6 +11,7 @@ import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
 import GChipSiteStatus from '~/components/atoms/chips/GChipSiteStatus.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
 import GRadioGroupWorkShift from '~/components/molecules/inputs/GRadioGroupWorkShift.vue'
 import GTextFieldSearch from '~/components/molecules/inputs/GTextFieldSearch.vue'
@@ -29,6 +30,7 @@ export default {
     GChipSiteStatus,
     AirArrayManager,
     GInputSite,
+    GPagination,
   },
 
   /***************************************************************************
@@ -212,9 +214,7 @@ export default {
         </v-data-iterator>
       </v-container>
       <v-divider />
-      <v-container style="max-width: 90%">
-        <v-pagination v-model="page" :length="pageCount" />
-      </v-container>
+      <g-pagination v-model="page" :length="pageCount" />
       <v-divider />
       <v-card-actions class="justify-space-between">
         <g-btn-cancel icon @click="dialog = false" />

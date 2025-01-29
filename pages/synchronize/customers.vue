@@ -15,7 +15,7 @@
  *   同期設定が行われていないデータを複数選択して新規登録することが可能です。
  *
  * @author shisyamo4131
- * @refact 2025-01-21
+ * @refact 2025-01-29
  */
 import {
   equalTo,
@@ -32,6 +32,7 @@ import Customer from '~/models/Customer'
 import Autonumber from '~/models/Autonumber'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -41,7 +42,7 @@ export default {
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
-  components: { GTemplateDefault, GCheckbox },
+  components: { GTemplateDefault, GCheckbox, GPagination },
 
   /***************************************************************************
    * ASYNCDATA
@@ -339,13 +340,11 @@ export default {
                   </template>
                 </v-data-table>
               </v-card>
-              <v-container class="text-center">
-                <v-pagination
-                  v-model="page.airGuard"
-                  :length="pageCount.airGuard"
-                  total-visible="20"
-                />
-              </v-container>
+              <g-pagination
+                v-model="page.airGuard"
+                :length="pageCount.airGuard"
+                total-visible="20"
+              />
               <v-card-actions class="justify-end">
                 <v-btn
                   v-if="!multiple"
@@ -386,13 +385,11 @@ export default {
                   @page-count="pageCount.toSync = $event"
                 />
               </v-card>
-              <v-container class="text-center">
-                <v-pagination
-                  v-model="page.toSync"
-                  :length="pageCount.toSync"
-                  total-visible="20"
-                />
-              </v-container>
+              <g-pagination
+                v-model="page.toSync"
+                :length="pageCount.toSync"
+                total-visible="20"
+              />
               <v-container class="d-flex">
                 <v-checkbox
                   v-model="asNewItem"

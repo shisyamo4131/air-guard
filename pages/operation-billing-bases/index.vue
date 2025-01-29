@@ -2,12 +2,13 @@
 /**
  * 請求稼働実績の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-25
+ * @refact 2025-01-29
  */
 import OperationBillingBasis from '~/models/OperationBillingBasis'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
 import GChipWorkShift from '~/components/atoms/chips/GChipWorkShift.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -21,6 +22,7 @@ export default {
     GTemplateDefault,
     GDialogMonthPicker,
     GChipWorkShift,
+    GPagination,
   },
 
   /***************************************************************************
@@ -166,16 +168,7 @@ export default {
                 </template>
               </v-data-table>
             </div>
-            <v-container fluid>
-              <v-row justify="center">
-                <v-col cols="10">
-                  <v-pagination
-                    v-bind="pagination.attrs"
-                    v-on="pagination.on"
-                  />
-                </v-col>
-              </v-row>
-            </v-container>
+            <g-pagination v-bind="pagination.attrs" v-on="pagination.on" />
           </v-sheet>
         </template>
       </air-array-manager>

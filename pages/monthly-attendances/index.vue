@@ -2,6 +2,7 @@
 /**
  * 勤怠実績の一覧ページです。
  * @author shisyamo4131
+ * @refact 2025-01-29
  */
 import { getApp } from 'firebase/app'
 import {
@@ -14,6 +15,7 @@ import 'dayjs/locale/ja'
 import MonthlyAttendance from '~/models/MonthlyAttendance'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GDialogMonthPicker from '~/components/molecules/dialogs/GDialogMonthPicker.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 
 export default {
   /***************************************************************************
@@ -28,6 +30,7 @@ export default {
     // GDataTableMonthlyAttendances,
     GTemplateDefault,
     GDialogMonthPicker,
+    GPagination,
   },
 
   /***************************************************************************
@@ -267,16 +270,10 @@ export default {
                 </template>
               </v-data-table>
             </div>
-            <v-container fluid>
-              <v-row justify="center">
-                <v-col cols="10">
-                  <v-pagination
-                    v-bind="props.pagination.attrs"
-                    v-on="props.pagination.on"
-                  />
-                </v-col>
-              </v-row>
-            </v-container>
+            <g-pagination
+              v-bind="props.pagination.attrs"
+              v-on="props.pagination.on"
+            />
           </v-sheet>
         </template>
       </air-array-manager>

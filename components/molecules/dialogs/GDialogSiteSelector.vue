@@ -2,12 +2,13 @@
 /**
  * 現場選択ダイアログコンポーネント
  * @author shisyamo4131
- * @refact 2025-01-14
+ * @refact 2025-01-29
  */
 
 import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
 import GBtnSubmit from '~/components/atoms/btns/GBtnSubmit.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 
 export default {
   /***************************************************************************
@@ -17,6 +18,7 @@ export default {
     GBtnCancel,
     GBtnSubmit,
     GSwitch,
+    GPagination,
   },
 
   /***************************************************************************
@@ -287,13 +289,7 @@ export default {
             </template>
           </template>
         </v-data-iterator>
-        <v-container fluid>
-          <v-row justify="center">
-            <v-col cols="10">
-              <v-pagination v-model="page" :length="pageCount" />
-            </v-col>
-          </v-row>
-        </v-container>
+        <g-pagination v-model="page" :length="pageCount" />
       </v-card-text>
       <v-card-actions class="justify-space-between">
         <g-btn-cancel icon @click="dialog = false" />

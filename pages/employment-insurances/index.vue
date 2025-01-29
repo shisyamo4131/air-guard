@@ -2,10 +2,11 @@
 /**
  * 雇用保険情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-20
+ * @refact 2025-01-29
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 import GInputEmploymentInsurance from '~/components/molecules/inputs/GInputEmploymentInsurance.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import EmploymentInsurance from '~/models/EmploymentInsurance'
@@ -23,6 +24,7 @@ export default {
     GBtnRegist,
     GInputEmploymentInsurance,
     AirArrayManager,
+    GPagination,
   },
 
   /***************************************************************************
@@ -110,16 +112,10 @@ export default {
               >
               </v-data-table>
             </div>
-            <v-container fluid>
-              <v-row justify="center">
-                <v-col cols="10">
-                  <v-pagination
-                    v-bind="props.pagination.attrs"
-                    v-on="props.pagination.on"
-                  />
-                </v-col>
-              </v-row>
-            </v-container>
+            <g-pagination
+              v-bind="props.pagination.attrs"
+              v-on="props.pagination.on"
+            />
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">

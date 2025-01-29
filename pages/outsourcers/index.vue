@@ -2,13 +2,14 @@
 /**
  * 外注先情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-28
+ * @refact 2025-01-29
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
 import GIconStop from '~/components/atoms/icons/GIconStop.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 import GInputOutsourcer from '~/components/molecules/inputs/GInputOutsourcer.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import Outsourcer from '~/models/Outsourcer'
@@ -29,6 +30,7 @@ export default {
     GInputOutsourcer,
     GChipSyncStatus,
     AirArrayManager,
+    GPagination,
   },
 
   /***************************************************************************
@@ -143,16 +145,7 @@ export default {
                 </template>
               </v-data-table>
             </div>
-            <v-container fluid>
-              <v-row justify="center">
-                <v-col cols="10">
-                  <v-pagination
-                    v-bind="pagination.attrs"
-                    v-on="pagination.on"
-                  />
-                </v-col>
-              </v-row>
-            </v-container>
+            <g-pagination v-bind="pagination.attrs" v-on="pagination.on" />
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">

@@ -2,10 +2,11 @@
 /**
  * 現場取極め情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-28
+ * @refact 2025-01-29
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 import GDialogSiteSelector from '~/components/molecules/dialogs/GDialogSiteSelector.vue'
 import GInputSiteContract from '~/components/molecules/inputs/GInputSiteContract.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
@@ -25,6 +26,7 @@ export default {
     AirArrayManager,
     GBtnRegist,
     GDialogSiteSelector,
+    GPagination,
   },
 
   /***************************************************************************
@@ -173,16 +175,10 @@ export default {
                 </template>
               </v-data-table>
             </div>
-            <v-container fluid>
-              <v-row justify="center">
-                <v-col cols="10">
-                  <v-pagination
-                    v-bind="props.pagination.attrs"
-                    v-on="props.pagination.on"
-                  />
-                </v-col>
-              </v-row>
-            </v-container>
+            <g-pagination
+              v-bind="props.pagination.attrs"
+              v-on="props.pagination.on"
+            />
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">

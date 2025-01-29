@@ -2,7 +2,7 @@
 /**
  * 従業員の詳細画面です。
  * @author shisyamo4131
- * @refact 2025-01-28
+ * @refact 2025-01-29
  */
 import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
@@ -20,6 +20,7 @@ import Employee from '~/models/Employee'
 import AirItemManager from '~/components/air/AirItemManager.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 import GInputSecurityRegistration from '~/components/molecules/inputs/GInputSecurityRegistration.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -40,6 +41,7 @@ export default {
     AirItemManager,
     GInputEmployee,
     GInputSecurityRegistration,
+    GPagination,
   },
 
   /***************************************************************************
@@ -501,16 +503,10 @@ export default {
                             sort-desc
                             v-on="table.on"
                           />
-                          <v-container fluid>
-                            <v-row justify="center">
-                              <v-col cols="10">
-                                <v-pagination
-                                  v-bind="pagination.attrs"
-                                  v-on="pagination.on"
-                                />
-                              </v-col>
-                            </v-row>
-                          </v-container>
+                          <g-pagination
+                            v-bind="pagination.attrs"
+                            v-on="pagination.on"
+                          />
                         </v-container>
                       </g-card-floating-label>
                     </template>
@@ -557,16 +553,10 @@ export default {
                             {{ $PAYMENT_TYPE[item.paymentType] }}
                           </template>
                         </v-data-table>
-                        <v-container fluid>
-                          <v-row justify="center">
-                            <v-col cols="10">
-                              <v-pagination
-                                v-bind="pagination.attrs"
-                                v-on="pagination.on"
-                              />
-                            </v-col>
-                          </v-row>
-                        </v-container>
+                        <g-pagination
+                          v-bind="pagination.attrs"
+                          v-on="pagination.on"
+                        />
                       </g-card-floating-label>
                     </template>
                   </air-array-manager>

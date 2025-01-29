@@ -2,13 +2,14 @@
 /**
  * 自動採番の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-20
+ * @refact 2025-01-29
  */
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GInputAutonumber from '~/components/molecules/inputs/GInputAutonumber.vue'
 import Autonumber from '~/models/Autonumber'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -23,6 +24,7 @@ export default {
     AirArrayManager,
     GBtnRegist,
     GInputAutonumber,
+    GPagination,
   },
 
   /***************************************************************************
@@ -104,16 +106,7 @@ export default {
               >
               </v-data-table>
             </div>
-            <v-container fluid>
-              <v-row justify="center">
-                <v-col cols="10">
-                  <v-pagination
-                    v-bind="pagination.attrs"
-                    v-on="pagination.on"
-                  />
-                </v-col>
-              </v-row>
-            </v-container>
+            <g-pagination v-bind="pagination.attrs" v-on="pagination.on" />
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">

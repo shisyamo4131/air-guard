@@ -2,13 +2,14 @@
 /**
  * 制服・装備品情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-17
+ * @refact 2025-01-29
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
 import GIconStop from '~/components/atoms/icons/GIconStop.vue'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
 import GInputEquipment from '~/components/molecules/inputs/GInputEquipment.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import Equipment from '~/models/Equipment'
@@ -29,6 +30,7 @@ export default {
     GInputEquipment,
     GChipSyncStatus,
     AirArrayManager,
+    GPagination,
   },
 
   /***************************************************************************
@@ -137,16 +139,7 @@ export default {
                 </template>
               </v-data-table>
             </div>
-            <v-container fluid>
-              <v-row justify="center">
-                <v-col cols="10">
-                  <v-pagination
-                    v-bind="pagination.attrs"
-                    v-on="pagination.on"
-                  />
-                </v-col>
-              </v-row>
-            </v-container>
+            <g-pagination v-bind="pagination.attrs" v-on="pagination.on" />
           </v-sheet>
         </template>
         <template #inputs="{ attrs, on }">
