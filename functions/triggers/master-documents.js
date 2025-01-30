@@ -1,13 +1,20 @@
 /**
- * マスタドキュメントと従属ドキュメントの非正規化されたデータを同期します。
+ * Firestore ドキュメントの作成・更新・削除トリガーを利用した各種処理を定義しています。
  *
- * - DOCUMENT_SYNC_DEFINISIONS に定義された内容に従って、従属ドキュメントの非正規化データを同期します。
- * - 更新トリガーがすべてのコレクションドキュメントに対して反応することになりますが、
- *   毎月200万回の呼び出しまでは無料枠で利用可能なため、実装効率を重視しました。
+ * [ドキュメントの作成・更新・削除時の処理]
+ * COLLECTION_HANDLERS にドキュメントが作成・更新・削除された時の処理を設定します。
+ * 非正規化されたデータの同期更新についてはここで行う必要はありません。
+ *
+ * [コレクション間の同期]
+ * マスタドキュメントが更新された際、非正規化されたデータを同期させることができます。
+ * DOCUMENT_SYNC_DEFINISIONS に同期条件を設定します。
+ *
+ * 最後に、トリガーを実装する対象コレクションを登録します。
  *
  * @author shisyamo4131
+ * @refact 2025-01-30
  */
-import { onDocumentUpdated } from 'firebase-functions/firestore'
+import { onDocumentWritten } from 'firebase-functions/firestore'
 import { logger } from 'firebase-functions/v2'
 
 import {
@@ -17,10 +24,37 @@ import {
 } from '../modules/utils.js'
 
 // 変更有無を確認するためデータの比較に使用するクラス
-import { CustomerMinimal } from '../models/Customer.js'
+import { CustomerIndex, CustomerMinimal } from '../models/Customer.js'
 import { SiteMinimal } from '../models/Site.js'
 import { EmployeeMinimal } from '../models/Employee.js'
 import { WorkRegulationMinimal } from '../models/WorkRegulation.js'
+import { SiteContractMinimal } from '../models/SiteContract.js'
+
+/*****************************************************************************
+ * コレクション毎の個別処理定義
+ *****************************************************************************/
+const COLLECTION_HANDLERS = {
+  Customers: {
+    CREATED: async (event) => {
+      // Realtime Database にインデックスを作成
+      await CustomerIndex.create(event.params.docId)
+    },
+    UPDATED: async (event) => {
+      // Realtime Database のインデックスを更新
+      const isChangedAsIndex = extractDiffsFromDocUpdatedEvent({
+        event,
+        ComparisonClass: CustomerIndex,
+      })
+      if (isChangedAsIndex.length > 0) {
+        await CustomerIndex.create(event.params.docId)
+      }
+    },
+    DELETED: async (event) => {
+      // Realtime Databaseインデックスを削除
+      await CustomerIndex.remove(event.params.docId)
+    },
+  },
+}
 
 /*****************************************************************************
  * コレクション間の同期定義
@@ -33,6 +67,23 @@ const DOCUMENT_SYNC_DEFINITIONS = {
       updateProp: 'customer',
       compareProp: 'customerId',
       ComparisonClass: CustomerMinimal,
+    },
+  },
+
+  // 現場
+  Sites: {
+    // 現場 -> 現場取極め
+    SiteContracts: {
+      updateProp: 'site',
+      compareProp: 'siteId',
+      ComparisonClass: SiteMinimal,
+    },
+
+    // 現場 -> 稼働実績
+    OperationResults: {
+      updateProp: 'site',
+      compareProp: 'siteId',
+      ComparisonClass: SiteMinimal,
     },
   },
 
@@ -74,20 +125,13 @@ const DOCUMENT_SYNC_DEFINITIONS = {
     },
   },
 
-  // 現場
-  Sites: {
-    // 現場 -> 現場取極め
-    SiteContracts: {
-      updateProp: 'site',
-      compareProp: 'siteId',
-      ComparisonClass: SiteMinimal,
-    },
-
-    // 現場 -> 稼働実績
+  // 現場取極め
+  SiteContracts: {
+    // 現場取極め -> 稼働実績
     OperationResults: {
-      updateProp: 'site',
-      compareProp: 'siteId',
-      ComparisonClass: SiteMinimal,
+      updateProp: 'siteContract',
+      compareProp: 'siteContractId',
+      ComparisonClass: SiteContractMinimal,
     },
   },
 
@@ -103,52 +147,169 @@ const DOCUMENT_SYNC_DEFINITIONS = {
 }
 
 /*****************************************************************************
- * ドキュメント更新トリガー
+ * Firestore トリガーを登録するための汎用関数です。
+ * イベントの状態からドキュメントの作成・更新・削除を判断し、適切なハンドラーを呼び出します。
+ * @param {string} collectionPath - Firestore のコレクションパス（例: 'Customers/{docId}'）
  *****************************************************************************/
-export const onUpdate = onDocumentUpdated(
-  `{updatedCollectionId}/{docId}`,
-  async (event) => {
-    // 更新情報（タイムスタンプなど）以外に変更がなければ終了
-    if (!isDocumentChanged(event)) return
+function registerFirestoreTrigger(collectionPath) {
+  return onDocumentWritten(collectionPath, async (event) => {
+    const beforeData = event.data.before?.exists
+      ? event.data.before.data()
+      : null
+    const afterData = event.data.after?.exists ? event.data.after.data() : null
 
-    const { updatedCollectionId, docId } = event.params
-
-    // 更新されたコレクションの同期定義を取得
-    const definitions = DOCUMENT_SYNC_DEFINITIONS[updatedCollectionId]
-
-    // 定義が存在しない場合は終了
-    if (!definitions) return
-
-    try {
-      // 同期処理を直列で実行
-      for (const [collectionId, defs] of Object.entries(definitions)) {
-        const { updateProp, compareProp, ComparisonClass } = defs
-
-        // 差分を取得
-        const differences = extractDiffsFromDocUpdatedEvent({
-          event,
-          ComparisonClass,
-        })
-
-        if (differences.length === 0) {
-          const message = `[onUpdate] No differences found for collection: ${collectionId}`
-          logger.info(message)
-          continue
-        }
-
-        // 差分がある場合に同期処理を実行
-        await syncDependentDocumentsV2({
-          collectionId,
-          updateProp,
-          afterData: differences.data,
-          conditions: [[compareProp, '==', docId]],
-        })
-
-        const message = `[onUpdate] Synced documents in collection: ${collectionId}`
-        logger.log(message)
-      }
-    } catch (error) {
-      logger.error(`[onUpdate] Error syncing dependent documents:`, error)
+    let eventType
+    if (!beforeData && afterData) {
+      eventType = 'CREATED' // ドキュメント作成
+    } else if (beforeData && afterData) {
+      eventType = 'UPDATED' // ドキュメント更新
+    } else if (beforeData && !afterData) {
+      eventType = 'DELETED' // ドキュメント削除
+    } else {
+      return // 何も変化がない場合（通常ありえない）
     }
+
+    await handleFirestoreEvent(eventType, event)
+  })
+}
+
+/*****************************************************************************
+ * Firestore トリガーイベントオブジェクトを受け取り、COLLECTION_HANDLERS に定義された
+ * 処理を実行します。
+ * @param {string} eventType - イベント種別（例: CREATED, UPDATED, DELETED）
+ * @param {*} event - Firestore トリガーイベントオブジェクト
+ *****************************************************************************/
+async function handleFirestoreEvent(eventType, event) {
+  try {
+    // コレクション名を取得
+    const collectionName = getCollectionName(event.document)
+
+    // 対応するハンドラーを取得
+    const handler = COLLECTION_HANDLERS[collectionName]?.[eventType]
+
+    // ハンドラーの定義があれば実行
+    if (handler) {
+      logger.info(`[onWrite${collectionName}] handler definitions found.`)
+      await handler(event)
+    } else {
+      logger.warn(
+        `[onWrite${collectionName}] No handler defined for ${collectionName} ${eventType}`
+      )
+    }
+
+    // UPDATE の場合は handleSyncronizeDependentDocuments を実行
+    if (eventType === 'UPDATED') {
+      await handleSyncronizeDependentDocuments(event)
+    }
+
+    logger.info(
+      `[onWrite${collectionName}] Syncronize handler executed successfully for ${collectionName} ${eventType}`
+    )
+  } catch (error) {
+    // エラー処理
+    logger.error(`Error handling Firestore event:`, error)
   }
+}
+
+/*****************************************************************************
+ * 引数に Firestore の更新トリガーイベントオブジェクトを受け取り、
+ * DOCUMENT_SYNC_DEFINITIONS で定義された条件で、従属するドキュメントの
+ * 非正規化されたデータを同期します。
+ * @param {Object} event - Firestore 更新トリガーイベントオブジェクト
+ * @returns Promise{void} 処理が完了すると解決される Promise
+ *****************************************************************************/
+async function handleSyncronizeDependentDocuments(event) {
+  // 更新情報（タイムスタンプなど）以外に変更がなければ終了
+  if (!isDocumentChanged(event)) return
+
+  // 更新されたドキュメントのコレクション名とドキュメントIDを取得
+  const updatedCollectionId = getCollectionName(event.document)
+  const docId = event.params.docId
+
+  // 更新されたコレクションの同期定義を取得
+  const definitions = DOCUMENT_SYNC_DEFINITIONS[updatedCollectionId]
+
+  // 定義が存在しない場合は終了
+  if (!definitions) return
+
+  // 定義の内容をフォーマットしてログに出力
+  const formattedDefinitions = Object.keys(definitions)
+    .map((targetCollection) => {
+      return `${updatedCollectionId} -> ${targetCollection}`
+    })
+    .join(', ')
+
+  logger.info(
+    `[onWrite${updatedCollectionId}] Synchronization definitions found: ${formattedDefinitions}`
+  )
+
+  try {
+    // 同期処理を直列で実行
+    for (const [collectionId, defs] of Object.entries(definitions)) {
+      const { updateProp, compareProp, ComparisonClass } = defs
+
+      logger.info(
+        `[onWrite${updatedCollectionId}] ${updatedCollectionId} >>>>> ${collectionId}`
+      )
+
+      // 差分を取得
+      const differences = extractDiffsFromDocUpdatedEvent({
+        event,
+        ComparisonClass,
+      })
+
+      if (differences.length === 0) {
+        const message = `[onWrite${updatedCollectionId}] No differences found for collection: ${collectionId}`
+        logger.info(message)
+        continue
+      }
+
+      // 差分がある場合に同期処理を実行
+      await syncDependentDocumentsV2({
+        collectionId,
+        updateProp,
+        afterData: differences.data,
+        conditions: [[compareProp, '==', docId]],
+      })
+
+      const message = `[onWrite${updatedCollectionId}] Synced documents in collection: ${collectionId}`
+      logger.log(message)
+    }
+  } catch (error) {
+    logger.error(
+      `[onWrite${updatedCollectionId}] Error syncing dependent documents:`,
+      error
+    )
+  }
+}
+
+/*****************************************************************************
+ * ドキュメントパスからコレクション名を抽出して返します。
+ * @param {string} documentPath - Firestore ドキュメントのパス
+ * @returns {string} コレクション名
+ *****************************************************************************/
+function getCollectionName(documentPath) {
+  return documentPath.split('/')[0]
+}
+
+/*****************************************************************************
+ * トリガー登録 & エクスポート
+ *****************************************************************************/
+// Customers
+export const onWriteCustomers = registerFirestoreTrigger('Customers/{docId}')
+
+// Sites
+export const onWriteSites = registerFirestoreTrigger('Sites/{docId}')
+
+// Employees
+export const onWriteEmployees = registerFirestoreTrigger('Employees/{docId}')
+
+// SiteContracts
+export const onWriteSiteContracts = registerFirestoreTrigger(
+  'SiteContracts/{docId}'
+)
+
+// WorkRegulations
+export const onWriteWorkRegulations = registerFirestoreTrigger(
+  'WorkRegulations/{docId}'
 )

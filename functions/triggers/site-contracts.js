@@ -138,7 +138,7 @@ async function isSiteContractExist(siteId) {
  */
 async function updateSiteHasContract(siteId, value) {
   try {
-    const docRef = firestore.collection('Site').doc(siteId)
+    const docRef = firestore.collection('Sites').doc(siteId)
     await docRef.update({ hasContract: value })
   } catch (err) {
     const message = `updateSiteHasContract: Firestore クエリ処理中にエラーが発生しました。`
