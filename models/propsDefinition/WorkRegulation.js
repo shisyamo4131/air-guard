@@ -5,7 +5,7 @@
  */
 import dayjs from 'dayjs'
 import { EMPLOYEE_CONTRACT_TYPE } from '../constants/employee-contract-types'
-import { generateVueProps, generateClassProps } from './propsUtil'
+import { generateProps } from './propsUtil'
 
 /*****************************************************************************
  * PROPERTIES
@@ -184,8 +184,7 @@ const propsDefinition = {
   },
 }
 
-const vueProps = generateVueProps(propsDefinition)
-const classProps = generateClassProps(propsDefinition)
+const { vueProps, classProps } = generateProps(propsDefinition)
 
 /*****************************************************************************
  * ACCESSOR

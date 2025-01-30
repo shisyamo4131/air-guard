@@ -3,7 +3,7 @@
  * - 稼働実績明細のプロパティ定義を拡張しています。
  * @refact 2025-01-30
  */
-import { generateVueProps, generateClassProps } from './propsUtil'
+import { generateProps } from './propsUtil'
 import {
   propsDefinition as sourceProps,
   accessor as sourceAccessor,
@@ -61,7 +61,6 @@ const accessor = {
     set(v) {},
   },
 }
-const vueProps = generateVueProps(propsDefinition)
-const classProps = generateClassProps(propsDefinition)
+const { vueProps, classProps } = generateProps(propsDefinition)
 
 export { vueProps, classProps, accessor, propsDefinition }

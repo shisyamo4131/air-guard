@@ -6,7 +6,7 @@
  */
 import { ATTENDANCE_STATUS } from '../constants/attendance-status'
 import { DAY_TYPE_ARRAY } from '../constants/day-types'
-import { generateVueProps, generateClassProps } from './propsUtil'
+import { generateProps } from './propsUtil'
 
 /*****************************************************************************
  * PROPERTIES
@@ -169,7 +169,6 @@ const propsDefinition = {
   },
 }
 
-const vueProps = generateVueProps(propsDefinition)
-const classProps = generateClassProps(propsDefinition)
+const { vueProps, classProps } = generateProps(propsDefinition)
 
 export { vueProps, classProps }

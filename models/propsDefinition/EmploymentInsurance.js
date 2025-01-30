@@ -5,7 +5,7 @@
  */
 import { SOCIAL_SECURITY_PROCESSING_STATUS } from '../constants/processing-status'
 import { EmployeeMinimal } from '../Employee'
-import { generateVueProps, generateClassProps } from './propsUtil'
+import { generateProps } from './propsUtil'
 
 /*****************************************************************************
  * PROPERTIES
@@ -73,7 +73,6 @@ const propsDefinition = {
   remarks: { type: String, default: '', required: false },
 }
 
-const vueProps = generateVueProps(propsDefinition)
-const classProps = generateClassProps(propsDefinition)
+const { vueProps, classProps } = generateProps(propsDefinition)
 
 export { vueProps, classProps }

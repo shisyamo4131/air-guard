@@ -6,7 +6,7 @@
 import { SECURITY_TYPE } from '../constants/security-types'
 import { SITE_STATUS } from '../constants/site-status'
 import { CustomerMinimal } from '../Customer'
-import { generateVueProps, generateClassProps } from './propsUtil'
+import { generateProps } from './propsUtil'
 
 /*****************************************************************************
  * PROPERTIES
@@ -135,7 +135,6 @@ const propsDefinition = {
   },
 }
 
-const vueProps = generateVueProps(propsDefinition)
-const classProps = generateClassProps(propsDefinition)
+const { vueProps, classProps } = generateProps(propsDefinition)
 
 export { vueProps, classProps }

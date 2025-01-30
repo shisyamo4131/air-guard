@@ -6,7 +6,7 @@
  */
 import dayjs from 'dayjs'
 import { WORK_RESULT } from '../constants/work-results'
-const { generateVueProps, generateClassProps } = require('./propsUtil')
+import { generateProps } from './propsUtil'
 
 /*****************************************************************************
  * PROPS DEFINITION
@@ -72,8 +72,7 @@ const propsDefinition = {
   isValid: { type: Boolean, default: false, required: false },
 }
 
-const vueProps = generateVueProps(propsDefinition)
-const classProps = generateClassProps(propsDefinition)
+const { vueProps, classProps } = generateProps(propsDefinition)
 
 /*****************************************************************************
  * ACCESSOR

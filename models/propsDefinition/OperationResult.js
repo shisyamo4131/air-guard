@@ -7,7 +7,7 @@ import OperationResultOutsourcer from '../OperationResultOutsourcer'
 import OperationResultWorker from '../OperationResultWorker'
 import { SiteMinimal } from '../Site'
 import { SiteContractMinimal } from '../SiteContract'
-import { generateVueProps, generateClassProps } from './propsUtil'
+import { generateProps } from './propsUtil'
 import ConsumptionTax from '~/plugins/consumption-tax'
 
 /*****************************************************************************
@@ -390,8 +390,7 @@ const propsDefinition = {
   },
 }
 
-const vueProps = generateVueProps(propsDefinition)
-const classProps = generateClassProps(propsDefinition)
+const { vueProps, classProps } = generateProps(propsDefinition)
 
 /****************************************************************************
  * CUSTOM CLASS MAPPING

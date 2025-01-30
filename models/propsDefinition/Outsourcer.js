@@ -4,7 +4,7 @@
  * @refact 2025-01-30
  */
 import { OUTSOURCER_STATUS } from '../constants/outsourcer-status'
-import { generateVueProps, generateClassProps } from './propsUtil'
+import { generateProps } from './propsUtil'
 
 /*****************************************************************************
  * PROPERTIES
@@ -86,7 +86,6 @@ const propsDefinition = {
   },
 }
 
-const vueProps = generateVueProps(propsDefinition)
-const classProps = generateClassProps(propsDefinition)
+const { vueProps, classProps } = generateProps(propsDefinition)
 
 export { vueProps, classProps }

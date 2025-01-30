@@ -7,7 +7,7 @@ import { EMPLOYEE_CONTRACT_TYPE } from '../constants/employee-contract-types'
 import { PAYMENT_TYPE } from '../constants/payment-types'
 import { EmployeeMinimal } from '../Employee'
 import { WorkRegulationMinimal } from '../WorkRegulation'
-import { generateVueProps, generateClassProps } from './propsUtil'
+import { generateProps } from './propsUtil'
 
 /*****************************************************************************
  * PROPERTIES
@@ -135,8 +135,7 @@ const propsDefinition = {
   remarks: { type: String, default: '', required: false },
 }
 
-const vueProps = generateVueProps(propsDefinition)
-const classProps = generateClassProps(propsDefinition)
+const { vueProps, classProps } = generateProps(propsDefinition)
 
 /*****************************************************************************
  * ACCESSOR

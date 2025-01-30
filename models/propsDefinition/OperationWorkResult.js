@@ -5,7 +5,7 @@
  * - ドキュメントの定義内容はその多くを、OperationResultWorker から継承します。
  * @refact 2025-01-30
  */
-import { generateVueProps, generateClassProps } from './propsUtil'
+import { generateProps } from './propsUtil'
 import { propsDefinition as sourceProps } from './OperationResultWorker'
 /*****************************************************************************
  * PROPERTIES
@@ -54,7 +54,6 @@ const propsDefinition = {
   },
 }
 
-const vueProps = generateVueProps(propsDefinition)
-const classProps = generateClassProps(propsDefinition)
+const { vueProps, classProps } = generateProps(propsDefinition)
 
 export { vueProps, classProps }

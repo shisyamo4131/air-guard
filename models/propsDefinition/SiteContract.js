@@ -6,7 +6,7 @@
 import dayjs from 'dayjs'
 import { WORK_SHIFT } from '../constants/work-shifts'
 import { SiteMinimal } from '../Site'
-import { generateVueProps, generateClassProps } from './propsUtil'
+import { generateProps } from './propsUtil'
 
 /*****************************************************************************
  * 単価情報のためのプロパティを提供するクラスです。
@@ -225,8 +225,7 @@ const propsDefinition = {
   },
 }
 
-const vueProps = generateVueProps(propsDefinition)
-const classProps = generateClassProps(propsDefinition)
+const { vueProps, classProps } = generateProps(propsDefinition)
 
 /****************************************************************************
  * CUSTOM CLASS MAPPING

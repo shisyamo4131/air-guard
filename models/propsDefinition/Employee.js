@@ -5,7 +5,7 @@
  */
 import { EMPLOYEE_CONTRACT_TYPE } from '../constants/employee-contract-types'
 import { EMPLOYEE_STATUS } from '../constants/employee-status'
-import { generateVueProps, generateClassProps } from './propsUtil'
+import { generateProps } from './propsUtil'
 
 /*****************************************************************************
  * [CLASS] SecurityRegistration
@@ -269,8 +269,7 @@ const propsDefinition = {
   hasSecurityRegistration: { type: Boolean, default: false, required: false },
 }
 
-const vueProps = generateVueProps(propsDefinition)
-const classProps = generateClassProps(propsDefinition)
+const { vueProps, classProps } = generateProps(propsDefinition)
 
 /*****************************************************************************
  * ACCESSOR
