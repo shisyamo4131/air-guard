@@ -9,7 +9,7 @@ import GAutocompletePaymentType from '~/components/atoms/inputs/GAutocompletePay
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
-import { vueProps } from '~/models/propsDefinition/Allowance'
+import { vueProps } from '~/models/Allowance'
 
 export default {
   /***************************************************************************

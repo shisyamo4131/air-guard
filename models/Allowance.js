@@ -1,14 +1,56 @@
+/*****************************************************************************
+ * カスタムクラス定義: 手当 - Allowance -
+ *****************************************************************************/
 import { FireModel } from 'air-firebase'
-import { classProps } from './propsDefinition/Allowance'
+import { PAYMENT_TYPE } from './constants/payment-types'
+import { generateProps } from './propsDefinition/propsUtil'
 
 /**
- * 手当マスタデータモデル
- * @author shisyamo4131
+ * PROPERTIES
  */
+const propsDefinition = {
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
+
+  // 手当名
+  name: { type: String, default: '', required: true, requiredByClass: true },
+
+  // 手当名カナ
+  nameKana: {
+    type: String,
+    default: '',
+    required: true,
+    requiredByClass: true,
+  },
+
+  // 支給形態
+  paymentType: {
+    type: String,
+    default: 'daily',
+    required: true,
+    requiredByClass: true,
+    validator: (v) => Object.keys(PAYMENT_TYPE).includes(v),
+  },
+
+  // 時間外基礎に含める
+  isIncludedInOvertimeBase: {
+    type: Boolean,
+    default: true,
+    required: false,
+  },
+
+  // 備考
+  remarks: { type: String, default: '', required: false },
+}
+
+const { vueProps, classProps } = generateProps(propsDefinition)
+export { vueProps }
+
+/*****************************************************************************
+ * カスタムクラス - default -
+ *****************************************************************************/
 export default class Allowance extends FireModel {
-  /****************************************************************************
-   * STATIC
-   ****************************************************************************/
+  // FireModel 設定
   static collectionPath = 'Allowances'
   static logicalDelete = true
   static classProps = classProps
@@ -23,19 +65,13 @@ export default class Allowance extends FireModel {
   ]
 }
 
-/**
- * Allowance クラスから createAt, updateAt, uid, remarks, tokenMap を削除したクラスです。
- * - 非正規化した allowance プロパティを持つドキュメントに保存するデータを提供するためのクラス
- * - 不要なプロパティを削除することでデータ量を抑制するために使用します。
- * - 更新系のメソッドは利用できません。
- */
+/*****************************************************************************
+ * カスタムクラス - Minimal -
+ *****************************************************************************/
 export class AllowanceMinimal extends Allowance {
-  /****************************************************************************
-   * CONSTRUCTOR
-   ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
-
+  // initialize をオーバーライド
+  initialize(item = {}) {
+    super.initialize(item)
     delete this.tokenMap
     delete this.remarks
     delete this.createAt
@@ -43,9 +79,7 @@ export class AllowanceMinimal extends Allowance {
     delete this.uid
   }
 
-  /****************************************************************************
-   * 更新系メソッドは使用不可
-   ****************************************************************************/
+  // 更新系メソッドは使用不可
   create() {
     return Promise.reject(new Error('このクラスの create は使用できません。'))
   }
