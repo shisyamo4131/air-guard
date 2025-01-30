@@ -124,9 +124,10 @@ export default {
         <v-toolbar-title>現場選択</v-toolbar-title>
         <v-spacer />
         <air-array-manager
-          :schema="instance"
-          label="現場登録"
           :dialog-props="{ maxWidth: 600 }"
+          :handle-create="async (item) => await item.create()"
+          label="現場登録"
+          :schema="instance"
         >
           <template #default="{ activator }">
             <g-btn-regist
