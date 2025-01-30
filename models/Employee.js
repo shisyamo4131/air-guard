@@ -1,6 +1,9 @@
 import { FireModel } from 'air-firebase'
-import { accessor, classProps } from './propsDefinition/Employee'
-import SecurityRegistration from './SecurityRegistration'
+import {
+  accessor,
+  classProps,
+  SecurityRegistration,
+} from './propsDefinition/Employee'
 
 /**
  * 従業員データモデル

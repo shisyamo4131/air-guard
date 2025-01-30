@@ -4,12 +4,39 @@ import {
   LEAVE_TYPE,
   LEAVE_TYPE_ARRAY,
 } from '~/models/constants/attendance-status'
-import { CONTRACT_TYPE } from '~/models/constants/contract-types'
+import {
+  CUSTOMER_STATUS,
+  CUSTOMER_STATUS_ARRAY,
+} from '~/models/constants/customer-status'
 import { DAY_TYPE, DAY_TYPE_ARRAY } from '~/models/constants/day-types'
+import {
+  EMPLOYEE_CONTRACT_TYPE,
+  EMPLOYEE_CONTRACT_TYPE_ARRAY,
+} from '~/models/constants/employee-contract-types'
+import {
+  EMPLOYEE_STATUS,
+  EMPLOYEE_STATUS_ARRAY,
+} from '~/models/constants/employee-status'
+import {
+  EQUIPMENT_STATUS,
+  EQUIPMENT_STATUS_ARRAY,
+} from '~/models/constants/equipment-status'
 import { HEALTH_INSURANCE_TYPE } from '~/models/constants/health-insurance-types'
-import { MEDICAL_CHECKUP_TYPES } from '~/models/constants/medical-checkup-types'
-import { PAYMENT_TYPE } from '~/models/constants/payment-types'
+import { MEDICAL_CHECKUP_TYPE } from '~/models/constants/medical-checkup-types'
+import {
+  OUTSOURCER_STATUS,
+  OUTSOURCER_STATUS_ARRAY,
+} from '~/models/constants/outsourcer-status'
+import {
+  PAYMENT_TYPE,
+  PAYMENT_TYPE_ARRAY,
+} from '~/models/constants/payment-types'
 import { SOCIAL_SECURITY_PROCESSING_STATUS } from '~/models/constants/processing-status'
+import {
+  SECURITY_TYPE,
+  SECURITY_TYPE_ARRAY,
+} from '~/models/constants/security-types'
+import { SITE_STATUS, SITE_STATUS_ARRAY } from '~/models/constants/site-status'
 import { WORK_RESULT, WORK_RESULT_ARRAY } from '~/models/constants/work-results'
 import { WORK_SHIFT, WORK_SHIFT_ARRAY } from '~/models/constants/work-shifts'
 
@@ -60,23 +87,6 @@ const CHAR_REGEXP_ARRAY = [
   { text: 'ヤ', value: '[ヤ-ヨ]' },
   { text: 'ラ', value: '[ラ-ロ]' },
   { text: 'ワ', value: '[ワ-ン]' },
-]
-
-// 雇用形態
-const CONTRACT_TYPE_ARRAY = Object.entries(CONTRACT_TYPE).map(
-  ([key, value]) => {
-    return { value: key, text: value }
-  }
-)
-
-const CUSTOMER_STATUS = {
-  active: '契約中',
-  expired: '契約終了',
-}
-
-const CUSTOMER_STATUS_ARRAY = [
-  { value: 'active', text: '契約中' },
-  { value: 'expired', text: '契約終了' },
 ]
 
 const DAY_DIV = {
@@ -152,28 +162,6 @@ const EDIT_MODE_ARRAY = [
   { text: '削除', value: 'DELETE' },
 ]
 
-const EMPLOYEE_CONTRACT_TYPE = {
-  'part-time': 'アルバイト',
-  contract: '契約社員',
-  'full-time': '正社員',
-}
-
-const EMPLOYEE_CONTRACT_TYPE_ARRAY = [
-  { value: 'part-time', text: 'アルバイト' },
-  { value: 'contract', text: '契約社員' },
-  { value: 'full-time', text: '正社員' },
-]
-
-const EMPLOYEE_STATUS = {
-  active: '在籍',
-  expired: '退職',
-}
-
-const EMPLOYEE_STATUS_ARRAY = [
-  { value: 'active', text: '在籍' },
-  { value: 'expired', text: '退職' },
-]
-
 const HEALTH_INSURANCE_TYPE_ARRAY = Object.entries(HEALTH_INSURANCE_TYPE).map(
   ([key, value]) => {
     return { value: key, text: value }
@@ -207,25 +195,11 @@ const LEAVE_APPLICATION_TYPE_ARRAY = [
 /**
  * 健康診断受診区分
  */
-const MEDICAL_CHECKUP_TYPES_ARRAY = Object.entries(MEDICAL_CHECKUP_TYPES).map(
+const MEDICAL_CHECKUP_TYPE_ARRAY = Object.entries(MEDICAL_CHECKUP_TYPE).map(
   ([key, value]) => {
     return { value: key, text: value }
   }
 )
-
-const OUTSOURCER_STATUS = {
-  active: '契約中',
-  expired: '契約終了',
-}
-
-const OUTSOURCER_STATUS_ARRAY = [
-  { value: 'active', text: '契約中' },
-  { value: 'expired', text: '契約終了' },
-]
-
-const PAYMENT_TYPE_ARRAY = Object.entries(PAYMENT_TYPE).map(([key, value]) => {
-  return { value: key, text: value }
-})
 
 /**
  * 続柄
@@ -242,34 +216,6 @@ const RELATION = {
 const RELATION_ARRAY = Object.entries(RELATION).map(([key, value]) => {
   return { value: key, text: value }
 })
-
-const SECURITY_TYPE = {
-  'newly-training': '新任教育',
-  traffic: '交通誘導警備',
-  jam: '雑踏警備',
-  facility: '施設警備',
-  patrol: '巡回警備',
-  other: 'その他',
-}
-
-const SECURITY_TYPE_ARRAY = [
-  { value: 'newly-training', text: '新任教育' },
-  { value: 'traffic', text: '交通誘導警備' },
-  { value: 'jam', text: '雑踏警備' },
-  { value: 'facility', text: '施設警備' },
-  { value: 'patrol', text: '巡回警備' },
-  { value: 'other', text: 'その他' },
-]
-
-const SITE_STATUS = {
-  active: '稼働中',
-  expired: '終了',
-}
-
-const SITE_STATUS_ARRAY = [
-  { value: 'active', text: '稼働中' },
-  { value: 'expired', text: '終了' },
-]
 
 /**
  * 社会保障手続き状況
@@ -327,8 +273,6 @@ export default (context, inject) => {
 
   inject('CHAR_REGEXP', CHAR_REGEXP)
   inject('CHAR_REGEXP_ARRAY', CHAR_REGEXP_ARRAY)
-  inject('CONTRACT_TYPE', CONTRACT_TYPE)
-  inject('CONTRACT_TYPE_ARRAY', CONTRACT_TYPE_ARRAY)
   inject('CUSTOMER_STATUS', CUSTOMER_STATUS)
   inject('CUSTOMER_STATUS_ARRAY', CUSTOMER_STATUS_ARRAY)
   inject('DAY_DIV', DAY_DIV)
@@ -344,6 +288,8 @@ export default (context, inject) => {
   inject('EMPLOYEE_CONTRACT_TYPE_ARRAY', EMPLOYEE_CONTRACT_TYPE_ARRAY)
   inject('EMPLOYEE_STATUS', EMPLOYEE_STATUS)
   inject('EMPLOYEE_STATUS_ARRAY', EMPLOYEE_STATUS_ARRAY)
+  inject('EQUIPMENT_STATUS', EQUIPMENT_STATUS)
+  inject('EQUIPMENT_STATUS_ARRAY', EQUIPMENT_STATUS_ARRAY)
   inject('HEALTH_INSURANCE_TYPE', HEALTH_INSURANCE_TYPE)
   inject('HEALTH_INSURANCE_TYPE_ARRAY', HEALTH_INSURANCE_TYPE_ARRAY)
   inject('LEAVE_APPLICATION_STATUS', LEAVE_APPLICATION_STATUS)
@@ -354,8 +300,8 @@ export default (context, inject) => {
   inject('LEAVE_TYPE', LEAVE_TYPE)
   inject('LEAVE_TYPE_ARRAY', LEAVE_TYPE_ARRAY)
 
-  inject('MEDICAL_CHECKUP_TYPES', MEDICAL_CHECKUP_TYPES)
-  inject('MEDICAL_CHECKUP_TYPES_ARRAY', MEDICAL_CHECKUP_TYPES_ARRAY)
+  inject('MEDICAL_CHECKUP_TYPE', MEDICAL_CHECKUP_TYPE)
+  inject('MEDICAL_CHECKUP_TYPE_ARRAY', MEDICAL_CHECKUP_TYPE_ARRAY)
   inject('OUTSOURCER_STATUS', OUTSOURCER_STATUS)
   inject('OUTSOURCER_STATUS_ARRAY', OUTSOURCER_STATUS_ARRAY)
   inject('PAYMENT_TYPE', PAYMENT_TYPE)

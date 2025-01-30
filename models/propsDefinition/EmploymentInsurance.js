@@ -1,10 +1,15 @@
 /**
- * 従業員の雇用保険データモデルのプロパティ定義
+ * 雇用保険ドキュメント定義
+ * @author shisyamo4131
+ * @refact 2025-01-30
  */
 import { SOCIAL_SECURITY_PROCESSING_STATUS } from '../constants/processing-status'
 import { EmployeeMinimal } from '../Employee'
 import { generateVueProps, generateClassProps } from './propsUtil'
 
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
 const propsDefinition = {
   /**
    * ドキュメントID
@@ -25,7 +30,6 @@ const propsDefinition = {
     type: Object,
     default: () => new EmployeeMinimal(),
     required: false,
-    requiredByClass: false,
   },
 
   // 資格取得手続き状況
@@ -47,20 +51,10 @@ const propsDefinition = {
   },
 
   // 資格喪失
-  isLossed: {
-    type: Boolean,
-    default: false,
-    required: false,
-    requiredByClass: false,
-  },
+  isLossed: { type: Boolean, default: false, required: false },
 
   // 資格喪失日（YYYY-MM-DD）
-  lossDate: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: false,
-  },
+  lossDate: { type: String, default: '', required: false },
 
   // 資格取得手続き状況
   lossStatus: {
@@ -73,20 +67,10 @@ const propsDefinition = {
   },
 
   // 被保険者整理番号
-  policyNumber: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: false,
-  },
+  policyNumber: { type: String, default: '', required: false },
 
   // 備考
-  remarks: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: false,
-  },
+  remarks: { type: String, default: '', required: false },
 }
 
 const vueProps = generateVueProps(propsDefinition)

@@ -1,6 +1,7 @@
 /**
- * 現場取極めのプロパティ定義です。
- * @refact 2025-01-27
+ * 現場取極めドキュメント定義
+ * @author shisyamo4131
+ * @refact 2025-01-30
  */
 import dayjs from 'dayjs'
 import { WORK_SHIFT } from '../constants/work-shifts'

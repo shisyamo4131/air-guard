@@ -1,7 +1,19 @@
+/**
+ * 月次勤怠実績ドキュメント定義
+ * - 原則として Cloud Functions 側で作成されるドキュメント
+ * - 日次勤怠実績の集計結果になる。
+ * @author shisyamo4131
+ * @refact 2025-01-30
+ */
 import { generateVueProps, generateClassProps } from './propsUtil'
 
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
 const propsDefinition = {
-  docId: { type: String, default: '', required: false, requiredByClass: false },
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
+
   // 従業員ID
   employeeId: {
     type: String,
@@ -9,13 +21,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
-  // 従業員CODE -> freee への CSV 出力に必要
-  employeeCode: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: true,
-  },
+
   // 年月
   month: {
     type: String,
@@ -23,6 +29,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+
   // 計算開始日
   startDate: {
     type: String,
@@ -30,6 +37,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+
   // 計算終了日
   endDate: {
     type: String,
@@ -37,6 +45,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+
   // 総勤務日数
   totalWorkingDays: {
     type: Number,
@@ -45,6 +54,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 総労働時間（分）
   totalWorkingMinutes: {
     type: Number,
@@ -53,6 +63,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 所定労働日数
   totalScheduledWorkDays: {
     type: Number,
@@ -61,6 +72,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 所定内労働日数
   totalScheduledWorkingDays: {
     type: Number,
@@ -69,6 +81,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 所定休日労働日数
   totalNonScheduledWorkingDays: {
     type: Number,
@@ -77,6 +90,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 休日労働時間（分）
   holidayWorkingMinutes: {
     type: Number,
@@ -85,6 +99,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 休日労働日数
   holidayWorkingDays: {
     type: Number,
@@ -93,6 +108,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 所定内労働時間（分）
   scheduledWorkingMinutes: {
     type: Number,
@@ -101,6 +117,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 法定内労働時間（分）
   statutoryOvertimeMinutes: {
     type: Number,
@@ -109,6 +126,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 法定外労働時間（分）
   nonStatutoryOvertimeMinutes: {
     type: Number,
@@ -117,6 +135,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 深夜労働時間（分）
   nighttimeWorkingMinutes: {
     type: Number,
@@ -125,6 +144,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 遅刻時間（分）
   lateMinutes: {
     type: Number,
@@ -133,6 +153,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 早退時間（分）
   leaveEarlyMinutes: {
     type: Number,
@@ -141,6 +162,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 欠勤日数
   absentDays: {
     type: Number,
@@ -149,6 +171,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 遅刻日数
   lateDays: {
     type: Number,
@@ -157,6 +180,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 早退日数
   leaveEarlyDays: {
     type: Number,
@@ -165,6 +189,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 年休取得日数
   annualPaidLeaveDays: {
     type: Number,
@@ -173,6 +198,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 出勤簿ドキュメント（当月）
   dailyAttendances: {
     type: Object,
@@ -180,6 +206,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 出勤簿ドキュメント（前月）
   dailyAttendancesPrev: {
     type: Object,
@@ -187,6 +214,7 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
   // 出勤簿ドキュメント（翌月）
   dailyAttendancesNext: {
     type: Object,

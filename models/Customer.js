@@ -2,15 +2,11 @@ import { FireModel } from 'air-firebase'
 import { classProps } from './propsDefinition/Customer'
 
 /**
- * Customersドキュメントデータモデル【論理削除】
- *
+ * 取引先ドキュメントデータモデル【論理削除】
  * - 取引先情報を管理するデータモデルです。
  * - `code`は Autonumbers による自動採番が行われます。
- *
- * @version 2.0.0
  * @author shisyamo4131
- * @updates
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
+ * @refact 2025-01-30
  */
 export default class Customer extends FireModel {
   /****************************************************************************
@@ -83,5 +79,41 @@ export default class Customer extends FireModel {
       )
       throw new Error(`Error fetching documents for codes: ${err.message}`)
     }
+  }
+}
+
+/**
+ * Customer クラスから createAt, updateAt, uid, remarks, tokenMap を削除したクラスです。
+ * - 非正規化した customer プロパティを持つドキュメントに保存するデータを提供するためのクラス
+ * - 不要なプロパティを削除することでデータ量を抑制するために使用します。
+ * - 更新系のメソッドは利用できません。
+ */
+export class CustomerMinimal extends Customer {
+  /****************************************************************************
+   * INITIALIZE
+   ****************************************************************************/
+  initialize(item = {}) {
+    super.initialize(item)
+
+    delete this.createAt
+    delete this.updateAt
+    delete this.uid
+    delete this.remarks
+    delete this.tokenMap
+  }
+
+  /****************************************************************************
+   * 更新系メソッドは使用不可
+   ****************************************************************************/
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
+  }
+
+  update() {
+    return Promise.reject(new Error('このクラスの update は使用できません。'))
+  }
+
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
   }
 }

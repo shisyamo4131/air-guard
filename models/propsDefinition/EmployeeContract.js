@@ -1,8 +1,20 @@
+/**
+ * 雇用契約ドキュメント定義
+ * @author shisyamo4131
+ * @refact 2025-01-30
+ */
+import { EMPLOYEE_CONTRACT_TYPE } from '../constants/employee-contract-types'
+import { PAYMENT_TYPE } from '../constants/payment-types'
+import { EmployeeMinimal } from '../Employee'
+import { WorkRegulationMinimal } from '../WorkRegulation'
 import { generateVueProps, generateClassProps } from './propsUtil'
 
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
 const propsDefinition = {
   // ドキュメントID
-  docId: { type: String, default: '', required: false, requiredByClass: false },
+  docId: { type: String, default: '', required: false },
 
   // 従業員ID
   employeeId: {
@@ -15,7 +27,7 @@ const propsDefinition = {
   // 従業員
   employee: {
     type: Object,
-    default: null,
+    default: () => new EmployeeMinimal(),
     required: false,
     requiredByClass: true,
   },
@@ -29,27 +41,16 @@ const propsDefinition = {
   },
 
   // 契約期間の定め
-  hasPeriod: {
-    type: Boolean,
-    default: true,
-    required: false,
-    requiredByClass: false,
-  },
+  hasPeriod: { type: Boolean, default: true, required: false },
 
   // 契約満了日
-  expiredDate: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: false,
-  },
+  expiredDate: { type: String, default: '', required: false },
 
   // 雇用形態
   contractType: {
     type: String,
     default: 'part-time',
-    validator: (v) =>
-      ['exective', 'full-time', 'contract', 'part-time'].includes(v),
+    validator: (v) => Object.keys(EMPLOYEE_CONTRACT_TYPE).includes(v),
     required: true,
     requiredByClass: true,
   },
@@ -65,7 +66,7 @@ const propsDefinition = {
   // 就業規則
   workRegulation: {
     type: Object,
-    default: null,
+    default: () => new WorkRegulationMinimal(),
     required: false,
     requiredByClass: true,
   },
@@ -74,7 +75,7 @@ const propsDefinition = {
   paymentType: {
     type: String,
     default: 'daily',
-    validator: (v) => ['daily', 'monthly'].includes(v),
+    validator: (v) => Object.keys(PAYMENT_TYPE).includes(v),
     requiredByClass: true,
   },
 
@@ -92,7 +93,6 @@ const propsDefinition = {
     type: Boolean,
     default: false,
     required: false,
-    requiredByClass: false,
   },
 
   // 健康保険加入
@@ -100,7 +100,6 @@ const propsDefinition = {
     type: Boolean,
     default: false,
     required: false,
-    requiredByClass: false,
   },
 
   // 厚生年金加入
@@ -108,7 +107,6 @@ const propsDefinition = {
     type: Boolean,
     default: false,
     required: false,
-    requiredByClass: false,
   },
 
   // 雇用保険加入
@@ -116,7 +114,6 @@ const propsDefinition = {
     type: Boolean,
     default: false,
     required: false,
-    requiredByClass: false,
   },
 
   // 手当 ID の配列
@@ -124,7 +121,6 @@ const propsDefinition = {
     type: Array,
     default: () => [],
     required: false,
-    requiredByClass: false,
   },
 
   // 手当
@@ -136,12 +132,7 @@ const propsDefinition = {
   },
 
   // 備考
-  remarks: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: false,
-  },
+  remarks: { type: String, default: '', required: false },
 }
 
 const vueProps = generateVueProps(propsDefinition)

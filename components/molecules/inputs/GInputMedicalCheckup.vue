@@ -65,7 +65,7 @@ export default {
         <g-select
           :value="type"
           label="受診区分"
-          :items="$MEDICAL_CHECKUP_TYPES_ARRAY"
+          :items="$MEDICAL_CHECKUP_TYPE_ARRAY"
           required
           @input="$emit('update:type', $event)"
         />

@@ -1,8 +1,18 @@
+/**
+ * 就業規則ドキュメント定義
+ * @author shisyamo4131
+ * @refact 2025-01-30
+ */
 import dayjs from 'dayjs'
+import { EMPLOYEE_CONTRACT_TYPE } from '../constants/employee-contract-types'
 import { generateVueProps, generateClassProps } from './propsUtil'
 
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
 const propsDefinition = {
-  docId: { type: String, default: '', required: false, requiredByClass: false },
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
 
   // 複製元のドキュメントID
   sourceDocId: {
@@ -22,8 +32,7 @@ const propsDefinition = {
   contractType: {
     type: String,
     default: 'full-time',
-    validator: (v) =>
-      ['exective', 'full-time', 'contract', 'part-time'].includes(v),
+    validator: (v) => Object.keys(EMPLOYEE_CONTRACT_TYPE).includes(v),
     required: false,
     requiredByClass: true,
   },

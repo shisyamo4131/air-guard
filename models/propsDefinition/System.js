@@ -1,10 +1,19 @@
+/**
+ * システムドキュメント定義
+ * @author shisyamo4131
+ * @refact 2025-01-30
+ */
 import { generateVueProps, generateClassProps } from './propsUtil'
 
-/**
+/*****************************************************************************
  * ## 各種実行記録のカスタムクラス
- */
+ *****************************************************************************/
 class ExecuteStatus {
   constructor(item = {}) {
+    this.initialize(item)
+  }
+
+  initialize(item = {}) {
     this.status = item?.status || 'ready'
     this.lastExecutedAt = item?.lastExecutedAt?.toDate
       ? item.lastExecutedAt.toDate()
@@ -18,13 +27,17 @@ class ExecuteStatus {
   }
 }
 
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
 const propsDefinition = {
-  docId: { type: String, default: '', required: false, requiredByClass: false },
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
 
   // 月次勤怠集計の実行記録
   calcAttendance: {
     type: Object,
-    default: () => new ExecuteStatus().toObject(),
+    default: () => new ExecuteStatus(),
     required: false,
     requiredByClass: false,
   },
@@ -32,7 +45,7 @@ const propsDefinition = {
   // 月次売上集計の実行記録
   calcMonthlySales: {
     type: Object,
-    default: () => new ExecuteStatus().toObject(),
+    default: () => new ExecuteStatus(),
     required: false,
     requiredByClass: false,
   },
@@ -40,7 +53,7 @@ const propsDefinition = {
   // 月次請求集計の実行記録
   calcSiteBillings: {
     type: Object,
-    default: () => new ExecuteStatus().toObject(),
+    default: () => new ExecuteStatus(),
     required: false,
     requiredByClass: false,
   },
@@ -48,7 +61,7 @@ const propsDefinition = {
   // 従業員の現場履歴更新処理の実行記録
   refreshEmployeeSiteHistory: {
     type: Object,
-    default: () => new ExecuteStatus().toObject(),
+    default: () => new ExecuteStatus(),
     required: false,
     requiredByClass: false,
   },
@@ -56,7 +69,7 @@ const propsDefinition = {
   // 現場の従業員入場履歴更新処理の実行記録
   refreshSiteEmployeeHistory: {
     type: Object,
-    default: () => new ExecuteStatus().toObject(),
+    default: () => new ExecuteStatus(),
     required: false,
     requiredByClass: false,
   },

@@ -1,6 +1,7 @@
 /**
  * 従業員稼働実績明細のプロパティ定義です。
  * - 稼働実績明細のプロパティ定義を拡張しています。
+ * @refact 2025-01-30
  */
 import { generateVueProps, generateClassProps } from './propsUtil'
 import {
@@ -63,4 +64,4 @@ const accessor = {
 const vueProps = generateVueProps(propsDefinition)
 const classProps = generateClassProps(propsDefinition)
 
-export { vueProps, classProps, accessor }
+export { vueProps, classProps, accessor, propsDefinition }

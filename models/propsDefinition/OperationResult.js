@@ -1,7 +1,7 @@
 /**
- * 稼働実績ドキュメントプロパティ定義
+ * 稼働実績ドキュメント定義
  * @author shisyamo4131
- * @refact 2025-01-25
+ * @refact 2025-01-30
  */
 import OperationResultOutsourcer from '../OperationResultOutsourcer'
 import OperationResultWorker from '../OperationResultWorker'

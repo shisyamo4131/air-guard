@@ -1,15 +1,32 @@
+/**
+ * ユーザードキュメント定義
+ * @author shisyamo4131
+ * @refact 2025-01-30
+ */
 import { generateVueProps, generateClassProps } from './propsUtil'
 
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
 const propsDefinition = {
-  docId: { type: String, default: '', required: false, requiredByClass: false },
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
+
+  // uid（Authentication の uid）
   uid: { type: String, default: '', required: false, requiredByClass: true },
+
+  // メールアドレス
   email: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 表示名
   displayName: {
     type: String,
     default: '',
     required: false,
     requiredByClass: true,
   },
+
+  // 従業員ID
   employeeId: {
     type: String,
     default: '',

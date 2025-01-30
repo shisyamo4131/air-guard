@@ -1,20 +1,21 @@
 /**
- * 従業員休暇申請プロパティ定義
+ * 従業員休暇申請ドキュメント定義
+ * @author shisyamo4131
+ * @refact 2025-01-30
  */
 import { generateVueProps, generateClassProps } from './propsUtil'
 
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
 const propsDefinition = {
+  // ドキュメントID
   docId: { type: String, default: '', required: false, requiredByClass: false },
+
+  // 申請日（YYYY-MM-DD）
   date: { type: String, default: '', required: false, requiredByClass: true },
 
-  // 一括登録用プロパティ
-  dates: {
-    type: Array,
-    default: () => [],
-    required: false,
-    requiredByClass: false,
-  },
-
+  // 申請年月（YYYY-MM）
   month: {
     type: String,
     default: '',
@@ -22,6 +23,7 @@ const propsDefinition = {
     requiredByClass: true,
   },
 
+  // 申請者ID（従業員ID）
   employeeId: {
     type: String,
     default: '',
@@ -29,6 +31,7 @@ const propsDefinition = {
     requiredByClass: true,
   },
 
+  // 備考
   remarks: {
     type: String,
     default: '',

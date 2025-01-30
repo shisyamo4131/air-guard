@@ -1,8 +1,20 @@
+/**
+ * 現場稼働予定ドキュメント定義
+ * @author shisyamo4131
+ * @refact 2025-01-30
+ */
 import { generateVueProps, generateClassProps } from './propsUtil'
 
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
 const propsDefinition = {
-  docId: { type: String, default: '', required: false, requiredByClass: false },
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
+
+  // 日付
   date: { type: String, default: '', required: false, requiredByClass: true },
+
   /**
    * スケジュールの一括登録で使用するプロパティ。
    */
@@ -12,7 +24,11 @@ const propsDefinition = {
     required: false,
     requiredByClass: false,
   },
+
+  // 現場ID
   siteId: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 勤務区分
   workShift: {
     type: String,
     default: 'day',
@@ -20,48 +36,40 @@ const propsDefinition = {
     required: false,
     requiredByClass: true,
   },
+
+  // 開始時刻
   startTime: {
     type: String,
     default: '',
     required: false,
     requiredByClass: false,
   },
+
+  // 終了時刻
   endTime: {
     type: String,
     default: '',
     required: false,
     requiredByClass: false,
   },
+
+  // 必要人数
   requiredWorkers: {
     type: Number,
     default: null,
     required: false,
     requiredByClass: true,
   },
+
+  // 要資格者フラグ
   qualification: {
     type: Boolean,
     default: false,
     required: false,
     requiredByClass: false,
   },
-  /**
-   * 稼働予定に対する配置予定で使用する予定・・・
-   */
-  workers: {
-    type: Array,
-    default: () => [],
-    required: false,
-    requiredByClass: false,
-  },
-  /**
-   * 稼働予定に対する配置予定で使用する予定・・・
-   */
-  outsourcers: {
-    type: Array,
-    default: () => [],
-    required: false,
-    requiredByClass: false,
-  },
+
+  // 備考
   remarks: {
     type: String,
     default: '',

@@ -1,6 +1,7 @@
 import { FireModel } from 'air-firebase'
-import { classProps } from './propsDefinition/OperationResultWorker'
-import { classProps as addProps } from './propsDefinition/OperationWorkResult'
+// import { classProps } from './propsDefinition/OperationResultWorker'
+// import { classProps as addProps } from './propsDefinition/OperationWorkResult'
+import { classProps } from './propsDefinition/OperationWorkResult'
 /**
  * ## OperationWorkResults ドキュメントデータモデル【物理削除】
  *
@@ -17,7 +18,7 @@ export default class OperationWorkResult extends FireModel {
    * STATIC
    ****************************************************************************/
   static collectionPath = 'OperationWorkResults'
-  static classProps = { ...classProps, ...addProps }
+  static classProps = classProps
 
   /****************************************************************************
    * ADDED PROPERTIES

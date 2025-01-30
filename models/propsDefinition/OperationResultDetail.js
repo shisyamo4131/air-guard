@@ -2,7 +2,7 @@
  * 稼働実績明細のプロパティ定義です。
  * - 従業員、外注先で共有となるプロパティのみ定義しています。
  * - クラスでの使用時は、必ず Accessor.isValid を適用してください。
- * @refact 2025-01-24
+ * @refact 2025-01-30
  */
 import dayjs from 'dayjs'
 import { WORK_RESULT } from '../constants/work-results'

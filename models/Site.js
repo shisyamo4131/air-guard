@@ -1,6 +1,6 @@
 import { database, FireModel } from 'air-firebase'
 import { get, ref } from 'firebase/database'
-import Customer from './Customer'
+import { CustomerMinimal } from './Customer'
 import { classProps } from './propsDefinition/Site'
 
 /**
@@ -29,7 +29,7 @@ export default class Site extends FireModel {
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
-    customer: Customer,
+    customer: CustomerMinimal,
   }
 
   /****************************************************************************
@@ -44,11 +44,15 @@ export default class Site extends FireModel {
       throw new Error('取引先の指定が必要です。')
     }
     try {
-      const customer = await new Customer().fetchDoc(this.customerId)
-      if (!customer) {
+      // const customer = await new Customer().fetchDoc(this.customerId)
+      // if (!customer) {
+      //   throw new Error('取引先情報が取得できませんでした。')
+      // }
+      // this.customer = customer
+      await this.customer.fetch(this.customerId)
+      if (!this.customer.docId) {
         throw new Error('取引先情報が取得できませんでした。')
       }
-      this.customer = customer
       await super.beforeCreate()
     } catch (err) {
       // eslint-disable-next-line
@@ -71,11 +75,15 @@ export default class Site extends FireModel {
     }
     if (this.customer.docId !== this.customerId) {
       try {
-        const customer = await new Customer().fetchDoc(this.customerId)
-        if (!customer) {
+        // const customer = await new Customer().fetchDoc(this.customerId)
+        // if (!customer) {
+        //   throw new Error('取引先情報が取得できませんでした。')
+        // }
+        // this.customer = customer
+        await this.customer.fetch(this.customerId)
+        if (!this.customer.docId) {
           throw new Error('取引先情報が取得できませんでした。')
         }
-        this.customer = customer
         await super.beforeUpdate()
       } catch (err) {
         // eslint-disable-next-line

@@ -1,10 +1,15 @@
 /**
- * 従業員の健康保険データモデルのプロパティ定義
+ * 健康保険ドキュメント定義
+ * @author shisyamo4131
+ * @refact 2025-01-30
  */
 import { SOCIAL_SECURITY_PROCESSING_STATUS } from '../constants/processing-status'
 import { EmployeeMinimal } from '../Employee'
 import { generateVueProps, generateClassProps } from './propsUtil'
 
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
 const propsDefinition = {
   /**
    * ドキュメントID

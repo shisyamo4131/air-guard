@@ -1,16 +1,26 @@
 /**
- * 健康診断情報ドキュメントデータモデル
+ * 健康診断情報ドキュメント定義
+ * @author shisyamo4131
+ * @refact 2025-01-30
  */
-import { MEDICAL_CHECKUP_TYPES } from '../constants/medical-checkup-types'
+import { MEDICAL_CHECKUP_TYPE } from '../constants/medical-checkup-types'
 import { EmployeeMinimal } from '../Employee'
 import { generateVueProps, generateClassProps } from './propsUtil'
 
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
 const propsDefinition = {
   /**
    * ドキュメントID
    * - `${従業員ID}-${受診日}` で固定
    */
-  docId: { type: String, default: '', required: false, requiredByClass: false },
+  docId: { type: String, default: '', required: false },
+
+  /**
+   * 受診日 (YYYY-MM-DD)
+   */
+  date: { type: String, default: '', required: false, requiredByClass: true },
 
   /**
    * 従業員ID
@@ -34,18 +44,13 @@ const propsDefinition = {
   },
 
   /**
-   * 受診日 (YYYY-MM-DD)
-   */
-  date: { type: String, default: '', required: false, requiredByClass: true },
-
-  /**
    * 受診区分
    * { entry: '入社時', regular: '法定検診', other: 'その他' }
    */
   type: {
     type: String,
     default: 'ENTRY',
-    validator: (v) => Object.keys(MEDICAL_CHECKUP_TYPES).includes(v),
+    validator: (v) => Object.keys(MEDICAL_CHECKUP_TYPE).includes(v),
     required: false,
     requiredByClass: true,
   },
@@ -95,12 +100,7 @@ const propsDefinition = {
   /**
    * 備考
    */
-  remarks: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: false,
-  },
+  remarks: { type: String, default: '', required: false },
 }
 
 const vueProps = generateVueProps(propsDefinition)

@@ -1,20 +1,33 @@
+/**
+ * 新規ユーザードキュメント定義
+ * - ユーザーアカウントの登録時のみ使用されるドキュメント
+ * @author shisyamo4131
+ * @refact 2025-01-30
+ */
 import { generateVueProps, generateClassProps } from './propsUtil'
 
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
 const propsDefinition = {
-  docId: { type: String, default: '', required: false, requiredByClass: false },
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
+
+  // メールアドレス
   email: { type: String, default: '', required: false, requiredByClass: true },
+
+  // パスワード
   password: {
     type: String,
     default: '',
     required: false,
     requiredByClass: true,
   },
-  employeeId: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: false,
-  },
+
+  // 従業員ID
+  employeeId: { type: String, default: '', required: false },
+
+  // 表示名
   displayName: {
     type: String,
     default: '',

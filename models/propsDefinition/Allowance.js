@@ -1,7 +1,17 @@
+/**
+ * 手当ドキュメント定義
+ * @author shisyamo4131
+ * @refact 2025-01-30
+ */
+import { PAYMENT_TYPE } from '../constants/payment-types'
 import { generateVueProps, generateClassProps } from './propsUtil'
 
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
 const propsDefinition = {
-  docId: { type: String, default: '', required: false, requiredByClass: false },
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
 
   // 手当名
   name: { type: String, default: '', required: true, requiredByClass: true },
@@ -18,7 +28,7 @@ const propsDefinition = {
   paymentType: {
     type: String,
     default: 'daily',
-    validator: (v) => ['daily', 'monthly'].includes(v),
+    validator: (v) => Object.keys(PAYMENT_TYPE).includes(v),
     required: true,
     requiredByClass: true,
   },
