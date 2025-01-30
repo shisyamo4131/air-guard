@@ -70,7 +70,7 @@ export default {
 
 <template>
   <g-template-default v-slot="{ height }">
-    <v-container fluid :style="{ height: `${height}px` }">
+    <v-container :style="{ height: `${height}px` }">
       <air-array-manager
         :dialog-props="{
           maxWidth: 480,
@@ -95,15 +95,36 @@ export default {
                 v-bind="table.attrs"
                 :headers="[
                   { text: 'コレクション名', value: 'collectionId' },
-                  { text: '現在値', value: 'current' },
-                  { text: '桁数', value: 'length' },
-                  { text: 'フィールド名', value: 'field' },
-                  { text: '状態', value: 'status' },
+                  {
+                    text: '現在値',
+                    value: 'current',
+                    align: 'right',
+                    sortable: false,
+                  },
+                  {
+                    text: '桁数',
+                    value: 'length',
+                    align: 'right',
+                    sortable: false,
+                  },
+                  { text: 'フィールド名', value: 'field', sortable: false },
+                  {
+                    text: '状態',
+                    value: 'status',
+                    align: 'center',
+                    sortable: false,
+                  },
                 ]"
                 hide-default-footer
                 sort-by="collectionId"
                 v-on="table.on"
               >
+                <template #[`item.current`]="{ item }">
+                  {{ item.current.toLocaleString() }}
+                </template>
+                <template #[`item.status`]="{ item }">
+                  {{ `${item.status ? '稼働中' : '停止中'}` }}
+                </template>
               </v-data-table>
             </div>
             <g-pagination v-bind="pagination.attrs" v-on="pagination.on" />
