@@ -4,14 +4,15 @@
  * AutonumberドキュメントのdocIdはコレクション名です。
  * よって、一度登録されたドキュメントのコレクション名は変更できません。
  * 運用として、コレクション名を変更する必要が生じた場合は削除⇒作成します。
+ *
  * @author shisyamo4131
- * @refact 2025-01-20
+ * @refact 2025-01-30
  */
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
-import { vueProps } from '~/models/propsDefinition/Autonumber'
+import { vueProps } from '~/models/Autonumber'
 
 export default {
   /***************************************************************************
@@ -27,9 +28,7 @@ export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  props: {
-    ...vueProps,
-  },
+  props: vueProps,
 }
 </script>
 

@@ -2,7 +2,7 @@
 /**
  * 自動採番の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-29
+ * @refact 2025-01-30
  */
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
@@ -73,7 +73,7 @@ export default {
     <v-container fluid :style="{ height: `${height}px` }">
       <air-array-manager
         :dialog-props="{
-          maxWidth: 600,
+          maxWidth: 480,
         }"
         event-edit="click:row"
         :handle-create="handleCreate"

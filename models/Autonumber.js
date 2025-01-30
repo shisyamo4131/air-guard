@@ -1,106 +1,134 @@
+/*****************************************************************************
+ * カスタムクラス定義: 自動採番 - Autonumber -
+ *
+ * @author shisyamo4131
+ * @refact 2025-01-30
+ *****************************************************************************/
 import { collection, getDocs, limit, orderBy, query } from 'firebase/firestore'
 import { FireModel, firestore } from 'air-firebase'
-import { classProps } from './propsDefinition/Autonumber'
+import { generateProps } from './propsDefinition/propsUtil'
 
 /**
- * Autonumbersドキュメントデータモデル【物理削除】
- *
- * - コレクションごとの自動採番を管理するデータモデルです。
- * - FireModelは、createメソッド実行時に`useAutonumber`フラグがtrueの場合、
- *   管理対象コレクション名をドキュメントIDとするAutonumbersドキュメントを参照します。
- * - 該当するドキュメントが存在すると、ドキュメントの状態に応じた自動採番を行います。
- * - `status`が`false`であった場合、自動採番は行われません。
- *
- * @version 2.0.0
- * @author shisyamo4131
- * @updates
- * - version 2.0.0 - 2024-08-22 - FireModelのパッケージ化に伴って再作成
+ * PROPERTIES
  */
+const propsDefinition = {
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
+
+  // コレクションID
+  collectionId: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 現在値
+  current: {
+    type: Number,
+    default: 0,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 桁数
+  length: {
+    type: Number,
+    default: 4,
+    validator: (v) => v > 0,
+    required: false,
+    requiredByClass: true,
+  },
+
+  // フィールド名
+  field: {
+    type: String,
+    default: 'code',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 状態
+  status: {
+    type: Boolean,
+    default: true,
+    required: false,
+    requiredByClass: true,
+  },
+}
+
+const { vueProps, classProps } = generateProps(propsDefinition)
+export { vueProps }
+
+/*****************************************************************************
+ * カスタムクラス - default -
+ *****************************************************************************/
 export default class Autonumber extends FireModel {
-  /****************************************************************************
-   * STATIC
-   ****************************************************************************/
+  // FireModel 設定
   static collectionPath = 'Autonumbers'
   static classProps = classProps
   static tokenFields = ['collectionId']
 
-  /****************************************************************************
-   * CONSTRUCTOR
-   ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
-  }
-
-  /****************************************************************************
-   * ドキュメントが作成される直前に実行される処理です。
-   * - `current`と`length`は正の整数でなければなりません。
-   * - 無効な値がある場合はエラーをスローします。
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
-   * @throws {Error} currentまたはlengthが正の整数でない場合
-   ****************************************************************************/
+  /**
+   * ドキュメント作成前の処理です。
+   * - 現在値と桁数が 0 以上の整数であることを確認します。
+   *
+   * @returns {Promise<void>} 処理が完了すると解決される Promise です。
+   * @throws {Error} `current` または `length` が 0 以上の整数でない場合にエラーをスローします。
+   */
   beforeCreate() {
-    if (this.current < 0) {
-      return Promise.reject(
-        new Error('現在値は0以上の整数でなければなりません。')
-      )
-    }
-    if (this.length < 0) {
-      return Promise.reject(
-        new Error('長さは0以上の整数でなければなりません。')
-      )
-    }
-    return super.beforeCreate()
+    return new Promise((resolve, reject) => {
+      if (this.current < 0 || this.length < 0) {
+        return reject(
+          new Error('現在値および桁数は 0 以上で設定してください。')
+        )
+      }
+      resolve()
+    })
   }
 
-  /****************************************************************************
-   * ドキュメントの更新処理直前に実行されます。
-   * - コレクション名（docId）は変更できません。
-   * - `current`と`length`は正の整数でなければなりません。
-   * @returns {Promise<void>} 処理が完了すると解決されるPromise
-   * @throws {Error} 無効な値が存在する場合
-   ****************************************************************************/
+  /**
+   * ドキュメント更新前の処理です。
+   * - コレクション名が変更されていないことを確認します。
+   * - 現在値と桁数が 0 以上の整数であることを確認します。
+   *
+   * @returns {Promise<void>} 処理が完了すると解決される Promise です。
+   * @throws {Error} 無効な値が存在する場合にエラーをスローします。
+   */
   beforeUpdate() {
-    if (this.docId !== this.collectionId) {
-      return Promise.reject(
-        new Error('コレクション名を変更することはできません。')
-      )
-    }
-    if (this.current < 0) {
-      return Promise.reject(
-        new Error('現在値は0以上の整数でなければなりません。')
-      )
-    }
-    if (this.length < 0) {
-      return Promise.reject(
-        new Error('長さは0以上の整数でなければなりません。')
-      )
-    }
-    return super.beforeUpdate()
+    return new Promise((resolve, reject) => {
+      if (this.docId !== this.collectionId) {
+        return reject(new Error('コレクション名を変更することはできません。'))
+      }
+      if (this.current < 0 || this.length < 0) {
+        return reject(
+          new Error('現在値および桁数は 0 以上で設定してください。')
+        )
+      }
+      resolve()
+    })
   }
 
-  /****************************************************************************
+  /**
    * ドキュメントの作成処理をオーバーライドします。
-   * - ドキュメントIDは`collectionId`に設定されたコレクション名に固定します。
+   * - ドキュメントIDをコレクション名に固定します。
    * @returns {Promise<DocumentReference>} 作成されたドキュメントへの参照
    * @throws {Error} ドキュメントの作成に失敗した場合
-   ****************************************************************************/
+   */
   async create() {
-    try {
-      return await super.create({ docId: this.collectionId })
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('ドキュメントの作成に失敗しました:', error)
-      throw new Error('ドキュメントの作成中にエラーが発生しました。')
-    }
+    return await super.create({ docId: this.collectionId })
   }
 
-  /****************************************************************************
-   * 指定されたコレクションの自動採番を開始します。
-   * - コレクションIDが空または無効な場合、エラーをスローします。
-   * @param {string} collectionId 対象のコレクションIDです。
+  /**
+   * 指定されたコレクションのステータスを true に更新します。
+   * - ステータスが true に更新されると、当該コレクションへのドキュメント作成時に自動採番が行われます。
+   * - 既に true になっている場合は更新処理を行いません。
+   *
+   * @param {string} collectionId - 自動採番を開始するコレクション名
    * @returns {Promise<void>} 処理が完了すると解決されるPromise
    * @throws {Error} コレクションIDが無効な場合、または自動採番の開始に失敗した場合
-   ****************************************************************************/
+   */
   static async start(collectionId) {
     if (!collectionId || typeof collectionId !== 'string') {
       throw new Error('有効なコレクションIDを指定してください。')
@@ -109,34 +137,37 @@ export default class Autonumber extends FireModel {
       const instance = new this()
       if (!(await instance.fetch(collectionId))) {
         throw new Error(
-          `Autonumbersコレクションに${collectionId}ドキュメントが存在しません。`
+          `Autonumbers コレクションに ${collectionId} ドキュメントが存在しません。`
         )
       }
       if (instance.status) {
         // eslint-disable-next-line no-console
         console.warn(
-          `${collectionId}コレクションの自動採番は既に開始されています。`
+          `${collectionId} コレクションの自動採番は既に開始されています。`
         )
       } else {
         instance.status = true
         await instance.update()
         // eslint-disable-next-line no-console
-        console.info(`${collectionId}コレクションの自動採番を開始しました。`)
+        console.info(`${collectionId} コレクションの自動採番を開始しました。`)
       }
     } catch (error) {
-      const message = `${collectionId}コレクションの自動採番の開始に失敗しました:`
+      const message = `${collectionId} コレクションの自動採番の開始に失敗しました:`
       // eslint-disable-next-line no-console
       console.error(message, error)
       throw new Error(`${message} ${error.message}`)
     }
   }
 
-  /****************************************************************************
-   * 指定されたコレクションの自動採番を停止します。
-   * @param {string} collectionId 対象のコレクションIDです。
+  /**
+   * 指定されたコレクションのステータスを false に更新します。
+   * - ステータスが false に更新されると、当該コレクションへのドキュメント作成時に自動採番が行われなくなります。
+   * - 既に false になっている場合は更新処理を行いません。
+   *
+   * @param {string} collectionId - 自動採番を停止するコレクション名
    * @returns {Promise<void>} 処理が完了すると解決されるPromise
    * @throws {Error} コレクションIDが無効な場合、または自動採番の停止に失敗した場合
-   ****************************************************************************/
+   */
   static async stop(collectionId) {
     if (!collectionId || typeof collectionId !== 'string') {
       throw new Error('有効なコレクションIDを指定してください。')
@@ -146,29 +177,29 @@ export default class Autonumber extends FireModel {
       const instance = new this()
       if (!(await instance.fetch(collectionId))) {
         throw new Error(
-          `Autonumbersコレクションに${collectionId}ドキュメントが存在しません。`
+          `Autonumbersコレクションに ${collectionId} ドキュメントが存在しません。`
         )
       }
       if (!instance.status) {
         // eslint-disable-next-line no-console
         console.warn(
-          `${collectionId}コレクションの自動採番は既に停止されています。`
+          `${collectionId} コレクションの自動採番は既に停止されています。`
         )
       } else {
         instance.status = false
         await instance.update()
         // eslint-disable-next-line no-console
-        console.info(`${collectionId}コレクションの自動採番を停止しました。`)
+        console.info(`${collectionId} コレクションの自動採番を停止しました。`)
       }
     } catch (error) {
-      const message = `${collectionId}コレクションの自動採番の停止に失敗しました:`
+      const message = `${collectionId} コレクションの自動採番の停止に失敗しました:`
       // eslint-disable-next-line no-console
       console.error(message, error)
       throw new Error(`${message} ${error.message}`)
     }
   }
 
-  /****************************************************************************
+  /**
    * 指定されたコレクションの自動採番について、現在値を指定された値に更新します。
    * 値が指定されなかった場合、指定されたコレクションのドキュメントに使用されている
    * 最大値が適用されます。
@@ -176,7 +207,7 @@ export default class Autonumber extends FireModel {
    * @param {string | number} val 更新する値です。
    * @returns {Promise<void>} 処理が完了すると解決されるPromise
    * @throws {Error} コレクションIDが無効な場合、または更新に失敗した場合
-   ****************************************************************************/
+   */
   static async refresh(collectionId, val = undefined) {
     if (!collectionId || typeof collectionId !== 'string') {
       throw new Error('有効なコレクションIDを指定してください。')

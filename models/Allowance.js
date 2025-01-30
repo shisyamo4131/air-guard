@@ -1,5 +1,8 @@
 /*****************************************************************************
  * カスタムクラス定義: 手当 - Allowance -
+ *
+ * @author shisyamo4131
+ * @refact 2025-01-30
  *****************************************************************************/
 import { FireModel } from 'air-firebase'
 import { PAYMENT_TYPE } from './constants/payment-types'
