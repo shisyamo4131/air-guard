@@ -158,7 +158,9 @@ export default (context, inject) => {
               ],
               [
                 '雇用形態',
-                context.app.$CONTRACT_TYPE[employeeContract.contractType],
+                context.app.$EMPLOYEE_CONTRACT_TYPE[
+                  employeeContract.contractType
+                ],
               ],
               [
                 '就業の場所',

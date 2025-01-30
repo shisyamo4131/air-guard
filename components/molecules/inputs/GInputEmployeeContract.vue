@@ -197,7 +197,7 @@ export default {
         <g-select
           :value="contractType"
           label="雇用形態"
-          :items="$CONTRACT_TYPE_ARRAY"
+          :items="$EMPLOYEE_CONTRACT_TYPE_ARRAY"
           required
           attach
           @input="$emit('update:contractType', $event)"

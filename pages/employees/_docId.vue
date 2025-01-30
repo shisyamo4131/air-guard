@@ -547,7 +547,9 @@ export default {
                           v-on="table.on"
                         >
                           <template #[`item.contractType`]="{ item }">
-                            {{ $CONTRACT_TYPE[item.contractType] }}
+                            {{
+                              $EMPLOYEE_CONTRACT_TYPE_ARRAY[item.contractType]
+                            }}
                           </template>
                           <template #[`item.paymentType`]="{ item }">
                             {{ $PAYMENT_TYPE[item.paymentType] }}

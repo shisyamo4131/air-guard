@@ -1,4 +1,4 @@
-import { CONTRACT_TYPE } from '../constants/contract-types'
+import { EMPLOYEE_CONTRACT_TYPE } from '../constants/employee-contract-types'
 import SecurityRegistration from '../SecurityRegistration'
 import { generateVueProps, generateClassProps } from './propsUtil'
 
@@ -172,7 +172,7 @@ const propsDefinition = {
   contractType: {
     type: String,
     default: 'full-time',
-    validator: (v) => Object.keys(CONTRACT_TYPE).includes(v),
+    validator: (v) => Object.keys(EMPLOYEE_CONTRACT_TYPE).includes(v),
     required: false,
     requiredByClass: false,
   },
