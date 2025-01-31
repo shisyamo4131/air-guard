@@ -22,6 +22,11 @@ import * as masterDocuments from './triggers/master-documents.js'
 import * as equipments from './triggers/equipments.js'
 
 /**
+ * Google の Geocoding を onRequest で提供
+ */
+import { geocode } from './modules/geocoding.js'
+
+/**
  * APIによる同期処理
  */
 import * as access from './access/accessApi.js'
@@ -46,4 +51,5 @@ export {
   access,
   masterDocuments,
   equipments,
+  geocode,
 }
