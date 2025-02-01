@@ -376,6 +376,7 @@ export default {
                       { text: '現場', value: 'siteId' },
                     ]"
                     hide-default-footer
+                    item-key="docId"
                     :items="operationWorkResults"
                     :items-per-page="-1"
                     :sort-by="['date', 'startTime']"
