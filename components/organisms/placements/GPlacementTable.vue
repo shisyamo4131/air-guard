@@ -19,7 +19,7 @@ import { PlacedEmployee, PlacedOutsourcer } from '~/models/Placement'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
 import GInputSiteOperationSchedule from '~/components/molecules/inputs/GInputSiteOperationSchedule.vue'
-import AirItemManager from '~/components/air/AirItemManager.vue'
+import AirArrayManager from '~/components/air/AirArrayManager.vue'
 
 export default {
   /***************************************************************************
@@ -35,7 +35,7 @@ export default {
     GSwitch,
     GBtnCancel,
     GInputSiteOperationSchedule,
-    AirItemManager,
+    AirArrayManager,
   },
 
   /***************************************************************************
@@ -168,6 +168,7 @@ export default {
        */
       schedule: {
         editModel: new SiteOperationSchedule(),
+        items: [],
       },
 
       /**
@@ -454,7 +455,15 @@ export default {
 
       // 編集対象のモデルにインスタンスを設定し、ダイアログを開く
       this.schedule.editModel = instance
-      this.$refs['schedule-editor'].toUpdate()
+      this.schedule.items.splice(0)
+      if (!instance.docId) {
+        this.$refs['schedule-editor'].toRegist()
+      } else {
+        this.schedule.items.push(this.schedule.editModel)
+        this.$nextTick(() => {
+          this.$refs['schedule-editor'].toUpdate(this.schedule.editModel)
+        })
+      }
     },
 
     /**
@@ -875,16 +884,20 @@ export default {
     />
 
     <!-- 現場稼働予定編集コンポーネント -->
-    <air-item-manager
+    <air-array-manager
       ref="schedule-editor"
       :dialog-props="{ maxWidth: 360 }"
-      :item="schedule.editModel"
+      :items="schedule.items"
+      :handle-create="async (item) => await item.create()"
+      :handle-update="async (item) => await item.update()"
+      :handle-delete="async (item) => await item.delete()"
       label="現場稼働予定"
+      :schema="schedule.editModel"
     >
       <template #inputs="{ attrs, on }">
         <g-input-site-operation-schedule v-bind="attrs" v-on="on" />
       </template>
-    </air-item-manager>
+    </air-array-manager>
 
     <!-- employee placement dialog -->
     <g-placement-employee-placement-edit-dialog
