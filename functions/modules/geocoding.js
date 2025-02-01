@@ -5,6 +5,12 @@ import { logger } from 'firebase-functions/v2'
 // Firebase Functions v2 の defineString を使用
 const GEOCODING_API_KEY = defineString('GEOCODING_API_KEY')
 
+// CORS 設定
+const allowedOrigins = [
+  'https://air-guard-dev-eea8e.web.app', // 本番環境
+  'http://localhost:3000', // ローカル環境（ポートは必要に応じて変更）
+]
+
 /**
  * Geocode 関数
  *
@@ -31,7 +37,7 @@ const GEOCODING_API_KEY = defineString('GEOCODING_API_KEY')
  * }
  */
 export const geocode = onRequest(
-  { region: 'asia-northeast1' },
+  { region: 'asia-northeast1', cors: allowedOrigins },
   async (req, res) => {
     const { address } = req.query
     if (!address) {
