@@ -3,14 +3,14 @@
  * 従業員警備員登録情報入力コンポーネント
  * - Employee クラスの securityRegistration プロパティを編集するためのコンポーネントです。
  * @author shisyamo4131
- * @refact 2025-01-30
+ * @refact 2025-02-01
  */
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
-import { SecurityRegistration } from '~/models/propsDefinition/Employee'
+import { SecurityRegistration } from '~/models/Employee'
 export default {
   /***************************************************************************
    * COMPONENTS

@@ -2,7 +2,7 @@
  * カスタムクラス定義: 手当 - Allowance -
  *
  * @author shisyamo4131
- * @refact 2025-01-30
+ * @refact 2025-02-01
  *****************************************************************************/
 import { FireModel } from 'air-firebase'
 import { PAYMENT_TYPE } from './constants/payment-types'
@@ -93,5 +93,15 @@ export class AllowanceMinimal extends Allowance {
 
   delete() {
     return Promise.reject(new Error('このクラスの delete は使用できません。'))
+  }
+
+  deleteAll() {
+    return Promise.reject(
+      new Error('このクラスの deleteAll は使用できません。')
+    )
+  }
+
+  restore() {
+    return Promise.reject(new Error('このクラスの restore は使用できません。'))
   }
 }

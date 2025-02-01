@@ -2,7 +2,7 @@
 /**
  * Employee用Inputコンポーネントです。
  * @author shisyamo4131
- * @refact 2025-01-20
+ * @refact 2025-02-01
  */
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
@@ -11,7 +11,7 @@ import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GTextFieldZipcode from '~/components/atoms/inputs/GTextFieldZipcode.vue'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
-import { vueProps } from '~/models/propsDefinition/Employee'
+import { vueProps } from '~/models/Employee'
 export default {
   /***************************************************************************
    * COMPONENTS

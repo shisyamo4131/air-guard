@@ -1,17 +1,134 @@
+/*****************************************************************************
+ * カスタムクラス定義: 取引先 - Customer -
+ *
+ * @author shisyamo4131
+ * @refact 2025-02-01
+ *****************************************************************************/
 import { FireModel } from 'air-firebase'
-import { classProps } from './propsDefinition/Customer'
+import { generateProps } from './propsDefinition/propsUtil'
+import { CUSTOMER_STATUS } from './constants/customer-status'
 
 /**
- * 取引先ドキュメントデータモデル【論理削除】
- * - 取引先情報を管理するデータモデルです。
- * - `code`は Autonumbers による自動採番が行われます。
- * @author shisyamo4131
- * @refact 2025-01-30
+ * PROPERTIES
  */
+const propsDefinition = {
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
+
+  // 取引先code
+  code: { type: String, default: '', required: false },
+
+  // 取引先名1
+  name1: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 取引先名2
+  name2: { type: String, default: '', required: false },
+
+  // 取引先名略称
+  abbr: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 取引先名略称カナ
+  abbrKana: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 郵便番号
+  zipcode: {
+    type: String,
+    default: '',
+    required: false,
+  },
+
+  // 住所
+  address1: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 建物名・階数
+  address2: {
+    type: String,
+    default: '',
+    required: false,
+  },
+
+  // 電話番号
+  tel: { type: String, default: '', required: false },
+
+  // FAX番号
+  fax: { type: String, default: '', required: false },
+
+  // 状態
+  status: {
+    type: String,
+    default: 'active',
+    validator: (v) => Object.keys(CUSTOMER_STATUS).includes(v),
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 締日
+  deadline: {
+    type: String,
+    default: '99',
+    validator: (v) => ['05', '10', '15', '20', '25', '99'].includes(v),
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 入金サイト（月）
+  depositMonth: {
+    type: Number,
+    default: 1,
+    validator: (v) => v > 0,
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 入金サイト（日）
+  depositDate: {
+    type: String,
+    default: '99',
+    validator: (v) => ['05', '10', '15', '20', '25', '99'].includes(v),
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 備考
+  remarks: {
+    type: String,
+    default: '',
+    required: false,
+  },
+
+  // 同期状態
+  sync: {
+    type: Boolean,
+    default: false,
+    required: false,
+  },
+
+  // 自社情報フラグ
+  isInternal: {
+    type: Boolean,
+    default: false,
+    required: false,
+  },
+}
+
+const { vueProps, classProps } = generateProps(propsDefinition)
+export { vueProps }
+
+/*****************************************************************************
+ * カスタムクラス - default -
+ *****************************************************************************/
 export default class Customer extends FireModel {
-  /****************************************************************************
-   * STATIC
-   ****************************************************************************/
+  // FireModel 設定
   static collectionPath = 'Customers'
   static useAutonumber = true
   static logicalDelete = true
@@ -20,18 +137,18 @@ export default class Customer extends FireModel {
   static hasMany = [
     {
       collection: 'Sites',
-      field: 'customer.docId',
+      field: 'customerId',
       condition: '==',
       type: 'collection',
     },
   ]
 
-  /****************************************************************************
+  /**
    * 指定された取引先codeに該当する取引先ドキュメントデータを配列で返します。
    * @param {string} code - 取引先コード
    * @returns {Promise<Array>} - 取引先ドキュメントデータの配列
    * @throws {Error} - エラーが発生した場合にスローされます
-   ****************************************************************************/
+   */
   async fetchByCode(code) {
     if (!code) throw new Error('取引先コードは必須です。')
     try {
@@ -46,7 +163,7 @@ export default class Customer extends FireModel {
     }
   }
 
-  /****************************************************************************
+  /**
    * 取引先codeの配列を受け取り、該当する取引先ドキュメントデータを配列で返します。
    * 取引先codeの配列は、重複があれば一意に整理されます。
    *
@@ -57,7 +174,7 @@ export default class Customer extends FireModel {
    * @param {Array<string>} codes - 取引先コードの配列
    * @returns {Promise<Array>} - 取引先ドキュメントデータの配列
    * @throws {Error} - 処理中にエラーが発生した場合にスローされます
-   ****************************************************************************/
+   */
   async fetchByCodes(codes) {
     if (!Array.isArray(codes) || codes.length === 0) return []
     try {
@@ -82,19 +199,13 @@ export default class Customer extends FireModel {
   }
 }
 
-/**
- * Customer クラスから createAt, updateAt, uid, remarks, tokenMap を削除したクラスです。
- * - 非正規化した customer プロパティを持つドキュメントに保存するデータを提供するためのクラス
- * - 不要なプロパティを削除することでデータ量を抑制するために使用します。
- * - 更新系のメソッドは利用できません。
- */
+/*****************************************************************************
+ * カスタムクラス - Minimal -
+ *****************************************************************************/
 export class CustomerMinimal extends Customer {
-  /****************************************************************************
-   * INITIALIZE
-   ****************************************************************************/
+  // initialize をオーバーライド
   initialize(item = {}) {
     super.initialize(item)
-
     delete this.createAt
     delete this.updateAt
     delete this.uid
@@ -102,9 +213,7 @@ export class CustomerMinimal extends Customer {
     delete this.tokenMap
   }
 
-  /****************************************************************************
-   * 更新系メソッドは使用不可
-   ****************************************************************************/
+  // 更新系メソッドは使用不可
   create() {
     return Promise.reject(new Error('このクラスの create は使用できません。'))
   }
@@ -115,5 +224,15 @@ export class CustomerMinimal extends Customer {
 
   delete() {
     return Promise.reject(new Error('このクラスの delete は使用できません。'))
+  }
+
+  deleteAll() {
+    return Promise.reject(
+      new Error('このクラスの deleteAll は使用できません。')
+    )
+  }
+
+  restore() {
+    return Promise.reject(new Error('このクラスの restore は使用できません。'))
   }
 }

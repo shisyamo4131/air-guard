@@ -2,7 +2,7 @@
 /**
  * 取引先情報入力コンポーネントです。
  * @author shisyamo4131
- * @refact 2025-01-20
+ * @refact 2025-02-01
  */
 import GTextField from '../../atoms/inputs/GTextField.vue'
 import GSelect from '../../atoms/inputs/GSelect.vue'
@@ -11,7 +11,7 @@ import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GTextFieldZipcode from '~/components/atoms/inputs/GTextFieldZipcode.vue'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
-import { vueProps } from '~/models/propsDefinition/Customer'
+import { vueProps } from '~/models/Customer'
 
 export default {
   /***************************************************************************

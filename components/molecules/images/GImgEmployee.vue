@@ -3,12 +3,11 @@
  * 従業員のイメージ写真を表示するコンポーネントです。
  * - 新しいイメージに差し替えるためのUIを提供します。
  * @author shisyamo4131
- * @refact 2025-01-17
+ * @refact 2025-02-01
  */
 import { getFileDownloadURL } from 'air-firebase'
 import GDialogFileUploader from '~/components/molecules/dialogs/GDialogFileUploader.vue'
-import Employee from '~/models/Employee'
-import { vueProps } from '~/models/propsDefinition/Employee'
+import Employee, { vueProps } from '~/models/Employee'
 export default {
   /***************************************************************************
    * COMPONENTS
