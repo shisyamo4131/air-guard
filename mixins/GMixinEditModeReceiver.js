@@ -1,4 +1,3 @@
-import { EDIT_MODES } from '~/utils/EDIT_MODES'
 /**
  * コンポーネントが editMode を受け付けるようにするミックスインです。
  * - 編集モードを示す props.editMode が実装されます。必須で受け付けます。
@@ -6,6 +5,7 @@ import { EDIT_MODES } from '~/utils/EDIT_MODES'
  *   親コンポーネントが editMode に .sync 修飾子を使用することが可能になります。
  *
  * @author shisyamo4131
+ * @refact 2025-02-01
  */
 export default {
   /***************************************************************************
@@ -59,13 +59,13 @@ export default {
     },
 
     CREATE() {
-      return EDIT_MODES.CREATE
+      return 'CREATE'
     },
     UPDATE() {
-      return EDIT_MODES.UPDATE
+      return 'UPDATE'
     },
     DELETE() {
-      return EDIT_MODES.DELETE
+      return 'DELETE'
     },
   },
 
