@@ -455,102 +455,21 @@ export default class FireModel {
     // This can be customized if needed to handle specific logic.
   }
 
-  /****************************************************************************
-   * データモデルを初期化するためのメソッドです。
-   * - コンストラクタから呼び出されるほか、独自に呼び出すことで
-   *   データモデルを初期化することができます。
-   * - プロパティ `createAt` と `updateAt` は、Dateオブジェクトに変換されます。
-   * - 他のプロパティはオブジェクトのディープコピーとして初期化されます。
+  /**
+   * クラスインスタンスの各プロパティを初期化するためのメソッドです。
+   * - コンストラクタから呼び出されるほか、独自に呼び出すことで初期化することができます。
+   * - `createAt` と `updateAt` は、Dateオブジェクトに変換されます。
+   * - customClassMap で定義されているプロパティは各々、指定されたカスタムクラスインスタンスに変換されます。
+   * - その他のオブジェクトプロパティはディープコピーされて初期化されます。
+   *
+   * - この関数によってインスタンスが初期化された場合のみ、各種プロパティ編集前の状態を保有する
+   *   _beforeData プロパティが提供されます。
+   *
+   * @refact 2025-02-01 - _beforeData を提供するように機能追加
    *
    * @param {Object} item - 初期化するデータモデルのプロパティを含むオブジェクト
    * @returns {void}
-   ****************************************************************************/
-  // initialize(item = {}) {
-  //   /**
-  //    * classPropsに定義されているプロパティを初期化
-  //    */
-  //   Object.keys(this.#classProps).forEach((key) => {
-  //     const propDefault = this.#classProps[key].default
-  //     this[key] =
-  //       typeof propDefault === 'function' ? propDefault() : propDefault
-  //   })
-
-  //   // itemがnullやundefinedであれば終了
-  //   if (!item) return
-
-  //   this.docId = item?.docId || ''
-  //   this.uid = item?.uid || ''
-
-  //   /**
-  //    * createAt、updateAtは型をチェックし、Dateオブジェクトに変換して初期化
-  //    * FirestoreにDateオブジェクトを保存すると、Firestore timestampとして登録されるため、
-  //    * これをtoDate()を使用してDateオブジェクトに変換します。
-  //    */
-  //   if (item?.createAt instanceof Date) {
-  //     this.createAt = item.createAt
-  //   } else if (item?.createAt?.toDate) {
-  //     this.createAt = item.createAt.toDate()
-  //   } else {
-  //     this.createAt = null
-  //   }
-  //   if (item?.updateAt instanceof Date) {
-  //     this.updateAt = item.updateAt
-  //   } else if (item?.updateAt?.toDate) {
-  //     this.updateAt = item.updateAt.toDate()
-  //   } else {
-  //     this.updateAt = null
-  //   }
-
-  //   /**
-  //    * `item`が保有するすべてのプロパティについて、自身の同一名プロパティに値を複製します。
-  //    * - オブジェクトの参照渡しを避けるためJSON.parse(JSON.stringify(item[key]))を使っていましたが、
-  //    *   プロパティの値がカスタムクラスであった場合に、プレーンなオブジェクトに変換されていまっていました。
-  //    * - サブクラスで`customClassMap`を用意し、プロパティにカスタムクラスが定義されている場合、
-  //    *   当該クラスのインスタンスをセットするようにしました。
-  //    */
-
-  //   // Object.keys(item).forEach((key) => {
-  //   //   if (key in this && key !== "createAt" && key !== "updateAt") {
-  //   //     this[key] = JSON.parse(JSON.stringify(item[key]));
-  //   //   }
-  //   // });
-
-  //   // サブクラスで定義されたcustomClassMapを取得
-  //   const customClassMap = this.constructor.customClassMap || {}
-
-  //   Object.keys(item).forEach((key) => {
-  //     if (key in this && key !== 'createAt' && key !== 'updateAt') {
-  //       // 配列の場合、配列の各要素にカスタムクラスを適用
-  //       if (Array.isArray(item[key]) && customClassMap[key]) {
-  //         this[key] = item[key].map((element) => {
-  //           return new customClassMap[key](element)
-  //         })
-  //       }
-  //       // カスタムクラスのマッピングがある場合、そのクラスで再初期化
-  //       else if (customClassMap[key] && item[key] instanceof Object) {
-  //         this[key] = new customClassMap[key](item[key])
-  //       }
-  //       // オブジェクト以外のプリミティブ型（文字列、数値、ブールなど）の場合
-  //       else if (typeof item[key] !== 'object') {
-  //         this[key] = item[key]
-  //       }
-  //       // // 通常のオブジェクトの場合はディープコピー
-  //       // else {
-  //       //   this[key] = JSON.parse(JSON.stringify(item[key]))
-  //       // }
-  //       /**
-  //        * 2024-10-12 修正
-  //        * - 値が toDate を持っているようであれば Date オブジェクトに変換
-  //        * - それ以外の場合はディープコピー
-  //        */
-  //       else if (item[key]?.toDate) {
-  //         this[key] = item[key].toDate()
-  //       } else {
-  //         this[key] = JSON.parse(JSON.stringify(item[key]))
-  //       }
-  //     }
-  //   })
-  // }
+   */
   initialize(item = {}) {
     /**
      * classPropsに定義されているプロパティを初期化
@@ -635,6 +554,10 @@ export default class FireModel {
         }
       }
     })
+
+    // 2025-02-01 追加
+    // クラスインスタンスの各種プロパティについて編集前の状態を _beforeData プロパティとして保存
+    this._beforeData = this.toObject()
   }
 
   /****************************************************************************
@@ -661,7 +584,7 @@ export default class FireModel {
     }
   }
 
-  /****************************************************************************
+  /**
    * クラスインスタンスを純粋なオブジェクトに変換します。
    * - 継承先のクラスで定義されたプロパティも含めて出力します。
    * - `enumerable: true`のプロパティのみを出力します。
@@ -670,8 +593,12 @@ export default class FireModel {
    * - 配列の各要素がカスタムクラスの場合も対応します。
    * - カスタムクラスを持たないオブジェクトはディープコピーします。
    *
+   * - initialize で追加された _beforeData プロパティは削除されます。
+   *
+   * @refact 2025-02-01 - initialize で追加された _beforeData プロパティを削除するように修正
+   *
    * @returns {Object} - Firestoreに保存可能なオブジェクト形式
-   ****************************************************************************/
+   */
   toObject() {
     const obj = {}
 
@@ -718,7 +645,11 @@ export default class FireModel {
       currentObj = Object.getPrototypeOf(currentObj)
     }
 
-    return obj
+    // 2025-02-01 修正
+    // initialize で追加された _beforeData プロパティを削除するように修正
+    // return obj;
+    const { _beforeData, ...others } = obj
+    return others
   }
 
   /****************************************************************************
