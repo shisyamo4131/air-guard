@@ -1,16 +1,164 @@
+/*****************************************************************************
+ * カスタムクラス定義: 現場 - Site -
+ *
+ * @author shisyamo4131
+ * @refact 2025-02-01
+ *****************************************************************************/
 import { database, FireModel } from 'air-firebase'
 import { get, ref } from 'firebase/database'
 import { CustomerMinimal } from './Customer'
-import { classProps } from './propsDefinition/Site'
+import { SECURITY_TYPE } from './constants/security-types'
+import { SITE_STATUS } from './constants/site-status'
+import { generateProps } from './propsDefinition/propsUtil'
+import { fetchCoordinates } from '~/utils/geocode'
 
 /**
- * 現場ドキュメントデータモデル【論理削除】
- * @author shisyamo4131
+ * PROPERTIES
  */
+const propsDefinition = {
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
+
+  // 取引先ID
+  customerId: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 取引先ドキュメント
+  customer: {
+    type: Object,
+    default: null,
+    required: false,
+    validator: (v) => v instanceof CustomerMinimal,
+    requiredByClass: true,
+  },
+
+  // 現場code
+  code: { type: String, default: '', required: false, requiredByClass: false },
+
+  // 現場名
+  name: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 現場名略称
+  abbr: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 現場名略称カナ
+  abbrKana: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 略称コード（取引先から指定された現場のコードなど）
+  abbrNumber: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 住所
+  address: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 開始日
+  startAt: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 終了日
+  endAt: { type: String, default: '', required: false, requiredByClass: false },
+
+  // 警備種別
+  securityType: {
+    type: String,
+    default: '',
+    required: false,
+    validator: (v) => !v || Object.keys(SECURITY_TYPE).includes(v),
+    requiredByClass: true,
+  },
+
+  // 状態
+  status: {
+    type: String,
+    default: 'active',
+    required: false,
+    validator: (v) => Object.keys(SITE_STATUS).includes(v),
+    requiredByClass: true,
+  },
+
+  // 備考
+  remarks: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  // お気に入りフラグ
+  favorite: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 同期状態
+  sync: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
+
+  // スポット現場フラグ
+  isSpot: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 現場取極め存在フラグ
+  hasContract: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
+
+  location: {
+    type: Object,
+    default: () => {
+      return {
+        formattedAddress: null,
+        lat: null,
+        lng: null,
+      }
+    },
+    required: false,
+  },
+}
+
+const { vueProps, classProps } = generateProps(propsDefinition)
+export { vueProps }
+
+/*****************************************************************************
+ * カスタムクラス - default -
+ *****************************************************************************/
 export default class Site extends FireModel {
-  /****************************************************************************
-   * STATIC
-   ****************************************************************************/
+  // FireModel 設定
   static collectionPath = 'Sites'
   static useAutonumber = true
   static logicalDelete = true
@@ -25,82 +173,90 @@ export default class Site extends FireModel {
     },
   ]
 
-  /****************************************************************************
-   * CUSTOM CLASS MAPPING
-   ****************************************************************************/
+  // カスタムクラスマップ
   static customClassMap = {
     customer: CustomerMinimal,
   }
 
-  /****************************************************************************
-   * beforeCreateをオーバーライドします。
-   * - `customerId`の入力チェックを行います。
-   * - `customerId`に該当する`customer`オブジェクトを取得・セットします。
-   * - validatePropertiesを行う為、super.beforeCreateを呼び出します。
-   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
-   ****************************************************************************/
-  async beforeCreate() {
+  /**
+   * customerId をもとに customer プロパティを更新します。
+   * @returns {Promise<void>}
+   * @throws {Error} - customerId が設定されていない場合にエラーをスローします。
+   * @throws {Error} - customerId に該当する取引先ドキュメントが存在しない場合にエラーをスローします。
+   */
+  async #reloadCustomer() {
+    // customerId が設定されていなければエラーをスロー
     if (!this.customerId) {
-      throw new Error('取引先の指定が必要です。')
+      throw new Error('customerId が設定されていません。')
     }
+
+    // 取引先ドキュメントをフェッチして customer プロパティにセット
+    const isFetched = await this.customer.fetch(this.customerId)
+
+    // フェッチの結果が false であればエラーをスロー
+    if (!isFetched) throw new Error('取引先情報が取得できませんでした。')
+  }
+
+  /**
+   * 作成直前の処理です。
+   * - customerId をもとに customer プロパティを更新します。
+   * @returns {Promise<void>}
+   * @throws {Error} - customer プロパティの更新に失敗した場合、エラーをスローします。
+   */
+  async beforeCreate() {
     try {
-      // const customer = await new Customer().fetchDoc(this.customerId)
-      // if (!customer) {
-      //   throw new Error('取引先情報が取得できませんでした。')
-      // }
-      // this.customer = customer
-      await this.customer.fetch(this.customerId)
-      if (!this.customer.docId) {
-        throw new Error('取引先情報が取得できませんでした。')
-      }
+      // customer プロパティを設定
+      await this.#reloadCustomer()
+
+      // 座標情報を取得して設定
+      this.location = await fetchCoordinates(this.address)
+
       await super.beforeCreate()
     } catch (err) {
       // eslint-disable-next-line
-      console.error(
-        `[Site.js beforeCreate] Error fetching customer: ${err.message}`
-      )
+      console.error(`[beforeCreate] ${err.message}`)
       throw err
     }
   }
 
-  /****************************************************************************
-   * beforeUpdateをオーバーライドします。
-   * - `customerId`と`customer.docId`が異なっていたら、Customerドキュメントを取得して`customer`にセットします。
-   * @returns {Promise<void>} - 処理が完了すると解決されるPromise
-   * @throws {Error} - 取引先が指定されていない、または取得できない場合にエラーをスローします。
-   ****************************************************************************/
+  /**
+   * 更新直前の処理です。
+   * - customerId が変更されていた場合、customer プロパティを更新します。
+   * - 住所が変更されていた場合、または座標情報が設定されていない場合は座標情報を更新します。
+   * @returns {Promise<void>}
+   * @throws {Error} - customer プロパティの更新に失敗した場合、エラーをスローします。
+   * @throws {Error} - 座標情報の更新処理に失敗した場合、エラーをスローします。
+   */
   async beforeUpdate() {
-    if (!this.customerId) {
-      throw new Error('取引先の指定が必要です。')
-    }
-    if (this.customer.docId !== this.customerId) {
-      try {
-        // const customer = await new Customer().fetchDoc(this.customerId)
-        // if (!customer) {
-        //   throw new Error('取引先情報が取得できませんでした。')
-        // }
-        // this.customer = customer
-        await this.customer.fetch(this.customerId)
-        if (!this.customer.docId) {
-          throw new Error('取引先情報が取得できませんでした。')
-        }
-        await super.beforeUpdate()
-      } catch (err) {
-        // eslint-disable-next-line
-        console.error(
-          `[Site.js beforeUpdate] Error fetching customer: ${err.message}`
-        )
-        throw err
+    try {
+      // 取引先が変更されていれば、customer プロパティを更新
+      if (this.customerId !== this._beforeData.customerId) {
+        await this.#reloadCustomer()
       }
+
+      // 住所が変更されている、または座標情報が取得できていなければ座標情報を更新
+      if (
+        this.address !== this._beforeData.address ||
+        !this.location?.lat ||
+        !this.location?.lng
+      ) {
+        this.location = await fetchCoordinates(this.address)
+      }
+
+      super.beforeUpdate()
+    } catch (err) {
+      // eslint-disable-next-line
+      console.error(`[beforeUpdate] ${err.message}`)
+      throw err
     }
   }
 
-  /****************************************************************************
-   * beforeDeleteをオーバーライドします。
-   * - 配置管理で使用されている場合はエラーを返します。
+  /**
+   * 削除直前の処理です。
+   * - 配置管理で使用されている現場であった場合は削除できないようにします。
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
    * @throws {Error} - 配置管理で使用されている場合にエラーをスローします。
-   ****************************************************************************/
+   */
   async beforeDelete() {
     try {
       const dbRef = ref(database, `/Placements/siteOrder`)
@@ -118,12 +274,12 @@ export default class Site extends FireModel {
     }
   }
 
-  /****************************************************************************
+  /**
    * 指定された現場codeに該当する現場ドキュメントデータを配列で返します。
    * @param {string} code - 現場コード
    * @returns {Promise<Array>} - 現場ドキュメントデータの配列
    * @throws {Error} - エラーが発生した場合にスローされます
-   ****************************************************************************/
+   */
   async fetchByCode(code) {
     if (!code) throw new Error('Code is required.')
     try {
@@ -139,7 +295,7 @@ export default class Site extends FireModel {
     }
   }
 
-  /****************************************************************************
+  /**
    * 現場codeの配列を受け取り、該当する現場ドキュメントデータを配列で返します。
    * 現場codeの配列は、重複があれば一意に整理されます。
    *
@@ -150,7 +306,7 @@ export default class Site extends FireModel {
    * @param {Array<string>} codes - 現場コードの配列
    * @returns {Promise<Array>} - 現場ドキュメントデータの配列
    * @throws {Error} - 処理中にエラーが発生した場合にスローされます
-   ****************************************************************************/
+   */
   async fetchByCodes(codes) {
     if (!Array.isArray(codes) || codes.length === 0) return []
     try {
@@ -174,7 +330,7 @@ export default class Site extends FireModel {
     }
   }
 
-  /****************************************************************************
+  /**
    * 指定された複数の`siteId`に該当するドキュメントを取得します。
    * - 30件ずつチャンクに分けてFirestoreにクエリを実行します。
    * - 各クエリ結果をまとめて返します。
@@ -182,7 +338,7 @@ export default class Site extends FireModel {
    * @param {Array<string>} ids - 取得対象のsiteIdsの配列
    * @returns {Promise<Array>} - 一致するドキュメントの配列を返すPromise
    * @throws {Error} ドキュメント取得中にエラーが発生した場合にエラーをスローします
-   ****************************************************************************/
+   */
   async fetchByIds(ids) {
     // 引数が配列でない、または空の場合は空配列を返す
     if (!Array.isArray(ids) || ids.length === 0) return []
@@ -220,19 +376,13 @@ export default class Site extends FireModel {
   }
 }
 
-/**
- * Site クラスから createAt, updateAt, uid, remarks, tokenMap を削除したクラスです。
- * - 非正規化した site プロパティを持つドキュメントに保存するデータを提供するためのクラス
- * - 不要なプロパティを削除することでデータ量を抑制するために使用します。
- * - 更新系のメソッドは利用できません。
- */
+/*****************************************************************************
+ * カスタムクラス - Minimal -
+ *****************************************************************************/
 export class SiteMinimal extends Site {
-  /****************************************************************************
-   * INITIALIZE
-   ****************************************************************************/
+  // initialize をオーバーライド
   initialize(item = {}) {
     super.initialize(item)
-
     delete this.createAt
     delete this.updateAt
     delete this.uid
@@ -240,9 +390,7 @@ export class SiteMinimal extends Site {
     delete this.tokenMap
   }
 
-  /****************************************************************************
-   * 更新系メソッドは使用不可
-   ****************************************************************************/
+  // 更新系メソッドは使用不可
   create() {
     return Promise.reject(new Error('このクラスの create は使用できません。'))
   }

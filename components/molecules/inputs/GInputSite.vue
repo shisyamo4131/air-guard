@@ -11,7 +11,7 @@ import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GAutocompleteCustomer from '~/components/atoms/inputs/GAutocompleteCustomer.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
-import { vueProps } from '~/models/propsDefinition/Site'
+import { vueProps } from '~/models/Site'
 
 export default {
   /***************************************************************************
