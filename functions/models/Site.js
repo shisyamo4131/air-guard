@@ -45,7 +45,7 @@ export default class Site extends FireModel {
   }
 
   /****************************************************************************
-   * Realtime Databaseの`AirGuard/Customers`の内容で、FirestoreのCustomersドキュメントを更新します。
+   * Realtime Databaseの`AirGuard/Sites`の内容で、FirestoreのSitesドキュメントを更新します。
    * @param {string} code - Realtime Database内のSitesデータを識別するコード
    * @returns {Promise<void>} - 同期が正常に完了した場合は、解決されたPromiseを返します
    ****************************************************************************/
