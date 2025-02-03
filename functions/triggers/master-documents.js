@@ -30,6 +30,7 @@ import { SiteIndex, SiteMinimal } from '../models/Site.js'
 import { EmployeeMinimal } from '../models/Employee.js'
 import { WorkRegulationMinimal } from '../models/WorkRegulation.js'
 import { SiteContractMinimal } from '../models/SiteContract.js'
+import { fetchCoordinates } from '../modules/utils/geocoding.js'
 
 /*****************************************************************************
  * コレクション毎の個別処理定義
@@ -68,6 +69,27 @@ const COLLECTION_HANDLERS = {
       })
       if (isChangedAsIndex.length > 0) {
         await SiteIndex.create(event.params.docId)
+      }
+
+      /**
+       * Access 版 AirGuard から更新された現場の座標情報更新処理
+       * Access 版 AirGuard との同期処理で現場情報が更新された場合、現場の座標情報が更新されません。
+       * 便宜的に更新処理を加えるために追加していますので、この処理は Access 版 AirGuard からのインポートが
+       * 不必要になった時点で削除してください。
+       */
+      const { address, location } = event.data.after.data()
+      const { address: beforeAddress } = event.data.before.data()
+      // 住所が変更されている、または座標情報がセットされていない場合は座標情報を取得
+      if (beforeAddress !== address || !location?.lat || !location?.lng) {
+        logger.warn(
+          `***** CAUTION ***** 座標情報の暫定更新処理を行います。この処理は Access 版 AirGuard からのインポートフローが無くなった時点で削除してください。`
+        )
+        const coordinates = await fetchCoordinates(address)
+        if (coordinates) {
+          // 座標情報が取得が取得できたら再度現場ドキュメントの更新処理を行う
+          // もう一度トリガーが起動するが、住所が変更されている条件を満たさないため、ループはしない。
+          await event.data.after.ref.update({ location: coordinates })
+        }
       }
     },
     DELETED: async (event) => {
