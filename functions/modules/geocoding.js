@@ -1,9 +1,5 @@
 import { onRequest } from 'firebase-functions/https'
-import { defineString } from 'firebase-functions/params'
-import { logger } from 'firebase-functions/v2'
-
-// Firebase Functions v2 の defineString を使用
-const GEOCODING_API_KEY = defineString('GEOCODING_API_KEY')
+import { fetchCoordinates } from './utils/geocoding.js'
 
 // CORS 設定
 const allowedOrigins = [
@@ -38,41 +34,18 @@ const allowedOrigins = [
  */
 export const geocode = onRequest(
   { region: 'asia-northeast1', cors: allowedOrigins },
+  // { region: 'asia-northeast1', cors: true },
   async (req, res) => {
     const { address } = req.query
     if (!address) {
       return res.status(400).json({ error: 'Address is required' })
     }
 
-    // APIキーを defineString から取得（エミュレーター & デプロイ共通）
-    const apiKey = GEOCODING_API_KEY.value()
-
-    if (!apiKey) {
-      logger.error('APIキーが設定されていません')
-      return res.status(500).json({ error: 'API key is missing' })
-    }
-
-    const url = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-      address
-    )}&key=${apiKey}`
-
-    try {
-      const response = await fetch(url)
-      const data = await response.json()
-
-      if (data.status === 'OK') {
-        res.json({
-          lat: data.results[0].geometry.location.lat,
-          lng: data.results[0].geometry.location.lng,
-          formattedAddress: data.results[0].formatted_address,
-        })
-      } else {
-        logger.error('Geocode APIエラー:', data)
-        res.status(400).json({ error: data.status })
-      }
-    } catch (error) {
-      logger.error('Geocode 処理中にエラー:', error)
-      res.status(500).json({ error: 'Internal Server Error' })
+    const coordinates = await fetchCoordinates(address)
+    if (coordinates) {
+      res.json(coordinates)
+    } else {
+      res.status(400).json({ error: 'Geocode failed' })
     }
   }
 )
