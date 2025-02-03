@@ -19,13 +19,14 @@ import { logger } from 'firebase-functions/v2'
 
 import {
   extractDiffsFromDocUpdatedEvent, // 指定されたクラスで更新前後のデータを比較して更新された情報を返す関数
-  isDocumentChanged, // 更新情報以外にドキュメント内容が変更変更されたかどうかを返す関数
+  isDocumentChanged,
+  removeDependentDocuments, // 更新情報以外にドキュメント内容が変更変更されたかどうかを返す関数
   syncDependentDocumentsV2, // 従属ドキュメントの非正規化されたデータを同期するための関数
 } from '../modules/utils.js'
 
 // 変更有無を確認するためデータの比較に使用するクラス
 import { CustomerIndex, CustomerMinimal } from '../models/Customer.js'
-import { SiteMinimal } from '../models/Site.js'
+import { SiteIndex, SiteMinimal } from '../models/Site.js'
 import { EmployeeMinimal } from '../models/Employee.js'
 import { WorkRegulationMinimal } from '../models/WorkRegulation.js'
 import { SiteContractMinimal } from '../models/SiteContract.js'
@@ -52,6 +53,33 @@ const COLLECTION_HANDLERS = {
     DELETED: async (event) => {
       // Realtime Databaseインデックスを削除
       await CustomerIndex.remove(event.params.docId)
+    },
+  },
+  Sites: {
+    CREATED: async (event) => {
+      // Realtime Database にインデックスを作成
+      await SiteIndex.create(event.params.docId)
+    },
+    UPDATED: async (event) => {
+      // Realtime Database のインデックスを更新
+      const isChangedAsIndex = extractDiffsFromDocUpdatedEvent({
+        event,
+        ComparisonClass: SiteIndex,
+      })
+      if (isChangedAsIndex.length > 0) {
+        await SiteIndex.create(event.params.docId)
+      }
+    },
+    DELETED: async (event) => {
+      // Realtime Databaseインデックスを削除
+      await SiteIndex.remove(event.params.docId)
+
+      // 従属する現場取極め, 現場稼働予定を削除
+      await removeDependentDocuments(
+        ['SiteContracts', 'SiteOperationSchedules'],
+        'siteId',
+        event.params.docId
+      )
     },
   },
 }

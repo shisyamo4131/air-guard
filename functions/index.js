@@ -5,7 +5,7 @@ import * as auth from './triggers/auth.js'
 import * as role from './triggers/role.js'
 
 import * as airGuard from './triggers/air-guard.js'
-import * as sites from './triggers/sites.js'
+// import * as sites from './triggers/sites.js'
 import * as siteContracts from './triggers/site-contracts.js'
 import * as siteOperationSchedules from './triggers/site-operation-schedules.js'
 import * as employees from './triggers/employees.js'
@@ -34,7 +34,7 @@ export {
   auth,
   role,
   airGuard,
-  sites,
+  // sites,
   siteContracts,
   siteOperationSchedules,
   employees,
