@@ -479,6 +479,7 @@ export default {
     searchSlotProps() {
       return {
         attrs: {
+          clearable: true,
           hideDetails: true,
           placeholder: 'SEARCH',
           prependInnerIcon: 'mdi-magnify',
