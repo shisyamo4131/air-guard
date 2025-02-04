@@ -23,6 +23,12 @@ export default {
     color: { type: String, default: 'primary', required: false },
 
     /**
+     * 検索文字列として入力された値を lazy-search イベントで emit させるまでの
+     * 遅延時間（ミリ秒）です。
+     */
+    delay: { type: [String, Number], default: 500, required: false },
+
+    /**
      * ダイアログに引き渡すプロパティです。
      */
     dialogProps: { type: Object, default: () => ({}), required: false },
@@ -116,6 +122,12 @@ export default {
      * (editItem, currentStep, updateProperties) => Promise(void)
      */
     stepValidator: { type: Function, default: undefined, required: false },
+
+    /**
+     * コンポーネントが管理する検索文字列（search）の値を table スロットプロパティで
+     * 提供しないようにします。
+     */
+    unbindSearch: { type: Boolean, default: false, required: false },
   },
 
   /***************************************************************************
@@ -187,6 +199,11 @@ export default {
        * - ステッパーのインデックスをキーとしたオブジェクトで管理します。
        */
       stepperFormRefs: {},
+
+      /**
+       * 遅延管理用タイマーIDです。
+       */
+      timerId: null,
     }
   },
 
@@ -194,6 +211,16 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
+    /**
+     * ACTIVATOR コンポーネント用のスロットプロパティを返します。
+     */
+    activatorSlotProps() {
+      return {
+        attrs: { color: this.color },
+        on: { click: () => this.managerRef?.toRegist() },
+      }
+    },
+
     /**
      * キャンセルボタンにバインドするオブジェクトを返します。
      */
@@ -356,49 +383,13 @@ export default {
      */
     defaultSlotProps() {
       return {
-        activator: {
-          attrs: { color: this.color },
-          on: { click: () => this.managerRef?.toRegist() },
-        },
+        activator: this.activatorSlotProps,
         color: this.color,
         height: this.height,
         label: this.label,
-        pagination: {
-          attrs: {
-            color: this.color,
-            length: this.pageCount,
-            value: this.computedPage,
-          },
-          on: {
-            input: ($event) => (this.computedPage = $event),
-          },
-        },
-        search: {
-          attrs: {
-            hideDetails: true,
-            placeholder: 'SEARCH',
-            prependInnerIcon: 'mdi-magnify',
-            value: this.computedSearch,
-          },
-          on: {
-            input: ($event) => (this.computedSearch = $event),
-          },
-        },
-        table: {
-          attrs: {
-            color: this.color,
-            items: this.managerRef?.items || [],
-            itemKey: this.managerRef?.itemKey || undefined,
-            page: this.computedPage,
-            search: this.computedSearch,
-          },
-          on: {
-            [this.eventEdit]: ($event) => this._handleToUpdate($event),
-            [this.eventDelete]: ($event) => this._handleToDelete($event),
-            'page-count': ($event) => (this.pageCount = $event),
-            'update:page': ($event) => (this.computedPage = $event),
-          },
-        },
+        pagination: this.paginationSlotProps,
+        search: this.searchSlotProps,
+        table: this.tableSlotProps,
       }
     },
 
@@ -467,6 +458,62 @@ export default {
     },
 
     /**
+     * PAGINATION コンポーネント用のスロットプロパティを返します。
+     */
+    paginationSlotProps() {
+      return {
+        attrs: {
+          color: this.color,
+          length: this.pageCount,
+          value: this.computedPage,
+        },
+        on: {
+          input: ($event) => (this.computedPage = $event),
+        },
+      }
+    },
+
+    /**
+     * SEARCH コンポーネント用のスロットプロパティを返します。
+     */
+    searchSlotProps() {
+      return {
+        attrs: {
+          hideDetails: true,
+          placeholder: 'SEARCH',
+          prependInnerIcon: 'mdi-magnify',
+          value: this.computedSearch,
+        },
+        on: {
+          input: ($event) => (this.computedSearch = $event),
+        },
+      }
+    },
+
+    /**
+     * TABLE コンポーネント用のスロットプロパティを返します。
+     */
+    tableSlotProps() {
+      const result = {
+        attrs: {
+          color: this.color,
+          items: this.managerRef?.items || [],
+          itemKey: this.managerRef?.itemKey || undefined,
+          page: this.computedPage,
+          search: this.computedSearch,
+        },
+        on: {
+          [this.eventEdit]: ($event) => this._handleToUpdate($event),
+          [this.eventDelete]: ($event) => this._handleToDelete($event),
+          'page-count': ($event) => (this.pageCount = $event),
+          'update:page': ($event) => (this.computedPage = $event),
+        },
+      }
+      if (this.unbindSearch) delete result.attrs.search
+      return result
+    },
+
+    /**
      * props.schema で与えられたデータ構造をもとに `update:${prop}` イベントを生成して返します。
      * - inputs スロットに配置される子コンポーネントに引き渡されるプロパティです。
      * - 各イベントは AirRenderlessArrayManager の updateProperties を実行し、
@@ -509,6 +556,15 @@ export default {
     dialog(v) {
       if (v) return
       this.initialize()
+    },
+
+    /**
+     * 指定された遅延時間を待ってから、入力された値を lazy-search イベントで emit します。
+     */
+    internalSearch(v) {
+      clearTimeout(this.timerId)
+      const delay = v ? Number(this.delay) : 0
+      this.timerId = setTimeout(() => this.$emit('lazy-search', v), delay)
     },
 
     /**
