@@ -2,11 +2,13 @@
 /**
  * 取引先情報詳細画面
  * @author shisyamo4131
- * @refact 2025-01-17
+ * @refact 2025-02-04
  */
-import GManagerCustomer from '~/components/managers/GManagerCustomer.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
+import AirItemManager from '~/components/air/AirItemManager.vue'
+import Customer from '~/models/Customer'
+import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -16,14 +18,16 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTemplateDefault, GManagerCustomer, GBtnEdit },
+  components: { GTemplateDefault, GBtnEdit, AirItemManager, GInputCustomer },
 
   /***************************************************************************
    * ASYNCDATA
    ***************************************************************************/
   asyncData({ route }) {
     const docId = route.params.docId
-    return { docId }
+    const listener = new Customer()
+    listener.subscribe(docId)
+    return { docId, listener }
   },
 
   /***************************************************************************
@@ -62,14 +66,18 @@ export default {
     <v-container>
       <v-row>
         <!-- 取引先概要 -->
-        <v-col cols="4">
-          <g-manager-customer
-            :doc-id="docId"
+        <v-col cols="12" lg="4">
+          <air-item-manager
             color="primary"
+            :dialog-props="{ maxWidth: 600 }"
+            :doc-id="docId"
+            :handle-update="async (item) => await item.udpate()"
+            :handle-delete="async (item) => await item.delete()"
+            :item="listener"
             @DELETE="$router.replace('/customers')"
           >
             <template #default="{ attrs, on }">
-              <v-card>
+              <v-card outlined>
                 <v-card-title>{{ attrs.abbr }}</v-card-title>
                 <v-card-subtitle>{{ attrs.abbrKana }}</v-card-subtitle>
                 <v-list>
@@ -93,12 +101,16 @@ export default {
                 </v-card-actions>
               </v-card>
             </template>
-          </g-manager-customer>
+            <template #inputs="{ attrs, on }">
+              <g-input-customer v-bind="attrs" v-on="on" />
+            </template>
+          </air-item-manager>
         </v-col>
-        <v-col cols="8">
-          <v-alert type="info"
-            >その他の情報を表示できる機能を実装予定です。</v-alert
-          >
+        <v-col cols="12" lg="8">
+          <v-card outlined>
+            <v-card-title>現場情報</v-card-title>
+            <v-skeleton-loader type="table" />
+          </v-card>
         </v-col>
       </v-row>
     </v-container>
