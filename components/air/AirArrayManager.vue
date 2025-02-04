@@ -832,7 +832,7 @@ export default {
         <v-snackbar
           :color="color"
           centered
-          :value="props.loading"
+          :value="computedLoading"
           :timeout="-1"
         >
           <v-progress-circular class="mr-4" indeterminate size="24" />
