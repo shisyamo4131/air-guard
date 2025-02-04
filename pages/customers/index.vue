@@ -2,7 +2,7 @@
 /**
  * 取引先情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-29
+ * @refact 2025-02-04
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
@@ -38,6 +38,9 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      items: [],
+      lazySearch: null,
+      loading: false,
       schema: new Customer(),
     }
   },
@@ -45,41 +48,40 @@ export default {
   /***************************************************************************
    * COMPUTED
    ***************************************************************************/
-  computed: {
-    /**
-     * DataTable のカラム設定です。
-     */
-    headers() {
-      const template = [
-        { text: 'CODE', value: 'code', width: 84 },
-        { text: '取引先名', value: 'abbr' },
-        { text: '住所', value: 'address1', sortable: false },
-        {
-          text: '同期状態',
-          value: 'sync',
-          sortable: false,
-          align: 'center',
-        },
-      ]
+  computed: {},
 
-      return template
-    },
-
-    /**
-     * DataTable に表示するアイテムです。
-     * - Vuex から取得します。
-     */
-    items() {
-      return this.$store.getters['customers/items']
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    lazySearch: {
+      handler(v) {
+        this.items = []
+        if (v) this.fetchDocs(v)
+      },
+      immediate: true,
     },
   },
+
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {},
 
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    async handleCreate(item) {
-      await item.create()
+    async fetchDocs(search) {
+      this.loading = true
+      try {
+        this.items = await this.schema.fetchDocs(search)
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('fetchDocs に失敗しました。')
+      } finally {
+        this.loading = false
+      }
     },
   },
 }
@@ -90,18 +92,19 @@ export default {
     <v-container fluid :style="{ height: `${height}px` }">
       <air-array-manager
         v-bind="$attrs"
-        :dialog-props="{
-          maxWidth: 600,
-        }"
+        :dialog-props="{ maxWidth: 600 }"
         event-edit="click:row"
         :event-edit-handler="
           ($event) => $router.push(`/customers/${$event.docId}`)
         "
-        :handle-create="handleCreate"
+        :handle-create="async (item) => await item.create()"
         height="100%"
         :items="items"
         label="取引先情報"
+        :loading="loading"
         :schema="schema"
+        unbind-search
+        @lazy-search="lazySearch = $event"
         v-on="$listeners"
       >
         <template #default="{ activator, pagination, search, table }">
@@ -114,7 +117,17 @@ export default {
               <v-data-table
                 v-bind="table.attrs"
                 fixed-header
-                :headers="headers"
+                :headers="[
+                  { text: 'CODE', value: 'code', width: 84 },
+                  { text: '取引先名', value: 'abbr' },
+                  { text: '住所', value: 'address1', sortable: false },
+                  {
+                    text: '同期状態',
+                    value: 'sync',
+                    sortable: false,
+                    align: 'center',
+                  },
+                ]"
                 hide-default-footer
                 item-key="docId"
                 v-on="table.on"

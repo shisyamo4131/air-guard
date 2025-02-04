@@ -44,18 +44,6 @@ export default {
         { text: '取引先詳細', to: `${this.parentPath}/${this.docId}` },
       ]
     },
-
-    /**
-     * メイン情報として表示する項目の配列です。
-     */
-    mainProps() {
-      return [
-        { text: '住所1', value: 'address1' },
-        { text: '住所2', value: 'address2' },
-        { text: 'TEL', value: 'tel' },
-        { text: 'FAX', value: 'fax' },
-      ]
-    },
   },
 }
 </script>
@@ -73,22 +61,75 @@ export default {
             :doc-id="docId"
             :handle-update="async (item) => await item.udpate()"
             :handle-delete="async (item) => await item.delete()"
+            height="100%"
             :item="listener"
+            label="取引先情報編集"
             @DELETE="$router.replace('/customers')"
           >
-            <template #default="{ attrs, on }">
-              <v-card outlined>
+            <template #default="{ attrs, height, on }">
+              <v-card class="d-flex flex-column" outlined :height="height">
                 <v-card-title>{{ attrs.abbr }}</v-card-title>
                 <v-card-subtitle>{{ attrs.abbrKana }}</v-card-subtitle>
-                <v-list>
-                  <v-list-item v-for="(prop, index) of mainProps" :key="index">
+                <v-list class="flex-grow-1">
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-map-marker</v-icon>
+                    </v-list-item-icon>
                     <v-list-item-content>
-                      <v-list-item-subtitle>
-                        {{ prop.text }}
-                      </v-list-item-subtitle>
                       <v-list-item-title>
-                        {{ attrs[prop.value] }}
+                        {{ attrs.address1 }}
                       </v-list-item-title>
+                      <v-list-item-subtitle>
+                        {{ attrs.address2 }}
+                      </v-list-item-subtitle>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-phone</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ attrs.tel }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-fax</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ attrs.fax }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-calendar</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{
+                          `${$DEADLINE[attrs.deadline]}締め ${
+                            attrs.depositMonth
+                          }ヶ月後 ${$DEADLINE[attrs.depositDate]}入金
+                          `
+                        }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-clipboard-text-outline</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-subtitle
+                        class="text-wrap"
+                        style="line-height: 2"
+                      >
+                        {{ attrs.remarks }}
+                      </v-list-item-subtitle>
                     </v-list-item-content>
                   </v-list-item>
                 </v-list>

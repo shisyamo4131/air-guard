@@ -9,6 +9,7 @@ import {
   CUSTOMER_STATUS_ARRAY,
 } from '~/models/constants/customer-status'
 import { DAY_TYPE, DAY_TYPE_ARRAY } from '~/models/constants/day-types'
+import { DEADLINE, DEADLINE_ARRAY } from '~/models/constants/deadlines'
 import {
   EMPLOYEE_CONTRACT_TYPE,
   EMPLOYEE_CONTRACT_TYPE_ARRAY,
@@ -131,24 +132,6 @@ const DAY_OF_WEEK_JA = {
     long: '土曜日',
   },
 }
-
-const DEADLINE = {
-  '05': '5日',
-  10: '10日',
-  15: '15日',
-  20: '20日',
-  25: '25日',
-  99: '末日',
-}
-
-const DEADLINE_ARRAY = [
-  { text: '5日', value: '05' },
-  { text: '10日', value: '10' },
-  { text: '15日', value: '15' },
-  { text: '20日', value: '20' },
-  { text: '25日', value: '25' },
-  { text: '末日', value: '99' },
-]
 
 const EDIT_MODE = {
   REGIST: '登録',
