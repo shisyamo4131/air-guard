@@ -91,7 +91,6 @@ export default {
   <g-template-default v-slot="{ height }">
     <v-container fluid :style="{ height: `${height}px` }">
       <air-array-manager
-        v-bind="$attrs"
         :dialog-props="{ maxWidth: 600 }"
         event-edit="click:row"
         :event-edit-handler="
@@ -105,7 +104,6 @@ export default {
         :schema="schema"
         unbind-search
         @lazy-search="lazySearch = $event"
-        v-on="$listeners"
       >
         <template #default="{ activator, pagination, search, table }">
           <v-sheet class="d-flex flex-column" height="100%">
