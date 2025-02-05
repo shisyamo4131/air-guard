@@ -5,6 +5,7 @@
  * @refact 2025-02-04
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
+import AirRenderlessDelayInput from '~/components/air/AirRenderlessDelayInput.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
@@ -31,6 +32,7 @@ export default {
     GChipSyncStatus,
     AirArrayManager,
     GPagination,
+    AirRenderlessDelayInput,
   },
 
   /***************************************************************************
@@ -102,13 +104,22 @@ export default {
         label="取引先情報"
         :loading="loading"
         :schema="schema"
-        unbind-search
-        @lazy-search="lazySearch = $event"
       >
-        <template #default="{ activator, pagination, search, table }">
+        <template #default="{ activator, pagination, table }">
           <v-sheet class="d-flex flex-column" height="100%">
             <v-toolbar class="flex-grow-0" flat>
-              <v-text-field v-bind="search.attrs" v-on="search.on" />
+              <air-renderless-delay-input v-model="lazySearch">
+                <template #default="{ attrs, on }">
+                  <v-text-field
+                    v-bind="attrs"
+                    clearable
+                    hide-details
+                    placeholder="取引先名で検索"
+                    prepend-inner-icon="mdi-magnify"
+                    v-on="on"
+                  />
+                </template>
+              </air-renderless-delay-input>
               <g-btn-regist v-bind="activator.attrs" icon v-on="activator.on" />
             </v-toolbar>
             <div class="flex-table-container">
