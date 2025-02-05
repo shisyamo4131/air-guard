@@ -2,7 +2,7 @@
  * カスタムクラス定義: 現場 - Site -
  *
  * @author shisyamo4131
- * @refact 2025-02-01
+ * @refact 2025-02-04
  *****************************************************************************/
 import { database, FireModel } from 'air-firebase'
 import { get, ref } from 'firebase/database'
@@ -174,9 +174,7 @@ export default class Site extends FireModel {
   ]
 
   // カスタムクラスマップ
-  static customClassMap = {
-    customer: CustomerMinimal,
-  }
+  static customClassMap = { customer: CustomerMinimal }
 
   /**
    * customerId をもとに customer プロパティを更新します。
@@ -401,5 +399,15 @@ export class SiteMinimal extends Site {
 
   delete() {
     return Promise.reject(new Error('このクラスの delete は使用できません。'))
+  }
+
+  deleteAll() {
+    return Promise.reject(
+      new Error('このクラスの deleteAll は使用できません。')
+    )
+  }
+
+  restore() {
+    return Promise.reject(new Error('このクラスの restore は使用できません。'))
   }
 }

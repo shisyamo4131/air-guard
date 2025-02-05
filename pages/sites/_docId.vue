@@ -48,16 +48,6 @@ export default {
         { text: '現場詳細', to: `${this.parentPath}/${this.docId}` },
       ]
     },
-
-    /**
-     * メイン情報として表示する項目の配列です。
-     */
-    mainProps() {
-      return [
-        { text: '現場名', value: 'name' },
-        { text: '住所', value: 'address' },
-      ]
-    },
   },
 }
 </script>
@@ -68,21 +58,98 @@ export default {
     <v-container>
       <v-row>
         <!-- 現場概要 -->
-        <v-col cols="4">
+        <v-col cols="12" lg="4">
           <g-manager-site :doc-id="docId">
             <template #default="{ attrs, on }">
-              <v-card>
+              <v-card outlined>
                 <v-card-title>{{ attrs.abbr }}</v-card-title>
                 <v-card-subtitle>{{ attrs.abbrKana }}</v-card-subtitle>
                 <v-list>
-                  <v-list-item v-for="(prop, index) of mainProps" :key="index">
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-code-tags</v-icon>
+                    </v-list-item-icon>
                     <v-list-item-content>
-                      <v-list-item-subtitle>
-                        {{ prop.text }}
-                      </v-list-item-subtitle>
                       <v-list-item-title>
-                        {{ attrs[prop.value] }}
+                        {{ attrs.code }}
                       </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-fullscreen</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ attrs.name }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-map-marker</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ attrs.address }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-office-building</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ attrs.customer?.abbr || 'N/A' }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-calendar</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ `${attrs.startAt} ～ ${attrs.endAt}` }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-security</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ $SECURITY_TYPE[attrs.securityType] }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>
+                        {{
+                          `mdi-${attrs.status === 'active' ? 'play' : 'stop'}`
+                        }}
+                      </v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ $SITE_STATUS[attrs.status] }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-clipboard-text-outline</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-subtitle
+                        class="text-wrap"
+                        style="line-height: 2"
+                      >
+                        {{ attrs.remarks }}
+                      </v-list-item-subtitle>
                     </v-list-item-content>
                   </v-list-item>
                 </v-list>
@@ -99,7 +166,7 @@ export default {
         </v-col>
 
         <!-- 稼働予定 -->
-        <v-col cols="8">
+        <v-col cols="12" lg="8">
           <g-card-floating-label
             v-slot="{ attrs }"
             label="稼働予定"

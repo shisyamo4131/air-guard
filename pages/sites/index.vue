@@ -2,9 +2,10 @@
 /**
  * 現場情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-29
+ * @refact 2025-02-04
  */
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
+import AirRenderlessDelayInput from '~/components/air/AirRenderlessDelayInput.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
@@ -31,6 +32,7 @@ export default {
     GChipSyncStatus,
     AirArrayManager,
     GPagination,
+    AirRenderlessDelayInput,
   },
 
   /***************************************************************************
@@ -38,7 +40,14 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      includeExpired: false,
+      items: [],
+      lazySearch: null,
+      lazySearchCustomerId: null,
+      loading: false,
       schema: new Site(),
+      searchType: 'name',
+      selectedCustomerId: null,
     }
   },
 
@@ -46,40 +55,89 @@ export default {
    * COMPUTED
    ***************************************************************************/
   computed: {
-    /**
-     * DataTable のカラム設定です。
-     */
-    headers() {
-      const template = [
-        { text: 'CODE', value: 'code', width: 84 },
-        { text: '現場名', value: 'abbr' },
-        { text: '住所', value: 'address', sortable: false },
-        {
-          text: '同期状態',
-          value: 'sync',
-          sortable: false,
-          align: 'center',
-        },
-      ]
-
-      return template
+    customers() {
+      const result = this.items.reduce((acc, item) => {
+        if (!acc.some(({ docId }) => docId === item.customer.docId)) {
+          acc.push(item.customer)
+        }
+        return acc
+      }, [])
+      return result.sort((a, b) => a.abbrKana.localeCompare(b.abbrKana))
     },
 
-    /**
-     * DataTable に表示するアイテムです。
-     * - Vuex から取得します。
-     */
-    items() {
-      return this.$store.getters['sites/items']
+    filteredItems() {
+      return this.items.filter((item) => {
+        return (
+          !this.selectedCustomerId ||
+          item.customer.docId === this.selectedCustomerId
+        )
+      })
     },
   },
+
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    customers(v) {
+      this.selectedCustomerId = null
+    },
+
+    includeExpired(v) {
+      this.fetchDocs()
+    },
+
+    lazySearch(v) {
+      this.fetchDocs()
+    },
+
+    searchType(v) {
+      this.fetchDocs()
+    },
+  },
+
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {},
 
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    async handleCreate(item) {
-      await item.create()
+    async fetchDocs() {
+      // items を初期化
+      this.items.splice(0)
+
+      // 検索文字列が入力されていなければ終了
+      if (!this.lazySearch) return
+
+      this.loading = true
+      try {
+        if (this.searchType === 'name') {
+          await this._fetchDocsByName()
+        } else {
+          await this._fetchDocsByCode()
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('fetchDocs に失敗しました。')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async _fetchDocsByName() {
+      const options = this.includeExpired
+        ? undefined
+        : [['where', 'status', '==', 'active']]
+      this.items = await this.schema.fetchDocs(this.lazySearch, options)
+    },
+
+    async _fetchDocsByCode() {
+      this.items = await this.schema.fetchDocs([
+        ['where', 'code', '==', this.lazySearch],
+      ])
     },
   },
 }
@@ -89,30 +147,79 @@ export default {
   <g-template-default v-slot="{ height }">
     <v-container fluid :style="{ height: `${height}px` }">
       <air-array-manager
-        v-bind="$attrs"
-        :dialog-props="{
-          maxWidth: 600,
-        }"
+        :dialog-props="{ maxWidth: 600 }"
         event-edit="click:row"
         :event-edit-handler="($event) => $router.push(`/sites/${$event.docId}`)"
-        :handle-create="handleCreate"
+        :handle-create="async (item) => await item.create()"
         height="100%"
-        :items="items"
+        :items="filteredItems"
         label="現場情報"
+        :loading="loading"
         :schema="schema"
-        v-on="$listeners"
       >
-        <template #default="{ activator, pagination, search, table }">
+        <template #default="{ activator, pagination, table }">
           <v-sheet class="d-flex flex-column" height="100%">
             <v-toolbar class="flex-grow-0" flat>
-              <v-text-field v-bind="search.attrs" v-on="search.on" />
+              <air-renderless-delay-input v-model="lazySearch">
+                <template #default="{ attrs, on }">
+                  <v-text-field
+                    v-bind="attrs"
+                    clearable
+                    hide-details
+                    :placeholder="`${
+                      searchType === 'name' ? '現場名' : 'コード'
+                    }で検索`"
+                    prepend-inner-icon="mdi-magnify"
+                    v-on="on"
+                  />
+                </template>
+              </air-renderless-delay-input>
               <g-btn-regist v-bind="activator.attrs" icon v-on="activator.on" />
+              <template #extension>
+                <v-radio-group v-model="searchType" hide-details row>
+                  <v-radio label="名称検索" value="name" />
+                  <v-radio label="コード検索" value="code" />
+                </v-radio-group>
+                <v-switch
+                  v-show="searchType === 'name'"
+                  v-model="includeExpired"
+                  label="稼働終了を含める"
+                  hide-details
+                />
+              </template>
             </v-toolbar>
+            <v-expand-transition>
+              <v-toolbar v-show="customers.length > 1" class="flex-grow-0" flat>
+                <v-chip-group
+                  v-model="selectedCustomerId"
+                  active-class="primary--text"
+                  center-active
+                  show-arrows
+                >
+                  <v-chip
+                    v-for="(item, index) of customers"
+                    :key="index"
+                    :value="item.docId"
+                    >{{ item.abbr }}</v-chip
+                  >
+                </v-chip-group>
+              </v-toolbar>
+            </v-expand-transition>
             <div class="flex-table-container">
               <v-data-table
                 v-bind="table.attrs"
                 fixed-header
-                :headers="headers"
+                :headers="[
+                  { text: 'CODE', value: 'code', width: 84 },
+                  { text: '現場名', value: 'abbr' },
+                  { text: '住所', value: 'address', sortable: false },
+                  {
+                    text: '同期状態',
+                    value: 'sync',
+                    sortable: false,
+                    align: 'center',
+                  },
+                ]"
                 hide-default-footer
                 item-key="docId"
                 sort-by="code"
