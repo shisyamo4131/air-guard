@@ -87,7 +87,7 @@ export default {
       :tile="tile"
       v-on="$listeners"
     >
-      <div class="flex-grow-1">
+      <div class="flex-grow-1 d-flex flex-column">
         <slot name="default" v-bind="{ attrs: { color } }" />
       </div>
       <v-card-actions
