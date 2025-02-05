@@ -5,11 +5,19 @@
       <v-app-bar-nav-icon @click.stop="drawer = !drawer" />
       <v-toolbar-title>
         Air Guard
-        <span class="text-subtitle-2 ml-2">{{
-          `ver.${$store.state.systems['APP_VERSION']}`
-        }}</span>
+        <span class="text-subtitle-2 ml-2">
+          {{ `ver.${$store.state.systems['APP_VERSION']}` }}
+        </span>
       </v-toolbar-title>
       <v-spacer />
+
+      <!-- keepAlivePages の有効化スイッチ（開発用） -->
+      <v-switch
+        v-if="$store.getters['auth/isDeveloper']"
+        v-model="keepContents"
+        hide-details
+        label="KEEP"
+      />
       <v-dialog v-model="dialog" max-width="360" persistent>
         <template #activator="{ attrs, on }">
           <v-btn v-bind="attrs" icon v-on="on"><v-icon>mdi-cog</v-icon></v-btn>
@@ -64,6 +72,10 @@ export default {
     return {
       drawer: false,
       dialog: false,
+
+      // keepAlivePages を有効にするかどうか（開発用）
+      keepContents: true,
+
       loading: false,
       model: new User(),
     }
@@ -81,12 +93,13 @@ export default {
      * - $route.pathを参照し、表示しているページのカテゴリに応じてキャッシュするページを切り替えます。
      */
     keepAlivePages() {
+      if (!this.keepContents) return []
       const topLevelPath = this.$route.path.split('/').slice(0, 2).join('/')
       switch (topLevelPath) {
         case '/customers':
           return ['CustomersIndex']
-        // case '/sites':
-        //   return ['SitesIndex']
+        case '/sites':
+          return ['SitesIndex']
         // case '/employees':
         //   return ['EmployeesIndex']
         default:
