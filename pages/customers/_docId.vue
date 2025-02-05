@@ -2,13 +2,17 @@
 /**
  * 取引先情報詳細画面
  * @author shisyamo4131
- * @refact 2025-02-04
+ * @refact 2025-02-05
  */
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import AirItemManager from '~/components/air/AirItemManager.vue'
 import Customer from '~/models/Customer'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
+import Site from '~/models/Site'
+import GPagination from '~/components/atoms/paginations/GPagination.vue'
+import AirRenderlessDelayInput from '~/components/air/AirRenderlessDelayInput.vue'
+import AirArrayManager from '~/components/air/AirArrayManager.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -18,7 +22,15 @@ export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GTemplateDefault, GBtnEdit, AirItemManager, GInputCustomer },
+  components: {
+    GTemplateDefault,
+    GBtnEdit,
+    AirItemManager,
+    GInputCustomer,
+    GPagination,
+    AirRenderlessDelayInput,
+    AirArrayManager,
+  },
 
   /***************************************************************************
    * ASYNCDATA
@@ -28,6 +40,18 @@ export default {
     const listener = new Customer()
     listener.subscribe(docId)
     return { docId, listener }
+  },
+
+  /***************************************************************************
+   * DATA
+   ***************************************************************************/
+  data() {
+    return {
+      lazySearchSiteName: null,
+      loading: false,
+      schemaSite: new Site(),
+      sites: [],
+    }
   },
 
   /***************************************************************************
@@ -43,6 +67,38 @@ export default {
         { text: '取引先', to: this.parentPath, exact: true },
         { text: '取引先詳細', to: `${this.parentPath}/${this.docId}` },
       ]
+    },
+  },
+
+  /***************************************************************************
+   * WATCH
+   ***************************************************************************/
+  watch: {
+    lazySearchSiteName(v) {
+      this.fetchDocs()
+    },
+  },
+
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    async fetchDocs() {
+      // sites を初期化
+      this.sites.splice(0)
+
+      // 検索文字列が入力されていなければ終了
+      if (!this.lazySearchSiteName) return
+
+      this.loading = true
+      try {
+        this.sites = await this.schemaSite.fetchDocs(this.lazySearchSiteName)
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('fetchDocs に失敗しました。')
+      } finally {
+        this.loading = false
+      }
     },
   },
 }
@@ -148,10 +204,48 @@ export default {
           </air-item-manager>
         </v-col>
         <v-col cols="12" lg="8">
-          <v-card outlined>
-            <v-card-title>現場情報</v-card-title>
-            <v-skeleton-loader type="table" />
-          </v-card>
+          <air-array-manager height="480" :items="sites">
+            <template #default="{ height, pagination, table }">
+              <v-card class="d-flex flex-column" :height="height" outlined>
+                <v-card-title>現場情報</v-card-title>
+                <v-toolbar class="flex-grow-0" flat>
+                  <air-renderless-delay-input v-model="lazySearchSiteName">
+                    <template #default="{ attrs, on }">
+                      <v-text-field
+                        v-bind="attrs"
+                        clearable
+                        hide-details
+                        placeholder="現場名で検索"
+                        prepend-inner-icon="mdi-magnify"
+                        v-on="on"
+                      />
+                    </template>
+                  </air-renderless-delay-input>
+                </v-toolbar>
+                <div class="flex-table-container">
+                  <v-data-table
+                    v-bind="table.attrs"
+                    fixed-header
+                    :headers="[
+                      { text: 'CODE', value: 'code', width: 84 },
+                      { text: '現場名', value: 'abbr' },
+                      { text: '住所', value: 'address', sortable: false },
+                    ]"
+                    hide-default-footer
+                    item-key="docId"
+                    sort-by="code"
+                    sort-desc
+                    v-on="table.on"
+                  >
+                  </v-data-table>
+                  <g-pagination
+                    v-bind="pagination.attrs"
+                    v-on="pagination.on"
+                  />
+                </div>
+              </v-card>
+            </template>
+          </air-array-manager>
         </v-col>
       </v-row>
     </v-container>
