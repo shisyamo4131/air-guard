@@ -103,7 +103,6 @@ export default {
 <style scoped>
 .g-card-floating-label__container {
   position: relative !important;
-  padding: 0 0 12px 0 !important;
 }
 
 .g-card-floating-label__label {
