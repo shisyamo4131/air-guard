@@ -132,21 +132,21 @@ export const onDeleteArchive = onDocumentDeleted(
       }, {})
 
       // Realtime Database の更新
-      await database.update(deletes)
+      await database.ref().update(deletes)
 
       info('[onDeleteArchive] 履歴の削除が正常に完了しました。', {
         docId,
         siteId,
         deletedCount: Object.keys(deletes).length,
       })
-    } catch (error) {
+    } catch (err) {
       error('[onDeleteArchive] 履歴削除中にエラーが発生しました。', {
-        message: error.message,
-        stack: error.stack,
+        message: err.message,
+        stack: err.stack,
         docId,
         siteId,
       })
-      throw error
+      throw err
     }
   }
 )
