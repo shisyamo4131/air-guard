@@ -46,7 +46,6 @@ export default class FireModel {
     this.#loadLogicalDelete()
     this.#loadHasMany()
     this.#loadTokenFields()
-    this.initialize(item)
     Object.defineProperties(this, {
       tokenMap: {
         enumerable: true,
@@ -55,6 +54,7 @@ export default class FireModel {
         set: this.#setTokenMap.bind(this),
       },
     })
+    this.initialize(item)
   }
 
   /****************************************************************************
