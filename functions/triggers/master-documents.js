@@ -12,7 +12,7 @@
  * 最後に、トリガーを実装する対象コレクションを登録します。
  *
  * @author shisyamo4131
- * @refact 2025-01-30
+ * @refact 2025-02-06
  */
 import { onDocumentWritten } from 'firebase-functions/firestore'
 import { logger } from 'firebase-functions/v2'
@@ -25,12 +25,13 @@ import {
 } from '../modules/utils.js'
 
 // 変更有無を確認するためデータの比較に使用するクラス
-import { CustomerIndex, CustomerMinimal } from '../models/Customer.js'
-import { SiteIndex, SiteMinimal } from '../models/Site.js'
+import { CustomerIndex } from '../models/Customer.js'
+import Site, { SiteIndex } from '../models/Site.js'
 import { EmployeeMinimal } from '../models/Employee.js'
-import { WorkRegulationMinimal } from '../models/WorkRegulation.js'
-import { SiteContractMinimal } from '../models/SiteContract.js'
+import SiteContract from '../models/SiteContract.js'
 import { fetchCoordinates } from '../modules/utils/geocoding.js'
+import OperationResult from '../models/OperationResult.js'
+import EmployeeContract from '../models/EmployeeContract.js'
 
 /*****************************************************************************
  * コレクション毎の個別処理定義
@@ -114,10 +115,9 @@ const DOCUMENT_SYNC_DEFINITIONS = {
   Customers: {
     // 取引先 -> 現場
     Sites: {
-      // referenceClass: Site,
+      referenceClass: Site,
       updateProp: 'customer',
       compareProp: 'customerId',
-      ComparisonClass: CustomerMinimal,
     },
   },
 
@@ -125,16 +125,16 @@ const DOCUMENT_SYNC_DEFINITIONS = {
   Sites: {
     // 現場 -> 現場取極め
     SiteContracts: {
+      referenceClass: SiteContract,
       updateProp: 'site',
       compareProp: 'siteId',
-      ComparisonClass: SiteMinimal,
     },
 
     // 現場 -> 稼働実績
     OperationResults: {
+      referenceClass: OperationResult,
       updateProp: 'site',
       compareProp: 'siteId',
-      ComparisonClass: SiteMinimal,
     },
   },
 
@@ -142,37 +142,53 @@ const DOCUMENT_SYNC_DEFINITIONS = {
   Employees: {
     // 従業員 -> 雇用契約
     EmployeeContracts: {
+      referenceClass: EmployeeContract,
       updateProp: 'employee',
       compareProp: 'employeeId',
-      ComparisonClass: EmployeeMinimal,
     },
 
     // 従業員 -> 健康保険
     HealthInsurances: {
+      referenceClass: class {
+        static customClassMap = {
+          employee: EmployeeMinimal,
+        }
+      },
       updateProp: 'employee',
       compareProp: 'employeeId',
-      ComparisonClass: EmployeeMinimal,
     },
 
     // 従業員 -> 厚生年金
     Pensions: {
+      referenceClass: class {
+        static customClassMap = {
+          employee: EmployeeMinimal,
+        }
+      },
       updateProp: 'employee',
       compareProp: 'employeeId',
-      ComparisonClass: EmployeeMinimal,
     },
 
     // 従業員 -> 雇用保険
     EmploymentInsurances: {
+      referenceClass: class {
+        static customClassMap = {
+          employee: EmployeeMinimal,
+        }
+      },
       updateProp: 'employee',
       compareProp: 'employeeId',
-      ComparisonClass: EmployeeMinimal,
     },
 
     // 従業員 -> 健康診断
     MedicalCheckups: {
+      referenceClass: class {
+        static customClassMap = {
+          employee: EmployeeMinimal,
+        }
+      },
       updateProp: 'employee',
       compareProp: 'employeeId',
-      ComparisonClass: EmployeeMinimal,
     },
   },
 
@@ -180,9 +196,9 @@ const DOCUMENT_SYNC_DEFINITIONS = {
   SiteContracts: {
     // 現場取極め -> 稼働実績
     OperationResults: {
+      referenceClass: OperationResult,
       updateProp: 'siteContract',
       compareProp: 'siteContractId',
-      ComparisonClass: SiteContractMinimal,
     },
   },
 
@@ -190,9 +206,9 @@ const DOCUMENT_SYNC_DEFINITIONS = {
   WorkRegulations: {
     // 就業規則 -> 雇用契約
     EmployeeContracts: {
+      referenceClass: EmployeeContract,
       updateProp: 'workRegulation',
       compareProp: 'workRegulationId',
-      ComparisonClass: WorkRegulationMinimal,
     },
   },
 }
@@ -298,22 +314,22 @@ async function handleSyncronizeDependentDocuments(event) {
    * 参照クラス設定による処理に切り替える際にコメント解除
    *****************************************************/
   // 定義内容を確認
-  // for (const [collectionId, defs] of Object.entries(definitions)) {
-  //   const { referenceClass, updateProp, compareProp } = defs
-  //   if (!referenceClass || !updateProp || !compareProp) {
-  //     logger.error(
-  //       `[onWrite${updatedCollectionId}] Synchronization definition of ${collectionId} does not have required property.`
-  //     )
-  //     return
-  //   }
-  //   const ComparisonClass = referenceClass.customClassMap?.[updateProp]
-  //   if (!ComparisonClass) {
-  //     logger.error(
-  //       `[onWrite${updatedCollectionId}] '${updateProp}' property does not defined as customClassMap at reference class.`
-  //     )
-  //     return
-  //   }
-  // }
+  for (const [collectionId, defs] of Object.entries(definitions)) {
+    const { referenceClass, updateProp, compareProp } = defs
+    if (!referenceClass || !updateProp || !compareProp) {
+      logger.error(
+        `[onWrite${updatedCollectionId}] Synchronization definition of ${collectionId} does not have required property.`
+      )
+      return
+    }
+    const ComparisonClass = referenceClass.customClassMap?.[updateProp]
+    if (!ComparisonClass) {
+      logger.error(
+        `[onWrite${updatedCollectionId}] '${updateProp}' property does not defined as customClassMap at reference class.`
+      )
+      return
+    }
+  }
 
   try {
     // 同期処理を直列で実行
@@ -321,12 +337,11 @@ async function handleSyncronizeDependentDocuments(event) {
       /*************************************************
        * 参照クラス設定による処理に切り替えたらコード差し替え
        *************************************************/
-      const { updateProp, compareProp, ComparisonClass } = defs
-      // const { referenceClass, updateProp, compareProp } = defs
-      // const ComparisonClass = referenceClass[updateProp]
-      // logger.info(
-      //   `[onWrite${updatedCollectionId}] ${updatedCollectionId} >>>>> ${collectionId}`
-      // )
+      const { referenceClass, updateProp, compareProp } = defs
+      const ComparisonClass = referenceClass.customClassMap?.[updateProp]
+      logger.info(
+        `[onWrite${updatedCollectionId}] ${updatedCollectionId} >>>>> ${collectionId}`
+      )
 
       // 差分を取得
       const differences = extractDiffsFromDocUpdatedEvent({
