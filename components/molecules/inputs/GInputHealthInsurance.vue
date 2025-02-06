@@ -61,7 +61,7 @@ export default {
         <g-select
           :value="acquisitionStatus"
           label="取得手続き状況"
-          :items="$SOCIAL_SECURITY_PROCESSING_STATUS_ARRAY"
+          :items="$HEALTH_INSURANCE_PROCESSING_STATUS_ARRAY"
           required
           :disabled="isLossed"
           @input="$emit('update:acquisitionStatus', $event)"
@@ -105,7 +105,7 @@ export default {
             <g-select
               :value="lossStatus"
               label="喪失手続き状況"
-              :items="$SOCIAL_SECURITY_PROCESSING_STATUS_ARRAY"
+              :items="$HEALTH_INSURANCE_PROCESSING_STATUS_ARRAY"
               :required="isLossed"
               @input="$emit('update:lossStatus', $event)"
             />

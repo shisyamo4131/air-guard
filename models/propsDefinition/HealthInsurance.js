@@ -3,7 +3,7 @@
  * @author shisyamo4131
  * @refact 2025-01-30
  */
-import { SOCIAL_SECURITY_PROCESSING_STATUS } from '../constants/processing-status'
+import { HEALTH_INSURANCE_PROCESSING_STATUS } from '../constants/processing-status'
 import { EmployeeMinimal } from '../Employee'
 import { generateProps } from './propsUtil'
 
@@ -38,7 +38,7 @@ const propsDefinition = {
     type: String,
     default: 'IN_PROGRESS',
     validator: (v) =>
-      Object.keys(SOCIAL_SECURITY_PROCESSING_STATUS).includes(v),
+      Object.keys(HEALTH_INSURANCE_PROCESSING_STATUS).includes(v),
     required: false,
     requiredByClass: true,
   },
@@ -80,7 +80,7 @@ const propsDefinition = {
     type: String,
     default: 'IN_PROGRESS',
     validator: (v) =>
-      Object.keys(SOCIAL_SECURITY_PROCESSING_STATUS).includes(v),
+      Object.keys(HEALTH_INSURANCE_PROCESSING_STATUS).includes(v),
     required: false,
     requiredByClass: true,
   },
