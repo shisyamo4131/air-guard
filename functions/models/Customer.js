@@ -113,25 +113,13 @@ const propsDefinition = {
   },
 
   // 備考
-  remarks: {
-    type: String,
-    default: '',
-    required: false,
-  },
+  remarks: { type: String, default: '', required: false },
 
   // 同期状態
-  sync: {
-    type: Boolean,
-    default: false,
-    required: false,
-  },
+  sync: { type: Boolean, default: false, required: false },
 
   // 自社情報フラグ
-  isInternal: {
-    type: Boolean,
-    default: false,
-    required: false,
-  },
+  isInternal: { type: Boolean, default: false, required: false },
 }
 
 const { classProps } = generateProps(propsDefinition)
