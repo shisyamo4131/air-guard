@@ -32,6 +32,7 @@ import SiteContract from '../models/SiteContract.js'
 import { fetchCoordinates } from '../modules/utils/geocoding.js'
 import OperationResult from '../models/OperationResult.js'
 import EmployeeContract from '../models/EmployeeContract.js'
+import SiteOperationSchedule from '../models/SiteOperationSchedule.js'
 
 /*****************************************************************************
  * コレクション毎の個別処理定義
@@ -126,6 +127,13 @@ const DOCUMENT_SYNC_DEFINITIONS = {
     // 現場 -> 現場取極め
     SiteContracts: {
       referenceClass: SiteContract,
+      updateProp: 'site',
+      compareProp: 'siteId',
+    },
+
+    // 現場 -> 現場稼働予定
+    SiteOperationSchedules: {
+      referenceClass: SiteOperationSchedule,
       updateProp: 'site',
       compareProp: 'siteId',
     },
