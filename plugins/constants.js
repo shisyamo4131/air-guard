@@ -170,18 +170,6 @@ const LEAVE_APPLICATION_TYPE_ARRAY = [
   { value: 'paid', text: '2: 有給休暇' },
 ]
 
-const TEMPORARY_SITE_STATUS = {
-  accepted: '受注',
-  aborted: '中止',
-  canceled: 'キャンセル',
-}
-
-const TEMPORARY_SITE_STATUS_ARRAY = [
-  { value: 'accepted', text: '受注' },
-  { value: 'aborted', text: '中止' },
-  { value: 'canceled', text: 'キャンセル' },
-]
-
 const TRANSPORTATION_COST_APPLICATION_STATUS = {
   '0:creating': '申請受付前',
   '1:draft': '申請受付中',
@@ -267,8 +255,6 @@ export default (context, inject) => {
   inject('SECURITY_TYPE_ARRAY', SECURITY_TYPE_ARRAY)
   inject('SITE_STATUS', SITE_STATUS)
   inject('SITE_STATUS_ARRAY', SITE_STATUS_ARRAY)
-  inject('TEMPORARY_SITE_STATUS', TEMPORARY_SITE_STATUS)
-  inject('TEMPORARY_SITE_STATUS_ARRAY', TEMPORARY_SITE_STATUS_ARRAY)
   inject(
     'TRANSPORTATION_COST_APPLICATION_STATUS',
     TRANSPORTATION_COST_APPLICATION_STATUS
