@@ -2,7 +2,7 @@
 /**
  * Firestore ドキュメントを 更新・削除するための共通設定を施した
  * AirItemManager です。
- * - ドキュメントID、インスタンスを指定するのみで指定されたドキュメントの管理機能を実装します。
+ * - ドキュメントID、インスタンスを指定するのみで指定されたドキュメントの管理機能を提供します。
  * @author shisyamo4131
  * @refact 2025-02-06
  */
@@ -24,8 +24,8 @@ export default {
     docId: { type: String, required: true },
 
     /**
-     * アイテムの編集が確定された時の追加処理です。
-     * (item) => Promise({boolean})
+     * ドキュメントの変更処理を上書きします。
+     * (item) => Promise<void>
      */
     handleUpdate: {
       type: Function,
@@ -34,8 +34,8 @@ export default {
     },
 
     /**
-     * アイテムの削除が確定された時の追加処理です。
-     * (item) => Promise<boolean>
+     * ドキュメントの削除処理を上書きします。
+     * (item) => Promise<void>
      */
     handleDelete: {
       type: Function,
@@ -103,11 +103,11 @@ export default {
     :item="instance"
     v-on="$listeners"
   >
-    <template #default="props">
-      <slot name="default" v-bind="props" />
-    </template>
-    <template #inputs="props">
-      <slot name="inputs" v-bind="props" />
+    <template
+      v-for="(_, scopedSlotName) in $scopedSlots"
+      #[scopedSlotName]="slotData"
+    >
+      <slot :name="scopedSlotName" v-bind="slotData" />
     </template>
   </air-item-manager>
 </template>

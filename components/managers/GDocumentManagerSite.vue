@@ -14,13 +14,6 @@ export default {
   components: { GInputSite, GDocumentManager },
 
   /***************************************************************************
-   * PROPS
-   ***************************************************************************/
-  props: {
-    docId: { type: String, required: true },
-  },
-
-  /***************************************************************************
    * DATA
    ***************************************************************************/
   data() {
@@ -34,7 +27,6 @@ export default {
 <template>
   <g-document-manager
     v-bind="$attrs"
-    :doc-id="docId"
     :instance="instance"
     :dialog-props="{ maxWidth: 600 }"
     v-on="$listeners"
