@@ -2,17 +2,17 @@
 /**
  * 取引先情報詳細画面
  * @author shisyamo4131
- * @refact 2025-02-05
+ * @refact 2025-02-06
  */
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
-import AirItemManager from '~/components/air/AirItemManager.vue'
 import Customer from '~/models/Customer'
 import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
 import Site from '~/models/Site'
 import GPagination from '~/components/atoms/paginations/GPagination.vue'
 import AirRenderlessDelayInput from '~/components/air/AirRenderlessDelayInput.vue'
-import AirArrayManager from '~/components/air/AirArrayManager.vue'
+import GCollectionManagerSites from '~/components/managers/GCollectionManagerSites.vue'
+import GDocumentManagerCustomer from '~/components/managers/GDocumentManagerCustomer.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -25,11 +25,11 @@ export default {
   components: {
     GTemplateDefault,
     GBtnEdit,
-    AirItemManager,
     GInputCustomer,
     GPagination,
     AirRenderlessDelayInput,
-    AirArrayManager,
+    GCollectionManagerSites,
+    GDocumentManagerCustomer,
   },
 
   /***************************************************************************
@@ -111,15 +111,10 @@ export default {
       <v-row>
         <!-- 取引先概要 -->
         <v-col cols="12" lg="4">
-          <air-item-manager
+          <g-document-manager-customer
             color="primary"
-            :dialog-props="{ maxWidth: 600 }"
             :doc-id="docId"
-            :handle-update="async (item) => await item.update()"
-            :handle-delete="async (item) => await item.delete()"
             height="100%"
-            :item="listener"
-            label="取引先情報編集"
             @DELETE="$router.replace('/customers')"
           >
             <template #default="{ attrs, height, on }">
@@ -201,10 +196,10 @@ export default {
             <template #inputs="{ attrs, on }">
               <g-input-customer v-bind="attrs" v-on="on" />
             </template>
-          </air-item-manager>
+          </g-document-manager-customer>
         </v-col>
         <v-col cols="12" lg="8">
-          <air-array-manager height="480" :items="sites">
+          <g-collection-manager-sites height="480" :items="sites">
             <template #default="{ height, pagination, table }">
               <v-card class="d-flex flex-column" :height="height" outlined>
                 <v-card-title>現場情報</v-card-title>
@@ -245,7 +240,7 @@ export default {
                 </div>
               </v-card>
             </template>
-          </air-array-manager>
+          </g-collection-manager-sites>
         </v-col>
       </v-row>
     </v-container>

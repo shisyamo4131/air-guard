@@ -2,16 +2,15 @@
 /**
  * 現場情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-02-04
+ * @refact 2025-02-06
  */
-import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import AirRenderlessDelayInput from '~/components/air/AirRenderlessDelayInput.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
 import GIconStop from '~/components/atoms/icons/GIconStop.vue'
 import GPagination from '~/components/atoms/paginations/GPagination.vue'
-import GInputSite from '~/components/molecules/inputs/GInputSite.vue'
+import GCollectionManagerSites from '~/components/managers/GCollectionManagerSites.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import Site from '~/models/Site'
 export default {
@@ -28,11 +27,10 @@ export default {
     GBtnRegist,
     GIconPlay,
     GIconStop,
-    GInputSite,
     GChipSyncStatus,
-    AirArrayManager,
     GPagination,
     AirRenderlessDelayInput,
+    GCollectionManagerSites,
   },
 
   /***************************************************************************
@@ -40,6 +38,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      eventEdit: 'click:row',
       includeExpired: false,
       items: [],
       lazySearch: null,
@@ -97,14 +96,13 @@ export default {
   },
 
   /***************************************************************************
-   * DESTROYED
-   ***************************************************************************/
-  destroyed() {},
-
-  /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
+    eventEditHandler(event) {
+      this.$router.push(`/sites/${event.docId}`)
+    },
+
     async fetchDocs() {
       // items を初期化
       this.items.splice(0)
@@ -146,16 +144,12 @@ export default {
 <template>
   <g-template-default v-slot="{ height }">
     <v-container fluid :style="{ height: `${height}px` }">
-      <air-array-manager
-        :dialog-props="{ maxWidth: 600 }"
-        event-edit="click:row"
-        :event-edit-handler="($event) => $router.push(`/sites/${$event.docId}`)"
-        :handle-create="async (item) => await item.create()"
+      <g-collection-manager-sites
+        :event-edit="eventEdit"
+        :event-edit-handler="eventEditHandler"
         height="100%"
         :items="filteredItems"
-        label="現場情報"
         :loading="loading"
-        :schema="schema"
       >
         <template #default="{ activator, pagination, table }">
           <v-sheet class="d-flex flex-column" height="100%">
@@ -254,10 +248,7 @@ export default {
             <g-pagination v-bind="pagination.attrs" v-on="pagination.on" />
           </v-sheet>
         </template>
-        <template #inputs="{ attrs, on }">
-          <g-input-site v-bind="attrs" v-on="on" />
-        </template>
-      </air-array-manager>
+      </g-collection-manager-sites>
     </v-container>
   </g-template-default>
 </template>

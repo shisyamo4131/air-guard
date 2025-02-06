@@ -1,23 +1,23 @@
 <script>
 /**
- * 現場ドキュメント管理コンポーネント
+ * 取引先ドキュメント管理コンポーネント
  * @author shisyamo4131
  * @refact 2025-02-06
  */
-import GInputSite from '../molecules/inputs/GInputSite.vue'
+import GInputCustomer from '../molecules/inputs/GInputCustomer.vue'
 import GDocumentManager from './GDocumentManager.vue'
-import Site from '~/models/Site'
+import Customer from '~/models/Customer'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GInputSite, GDocumentManager },
+  components: { GInputCustomer, GDocumentManager },
 
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
-    label: { type: String, default: '現場情報編集', required: false },
+    label: { type: String, default: '取引先情報編集', required: false },
   },
 
   /***************************************************************************
@@ -25,7 +25,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      instance: new Site(),
+      instance: new Customer(),
     }
   },
 }
@@ -43,7 +43,7 @@ export default {
       <slot name="default" v-bind="props" />
     </template>
     <template #inputs="{ attrs, on }">
-      <g-input-site v-bind="attrs" v-on="on" />
+      <g-input-customer v-bind="attrs" v-on="on" />
     </template>
   </g-document-manager>
 </template>

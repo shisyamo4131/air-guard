@@ -2,16 +2,15 @@
 /**
  * 取引先情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-02-04
+ * @refact 2025-02-06
  */
-import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import AirRenderlessDelayInput from '~/components/air/AirRenderlessDelayInput.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
 import GIconStop from '~/components/atoms/icons/GIconStop.vue'
 import GPagination from '~/components/atoms/paginations/GPagination.vue'
-import GInputCustomer from '~/components/molecules/inputs/GInputCustomer.vue'
+import GCollectionManagerCustomers from '~/components/managers/GCollectionManagerCustomers.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import Customer from '~/models/Customer'
 export default {
@@ -28,11 +27,10 @@ export default {
     GBtnRegist,
     GIconPlay,
     GIconStop,
-    GInputCustomer,
     GChipSyncStatus,
-    AirArrayManager,
     GPagination,
     AirRenderlessDelayInput,
+    GCollectionManagerCustomers,
   },
 
   /***************************************************************************
@@ -40,17 +38,13 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      eventEdit: 'click:row',
       items: [],
       lazySearch: null,
       loading: false,
-      schema: new Customer(),
+      instance: new Customer(),
     }
   },
-
-  /***************************************************************************
-   * COMPUTED
-   ***************************************************************************/
-  computed: {},
 
   /***************************************************************************
    * WATCH
@@ -66,18 +60,17 @@ export default {
   },
 
   /***************************************************************************
-   * DESTROYED
-   ***************************************************************************/
-  destroyed() {},
-
-  /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
+    eventEditHandler(event) {
+      this.$router.push(`/customers/${event.docId}`)
+    },
+
     async fetchDocs(search) {
       this.loading = true
       try {
-        this.items = await this.schema.fetchDocs(search)
+        this.items = await this.instance.fetchDocs(search)
       } catch (err) {
         // eslint-disable-next-line no-console
         console.error('fetchDocs に失敗しました。')
@@ -92,18 +85,12 @@ export default {
 <template>
   <g-template-default v-slot="{ height }">
     <v-container fluid :style="{ height: `${height}px` }">
-      <air-array-manager
-        :dialog-props="{ maxWidth: 600 }"
-        event-edit="click:row"
-        :event-edit-handler="
-          ($event) => $router.push(`/customers/${$event.docId}`)
-        "
-        :handle-create="async (item) => await item.create()"
+      <g-collection-manager-customers
+        :event-edit="eventEdit"
+        :event-edit-handler="eventEditHandler"
         height="100%"
         :items="items"
-        label="取引先情報"
         :loading="loading"
-        :schema="schema"
       >
         <template #default="{ activator, pagination, table }">
           <v-sheet class="d-flex flex-column" height="100%">
@@ -169,10 +156,7 @@ export default {
             <g-pagination v-bind="pagination.attrs" v-on="pagination.on" />
           </v-sheet>
         </template>
-        <template #inputs="{ attrs, on }">
-          <g-input-customer v-bind="attrs" v-on="on" />
-        </template>
-      </air-array-manager>
+      </g-collection-manager-customers>
     </v-container>
   </g-template-default>
 </template>

@@ -22,7 +22,7 @@ export default {
      * ドキュメントの追加処理を上書きします。
      * (item) => Promise<void>
      */
-    handleRegist: {
+    handleCreate: {
       type: Function,
       default: async (item) => await item.create(),
       validator: (v) => !v || typeof v === 'function',

@@ -1,23 +1,23 @@
 <script>
 /**
- * 現場ドキュメント管理コンポーネント
+ * 現場コレクション管理コンポーネント
  * @author shisyamo4131
  * @refact 2025-02-06
  */
 import GInputSite from '../molecules/inputs/GInputSite.vue'
-import GDocumentManager from './GDocumentManager.vue'
+import GCollectionManager from './GCollectionManager.vue'
 import Site from '~/models/Site'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GInputSite, GDocumentManager },
+  components: { GCollectionManager, GInputSite },
 
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
-    label: { type: String, default: '現場情報編集', required: false },
+    label: { type: String, default: '現場情報', required: false },
   },
 
   /***************************************************************************
@@ -32,11 +32,11 @@ export default {
 </script>
 
 <template>
-  <g-document-manager
+  <g-collection-manager
     v-bind="$attrs"
     :dialog-props="{ maxWidth: 600 }"
-    :instance="instance"
     :label="label"
+    :instance="instance"
     v-on="$listeners"
   >
     <template #default="props">
@@ -45,7 +45,7 @@ export default {
     <template #inputs="{ attrs, on }">
       <g-input-site v-bind="attrs" v-on="on" />
     </template>
-  </g-document-manager>
+  </g-collection-manager>
 </template>
 
 <style></style>
