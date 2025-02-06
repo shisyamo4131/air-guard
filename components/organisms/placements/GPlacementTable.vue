@@ -18,8 +18,7 @@ import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 import { PlacedEmployee, PlacedOutsourcer } from '~/models/Placement'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
-import GInputSiteOperationSchedule from '~/components/molecules/inputs/GInputSiteOperationSchedule.vue'
-import AirArrayManager from '~/components/air/AirArrayManager.vue'
+import GCollectionManagerSiteOperationSchedules from '~/components/managers/GCollectionManagerSiteOperationSchedules.vue'
 
 export default {
   /***************************************************************************
@@ -34,8 +33,7 @@ export default {
     GPlacementSiteOperationSchedulesDialog,
     GSwitch,
     GBtnCancel,
-    GInputSiteOperationSchedule,
-    AirArrayManager,
+    GCollectionManagerSiteOperationSchedules,
   },
 
   /***************************************************************************
@@ -884,20 +882,11 @@ export default {
     />
 
     <!-- 現場稼働予定編集コンポーネント -->
-    <air-array-manager
+    <g-collection-manager-site-operation-schedules
       ref="schedule-editor"
-      :dialog-props="{ maxWidth: 360 }"
       :items="schedule.items"
-      :handle-create="async (item) => await item.create()"
-      :handle-update="async (item) => await item.update()"
-      :handle-delete="async (item) => await item.delete()"
-      label="現場稼働予定"
-      :schema="schedule.editModel"
-    >
-      <template #inputs="{ attrs, on }">
-        <g-input-site-operation-schedule v-bind="attrs" v-on="on" />
-      </template>
-    </air-array-manager>
+      :instance="schedule.editModel"
+    />
 
     <!-- employee placement dialog -->
     <g-placement-employee-placement-edit-dialog

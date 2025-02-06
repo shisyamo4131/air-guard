@@ -58,11 +58,30 @@ export default {
       validator: (v) => v instanceof FireModel,
     },
   },
+
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    /*******************************************
+     * AirArrayManager のメソッドを提供
+     *******************************************/
+    async toRegist() {
+      await this.$refs.manager.toRegist()
+    },
+    async toUpdate(item) {
+      await this.$refs.manager.toUpdate(item)
+    },
+    async toDelete(item) {
+      await this.$refs.manager.toDelete(item)
+    },
+  },
 }
 </script>
 
 <template>
   <air-array-manager
+    ref="manager"
     v-bind="$attrs"
     :handle-create="handleCreate"
     :handle-update="handleUpdate"

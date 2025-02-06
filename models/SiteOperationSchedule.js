@@ -1,65 +1,169 @@
+/*****************************************************************************
+ * カスタムクラス定義: 現場稼働予定 - SiteOperationSchedule -
+ *
+ * @author shisyamo4131
+ * @refact 2025-02-06
+ *****************************************************************************/
 import { runTransaction } from 'firebase/firestore'
 import { FireModel, firestore } from 'air-firebase'
-import { classProps } from './propsDefinition/SiteOperationSchedule'
+import { generateProps } from './propsDefinition/propsUtil'
+import { SiteMinimal } from './Site'
 
 /**
- * 現場の稼働予定を管理するためのモデルクラスです。
- * @author shisyamo4131
+ * PROPERTIES
  */
-export default class SiteOperationSchedule extends FireModel {
-  /****************************************************************************
-   * STATIC
-   ****************************************************************************/
-  static collectionPath = 'SiteOperationSchedules'
-  static classProps = classProps
+const propsDefinition = {
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
 
-  /****************************************************************************
+  // 日付
+  date: { type: String, default: '', required: false, requiredByClass: true },
+
+  /**
+   * スケジュールの一括登録で使用するプロパティ。
+   */
+  dates: {
+    type: Array,
+    default: () => [],
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 現場ID
+  siteId: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 現場オブジェクト
+  site: {
+    type: Object,
+    default: () => new SiteMinimal(),
+    required: false,
+  },
+
+  // 勤務区分
+  workShift: {
+    type: String,
+    default: 'day',
+    validator: (v) => ['day', 'night'].includes(v),
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 開始時刻
+  startTime: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 終了時刻
+  endTime: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 必要人数
+  requiredWorkers: {
+    type: Number,
+    default: null,
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 要資格者フラグ
+  qualification: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 備考
+  remarks: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 休工フラグ（true で休工）
+  isClosed: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
+}
+
+const { vueProps, classProps } = generateProps(propsDefinition)
+
+export { vueProps }
+
+/*****************************************************************************
+ * カスタムクラス - default -
+ *****************************************************************************/
+export default class SiteOperationSchedule extends FireModel {
+  // FireModel 設定
+  static collectionPath = 'SiteOperationSchedules'
+  static useAutonumber = false
+  static logicalDelete = false
+  static classProps = classProps
+  static tokenFields = []
+  static hasMany = []
+
+  /**
    * beforeCreateをオーバーライドします。
    * - 同一の現場、日付、勤務区分での稼働予定が存在する場合は作成不可です。
+   * - 休工フラグが true の場合、必要人数を強制的に 0 にします。
+   * - site プロパティに現場ドキュメントを読み込みます。
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
-   ****************************************************************************/
-  beforeCreate() {
-    return new Promise((resolve, reject) => {
-      if (!this.siteId) {
-        reject(new Error('現場の指定が必要です。'))
-      }
-      if (!this.date) {
-        reject(new Error('日付の指定が必要です。'))
-      }
-      if (!this.workShift) {
-        reject(new Error('勤務区分の指定が必要です。'))
-      }
-      if (this.isClosed) this.requiredWorkers = 0
-      resolve()
-    })
+   */
+  async beforeCreate() {
+    if (!this.siteId) throw new Error('現場の指定が必要です。')
+    if (!this.date) throw new Error('日付の指定が必要です。')
+    if (!this.workShift) throw new Error('勤務区分の指定が必要です。')
+
+    if (this.isClosed) this.requiredWorkers = 0
+
+    /**
+     * 一括作成（bulkCreate）の際、beforeCreate が複数回コールされるため
+     * 現場ドキュメントの無駄な読み込みが発生します。
+     * これを避けるため、siteId と site.docId を比較し、異なるときにのみ
+     * 現場ドキュメントを読み込むようにしています。
+     */
+    if (this.siteId !== this.site.docId) {
+      await this.site.fetch(this.siteId)
+    }
+
+    await super.beforeCreate()
   }
 
-  /****************************************************************************
+  /**
    * beforeUpdateをオーバーライドします。
    * - 現場、日付、勤務区分が変更されていないか確認します。
    * @returns {Promise<void>} - 成功すると解決されるPromise
    * @throws {Error} - 現場、日付、勤務区分が変更されている場合にエラーをスローします。
-   ****************************************************************************/
-  beforeUpdate() {
-    return new Promise((resolve, reject) => {
-      // 正規表現を使用して、siteId, date, workShiftを抽出
-      const match = this.docId.match(/^([^-]+)-(\d{4}-\d{2}-\d{2})-([^-]+)$/)
-      const [, siteId, date, workShift] = match
+   */
+  async beforeUpdate() {
+    // 現場ID、日付、勤務区分の変更は不可
+    const { siteId, date, workShift } = this._beforeData
+    if (
+      this.siteId !== siteId ||
+      this.date !== date ||
+      this.workShift !== workShift
+    ) {
+      throw new Error('現場、日付、勤務区分は変更できません。')
+    }
 
-      if (
-        siteId !== this.siteId ||
-        date !== this.date ||
-        workShift !== this.workShift
-      ) {
-        reject(new Error('現場、日付、勤務区分は変更できません。'))
-      }
+    // 休工フラグが true であれば必要人数は強制的に 0 とする
+    if (this.isClosed) this.requiredWorkers = 0
 
-      if (this.isClosed) this.requiredWorkers = 0
-      resolve()
-    })
+    await super.beforeUpdate()
   }
 
-  /****************************************************************************
+  /**
    * createメソッドをオーバーライドします。
    * - `docId`は`${siteId}-${date}-${workShift}`に固定されます。
    * - bulk オプションが true の場合は `dates` プロパティに保存されているすべての日付について一括で作成します。（既定値: true）
@@ -70,7 +174,7 @@ export default class SiteOperationSchedule extends FireModel {
    * @param {Object} [options.transaction=null] - Firestore のトランザクションオブジェクト（オプション）
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
    * @throws {Error} ドキュメント作成中にエラーが発生した場合にエラーをスローします
-   ****************************************************************************/
+   */
   async create({ bulk = true, overRide = false, transaction = null } = {}) {
     try {
       if (bulk) {
@@ -98,13 +202,13 @@ export default class SiteOperationSchedule extends FireModel {
     }
   }
 
-  /****************************************************************************
+  /**
    * [PRIVATE]
    * dates プロパティを参照し、指定された複数（または単一）の日付の現場稼働予定ドキュメントを作成します。
    * @param {Object} options
    * @param {boolean} [options.overRide=false] - true の場合、既存のドキュメントが存在しても上書きされます。
    * @param {Object} [options.transaction=null] - Firestore のトランザクションオブジェクト（オプション）
-   ****************************************************************************/
+   */
   async _bulkCreate({ overRide = false, transaction = null } = {}) {
     // 一括作成用である dates プロパティをチェック
     if (!Array.isArray(this.dates) || !this.dates.length) {
@@ -150,7 +254,7 @@ export default class SiteOperationSchedule extends FireModel {
     }
   }
 
-  /****************************************************************************
+  /**
    * from で指定された現場IDの稼働予定ドキュメントを to で指定された現場IDの
    * 稼働予定として登録します。
    * - 既に存在する現場稼働予定は上書きされます。
@@ -158,7 +262,7 @@ export default class SiteOperationSchedule extends FireModel {
    * @param {Object} options
    * @param {string} options.from - 統合元の現場ID
    * @param {string} options.to - 統合先の現場ID
-   ****************************************************************************/
+   */
   static async integrate({ from, to } = {}) {
     const instance = new this()
     try {
@@ -202,5 +306,43 @@ export default class SiteOperationSchedule extends FireModel {
       )
       throw new Error('Integration failed')
     }
+  }
+}
+
+/*****************************************************************************
+ * カスタムクラス - Minimal -
+ *****************************************************************************/
+export class SiteOperationScheduleMinimal extends SiteOperationSchedule {
+  // initialize をオーバーライド
+  initialize(item = {}) {
+    super.initialize(item)
+    delete this.createAt
+    delete this.updateAt
+    delete this.uid
+    delete this.remarks
+    delete this.tokenMap
+  }
+
+  // 更新系メソッドは使用不可
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
+  }
+
+  update() {
+    return Promise.reject(new Error('このクラスの update は使用できません。'))
+  }
+
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
+  }
+
+  deleteAll() {
+    return Promise.reject(
+      new Error('このクラスの deleteAll は使用できません。')
+    )
+  }
+
+  restore() {
+    return Promise.reject(new Error('このクラスの restore は使用できません。'))
   }
 }

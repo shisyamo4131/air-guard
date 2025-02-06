@@ -23,9 +23,27 @@ export default {
     label: { type: String, default: '現場稼働予定情報', required: false },
     instance: {
       type: Object,
-      default: new SiteOperationSchedule(),
+      default: () => new SiteOperationSchedule(),
       required: false,
       validator: (v) => v instanceof SiteOperationSchedule,
+    },
+  },
+
+  /***************************************************************************
+   * METHODS
+   ***************************************************************************/
+  methods: {
+    /*******************************************
+     * AirArrayManager のメソッドを提供
+     *******************************************/
+    async toRegist() {
+      await this.$refs.manager.toRegist()
+    },
+    async toUpdate(item) {
+      await this.$refs.manager.toUpdate(item)
+    },
+    async toDelete(item) {
+      await this.$refs.manager.toDelete(item)
     },
   },
 }
@@ -33,8 +51,9 @@ export default {
 
 <template>
   <g-collection-manager
+    ref="manager"
     v-bind="$attrs"
-    :dialog-props="{ maxWidth: 480 }"
+    :dialog-props="{ maxWidth: 600 }"
     :label="label"
     :instance="instance"
     v-on="$listeners"

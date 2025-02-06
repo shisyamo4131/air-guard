@@ -20,7 +20,7 @@ export default {
     label: { type: String, default: '現場情報', required: false },
     instance: {
       type: Object,
-      default: new Site(),
+      default: () => new Site(),
       required: false,
       validator: (v) => v instanceof Site,
     },

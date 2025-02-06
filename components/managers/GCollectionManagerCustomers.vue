@@ -20,7 +20,7 @@ export default {
     label: { type: String, default: '取引先情報', required: false },
     instance: {
       type: Object,
-      default: new Customer(),
+      default: () => new Customer(),
       required: false,
       validator: (v) => v instanceof Customer,
     },
