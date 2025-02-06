@@ -128,7 +128,7 @@ export default {
         <g-select
           v-model="editItem.emergencyContactRelation"
           label="続柄"
-          :items="$RELATION_ARRAY"
+          :items="$EMERGENCY_CONTACT_RELATION_ARRAY"
           required
         />
         <g-text-field

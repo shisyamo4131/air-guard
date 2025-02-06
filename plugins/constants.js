@@ -11,6 +11,10 @@ import {
 import { DAY_TYPE, DAY_TYPE_ARRAY } from '~/models/constants/day-types'
 import { DEADLINE, DEADLINE_ARRAY } from '~/models/constants/deadlines'
 import {
+  EMERGENCY_CONTACT_RELATION,
+  EMERGENCY_CONTACT_RELATION_ARRAY,
+} from '~/models/constants/emergency-contact-relations'
+import {
   EMPLOYEE_CONTRACT_TYPE,
   EMPLOYEE_CONTRACT_TYPE_ARRAY,
 } from '~/models/constants/employee-contract-types'
@@ -22,7 +26,10 @@ import {
   EQUIPMENT_STATUS,
   EQUIPMENT_STATUS_ARRAY,
 } from '~/models/constants/equipment-status'
-import { MEDICAL_CHECKUP_TYPE } from '~/models/constants/medical-checkup-types'
+import {
+  MEDICAL_CHECKUP_TYPE,
+  MEDICAL_CHECKUP_TYPE_ARRAY,
+} from '~/models/constants/medical-checkup-types'
 import {
   OUTSOURCER_STATUS,
   OUTSOURCER_STATUS_ARRAY,
@@ -139,18 +146,6 @@ const DAY_OF_WEEK_JA = {
   },
 }
 
-const EDIT_MODE = {
-  REGIST: '登録',
-  UPDATE: '変更',
-  DELETE: '削除',
-}
-
-const EDIT_MODE_ARRAY = [
-  { text: '登録', value: 'REGIST' },
-  { text: '変更', value: 'UPDATE' },
-  { text: '削除', value: 'DELETE' },
-]
-
 const LEAVE_APPLICATION_STATUS = {
   approved: '承認',
   unapproved: '未承認',
@@ -174,31 +169,6 @@ const LEAVE_APPLICATION_TYPE_ARRAY = [
   { value: 'non-paid', text: '1: 休暇' },
   { value: 'paid', text: '2: 有給休暇' },
 ]
-
-/**
- * 健康診断受診区分
- */
-const MEDICAL_CHECKUP_TYPE_ARRAY = Object.entries(MEDICAL_CHECKUP_TYPE).map(
-  ([key, value]) => {
-    return { value: key, text: value }
-  }
-)
-
-/**
- * 続柄
- */
-const RELATION = {
-  spouse: '配偶者',
-  parent: '親',
-  child: '子',
-  brother: '兄弟',
-  sister: '姉妹',
-  other: 'その他',
-}
-
-const RELATION_ARRAY = Object.entries(RELATION).map(([key, value]) => {
-  return { value: key, text: value }
-})
 
 const TEMPORARY_SITE_STATUS = {
   accepted: '受注',
@@ -250,8 +220,8 @@ export default (context, inject) => {
   inject('DAY_TYPE_ARRAY', DAY_TYPE_ARRAY)
   inject('DEADLINE', DEADLINE)
   inject('DEADLINE_ARRAY', DEADLINE_ARRAY)
-  inject('EDIT_MODE', EDIT_MODE)
-  inject('EDIT_MODE_ARRAY', EDIT_MODE_ARRAY)
+  inject('EMERGENCY_CONTACT_RELATION', EMERGENCY_CONTACT_RELATION)
+  inject('EMERGENCY_CONTACT_RELATION_ARRAY', EMERGENCY_CONTACT_RELATION_ARRAY)
   inject('EMPLOYEE_CONTRACT_TYPE', EMPLOYEE_CONTRACT_TYPE)
   inject('EMPLOYEE_CONTRACT_TYPE_ARRAY', EMPLOYEE_CONTRACT_TYPE_ARRAY)
   inject('EMPLOYEE_STATUS', EMPLOYEE_STATUS)
@@ -293,8 +263,6 @@ export default (context, inject) => {
 
   inject('PENSION_PROCESSING_STATUS', PENSION_PROCESSING_STATUS)
   inject('PENSION_PROCESSING_STATUS_ARRAY', PENSION_PROCESSING_STATUS_ARRAY)
-  inject('RELATION', RELATION)
-  inject('RELATION_ARRAY', RELATION_ARRAY)
   inject('SECURITY_TYPE', SECURITY_TYPE)
   inject('SECURITY_TYPE_ARRAY', SECURITY_TYPE_ARRAY)
   inject('SITE_STATUS', SITE_STATUS)
