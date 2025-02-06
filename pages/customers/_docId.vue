@@ -115,7 +115,7 @@ export default {
             color="primary"
             :dialog-props="{ maxWidth: 600 }"
             :doc-id="docId"
-            :handle-update="async (item) => await item.udpate()"
+            :handle-update="async (item) => await item.update()"
             :handle-delete="async (item) => await item.delete()"
             height="100%"
             :item="listener"
