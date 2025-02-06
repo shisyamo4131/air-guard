@@ -1,3 +1,9 @@
+/*****************************************************************************
+ * カスタムクラス定義: 現場 - Site -
+ *
+ * @author shisyamo4131
+ * @refact 2025-02-06
+ *****************************************************************************/
 import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import {
@@ -7,48 +13,174 @@ import {
 } from '../modules/database.js'
 import { CustomerMinimal } from './Customer.js'
 import FireModel from './FireModel.js'
-import { classProps } from './propsDefinition/Site.js'
+import { generateProps } from './propsDefinition/propsUtil.js'
 const firestore = getFirestore()
 
 /**
- * Cloud Functions で Firestore の Sites ドキュメントを操作するためのクラスです。
- * FireMode を継承していますが、更新系のメソッドは利用できません。
- * @author shisyamo4131
+ * PROPERTIES
  */
+const propsDefinition = {
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
+
+  // 取引先ID
+  customerId: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 取引先ドキュメント
+  customer: {
+    type: Object,
+    default: null,
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 現場code
+  code: { type: String, default: '', required: false, requiredByClass: false },
+
+  // 現場名
+  name: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 現場名略称
+  abbr: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 現場名略称カナ
+  abbrKana: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 略称コード（取引先から指定された現場のコードなど）
+  abbrNumber: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 住所
+  address: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 開始日
+  startAt: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 終了日
+  endAt: { type: String, default: '', required: false, requiredByClass: false },
+
+  // 警備種別
+  securityType: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 状態
+  status: {
+    type: String,
+    default: 'active',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 備考
+  remarks: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: false,
+  },
+
+  // お気に入りフラグ
+  favorite: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 同期状態
+  sync: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
+
+  // スポット現場フラグ
+  isSpot: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
+
+  // 現場取極め存在フラグ
+  hasContract: {
+    type: Boolean,
+    default: false,
+    required: false,
+    requiredByClass: false,
+  },
+
+  location: {
+    type: Object,
+    default: () => {
+      return {
+        formattedAddress: null,
+        lat: null,
+        lng: null,
+      }
+    },
+    required: false,
+  },
+}
+
+const { classProps } = generateProps(propsDefinition)
+
+/*****************************************************************************
+ * カスタムクラス - default -
+ *****************************************************************************/
 export default class Site extends FireModel {
-  /****************************************************************************
-   * STATIC
-   ****************************************************************************/
+  // FireModel 設定
   static collectionPath = 'Sites'
+  static useAutonumber = true
+  static logicalDelete = true
   static classProps = classProps
+  static tokenFields = ['abbr', 'abbrKana']
+  static hasMany = [
+    {
+      collection: 'OperationResults',
+      field: 'siteId',
+      condition: '==',
+      type: 'collection',
+    },
+  ]
 
-  /****************************************************************************
-   * CUSTOM CLASS MAPPING
-   ****************************************************************************/
-  static customClassMap = {
-    customer: CustomerMinimal,
-  }
+  // カスタムクラスマップ
+  static customClassMap = { customer: CustomerMinimal }
 
-  /****************************************************************************
-   * 更新系メソッドは使用不可
-   ****************************************************************************/
-  create() {
-    return Promise.reject(new Error('このクラスの create は使用できません。'))
-  }
-
-  update() {
-    return Promise.reject(new Error('このクラスの update は使用できません。'))
-  }
-
-  delete() {
-    return Promise.reject(new Error('このクラスの delete は使用できません。'))
-  }
-
-  /****************************************************************************
+  /**
    * Realtime Databaseの`AirGuard/Sites`の内容で、FirestoreのSitesドキュメントを更新します。
    * @param {string} code - Realtime Database内のSitesデータを識別するコード
    * @returns {Promise<void>} - 同期が正常に完了した場合は、解決されたPromiseを返します
-   ****************************************************************************/
+   */
   static async syncFromAirGuard(code) {
     try {
       await syncToFirestoreFromAirGuard(code, 'Sites', this)
@@ -58,7 +190,7 @@ export default class Site extends FireModel {
     }
   }
 
-  /****************************************************************************
+  /**
    * 指定された `siteId` の `Sites` ドキュメントの `hasContract` プロパティをトランザクション内で更新します。
    *
    * - このメソッドは Firestore トランザクションを使用して `Sites` ドキュメントを更新します。
@@ -72,7 +204,7 @@ export default class Site extends FireModel {
    *
    * @param {string} siteId - 更新対象の `Sites` ドキュメントの ID
    * @returns {Promise<void>} - 処理が完了すると解決される Promise
-   ****************************************************************************/
+   */
   static async refreshHasContract(siteId) {
     try {
       const siteDocRef = firestore.collection('Sites').doc(siteId)
@@ -113,39 +245,75 @@ export default class Site extends FireModel {
   }
 }
 
-/**
- * Realtime Database で管理する Site インデックス用のクラスです。
- */
-export class SiteIndex extends Site {
-  /****************************************************************************
-   * CONSTRUCTOR
-   ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
+/*****************************************************************************
+ * カスタムクラス - Minimal -
+ *****************************************************************************/
+export class SiteMinimal extends Site {
+  // initialize をオーバーライド
+  initialize(item = {}) {
+    super.initialize(item)
+    delete this.createAt
+    delete this.updateAt
+    delete this.uid
+    delete this.remarks
+    delete this.tokenMap
+  }
 
-    // インデックスに必要なプロパティを定義
-    const keepProps = [
-      'code',
-      'name',
-      'name2',
-      'abbr',
-      'abbrKana',
-      'address',
-      'customerId',
-      'status',
-      'sync',
-    ]
+  // 更新系メソッドは使用不可
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
+  }
 
-    // Site クラスから不要なプロパティを削除
+  update() {
+    return Promise.reject(new Error('このクラスの update は使用できません。'))
+  }
+
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
+  }
+
+  deleteAll() {
+    return Promise.reject(
+      new Error('このクラスの deleteAll は使用できません。')
+    )
+  }
+
+  restore() {
+    return Promise.reject(new Error('このクラスの restore は使用できません。'))
+  }
+}
+
+/*****************************************************************************
+ * カスタムクラス - Index -
+ *****************************************************************************/
+export class SiteIndex extends SiteMinimal {
+  // インデックスとして用意するプロパティを定義
+  static keepProps = [
+    'code',
+    'name',
+    'name2',
+    'abbr',
+    'abbrKana',
+    'address',
+    'customerId',
+    'status',
+    'sync',
+  ]
+
+  // initialize をオーバーライド
+  initialize(item = {}) {
+    super.initialize(item)
+
+    // keepProps で定義されたプロパティ以外を削除
     Object.keys(this).forEach((key) => {
-      if (!keepProps.includes(key)) delete this[key]
+      if (!this.constructor.keepProps.includes(key)) delete this[key]
     })
   }
 
-  /****************************************************************************
+  /**
    * Realtime Database にインデックスを作成します。
    * @param {string} siteId - インデックス作成対象の現場ID
-   ****************************************************************************/
+   */
   static async create(siteId) {
     const functionName = 'create'
     try {
@@ -156,10 +324,10 @@ export class SiteIndex extends Site {
     }
   }
 
-  /****************************************************************************
+  /**
    * Realtime Database からインデックスを削除します。
    * @param {string} siteId - インデックス削除対象の現場ID
-   ****************************************************************************/
+   */
   static async remove(siteId) {
     const functionName = 'remove'
     try {
@@ -168,22 +336,5 @@ export class SiteIndex extends Site {
       logger.error(`[${functionName}] ${error.message}`, { siteId })
       throw error
     }
-  }
-}
-
-/**
- * Site クラスからカスタムクラス用に不要なプロパティを削除したクラスです。
- */
-export class SiteMinimal extends Site {
-  /****************************************************************************
-   * CONSTRUCTOR
-   ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
-
-    delete this.createAt
-    delete this.updateAt
-    delete this.remarks
-    delete this.tokenMap
   }
 }

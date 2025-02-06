@@ -14,14 +14,6 @@ import FireModel from './FireModel.js'
 import { generateProps } from './propsDefinition/propsUtil.js'
 
 /**
- * 定数定義: 取引先状態
- */
-const CUSTOMER_STATUS = Object.freeze({
-  active: '取引中',
-  expired: '取引停止',
-})
-
-/**
  * PROPERTIES
  */
 const propsDefinition = {
@@ -80,7 +72,6 @@ const propsDefinition = {
   status: {
     type: String,
     default: 'active',
-    validator: (v) => Object.keys(CUSTOMER_STATUS).includes(v),
     required: false,
     requiredByClass: true,
   },
@@ -89,7 +80,6 @@ const propsDefinition = {
   deadline: {
     type: String,
     default: '99',
-    validator: (v) => ['05', '10', '15', '20', '25', '99'].includes(v),
     required: false,
     requiredByClass: true,
   },
@@ -107,7 +97,6 @@ const propsDefinition = {
   depositDate: {
     type: String,
     default: '99',
-    validator: (v) => ['05', '10', '15', '20', '25', '99'].includes(v),
     required: false,
     requiredByClass: true,
   },
