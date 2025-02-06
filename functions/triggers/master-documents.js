@@ -114,6 +114,7 @@ const DOCUMENT_SYNC_DEFINITIONS = {
   Customers: {
     // 取引先 -> 現場
     Sites: {
+      // referenceClass: Site,
       updateProp: 'customer',
       compareProp: 'customerId',
       ComparisonClass: CustomerMinimal,
@@ -293,14 +294,39 @@ async function handleSyncronizeDependentDocuments(event) {
     `[onWrite${updatedCollectionId}] Synchronization definitions found: ${formattedDefinitions}`
   )
 
+  /*****************************************************
+   * 参照クラス設定による処理に切り替える際にコメント解除
+   *****************************************************/
+  // 定義内容を確認
+  // for (const [collectionId, defs] of Object.entries(definitions)) {
+  //   const { referenceClass, updateProp, compareProp } = defs
+  //   if (!referenceClass || !updateProp || !compareProp) {
+  //     logger.error(
+  //       `[onWrite${updatedCollectionId}] Synchronization definition of ${collectionId} does not have required property.`
+  //     )
+  //     return
+  //   }
+  //   const ComparisonClass = referenceClass.customClassMap?.[updateProp]
+  //   if (!ComparisonClass) {
+  //     logger.error(
+  //       `[onWrite${updatedCollectionId}] '${updateProp}' property does not defined as customClassMap at reference class.`
+  //     )
+  //     return
+  //   }
+  // }
+
   try {
     // 同期処理を直列で実行
     for (const [collectionId, defs] of Object.entries(definitions)) {
+      /*************************************************
+       * 参照クラス設定による処理に切り替えたらコード差し替え
+       *************************************************/
       const { updateProp, compareProp, ComparisonClass } = defs
-
-      logger.info(
-        `[onWrite${updatedCollectionId}] ${updatedCollectionId} >>>>> ${collectionId}`
-      )
+      // const { referenceClass, updateProp, compareProp } = defs
+      // const ComparisonClass = referenceClass[updateProp]
+      // logger.info(
+      //   `[onWrite${updatedCollectionId}] ${updatedCollectionId} >>>>> ${collectionId}`
+      // )
 
       // 差分を取得
       const differences = extractDiffsFromDocUpdatedEvent({
