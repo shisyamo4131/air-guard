@@ -1,28 +1,31 @@
 <script>
 /**
- * 現場コレクション管理のためのラッパーコンポーネント
+ * 現場稼働予定コレクション管理のためのラッパーコンポーネント
  * @author shisyamo4131
  * @refact 2025-02-06
  */
-import GInputSite from '../molecules/inputs/GInputSite.vue'
+import GInputSiteOperationSchedule from '../molecules/inputs/GInputSiteOperationSchedule.vue'
 import GCollectionManager from './GCollectionManager.vue'
-import Site from '~/models/Site'
+import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
-  components: { GCollectionManager, GInputSite },
+  components: {
+    GCollectionManager,
+    GInputSiteOperationSchedule,
+  },
 
   /***************************************************************************
    * PROPS
    ***************************************************************************/
   props: {
-    label: { type: String, default: '現場情報', required: false },
+    label: { type: String, default: '現場稼働予定情報', required: false },
     instance: {
       type: Object,
-      default: new Site(),
+      default: new SiteOperationSchedule(),
       required: false,
-      validator: (v) => v instanceof Site,
+      validator: (v) => v instanceof SiteOperationSchedule,
     },
   },
 }
@@ -31,7 +34,7 @@ export default {
 <template>
   <g-collection-manager
     v-bind="$attrs"
-    :dialog-props="{ maxWidth: 600 }"
+    :dialog-props="{ maxWidth: 480 }"
     :label="label"
     :instance="instance"
     v-on="$listeners"
@@ -40,7 +43,7 @@ export default {
       <slot name="default" v-bind="props" />
     </template>
     <template #inputs="{ attrs, on }">
-      <g-input-site v-bind="attrs" v-on="on" />
+      <g-input-site-operation-schedule v-bind="attrs" v-on="on" />
     </template>
   </g-collection-manager>
 </template>

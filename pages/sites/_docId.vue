@@ -6,9 +6,8 @@
  */
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GDocumentManagerSite from '~/components/managers/GDocumentManagerSite.vue'
-import GManagerSiteOperationSchedules from '~/components/managers/GManagerSiteOperationSchedules.vue'
-import GCardFloatingLabel from '~/components/atoms/cards/GCardFloatingLabel.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
+import GSiteOperationSchedulesManager from '~/components/organisms/GSiteOperationSchedulesManager.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -21,9 +20,8 @@ export default {
   components: {
     GTemplateDefault,
     GDocumentManagerSite,
-    GManagerSiteOperationSchedules,
-    GCardFloatingLabel,
     GBtnEdit,
+    GSiteOperationSchedulesManager,
   },
 
   /***************************************************************************
@@ -167,20 +165,11 @@ export default {
 
         <!-- 稼働予定 -->
         <v-col cols="12" lg="8">
-          <g-card-floating-label
-            v-slot="{ attrs }"
-            label="稼働予定"
-            color="primary"
-            icon="mdi-calendar"
-            outlined
-          >
+          <v-card outlined>
             <v-container fluid class="pt-0">
-              <g-manager-site-operation-schedules
-                v-bind="attrs"
-                :site-id="docId"
-              />
+              <g-site-operation-schedules-manager :site-id="docId" />
             </v-container>
-          </g-card-floating-label>
+          </v-card>
         </v-col>
       </v-row>
     </v-container>

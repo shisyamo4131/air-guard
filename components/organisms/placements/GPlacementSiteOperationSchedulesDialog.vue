@@ -5,14 +5,14 @@
  * @refact 2025-01-16
  */
 import GBtnCancel from '~/components/atoms/btns/GBtnCancel.vue'
-import GManagerSiteOperationSchedules from '~/components/managers/GManagerSiteOperationSchedules.vue'
+import GSiteOperationSchedulesManager from '~/components/organisms/GSiteOperationSchedulesManager.vue'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
     GBtnCancel,
-    GManagerSiteOperationSchedules,
+    GSiteOperationSchedulesManager,
   },
 
   /***************************************************************************
@@ -97,7 +97,7 @@ export default {
         <g-btn-cancel icon @click="dialog = false" />
       </v-toolbar>
       <v-card-text class="flex-grow-1 py-0 px-0 px-md-4">
-        <g-manager-site-operation-schedules :site-id="siteId" />
+        <g-site-operation-schedules-manager :site-id="siteId" />
       </v-card-text>
     </v-card>
   </v-dialog>

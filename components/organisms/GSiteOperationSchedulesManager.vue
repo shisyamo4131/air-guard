@@ -6,7 +6,7 @@
  *   現場稼働予定ドキュメントを Firestore から取得してカレンダーに表示します。
  *
  * @author shisyamo4131
- * @refact 2025-01-21
+ * @refact 2025-02-06
  */
 import ja from 'dayjs/locale/ja'
 import GBtnPrev from '../atoms/btns/GBtnPrev.vue'
@@ -17,9 +17,9 @@ import GIconEdit from '../atoms/icons/GIconEdit.vue'
 import GIconStar from '../atoms/icons/GIconStar.vue'
 import GIconDay from '../atoms/icons/GIconDay.vue'
 import GIconNight from '../atoms/icons/GIconNight.vue'
-import AirArrayManager from '../air/AirArrayManager.vue'
 import GInputSiteOperationSchedule from '../molecules/inputs/GInputSiteOperationSchedule.vue'
 import GSiteOperationScheduleCalendar from '../atoms/calendars/GSiteOperationScheduleCalendar.vue'
+import GCollectionManagerSiteOperationSchedules from '../managers/GCollectionManagerSiteOperationSchedules.vue'
 import SiteOperationSchedule from '~/models/SiteOperationSchedule'
 export default {
   /***************************************************************************
@@ -34,9 +34,9 @@ export default {
     GIconStar,
     GIconDay,
     GIconNight,
-    AirArrayManager,
     GInputSiteOperationSchedule,
     GSiteOperationScheduleCalendar,
+    GCollectionManagerSiteOperationSchedules,
   },
 
   /***************************************************************************
@@ -299,17 +299,11 @@ export default {
 </script>
 
 <template>
-  <air-array-manager
+  <g-collection-manager-site-operation-schedules
     v-bind="$attrs"
-    ref="manager"
     :before-edit="beforeEdit"
-    :dialog-props="{ maxWidth: 360 }"
-    :handle-create="handleCreate"
-    :handle-update="handleUpdate"
-    :handle-delete="handleDelete"
     :items="items"
-    label="現場稼働予定"
-    :schema="schema"
+    :instance="schema"
     v-on="$listeners"
   >
     <template #default="props">
@@ -408,7 +402,7 @@ export default {
         v-on="on"
       />
     </template>
-  </air-array-manager>
+  </g-collection-manager-site-operation-schedules>
 </template>
 
 <style></style>

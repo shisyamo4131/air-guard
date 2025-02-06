@@ -1,6 +1,6 @@
 <script>
 /**
- * 取引先コレクション管理コンポーネント
+ * 取引先コレクション管理のためのラッパーコンポーネント
  * @author shisyamo4131
  * @refact 2025-02-06
  */
@@ -18,15 +18,12 @@ export default {
    ***************************************************************************/
   props: {
     label: { type: String, default: '取引先情報', required: false },
-  },
-
-  /***************************************************************************
-   * DATA
-   ***************************************************************************/
-  data() {
-    return {
-      instance: new Customer(),
-    }
+    instance: {
+      type: Object,
+      default: new Customer(),
+      required: false,
+      validator: (v) => v instanceof Customer,
+    },
   },
 }
 </script>
