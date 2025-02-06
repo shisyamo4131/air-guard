@@ -2,10 +2,10 @@
 /**
  * 現場の詳細画面です。
  * @author shisyamo4131
- * @refact 2025-01-17
+ * @refact 2025-02-06
  */
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
-import GManagerSite from '~/components/managers/GManagerSite.vue'
+import GDocumentManagerSite from '~/components/managers/GDocumentManagerSite.vue'
 import GManagerSiteOperationSchedules from '~/components/managers/GManagerSiteOperationSchedules.vue'
 import GCardFloatingLabel from '~/components/atoms/cards/GCardFloatingLabel.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
@@ -20,7 +20,7 @@ export default {
    ***************************************************************************/
   components: {
     GTemplateDefault,
-    GManagerSite,
+    GDocumentManagerSite,
     GManagerSiteOperationSchedules,
     GCardFloatingLabel,
     GBtnEdit,
@@ -59,7 +59,7 @@ export default {
       <v-row>
         <!-- 現場概要 -->
         <v-col cols="12" lg="4">
-          <g-manager-site :doc-id="docId">
+          <g-document-manager-site :doc-id="docId">
             <template #default="{ attrs, on }">
               <v-card outlined>
                 <v-card-title>{{ attrs.abbr }}</v-card-title>
@@ -162,7 +162,7 @@ export default {
                 </v-card-actions>
               </v-card>
             </template>
-          </g-manager-site>
+          </g-document-manager-site>
         </v-col>
 
         <!-- 稼働予定 -->
