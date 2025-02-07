@@ -89,7 +89,7 @@ const COLLECTION_HANDLERS = {
         const coordinates = await fetchCoordinates(address)
         if (coordinates) {
           // 座標情報が取得が取得できたら再度現場ドキュメントの更新処理を行う
-          // もう一度トリガーが起動するが、住所が変更されている条件を満たさないため、ループはしない。
+          // もう一度トリガーが起動するが、住所変更の条件を満たさないため、ループはしない。
           await event.data.after.ref.update({ location: coordinates })
         }
       }
