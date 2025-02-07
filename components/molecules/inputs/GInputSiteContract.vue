@@ -10,7 +10,7 @@ import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GAutocompleteSite from '~/components/atoms/inputs/GAutocompleteSite.vue'
-import { UnitPrices, vueProps } from '~/models/propsDefinition/SiteContract'
+import { UnitPrices, vueProps } from '~/models/SiteContract'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
 import GDate from '~/components/atoms/inputs/GDate.vue'
 export default {

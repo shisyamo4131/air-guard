@@ -9,9 +9,9 @@ import { FireModel, firestore } from 'air-firebase'
 import { generateProps } from './propsDefinition/propsUtil'
 import { SiteMinimal } from './Site'
 
-/**
+/*****************************************************************************
  * PROPERTIES
- */
+ *****************************************************************************/
 const propsDefinition = {
   // ドキュメントID
   docId: { type: String, default: '', required: false },

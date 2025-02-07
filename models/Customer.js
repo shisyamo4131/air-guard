@@ -8,9 +8,9 @@ import { FireModel } from 'air-firebase'
 import { generateProps } from './propsDefinition/propsUtil'
 import { CUSTOMER_STATUS } from './constants/customer-status'
 
-/**
+/*****************************************************************************
  * PROPERTIES
- */
+ *****************************************************************************/
 const propsDefinition = {
   // ドキュメントID
   docId: { type: String, default: '', required: false },

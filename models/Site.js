@@ -12,9 +12,9 @@ import { SITE_STATUS } from './constants/site-status'
 import { generateProps } from './propsDefinition/propsUtil'
 import { fetchCoordinates } from '~/utils/geocode'
 
-/**
+/*****************************************************************************
  * PROPERTIES
- */
+ *****************************************************************************/
 const propsDefinition = {
   // ドキュメントID
   docId: { type: String, default: '', required: false },
