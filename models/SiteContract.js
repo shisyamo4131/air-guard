@@ -322,7 +322,7 @@ export default class SiteContract extends FireModel {
    */
   async beforeUpdate() {
     // 現場ID、開始日、勤務区分は変更不可
-    const [siteId, startDate, workShift] = this._beforeData
+    const { siteId, startDate, workShift } = this._beforeData
     if (
       siteId !== this.siteId ||
       startDate !== this.startDate ||
