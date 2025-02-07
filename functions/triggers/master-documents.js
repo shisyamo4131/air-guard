@@ -86,12 +86,10 @@ const COLLECTION_HANDLERS = {
         logger.warn(
           `***** CAUTION ***** 座標情報の暫定更新処理を行います。この処理は Access 版 AirGuard からのインポートフローが無くなった時点で削除してください。`
         )
+        // 座標情報を取得して、再度現場ドキュメントを更新。
+        // もう一度トリガーが起動するが、住所変更の条件を満たさないため、ループはしない。
         const coordinates = await fetchCoordinates(address)
-        if (coordinates) {
-          // 座標情報が取得が取得できたら再度現場ドキュメントの更新処理を行う
-          // もう一度トリガーが起動するが、住所変更の条件を満たさないため、ループはしない。
-          await event.data.after.ref.update({ location: coordinates })
-        }
+        await event.data.after.ref.update({ location: coordinates })
       }
     },
     DELETED: async (event) => {

@@ -6,6 +6,7 @@ import System from '../models/System.js'
 import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory.js'
 import { SiteEmployeeHistory } from '../models/SiteEmployeeHistory.js'
 import Placement from '../models/Placement.js'
+import { fetchCoordinates } from './utils/geocoding.js'
 
 const firestore = getFirestore()
 
@@ -42,6 +43,14 @@ export const runDailyTask = onSchedule(
       await cleanUpSiteOperationSchedules()
       logger.log(
         `[runDailyTask] 保存期間を超過した稼働予定ドキュメントの削除処理が完了しました。`
+      )
+
+      logger.log(
+        `[runDailyTask] 現場ドキュメントの座標情報補完処理を開始します。`
+      )
+      await fillMissingSiteLocation()
+      logger.log(
+        `[runDailyTask] 現場ドキュメントの座標情報補完処理が完了しました。`
       )
     } catch (error) {
       logger.error('[runDailyTask] Error executing scheduled function:', error)
@@ -264,5 +273,67 @@ const cleanUpSiteOperationSchedules = async () => {
       }
     )
     throw error // 必要に応じて再スロー
+  }
+}
+
+/**
+ * 座標情報が欠落している現場ドキュメントの座標情報を補完します。
+ * - Geocoding API を使用しているため、一度に補完する最大ドキュメント数は 50 件に制限しています。
+ * - location フィールドが null であるものを抽出するため、座標情報が取得できない現場が
+ *   補完最大ドキュメント数を超えると、いつまで経っても補完が終わりません。
+ * @returns {Promise<void>} - 処理が完了すると解決するプロミス
+ */
+const fillMissingSiteLocation = async () => {
+  // この処理で読み込む現場ドキュメントの最大数（座標情報が null）
+  const FILL_MAX_COUNT = 50
+
+  // バッチ処理の最大処理数
+  const BATCH_LIMIT = 100
+
+  try {
+    const colRef = firestore.collection('Sites')
+    const queryRef = colRef.where('location', '==', null).limit(FILL_MAX_COUNT)
+    const snapshot = await queryRef.get()
+
+    if (snapshot.empty) {
+      // すべてのドキュメントが更新されたことを示すためにエラーとしてログ出力（意図的）
+      logger.info(
+        '[fillMissingSiteLocation] 座標情報（location）補完対象の現場ドキュメントは存在しませんでした。'
+      )
+      return
+    }
+
+    // 住所から座標データを並列取得
+    const locationUpdates = await Promise.all(
+      snapshot.docs.map(async (doc) => {
+        try {
+          const location = await fetchCoordinates(doc.data().address)
+          return { docRef: doc.ref, location: location || 'N/A' }
+        } catch (err) {
+          // 住所の座標取得に失敗した場合はログに警告を出すが処理は継続
+          logger.warn(
+            `[fillMissingSiteLocation] ${doc.id} の座標取得に失敗しました: ${err.message}`
+          )
+          return null
+        }
+      })
+    )
+
+    // Firestore バッチ更新
+    const batchArray = []
+    locationUpdates.forEach((update, index) => {
+      if (index % BATCH_LIMIT === 0) batchArray.push(firestore.batch())
+      batchArray[batchArray.length - 1].update(update.docRef, {
+        location: update.location,
+      })
+    })
+    for (const batch of batchArray) {
+      await batch.commit()
+    }
+  } catch (error) {
+    // 予期せぬエラーの発生時にエラーログを記録
+    logger.error(
+      `[fillMissingSiteLocation] エラーが発生しました: ${error.message}`
+    )
   }
 }
