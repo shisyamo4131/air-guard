@@ -6,7 +6,7 @@
  * - 入力された値が false と判断される場合は遅延を行わずに即時反映します。
  *
  * @author shisyamo4131
- * @refact 2025-02-05
+ * @refact 2025-02-07
  */
 export default {
   /***************************************************************************
@@ -20,6 +20,11 @@ export default {
     delay: { type: [String, Number], default: 500, required: false },
 
     /**
+     * 検索文字列として有効にする最低文字数です。
+     */
+    minLength: { type: [String, Number], default: 2, required: false },
+
+    /**
      * 入力の値です。
      */
     value: { type: undefined, default: undefined, required: false },
@@ -30,6 +35,9 @@ export default {
    ***************************************************************************/
   data() {
     return {
+      // コンポーネントで発生したエラーのメッセージを格納します。
+      errorMessages: [],
+
       // コンポーネント内部で管理する入力の値です。
       internalValue: null,
 
@@ -47,6 +55,11 @@ export default {
      */
     internalValue(v) {
       clearTimeout(this.timerId)
+      this.errorMessages.splice(0)
+      if (!!v && v.length < parseInt(this.minLength)) {
+        this.errorMessages.push(`${this.minLength}文字以上入力してください。`)
+        return
+      }
       const delay = v ? Number(this.delay) : 0
       this.timerId = setTimeout(() => {
         this.$emit('input', v)
@@ -71,6 +84,7 @@ export default {
     if (this.$scopedSlots.default) {
       return this.$scopedSlots.default({
         attrs: {
+          errorMessages: this.errorMessages,
           value: this.internalValue,
         },
         on: {
