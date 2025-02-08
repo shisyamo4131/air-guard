@@ -6,6 +6,7 @@ import System from '../models/System.js'
 import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory.js'
 import { SiteEmployeeHistory } from '../models/SiteEmployeeHistory.js'
 import Placement from '../models/Placement.js'
+import Employee from '../models/Employee.js'
 import { fetchCoordinates } from './utils/geocoding.js'
 
 const firestore = getFirestore()
@@ -15,6 +16,13 @@ const PLACEMENTS_KEEP_DAYS = 7
 
 // 現場稼働予定ドキュメントの保存期間（日）
 const SITE_OPERATION_SCHEDULES_KEEP_DAYS = 90
+
+/**
+ * 空更新の設定
+ * { collectionId: 'Employees', UseClass: Employee }
+ */
+const CLASSES = [{ collectionId: 'Employees', UseClass: Employee }]
+const MAX_DOC_COUNT = 20
 
 // 毎日 0 時に実行される Cloud Function
 export const runDailyTask = onSchedule(
@@ -51,6 +59,12 @@ export const runDailyTask = onSchedule(
       await fillMissingSiteLocation()
       logger.log(
         `[runDailyTask] 現場ドキュメントの座標情報補完処理が完了しました。`
+      )
+
+      logger.log(`[runDailyTask] クラス定義変更に伴う空更新処理を開始します。`)
+      await emptyUpdate()
+      logger.log(
+        `[runDailyTask] クラス定義変更に伴う空更新処理が完了しました。`
       )
     } catch (error) {
       logger.error('[runDailyTask] Error executing scheduled function:', error)
@@ -283,7 +297,7 @@ const cleanUpSiteOperationSchedules = async () => {
  *   補完最大ドキュメント数を超えると、いつまで経っても補完が終わりません。
  * @returns {Promise<void>} - 処理が完了すると解決するプロミス
  */
-const fillMissingSiteLocation = async () => {
+export const fillMissingSiteLocation = async () => {
   // この処理で読み込む現場ドキュメントの最大数（座標情報が null）
   const FILL_MAX_COUNT = 50
 
@@ -308,6 +322,12 @@ const fillMissingSiteLocation = async () => {
       snapshot.docs.map(async (doc) => {
         try {
           const location = await fetchCoordinates(doc.data().address)
+          if (!location) {
+            logger.warn(`不正な住所である可能性があります。`, {
+              docId: doc.data().docId,
+              address: doc.data().address,
+            })
+          }
           return { docRef: doc.ref, location: location || 'N/A' }
         } catch (err) {
           // 住所の座標取得に失敗した場合はログに警告を出すが処理は継続
@@ -335,5 +355,59 @@ const fillMissingSiteLocation = async () => {
     logger.error(
       `[fillMissingSiteLocation] エラーが発生しました: ${error.message}`
     )
+  }
+}
+
+/**
+ * クラスの内容に変更が生じた際、欠落した情報を補完するためにドキュメントの空更新を行うための関数です。
+ * @returns
+ */
+export const emptyUpdate = async () => {
+  if (CLASSES.length === 0) {
+    logger.info(
+      `[emptyUpdate] 空更新を行うべきコレクションは存在しませんでした。`
+    )
+    return
+  }
+  const historyDocRef = firestore.collection('EmptyUpdates').doc('EMPTY_UPDATE')
+  const historyDocSnapshot = await historyDocRef.get()
+  const historyData = historyDocSnapshot.exists ? historyDocSnapshot.data() : {}
+
+  for (const Cls of CLASSES) {
+    logger.info(`[emptyUpdate] ${Cls.collectionId} の空更新を行います。`)
+    const lastTimeDocId = historyData[Cls.collectionId]
+    const instance = new Cls.UseClass()
+
+    const constraints = lastTimeDocId
+      ? [
+          ['where', 'docId', '>', lastTimeDocId],
+          ['orderBy', 'docId'],
+          ['limit', MAX_DOC_COUNT],
+        ]
+      : [
+          ['orderBy', 'docId'],
+          ['limit', MAX_DOC_COUNT],
+        ]
+
+    const docs = await instance.fetchDocs(constraints)
+
+    if (docs.length === 0) {
+      logger.info(`No new updates for ${Cls.collectionId}`)
+      continue
+    }
+
+    for (const doc of docs) {
+      await doc.update() // ここでクラスの update メソッドを使用
+    }
+
+    // ドキュメントが取得できた場合のみ、lastDocId を更新
+    if (docs.length > 0) {
+      const lastDocId = docs[docs.length - 1].docId
+      await historyDocRef.set(
+        { [Cls.collectionId]: lastDocId },
+        { merge: true }
+      )
+    }
+    logger.info(`[emptyUpdate] ${Cls.collectionId} を空更新しました。`)
   }
 }

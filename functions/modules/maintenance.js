@@ -14,9 +14,36 @@ import { OutsourcerIndex } from '../models/Outsourcer.js'
 import { CustomerIndex } from '../models/Customer.js'
 import { EmployeeIndex } from '../models/Employee.js'
 import { SiteIndex } from '../models/Site.js'
+import { emptyUpdate, fillMissingSiteLocation } from './system.js'
 
 const database = getDatabase()
 const firestore = getFirestore()
+
+const handlers = {
+  fillMissingSiteLocation,
+  emptyUpdate,
+}
+
+/**
+ * システムメンテナンス用 API
+ * アプリ側から `maintenance-api` で Cloud Functions 上の関数を実行するための関数。
+ * handlers で呼び出す関数を定義する。
+ */
+export const api = onCall(async (request) => {
+  const { functionName, params } = request.data
+
+  if (!functionName || !handlers[functionName]) {
+    logger.error(`Function ${functionName} not found`)
+    throw new Error(`Function ${functionName} not found`)
+  }
+
+  try {
+    return await handlers[functionName](params, request)
+  } catch (error) {
+    logger.error(`Error in function ${functionName}:`, error)
+    throw new Error(error.message)
+  }
+})
 
 /****************************************************************************
  * Realtime Database のインデックスを更新する汎用関数です。

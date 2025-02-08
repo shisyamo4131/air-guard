@@ -39,8 +39,14 @@ export async function fetchCoordinates(address) {
         formattedAddress: data.results[0].formatted_address,
       }
     } else {
+      /**
+       * 2025-02-08 毎日、最初の1件がここに入る。
+       *            null を返しているのに呼び出し元で null 評価がなされない。
+       *            -> `不正な住所である可能性があります。` が出力されない。
+       *            一旦、この関数に入ってきている address を表示してみる。
+       */
       logger.warn(
-        '[fetchCoordinates] Geocoding API から有効なデータを取得できませんでした:',
+        `[fetchCoordinates] Geocoding API から有効なデータを取得できませんでした: ${address}`,
         data
       )
       return null
