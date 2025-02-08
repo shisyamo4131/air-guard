@@ -2,13 +2,12 @@
 /**
  * 外注先入力コンポーネント
  * @author shisyamo4131
- * @refact 2025-01-28
+ * @refact 2025-02-08
  */
 import GTextField from '../../atoms/inputs/GTextField.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GTextFieldZipcode from '~/components/atoms/inputs/GTextFieldZipcode.vue'
-import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
-import { vueProps } from '~/models/propsDefinition/Outsourcer'
+import { vueProps } from '~/models/Outsourcer'
 
 export default {
   /***************************************************************************
@@ -21,16 +20,9 @@ export default {
   },
 
   /***************************************************************************
-   * MIXINS
-   ***************************************************************************/
-  mixins: [GMixinEditModeReceiver],
-
-  /***************************************************************************
    * PROPS
    ***************************************************************************/
-  props: {
-    ...vueProps,
-  },
+  props: vueProps,
 }
 </script>
 

@@ -2,7 +2,7 @@
 /**
  * 取引先情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-02-06
+ * @refact 2025-02-08
  */
 import AirRenderlessDelayInput from '~/components/air/AirRenderlessDelayInput.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
@@ -53,10 +53,17 @@ export default {
     lazySearch: {
       handler(v) {
         this.items = []
-        if (v) this.fetchDocs(v)
+        if (v) this.subscribeDocs(v)
       },
       immediate: true,
     },
+  },
+
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.instance.unsubscribe()
   },
 
   /***************************************************************************
@@ -67,13 +74,13 @@ export default {
       this.$router.push(`/customers/${event.docId}`)
     },
 
-    async fetchDocs(search) {
+    async subscribeDocs(search) {
       this.loading = true
       try {
-        this.items = await this.instance.fetchDocs(search)
+        this.items = await this.instance.subscribeDocs(search)
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error('fetchDocs に失敗しました。')
+        console.error('subscribeDocs に失敗しました。')
       } finally {
         this.loading = false
       }

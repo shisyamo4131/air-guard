@@ -2,14 +2,15 @@
 /**
  * 外注先情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-29
+ * @refact 2025-02-08
  */
-import AirArrayManager from '~/components/air/AirArrayManager.vue'
+import AirRenderlessDelayInput from '~/components/air/AirRenderlessDelayInput.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
 import GIconStop from '~/components/atoms/icons/GIconStop.vue'
 import GPagination from '~/components/atoms/paginations/GPagination.vue'
+import GCollectionManagerOutsourcers from '~/components/managers/GCollectionManagerOutsourcers.vue'
 import GInputOutsourcer from '~/components/molecules/inputs/GInputOutsourcer.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import Outsourcer from '~/models/Outsourcer'
@@ -29,8 +30,9 @@ export default {
     GIconStop,
     GInputOutsourcer,
     GChipSyncStatus,
-    AirArrayManager,
     GPagination,
+    GCollectionManagerOutsourcers,
+    AirRenderlessDelayInput,
   },
 
   /***************************************************************************
@@ -38,57 +40,47 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      schema: new Outsourcer(),
+      items: [],
+      lazySearch: null,
+      loading: false,
+      instance: new Outsourcer(),
     }
   },
 
   /***************************************************************************
-   * COMPUTED
+   * WATCH
    ***************************************************************************/
-  computed: {
-    /**
-     * DataTable のカラム設定です。
-     */
-    headers() {
-      const template = [
-        { text: 'CODE', value: 'code', width: 84 },
-        { text: '外注先名', value: 'abbr' },
-        { text: '住所1', value: 'address1', sortable: false },
-        {
-          text: '同期状態',
-          value: 'sync',
-          sortable: false,
-          align: 'center',
-        },
-      ]
-
-      return template
+  watch: {
+    lazySearch: {
+      handler(v) {
+        this.items = []
+        if (v) this.subscribeDocs(v)
+      },
+      immediate: true,
     },
+  },
 
-    /**
-     * DataTable に表示するアイテムです。
-     * - Vuex から取得します。
-     */
-    items() {
-      return this.$store.getters['outsourcers/items']
-    },
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.instance.unsubscribe()
   },
 
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    async handleCreate(item) {
-      await item.create()
-    },
-    async handleUpdate(item) {
-      await item.update()
-    },
-    async handleDelete(item) {
-      await item.delete()
-    },
-    async itemConverter(item) {
-      return await this.schema.fetchDoc(item.docId)
+    async subscribeDocs(search) {
+      this.loading = true
+      try {
+        this.items = await this.instance.subscribeDocs(search)
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('subscribeDocs に失敗しました。')
+      } finally {
+        this.loading = false
+      }
     },
   },
 }
@@ -97,33 +89,44 @@ export default {
 <template>
   <g-template-default v-slot="{ height }">
     <v-container fluid :style="{ height: `${height}px` }">
-      <air-array-manager
-        v-bind="$attrs"
-        :dialog-props="{
-          maxWidth: 600,
-        }"
+      <g-collection-manager-outsourcers
         event-edit="click:row"
-        :handle-create="handleCreate"
-        :handle-update="handleUpdate"
-        :handle-delete="handleDelete"
         height="100%"
         :items="items"
-        :item-converter="itemConverter"
-        label="外注先情報"
-        :schema="schema"
-        v-on="$listeners"
+        :loading="loading"
       >
-        <template #default="{ activator, pagination, search, table }">
+        <template #default="{ activator, pagination, table }">
           <v-sheet class="d-flex flex-column" height="100%">
             <v-toolbar class="flex-grow-0" flat>
-              <v-text-field v-bind="search.attrs" v-on="search.on" />
+              <air-renderless-delay-input v-model="lazySearch">
+                <template #default="{ attrs, on }">
+                  <v-text-field
+                    v-bind="attrs"
+                    clearable
+                    hide-details
+                    placeholder="外注先名で検索"
+                    prepend-inner-icon="mdi-magnify"
+                    v-on="on"
+                  />
+                </template>
+              </air-renderless-delay-input>
               <g-btn-regist v-bind="activator.attrs" icon v-on="activator.on" />
             </v-toolbar>
             <div class="flex-table-container">
               <v-data-table
                 v-bind="table.attrs"
                 fixed-header
-                :headers="headers"
+                :headers="[
+                  { text: 'CODE', value: 'code', width: 84 },
+                  { text: '外注先名', value: 'abbr' },
+                  { text: '住所1', value: 'address1', sortable: false },
+                  {
+                    text: '同期状態',
+                    value: 'sync',
+                    sortable: false,
+                    align: 'center',
+                  },
+                ]"
                 hide-default-footer
                 item-key="docId"
                 v-on="table.on"
@@ -151,7 +154,7 @@ export default {
         <template #inputs="{ attrs, on }">
           <g-input-outsourcer v-bind="attrs" v-on="on" />
         </template>
-      </air-array-manager>
+      </g-collection-manager-outsourcers>
     </v-container>
   </g-template-default>
 </template>

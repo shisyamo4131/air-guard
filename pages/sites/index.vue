@@ -2,7 +2,7 @@
 /**
  * 現場情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-02-06
+ * @refact 2025-02-08
  */
 import AirRenderlessDelayInput from '~/components/air/AirRenderlessDelayInput.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
@@ -40,11 +40,11 @@ export default {
     return {
       eventEdit: 'click:row',
       includeExpired: false,
+      instance: new Site(),
       items: [],
       lazySearch: null,
       lazySearchCustomerId: null,
       loading: false,
-      schema: new Site(),
       searchType: 'name',
       selectedCustomerId: null,
     }
@@ -83,16 +83,23 @@ export default {
     },
 
     includeExpired(v) {
-      this.fetchDocs()
+      this.subscribeDocs()
     },
 
     lazySearch(v) {
-      this.fetchDocs()
+      this.subscribeDocs()
     },
 
     searchType(v) {
-      this.fetchDocs()
+      this.subscribeDocs()
     },
+  },
+
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.instance.unsubscribe()
   },
 
   /***************************************************************************
@@ -103,7 +110,7 @@ export default {
       this.$router.push(`/sites/${event.docId}`)
     },
 
-    async fetchDocs() {
+    async subscribeDocs() {
       // items を初期化
       this.items.splice(0)
 
@@ -113,27 +120,27 @@ export default {
       this.loading = true
       try {
         if (this.searchType === 'name') {
-          await this._fetchDocsByName()
+          await this._subscribeDocsByName()
         } else {
-          await this._fetchDocsByCode()
+          await this._subscribeDocsByCode()
         }
       } catch (err) {
         // eslint-disable-next-line no-console
-        console.error('fetchDocs に失敗しました。')
+        console.error('subscribeDocs に失敗しました。')
       } finally {
         this.loading = false
       }
     },
 
-    async _fetchDocsByName() {
+    async _subscribeDocsByName() {
       const options = this.includeExpired
         ? undefined
         : [['where', 'status', '==', 'active']]
-      this.items = await this.schema.fetchDocs(this.lazySearch, options)
+      this.items = await this.instance.subscribeDocs(this.lazySearch, options)
     },
 
-    async _fetchDocsByCode() {
-      this.items = await this.schema.fetchDocs([
+    async _subscribeDocsByCode() {
+      this.items = await this.instance.subscribeDocs([
         ['where', 'code', '==', this.lazySearch],
       ])
     },
