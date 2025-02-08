@@ -2,14 +2,14 @@
 /**
  * 従業員情報の一覧ページです。
  * @author shisyamo4131
- * @refact 2025-01-29
+ * @refact 2025-02-08
  */
-import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
 import GChipSyncStatus from '~/components/atoms/chips/GChipSyncStatus.vue'
 import GIconPlay from '~/components/atoms/icons/GIconPlay.vue'
 import GIconStop from '~/components/atoms/icons/GIconStop.vue'
 import GPagination from '~/components/atoms/paginations/GPagination.vue'
+import GCollectionManagerEmployees from '~/components/managers/GCollectionManagerEmployees.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import Employee from '~/models/Employee'
@@ -29,8 +29,8 @@ export default {
     GIconStop,
     GInputEmployee,
     GChipSyncStatus,
-    AirArrayManager,
     GPagination,
+    GCollectionManagerEmployees,
   },
 
   /***************************************************************************
@@ -38,49 +38,77 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      schema: new Employee(),
+      eventEdit: 'click:row',
+      includeExpired: false,
+      instance: new Employee(),
+      items: [],
+      lazySearch: null,
+      loading: false,
+      searchType: 'name',
     }
   },
 
   /***************************************************************************
-   * COMPUTED
+   * WATCH
    ***************************************************************************/
-  computed: {
-    /**
-     * DataTable のカラム設定です。
-     */
-    headers() {
-      const template = [
-        { text: 'CODE', value: 'code', width: 84 },
-        { text: '従業員名', value: 'fullName' },
-        { text: '住所1', value: 'address1', sortable: false },
-        { text: '住所2', value: 'address2', sortable: false },
-        {
-          text: '同期状態',
-          value: 'sync',
-          sortable: false,
-          align: 'center',
-        },
-      ]
-
-      return template
+  watch: {
+    lazySearch: {
+      handler(v) {
+        this.items = []
+        if (v) this.subscribeDocs(v)
+      },
+      immediate: true,
     },
+  },
 
-    /**
-     * DataTable に表示するアイテムです。
-     * - Vuex から取得します。
-     */
-    items() {
-      return this.$store.getters['employees/items']
-    },
+  /***************************************************************************
+   * DESTROYED
+   ***************************************************************************/
+  destroyed() {
+    this.instance.unsubscribe()
   },
 
   /***************************************************************************
    * METHODS
    ***************************************************************************/
   methods: {
-    async handleCreate(item) {
-      await item.create()
+    eventEditHandler(event) {
+      this.$router.push(`/employees/${event.docId}`)
+    },
+
+    async subscribeDocs(search) {
+      // items を初期化
+      this.items.splice(0)
+
+      // 検索文字列が入力されていなければ終了
+      if (!this.lazySearch) return
+
+      this.loading = true
+      try {
+        if (this.searchType === 'name') {
+          await this._subscribeDocsByName()
+        } else {
+          await this._subscribeDocsByCode()
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error('subscribeDocs に失敗しました。')
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async _subscribeDocsByName() {
+      const options = this.includeExpired
+        ? undefined
+        : [['where', 'status', '==', 'active']]
+      this.items = await this.instance.subscribeDocs(this.lazySearch, options)
+    },
+
+    async _subscribeDocsByCode() {
+      this.items = await this.instance.subscribeDocs([
+        ['where', 'code', '==', this.lazySearch],
+      ])
     },
   },
 }
@@ -89,31 +117,58 @@ export default {
 <template>
   <g-template-default v-slot="{ height }">
     <v-container fluid :style="{ height: `${height}px` }">
-      <air-array-manager
-        :dialog-props="{
-          maxWidth: 600,
-        }"
-        event-edit="click:row"
-        :event-edit-handler="
-          ($event) => $router.push(`/employees/${$event.docId}`)
-        "
-        :handle-create="handleCreate"
+      <g-collection-manager-employees
+        :event-edit="eventEdit"
+        :event-edit-handler="eventEditHandler"
         height="100%"
         :items="items"
-        label="従業員情報"
-        :schema="schema"
+        :loading="loading"
       >
-        <template #default="{ activator, pagination, search, table }">
+        <template #default="{ activator, pagination, table }">
           <v-sheet class="d-flex flex-column" height="100%">
             <v-toolbar class="flex-grow-0" flat>
-              <v-text-field v-bind="search.attrs" v-on="search.on" />
+              <air-renderless-delay-input v-model="lazySearch">
+                <template #default="{ attrs, on }">
+                  <v-text-field
+                    v-bind="attrs"
+                    clearable
+                    hide-details
+                    placeholder="従業員名で検索"
+                    prepend-inner-icon="mdi-magnify"
+                    v-on="on"
+                  />
+                </template>
+              </air-renderless-delay-input>
               <g-btn-regist v-bind="activator.attrs" icon v-on="activator.on" />
+              <template #extension>
+                <v-radio-group v-model="searchType" hide-details row>
+                  <v-radio label="名称検索" value="name" />
+                  <v-radio label="コード検索" value="code" />
+                </v-radio-group>
+                <v-switch
+                  v-show="searchType === 'name'"
+                  v-model="includeExpired"
+                  label="退職者を含める"
+                  hide-details
+                />
+              </template>
             </v-toolbar>
             <div class="flex-table-container">
               <v-data-table
                 v-bind="table.attrs"
                 fixed-header
-                :headers="headers"
+                :headers="[
+                  { text: 'CODE', value: 'code', width: 84 },
+                  { text: '従業員名', value: 'fullName' },
+                  { text: '住所1', value: 'address1', sortable: false },
+                  { text: '住所2', value: 'address2', sortable: false },
+                  {
+                    text: '同期状態',
+                    value: 'sync',
+                    sortable: false,
+                    align: 'center',
+                  },
+                ]"
                 hide-default-footer
                 item-key="docId"
                 sort-by="code"
@@ -143,7 +198,7 @@ export default {
         <template #inputs="{ attrs, on }">
           <g-input-employee v-bind="attrs" v-on="on" />
         </template>
-      </air-array-manager>
+      </g-collection-manager-employees>
     </v-container>
   </g-template-default>
 </template>

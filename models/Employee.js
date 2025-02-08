@@ -2,7 +2,7 @@
  * カスタムクラス定義: 従業員 - Employee -
  *
  * @author shisyamo4131
- * @refact 2025-02-01
+ * @refact 2025-02-08
  *****************************************************************************/
 import { FireModel } from 'air-firebase'
 import { EMPLOYEE_CONTRACT_TYPE } from './constants/employee-contract-types'
@@ -75,9 +75,9 @@ export class SecurityRegistration {
   }
 }
 
-/**
+/*****************************************************************************
  * PROPERTIES
- */
+ *****************************************************************************/
 const propsDefinition = {
   // ドキュメントID
   docId: { type: String, default: '', required: false },
@@ -271,9 +271,9 @@ const propsDefinition = {
 const { vueProps, classProps } = generateProps(propsDefinition)
 export { vueProps }
 
-/**
+/*****************************************************************************
  * ACCESSORS
- */
+ *****************************************************************************/
 const accessor = {
   fullName: {
     configurable: true,

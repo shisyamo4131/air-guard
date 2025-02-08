@@ -1,3 +1,9 @@
+/*****************************************************************************
+ * カスタムクラス定義: 従業員 - Employee -
+ *
+ * @author shisyamo4131
+ * @refact 2025-02-08
+ *****************************************************************************/
 import { getFirestore } from 'firebase-admin/firestore'
 import { logger } from 'firebase-functions/v2'
 import {
@@ -6,49 +12,322 @@ import {
   syncToFirestoreFromAirGuard,
 } from '../modules/database.js'
 import FireModel from './FireModel.js'
-import { classProps } from './propsDefinition/Employee.js'
-import SecurityRegistration from './SecurityRegistration.js'
+import { generateProps } from './propsDefinition/propsUtil.js'
 const firestore = getFirestore()
 
-/**
- * Cloud Functions で Firestore の Employees ドキュメントを操作するためのクラスです。
- * FireMode を継承していますが、更新系のメソッドは利用できません。
- * @author shisyamo4131
- */
-export default class Employee extends FireModel {
-  /****************************************************************************
-   * STATIC
-   ****************************************************************************/
-  static collectionPath = 'Employees'
-  static classProps = classProps
+/*****************************************************************************
+ * クラスで使用する、警備員登録情報のクラス定義
+ *****************************************************************************/
+class SecurityRegistration {
+  constructor(item = {}) {
+    this.initialize(item)
+  }
 
-  /****************************************************************************
-   * CUSTOM CLASS MAPPING
-   ****************************************************************************/
+  initialize(item = {}) {
+    // 警備員登録日
+    this.registrationDate = item.registrationDate ?? ''
+
+    // 警備経験開始日
+    this.securityStartDate = item.securityStartDate ?? ''
+
+    // ブランク
+    this.blankMonths = item.blankMonths ?? 0
+
+    // 本籍地
+    this.honseki = item.honseki ?? ''
+
+    // 緊急連絡先氏名
+    this.emergencyContactName = item.emergencyContactName ?? ''
+
+    // 緊急連絡先続柄
+    this.emergencyContactRelation = item.emergencyContactRelation ?? ''
+
+    // 緊急連絡先続柄詳細
+    this.emergencyContactRelationDetail =
+      item.emergencyContactRelationDetail ?? ''
+
+    // 緊急連絡先住所
+    this.emergencyContactAddress = item.emergencyContactAddress ?? ''
+
+    // 緊急連絡先電話番号
+    this.emergencyContactTel = item.emergencyContactTel ?? ''
+  }
+
+  toObject() {
+    return { ...this }
+  }
+
+  // 警備経験年月を返します。
+  get experiencePeriod() {
+    if (!this.securityStartDate) {
+      return { years: 0, months: 0 }
+    }
+
+    const startDate = new Date(this.securityStartDate)
+    const currentDate = new Date()
+
+    let totalMonths = (currentDate.getFullYear() - startDate.getFullYear()) * 12
+    totalMonths += currentDate.getMonth() - startDate.getMonth()
+    totalMonths -= this.blankMonths
+
+    if (totalMonths < 0) {
+      return { years: 0, months: 0 }
+    }
+
+    const years = Math.floor(totalMonths / 12)
+    const months = totalMonths % 12
+
+    return { years, months }
+  }
+}
+
+/*****************************************************************************
+ * PROPERTIES
+ *****************************************************************************/
+const propsDefinition = {
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
+
+  // 従業員code
+  code: { type: String, default: '', required: false },
+
+  // 氏
+  lastName: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 名
+  firstName: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 氏名
+  fullName: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 氏カナ
+  lastNameKana: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 名カナ
+  firstNameKana: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 氏名カナ
+  fullNameKana: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 略称
+  abbr: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 略称カナ
+  abbrKana: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 性別
+  gender: {
+    type: String,
+    default: 'male',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 生年月日（YYYY-MM-DD）
+  birth: { type: String, default: '', required: false, requiredByClass: true },
+
+  // 郵便番号
+  zipcode: { type: String, default: '', required: false },
+
+  // 住所
+  address1: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 建物名・階数
+  address2: { type: String, default: '', required: false },
+
+  // 郵送先別住所フラグ
+  hasSendAddress: { type: Boolean, default: false, required: false },
+
+  // 郵送先郵便番号
+  sendZipcode: { type: String, default: '', required: false },
+
+  // 郵送先住所
+  sendAddress1: { type: String, default: '', required: false },
+
+  // 郵送先建物名・階数
+  sendAddress2: { type: String, default: '', required: false },
+
+  // 電話番号
+  tel: { type: String, default: '', required: false },
+
+  // 携帯番号
+  mobile: { type: String, default: '', required: false },
+
+  // 入社年月日（YYYY-MM-DD）
+  hireDate: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 退職年月日（YYYY-MM-DD）
+  leaveDate: { type: String, default: '', required: false },
+
+  // 退職事由
+  leaveReason: { type: String, default: '', required: false },
+
+  // 外国籍フラグ
+  isForeigner: { type: Boolean, default: false, required: false },
+
+  // 国籍
+  nationality: { type: String, default: '', required: false },
+
+  // 血液型
+  bloodType: {
+    type: String,
+    default: '-',
+    required: false,
+  },
+
+  // 状態
+  status: {
+    type: String,
+    default: 'active',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 備考
+  remarks: { type: String, default: '', required: false },
+
+  // 画像ファイル参照先
+  imgRef: { type: String, default: '', required: false },
+
+  // 同期状態
+  sync: { type: Boolean, default: false, required: false },
+
+  /**
+   * 雇用形態
+   * - 配置管理においてアルバイトである従業員のシフト管理を実現するために用意。
+   * - 従業員がアルバイトかどうかを判断するために使う。
+   * - その他の用途では使用していないし、使用してはいけない。
+   */
+  contractType: { type: String, default: 'full-time', required: false },
+
+  /**
+   * 役職・役割（略称の語尾に付与される）
+   * - 配置指示テキスト生成時に必要になる呼称を設定するため
+   *   便宜上用意したプロパティ。
+   */
+  designation: { type: String, default: '', required: false },
+
+  /**
+   * 警備員登録情報
+   */
+  securityRegistration: {
+    type: Object,
+    default: () => new SecurityRegistration(),
+    required: false,
+  },
+
+  /**
+   * 警備員登録の有無
+   */
+  hasSecurityRegistration: { type: Boolean, default: false, required: false },
+}
+
+const { classProps } = generateProps(propsDefinition)
+
+/*****************************************************************************
+ * カスタムクラス - default -
+ *****************************************************************************/
+export default class Employee extends FireModel {
+  // FireModel 設定
+  static collectionPath = 'Employees'
+  static useAutonumber = true
+  static logicalDelete = true
+  static classProps = classProps
+  static tokenFields = ['lastNameKana', 'firstNameKana', 'abbr', 'abbrKana']
+  static hasMany = [
+    {
+      collection: 'EmployeeContracts',
+      field: 'employeeId',
+      condition: '==',
+      type: 'collection',
+    },
+    {
+      collection: 'MedicalCheckups',
+      field: 'employeeId',
+      condition: '==',
+      type: 'collection',
+    },
+    {
+      collection: 'HealthInsurances',
+      field: 'employeeId',
+      condition: '==',
+      type: 'collection',
+    },
+    {
+      collection: 'Pensions',
+      field: 'employeeId',
+      condition: '==',
+      type: 'collection',
+    },
+    {
+      collection: 'EmploymentInsurances',
+      field: 'employeeId',
+      condition: '==',
+      type: 'collection',
+    },
+    {
+      collection: 'OperationResults',
+      field: 'employeeIds',
+      condition: 'array-contains',
+      type: 'collection',
+    },
+  ]
+
+  // カスタムクラスマップ
   static customClassMap = {
     securityRegistration: SecurityRegistration,
   }
 
-  /****************************************************************************
-   * 更新系メソッドは使用不可
-   ****************************************************************************/
-  create() {
-    return Promise.reject(new Error('このクラスの create は使用できません。'))
-  }
-
-  update() {
-    return Promise.reject(new Error('このクラスの update は使用できません。'))
-  }
-
-  delete() {
-    return Promise.reject(new Error('このクラスの delete は使用できません。'))
-  }
-
-  /****************************************************************************
+  /**
    * Realtime Databaseの`AirGuard/Employees`の内容で、FirestoreのEmployeesドキュメントを更新します。
    * @param {string} code - Realtime Database内のEmployeesデータを識別するコード
    * @returns {Promise<void>} - 同期が正常に完了した場合は、解決されたPromiseを返します
-   ****************************************************************************/
+   */
   static async syncFromAirGuard(code) {
     try {
       const converter = (item) => {
@@ -95,7 +374,7 @@ export default class Employee extends FireModel {
     }
   }
 
-  /****************************************************************************
+  /**
    * Firestore の 'Employees' コレクションから指定された期間内に在職していた従業員ドキュメントを返します。
    *
    * @param {Object} options - オプションのフィルタ条件を含むオブジェクト。
@@ -104,7 +383,7 @@ export default class Employee extends FireModel {
    * @param {Object|null} options.transaction - 任意のトランザクションオブジェクト。指定がある場合はトランザクション内でクエリを実行します。
    * @returns {Promise<Array<Object>>} Firestore のデータを持つ従業員インスタンスの配列を返します。
    * @throws {Error} Firestore のクエリが失敗した場合、詳細を含むエラーがスローされます。
-   ****************************************************************************/
+   */
   static async getExistingEmployees({ from, to, transaction = null } = {}) {
     // 引数のチェック
     if (!from || !to) {
@@ -159,43 +438,85 @@ export default class Employee extends FireModel {
   }
 }
 
-/**
- * Realtime Database で管理する Employee インデックス用のクラスです。
- */
-export class EmployeeIndex extends Employee {
-  /****************************************************************************
-   * CONSTRUCTOR
-   ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
+/*****************************************************************************
+ * カスタムクラス - Minimal -
+ *****************************************************************************/
+export class EmployeeMinimal extends Employee {
+  // initialize をオーバーライド
+  initialize(item = {}) {
+    super.initialize(item)
+    delete this.tokenMap
+    delete this.remarks
+    delete this.createAt
+    delete this.updateAt
+    delete this.uid
+  }
 
-    // インデックスに必要なプロパティを定義
-    const keepProps = [
-      'code',
-      'fullName',
-      'fullNameKana',
-      'abbr',
-      'abbrKana',
-      'address1',
-      'address2',
-      'mobile',
-      'status',
-      'contractType',
-      'designation',
-      'sync',
-      'hasSecurityRegistration',
-    ]
+  // 更新系メソッドは使用不可
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
+  }
 
-    // Customer クラスから不要なプロパティを削除
+  update() {
+    return Promise.reject(new Error('このクラスの update は使用できません。'))
+  }
+
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
+  }
+
+  deleteAll() {
+    return Promise.reject(
+      new Error('このクラスの deleteAll は使用できません。')
+    )
+  }
+
+  restore() {
+    return Promise.reject(new Error('このクラスの restore は使用できません。'))
+  }
+
+  static updateImgRef() {
+    return Promise.reject(
+      new Error('このクラスの updateImgRef は使用できません。')
+    )
+  }
+}
+
+/*****************************************************************************
+ * カスタムクラス - Index -
+ *****************************************************************************/
+export class EmployeeIndex extends EmployeeMinimal {
+  // インデックスとして用意するプロパティを定義
+  static keepProps = [
+    'code',
+    'fullName',
+    'fullNameKana',
+    'abbr',
+    'abbrKana',
+    'address1',
+    'address2',
+    'mobile',
+    'status',
+    'contractType',
+    'designation',
+    'sync',
+    'hasSecurityRegistration',
+  ]
+
+  // initialize をオーバーライド
+  initialize(item = {}) {
+    super.initialize(item)
+
+    // keepProps で定義されたプロパティ以外を削除
     Object.keys(this).forEach((key) => {
-      if (!keepProps.includes(key)) delete this[key]
+      if (!this.constructor.keepProps.includes(key)) delete this[key]
     })
   }
 
-  /****************************************************************************
+  /**
    * Realtime Database にインデックスを作成します。
    * @param {string} EmployeeId - インデックス作成対象の取引先ID
-   ****************************************************************************/
+   */
   static async create(EmployeeId) {
     const functionName = 'create'
     try {
@@ -206,10 +527,10 @@ export class EmployeeIndex extends Employee {
     }
   }
 
-  /****************************************************************************
+  /**
    * Realtime Database からインデックスを削除します。
    * @param {string} customerId - インデックス削除対象の取引先ID
-   ****************************************************************************/
+   */
   static async remove(customerId) {
     const functionName = 'remove'
     try {
@@ -218,22 +539,5 @@ export class EmployeeIndex extends Employee {
       logger.error(`[${functionName}] ${error.message}`, { customerId })
       throw error
     }
-  }
-}
-
-/**
- * 他のドキュメントで不要なプロパティを排除した Employee クラスです。
- */
-export class EmployeeMinimal extends Employee {
-  /****************************************************************************
-   * CONSTRUCTOR
-   ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
-
-    delete this.createAt
-    delete this.updateAt
-    delete this.remarks
-    delete this.tokenMap
   }
 }
