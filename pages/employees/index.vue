@@ -52,12 +52,16 @@ export default {
    * WATCH
    ***************************************************************************/
   watch: {
-    lazySearch: {
-      handler(v) {
-        this.items = []
-        if (v) this.subscribeDocs(v)
-      },
-      immediate: true,
+    includeExpired(v) {
+      this.subscribeDocs()
+    },
+
+    lazySearch(v) {
+      this.subscribeDocs()
+    },
+
+    searchType(v) {
+      this.subscribeDocs()
     },
   },
 
