@@ -23,7 +23,6 @@ module.exports = {
   'medical-checkups': ['admin', 'developer'],
 
   // 経理業務
-  'site-contracts': ['admin', 'developer'],
   'operation-billing-bases': ['admin', 'developer'],
   'monthly-billings': ['admin', 'developer'],
   'transportation-cost-applications': ['admin', 'developer'],

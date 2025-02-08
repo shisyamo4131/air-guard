@@ -8,6 +8,7 @@ import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GDocumentManagerSite from '~/components/managers/GDocumentManagerSite.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import GSiteOperationSchedulesManager from '~/components/organisms/GSiteOperationSchedulesManager.vue'
+import GSiteContractsManager from '~/components/organisms/GSiteContractsManager.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -22,6 +23,7 @@ export default {
     GDocumentManagerSite,
     GBtnEdit,
     GSiteOperationSchedulesManager,
+    GSiteContractsManager,
   },
 
   /***************************************************************************
@@ -163,13 +165,24 @@ export default {
           </g-document-manager-site>
         </v-col>
 
-        <!-- 稼働予定 -->
         <v-col cols="12" lg="8">
-          <v-card outlined>
-            <v-container fluid class="pt-0">
-              <g-site-operation-schedules-manager :site-id="docId" />
-            </v-container>
-          </v-card>
+          <v-row>
+            <!-- 稼働予定 -->
+            <v-col cols="12">
+              <v-card outlined>
+                <v-container fluid class="pt-0">
+                  <g-site-operation-schedules-manager :site-id="docId" />
+                </v-container>
+              </v-card>
+            </v-col>
+            <v-col cols="12">
+              <v-card outlined>
+                <v-container fluid>
+                  <g-site-contracts-manager :site-id="docId" />
+                </v-container>
+              </v-card>
+            </v-col>
+          </v-row>
         </v-col>
       </v-row>
     </v-container>

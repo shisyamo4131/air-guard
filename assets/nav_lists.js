@@ -65,11 +65,6 @@ export const allNavList = [
     icon: 'mdi-calculator-variant-outline',
     lists: [
       {
-        name: '現場取極め',
-        to: '/site-contracts',
-        icon: 'mdi-file-document-multiple-outline',
-      },
-      {
         name: '稼働請求',
         to: '/operation-billing-bases',
         icon: 'mdi-currency-jpy',
