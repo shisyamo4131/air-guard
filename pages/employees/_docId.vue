@@ -8,8 +8,6 @@ import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import GImgEmployee from '~/components/molecules/images/GImgEmployee.vue'
-import Pension from '~/models/Pension'
-import EmploymentInsurance from '~/models/EmploymentInsurance'
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
 import GCardFloatingLabel from '~/components/atoms/cards/GCardFloatingLabel.vue'
 import MedicalCheckup from '~/models/MedicalCheckup'
@@ -21,6 +19,8 @@ import GInputSecurityRegistration from '~/components/molecules/inputs/GInputSecu
 import GPagination from '~/components/atoms/paginations/GPagination.vue'
 import GDocumentManagerEmployee from '~/components/managers/GDocumentManagerEmployee.vue'
 import GEmployeeHealthInsuranceManager from '~/components/organisms/GEmployeeHealthInsuranceManager.vue'
+import GEmployeePensionManager from '~/components/organisms/GEmployeePensionManager.vue'
+import GEmployeeEmploymentInsuranceManager from '~/components/organisms/GEmployeeEmploymentInsuranceManager.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -44,6 +44,8 @@ export default {
     GPagination,
     GDocumentManagerEmployee,
     GEmployeeHealthInsuranceManager,
+    GEmployeePensionManager,
+    GEmployeeEmploymentInsuranceManager,
   },
 
   /***************************************************************************
@@ -52,20 +54,10 @@ export default {
   asyncData({ app, route }) {
     const docId = route.params.docId
     const instances = {
-      pensions: new Pension(),
-      employmentInsurances: new EmploymentInsurance(),
       medicalCheckups: new MedicalCheckup(),
       contracts: new EmployeeContract(),
     }
-    const condition = [
-      ['where', 'employeeId', '==', docId],
-      ['orderBy', 'acquisitionDate', 'desc'],
-      ['limit', 3],
-    ]
     const items = {
-      pensions: instances.pensions.subscribeDocs(condition),
-      employmentInsurances:
-        instances.employmentInsurances.subscribeDocs(condition),
       medicalCheckups: instances.medicalCheckups.subscribeDocs([
         ['where', 'employeeId', '==', docId],
       ]),
@@ -273,159 +265,19 @@ export default {
                 <v-col cols="12" lg="4">
                   <g-employee-health-insurance-manager :employee-id="docId" />
                 </v-col>
+
                 <!-- 厚生年金 -->
                 <v-col cols="12" lg="4">
-                  <air-array-manager
-                    :color="$FUTURE_COLOR_INDEX(1)"
-                    :items="items.pensions"
-                    :schema="instances.pensions"
-                  >
-                    <template #default="{ table, color }">
-                      <g-card-floating-label
-                        label="厚生年金"
-                        :color="color"
-                        icon="mdi-hospital-box"
-                      >
-                        <v-container>
-                          <v-data-iterator
-                            v-bind="table.attrs"
-                            hide-default-footer
-                          >
-                            <template #default="iteratorProps">
-                              <v-window
-                                :value="iteratorProps.items.length - 1"
-                                show-arrows
-                                show-arrows-on-hover
-                              >
-                                <v-window-item
-                                  v-for="(item, index) in iteratorProps.items"
-                                  :key="index"
-                                >
-                                  <v-card outlined>
-                                    <v-list>
-                                      <v-list-item>
-                                        <v-list-item-icon>
-                                          <v-icon :color="color" x-large
-                                            >mdi-card-account-details</v-icon
-                                          >
-                                        </v-list-item-icon>
-                                        <v-list-item-content>
-                                          <v-list-item-subtitle>
-                                            資格取得日
-                                          </v-list-item-subtitle>
-                                          <v-list-item-title class="pb-2">
-                                            {{
-                                              item.acquisitionDate
-                                                ? $dayjs(
-                                                    item.acquisitionDate
-                                                  ).format('YYYY年MM月DD日')
-                                                : 'N/A'
-                                            }}
-                                          </v-list-item-title>
-                                          <!-- 標準報酬月額は一旦不可視に -->
-                                          <!--
-                                          <v-list-item-subtitle> 標準報酬月額 </v-list-item-subtitle>
-                                          <v-list-item-title class="pb-2">
-                                            {{ item.amount }}
-                                          </v-list-item-title>
-                                          -->
-                                          <v-list-item-subtitle>
-                                            被保険者整理番号
-                                          </v-list-item-subtitle>
-                                          <v-list-item-title>
-                                            {{ item.policyNumber }}
-                                          </v-list-item-title>
-                                        </v-list-item-content>
-                                      </v-list-item>
-                                    </v-list>
-                                  </v-card>
-                                </v-window-item>
-                              </v-window>
-                            </template>
-                            <template #no-data>
-                              <v-card outlined>
-                                <v-card-text>加入していません。</v-card-text>
-                              </v-card>
-                            </template>
-                          </v-data-iterator>
-                        </v-container>
-                      </g-card-floating-label>
-                    </template>
-                  </air-array-manager>
+                  <g-employee-pension-manager :employee-id="docId" />
                 </v-col>
+
                 <!-- 雇用保険 -->
                 <v-col cols="12" lg="4">
-                  <air-array-manager
-                    :color="$FUTURE_COLOR_INDEX(2)"
-                    :items="items.employmentInsurances"
-                    :schema="instances.employmentInsurances"
-                  >
-                    <template #default="{ table, color }">
-                      <g-card-floating-label
-                        label="雇用保険"
-                        :color="color"
-                        icon="mdi-hospital-box"
-                      >
-                        <v-container>
-                          <v-data-iterator
-                            v-bind="table.attrs"
-                            hide-default-footer
-                          >
-                            <template #default="iteratorProps">
-                              <v-window
-                                :value="iteratorProps.items.length - 1"
-                                show-arrows
-                                show-arrows-on-hover
-                              >
-                                <v-window-item
-                                  v-for="(item, index) in iteratorProps.items"
-                                  :key="index"
-                                >
-                                  <v-card outlined>
-                                    <v-list>
-                                      <v-list-item>
-                                        <v-list-item-icon>
-                                          <v-icon :color="color" x-large
-                                            >mdi-card-account-details</v-icon
-                                          >
-                                        </v-list-item-icon>
-                                        <v-list-item-content>
-                                          <v-list-item-subtitle>
-                                            資格取得日
-                                          </v-list-item-subtitle>
-                                          <v-list-item-title class="pb-2">
-                                            {{
-                                              item.acquisitionDate
-                                                ? $dayjs(
-                                                    item.acquisitionDate
-                                                  ).format('YYYY年MM月DD日')
-                                                : 'N/A'
-                                            }}
-                                          </v-list-item-title>
-                                          <v-list-item-subtitle>
-                                            被保険者整理番号
-                                          </v-list-item-subtitle>
-                                          <v-list-item-title>
-                                            {{ item.policyNumber }}
-                                          </v-list-item-title>
-                                        </v-list-item-content>
-                                      </v-list-item>
-                                    </v-list>
-                                  </v-card>
-                                </v-window-item>
-                              </v-window>
-                            </template>
-                            <template #no-data>
-                              <v-card outlined>
-                                <v-card-text>加入していません。</v-card-text>
-                              </v-card>
-                            </template>
-                          </v-data-iterator>
-                        </v-container>
-                      </g-card-floating-label>
-                    </template>
-                  </air-array-manager>
+                  <g-employee-employment-insurance-manager
+                    :employee-id="docId"
+                  />
                 </v-col>
+
                 <!-- 健康診断 -->
                 <v-col cols="12">
                   <air-array-manager

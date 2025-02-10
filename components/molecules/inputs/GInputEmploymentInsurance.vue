@@ -11,7 +11,7 @@ import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
-import { vueProps } from '~/models/propsDefinition/Pension'
+import { vueProps } from '~/models/Pension'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -33,7 +33,10 @@ export default {
   /***************************************************************************
    * PROPS
    ***************************************************************************/
-  props: vueProps,
+  props: {
+    ...vueProps,
+    hideEmployee: { type: Boolean, default: false, required: false },
+  },
 }
 </script>
 
@@ -42,6 +45,7 @@ export default {
     <v-row>
       <v-col cols="12" md="6">
         <g-autocomplete-employee
+          v-if="!hideEmployee"
           :value="employeeId"
           label="従業員"
           required

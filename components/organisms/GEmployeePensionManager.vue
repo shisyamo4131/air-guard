@@ -1,18 +1,18 @@
 <script>
 import GCollectionManager from '../managers/GCollectionManager.vue'
-import GInputHealthInsurance from '../molecules/inputs/GInputHealthInsurance.vue'
-import GCardHealthInsurance from '../molecules/cards/GCardHealthInsurance.vue'
+import GInputPension from '../molecules/inputs/GInputPension.vue'
+import GCardPension from '../molecules/cards/GCardPension.vue'
 import GBtnRegist from '../atoms/btns/GBtnRegist.vue'
 import GBtnEdit from '../atoms/btns/GBtnEdit.vue'
-import HealthInsurance from '~/models/HealthInsurance'
+import Pension from '~/models/Pension'
 export default {
   /***************************************************************************
    * COMPONENTS
    ***************************************************************************/
   components: {
     GCollectionManager,
-    GInputHealthInsurance,
-    GCardHealthInsurance,
+    GInputPension,
+    GCardPension,
     GBtnRegist,
     GBtnEdit,
   },
@@ -30,7 +30,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      instance: new HealthInsurance(),
+      instance: new Pension(),
       items: [],
       window: 0,
     }
@@ -53,7 +53,7 @@ export default {
   watch: {
     /**
      * props.employeId を監視し、与えられた従業員IDにもとづいて
-     * 健康保険ドキュメントの購読を開始します。
+     * 厚生年金ドキュメントの購読を開始します。
      */
     employeeId: {
       handler(v) {
@@ -94,12 +94,12 @@ export default {
     :dialog-props="{ maxWidth: 600 }"
     :instance="instance"
     :items="computedItems"
-    label="健康保険情報編集"
+    label="厚生年金情報編集"
   >
     <template #default="{ activator, toUpdate }">
       <v-card>
         <v-toolbar dense flat>
-          <v-toolbar-title>健康保険</v-toolbar-title>
+          <v-toolbar-title>厚生年金</v-toolbar-title>
           <v-spacer />
           <g-btn-regist icon v-bind="activator.attrs" v-on="activator.on" />
           <g-btn-edit
@@ -112,7 +112,7 @@ export default {
         <v-container>
           <v-window v-if="items.length !== 0" v-model="window">
             <v-window-item v-for="(item, index) in computedItems" :key="index">
-              <g-card-health-insurance v-bind="item" :color="color" />
+              <g-card-pension v-bind="item" :color="color" />
             </v-window-item>
           </v-window>
           <v-card v-else outlined>
@@ -141,7 +141,7 @@ export default {
       </v-card>
     </template>
     <template #inputs="{ attrs, on }">
-      <g-input-health-insurance v-bind="attrs" hide-employee v-on="on" />
+      <g-input-pension v-bind="attrs" hide-employee v-on="on" />
     </template>
   </g-collection-manager>
 </template>
