@@ -8,7 +8,6 @@ import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
 import GBtnEdit from '~/components/atoms/btns/GBtnEdit.vue'
 import GImgEmployee from '~/components/molecules/images/GImgEmployee.vue'
-import HealthInsurance from '~/models/HealthInsurance'
 import Pension from '~/models/Pension'
 import EmploymentInsurance from '~/models/EmploymentInsurance'
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
@@ -21,9 +20,7 @@ import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 import GInputSecurityRegistration from '~/components/molecules/inputs/GInputSecurityRegistration.vue'
 import GPagination from '~/components/atoms/paginations/GPagination.vue'
 import GDocumentManagerEmployee from '~/components/managers/GDocumentManagerEmployee.vue'
-import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
-import GCollectionManager from '~/components/managers/GCollectionManager.vue'
-import GInputHealthInsurance from '~/components/molecules/inputs/GInputHealthInsurance.vue'
+import GEmployeeHealthInsuranceManager from '~/components/organisms/GEmployeeHealthInsuranceManager.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -46,9 +43,7 @@ export default {
     GInputSecurityRegistration,
     GPagination,
     GDocumentManagerEmployee,
-    GBtnRegist,
-    GCollectionManager,
-    GInputHealthInsurance,
+    GEmployeeHealthInsuranceManager,
   },
 
   /***************************************************************************
@@ -57,7 +52,6 @@ export default {
   asyncData({ app, route }) {
     const docId = route.params.docId
     const instances = {
-      healthInsurances: new HealthInsurance({ employeeId: docId }),
       pensions: new Pension(),
       employmentInsurances: new EmploymentInsurance(),
       medicalCheckups: new MedicalCheckup(),
@@ -69,7 +63,6 @@ export default {
       ['limit', 3],
     ]
     const items = {
-      healthInsurances: instances.healthInsurances.subscribeDocs(condition),
       pensions: instances.pensions.subscribeDocs(condition),
       employmentInsurances:
         instances.employmentInsurances.subscribeDocs(condition),
@@ -278,95 +271,7 @@ export default {
               <v-row>
                 <!-- 健康保険 -->
                 <v-col cols="12" lg="4">
-                  <g-collection-manager
-                    :color="$FUTURE_COLOR_INDEX(0)"
-                    :dialog-props="{ maxWidth: 600 }"
-                    :items="items.healthInsurances"
-                    :instance="instances.healthInsurances"
-                    label="健康保険情報編集"
-                  >
-                    <template #default="{ table, color, activator }">
-                      <g-card-floating-label
-                        label="健康保険"
-                        :color="color"
-                        icon="mdi-hospital-box"
-                      >
-                        <v-container>
-                          <v-data-iterator
-                            v-bind="table.attrs"
-                            hide-default-footer
-                          >
-                            <template #default="iteratorProps">
-                              <v-window
-                                :value="iteratorProps.items.length - 1"
-                                show-arrows
-                                show-arrows-on-hover
-                              >
-                                <v-window-item
-                                  v-for="(item, index) in iteratorProps.items"
-                                  :key="index"
-                                >
-                                  <v-card outlined>
-                                    <v-list>
-                                      <v-list-item>
-                                        <v-list-item-content>
-                                          <v-list-item-subtitle>
-                                            資格取得日
-                                          </v-list-item-subtitle>
-                                          <v-list-item-title class="pb-2">
-                                            {{
-                                              item.acquisitionDate
-                                                ? $dayjs(
-                                                    item.acquisitionDate
-                                                  ).format('YYYY年MM月DD日')
-                                                : 'N/A'
-                                            }}
-                                          </v-list-item-title>
-                                          <!-- 標準報酬月額は一旦不可視に -->
-                                          <!--
-                                          <v-list-item-subtitle> 標準報酬月額 </v-list-item-subtitle>
-                                          <v-list-item-title class="pb-2">
-                                            {{ item.amount }}
-                                          </v-list-item-title>
-                                          -->
-                                          <v-list-item-subtitle>
-                                            被保険者整理番号
-                                          </v-list-item-subtitle>
-                                          <v-list-item-title>
-                                            {{ item.policyNumber }}
-                                          </v-list-item-title>
-                                        </v-list-item-content>
-                                      </v-list-item>
-                                    </v-list>
-                                  </v-card>
-                                </v-window-item>
-                              </v-window>
-                            </template>
-                            <template #no-data>
-                              <v-card outlined>
-                                <v-card-text>加入していません。</v-card-text>
-                              </v-card>
-                            </template>
-                          </v-data-iterator>
-                        </v-container>
-                        <v-card-actions class="justify-end">
-                          <g-btn-regist
-                            v-bind="activator.attrs"
-                            icon
-                            v-on="activator.on"
-                          />
-                          <g-btn-edit v-bind="activator.attrs" icon />
-                        </v-card-actions>
-                      </g-card-floating-label>
-                    </template>
-                    <template #inputs="{ attrs, on }">
-                      <g-input-health-insurance
-                        v-bind="attrs"
-                        hide-employee
-                        v-on="on"
-                      />
-                    </template>
-                  </g-collection-manager>
+                  <g-employee-health-insurance-manager :employee-id="docId" />
                 </v-col>
                 <!-- 厚生年金 -->
                 <v-col cols="12" lg="4">

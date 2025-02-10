@@ -11,7 +11,7 @@ import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
 import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
-import { vueProps } from '~/models/propsDefinition/HealthInsurance'
+import { vueProps } from '~/models/HealthInsurance'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
 
 export default {
