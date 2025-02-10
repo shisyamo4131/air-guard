@@ -278,6 +278,7 @@ export default {
       return {
         attrs: {
           color: this.color,
+          dark: !!this.color,
           disabled: this.computedLoading,
           loading: this.computedLoading,
         },

@@ -2,7 +2,7 @@
 /**
  * 従業員の詳細画面です。
  * @author shisyamo4131
- * @refact 2025-01-29
+ * @refact 2025-02-10
  */
 import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
@@ -16,11 +16,14 @@ import GCardFloatingLabel from '~/components/atoms/cards/GCardFloatingLabel.vue'
 import MedicalCheckup from '~/models/MedicalCheckup'
 import EmployeeContract from '~/models/EmployeeContract'
 import GListIterator from '~/components/atoms/lists/GListIterator.vue'
-import Employee from '~/models/Employee'
 import AirItemManager from '~/components/air/AirItemManager.vue'
 import GInputEmployee from '~/components/molecules/inputs/GInputEmployee.vue'
 import GInputSecurityRegistration from '~/components/molecules/inputs/GInputSecurityRegistration.vue'
 import GPagination from '~/components/atoms/paginations/GPagination.vue'
+import GDocumentManagerEmployee from '~/components/managers/GDocumentManagerEmployee.vue'
+import GBtnRegist from '~/components/atoms/btns/GBtnRegist.vue'
+import GCollectionManager from '~/components/managers/GCollectionManager.vue'
+import GInputHealthInsurance from '~/components/molecules/inputs/GInputHealthInsurance.vue'
 export default {
   /***************************************************************************
    * NAME
@@ -42,6 +45,10 @@ export default {
     GInputEmployee,
     GInputSecurityRegistration,
     GPagination,
+    GDocumentManagerEmployee,
+    GBtnRegist,
+    GCollectionManager,
+    GInputHealthInsurance,
   },
 
   /***************************************************************************
@@ -50,8 +57,7 @@ export default {
   asyncData({ app, route }) {
     const docId = route.params.docId
     const instances = {
-      employee: new Employee(),
-      healthInsurances: new HealthInsurance(),
+      healthInsurances: new HealthInsurance({ employeeId: docId }),
       pensions: new Pension(),
       employmentInsurances: new EmploymentInsurance(),
       medicalCheckups: new MedicalCheckup(),
@@ -63,7 +69,6 @@ export default {
       ['limit', 3],
     ]
     const items = {
-      employee: instances.employee.subscribe(docId),
       healthInsurances: instances.healthInsurances.subscribeDocs(condition),
       pensions: instances.pensions.subscribeDocs(condition),
       employmentInsurances:
@@ -99,23 +104,6 @@ export default {
         { text: 'TOP', to: '/' },
         { text: '従業員', to: this.parentPath, exact: true },
         { text: '従業員詳細', to: `${this.parentPath}/${this.docId}` },
-      ]
-    },
-
-    /**
-     * メイン情報として表示する項目の配列です。
-     */
-    mainProps() {
-      return [
-        { text: 'CODE', value: 'code' },
-        { text: '住所1', value: 'address1' },
-        { text: '住所2', value: 'address2' },
-        { text: '書類送付先', value: 'hasSendAddress' },
-        { text: '携帯電話', value: 'mobile' },
-        { text: '入社日', value: 'hireDate' },
-        { text: '生年月日', value: 'birth' },
-        { text: '性別', value: 'gender' },
-        { text: '血液型', value: 'bloodType' },
       ]
     },
 
@@ -178,11 +166,6 @@ export default {
   },
 
   /***************************************************************************
-   * WATCH
-   ***************************************************************************/
-  watch: {},
-
-  /***************************************************************************
    * DESTROYED
    ***************************************************************************/
   destroyed() {
@@ -190,53 +173,98 @@ export default {
       this.instances[key].unsubscribe()
     })
   },
-
-  /***************************************************************************
-   * METHODS
-   ***************************************************************************/
-  methods: {
-    async handleUpdate(item) {
-      await item.update()
-    },
-    async handleDelete(item) {
-      await item.delete()
-      this.$router.replace('/employees')
-    },
-  },
 }
 </script>
 
 <template>
   <g-template-default>
     <v-breadcrumbs :items="breadcrumbs" />
-    <air-item-manager
-      :item="instances.employee"
-      color="primary"
-      :dialog-props="{ maxWidth: 600 }"
-      :handle-update="handleUpdate"
-      :handle-delete="handleDelete"
-      label="従業員情報"
-    >
+    <g-document-manager-employee :doc-id="docId">
       <template #default="defaultProps">
         <v-container>
           <v-row>
+            <!-- 従業員概要 -->
             <v-col cols="12" md="4" lg="4">
               <v-card>
                 <v-container fluid>
                   <g-img-employee v-bind="defaultProps.attrs" />
                 </v-container>
                 <v-list>
-                  <v-list-item v-for="(prop, index) of mainProps" :key="index">
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-code-tags</v-icon>
+                    </v-list-item-icon>
                     <v-list-item-content>
-                      <v-list-item-subtitle>
-                        {{ prop.text }}
-                      </v-list-item-subtitle>
                       <v-list-item-title>
-                        {{ defaultProps.attrs[prop.value] }}
+                        {{ defaultProps.attrs.code }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-map-marker</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ defaultProps.attrs.address1 }}
+                      </v-list-item-title>
+                      <v-list-item-subtitle v-if="defaultProps.attrs.address2">
+                        {{ defaultProps.attrs.address2 }}
+                      </v-list-item-subtitle>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-phone</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ defaultProps.attrs.mobile }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-calendar</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ defaultProps.attrs.hireDate }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-cake</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ defaultProps.attrs.birth }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-gender-male-female</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ defaultProps.attrs.gender }}
+                      </v-list-item-title>
+                    </v-list-item-content>
+                  </v-list-item>
+                  <v-list-item>
+                    <v-list-item-icon>
+                      <v-icon>mdi-blood-bag</v-icon>
+                    </v-list-item-icon>
+                    <v-list-item-content>
+                      <v-list-item-title>
+                        {{ defaultProps.attrs.bloodType }}
                       </v-list-item-title>
                     </v-list-item-content>
                   </v-list-item>
                 </v-list>
+
                 <v-card-actions class="justify-end">
                   <g-btn-edit
                     :color="defaultProps.attrs.color"
@@ -250,12 +278,14 @@ export default {
               <v-row>
                 <!-- 健康保険 -->
                 <v-col cols="12" lg="4">
-                  <air-array-manager
+                  <g-collection-manager
                     :color="$FUTURE_COLOR_INDEX(0)"
+                    :dialog-props="{ maxWidth: 600 }"
                     :items="items.healthInsurances"
-                    :schema="instances.healthInsurances"
+                    :instance="instances.healthInsurances"
+                    label="健康保険情報編集"
                   >
-                    <template #default="{ table, color }">
+                    <template #default="{ table, color, activator }">
                       <g-card-floating-label
                         label="健康保険"
                         :color="color"
@@ -319,9 +349,24 @@ export default {
                             </template>
                           </v-data-iterator>
                         </v-container>
+                        <v-card-actions class="justify-end">
+                          <g-btn-regist
+                            v-bind="activator.attrs"
+                            icon
+                            v-on="activator.on"
+                          />
+                          <g-btn-edit v-bind="activator.attrs" icon />
+                        </v-card-actions>
                       </g-card-floating-label>
                     </template>
-                  </air-array-manager>
+                    <template #inputs="{ attrs, on }">
+                      <g-input-health-insurance
+                        v-bind="attrs"
+                        hide-employee
+                        v-on="on"
+                      />
+                    </template>
+                  </g-collection-manager>
                 </v-col>
                 <!-- 厚生年金 -->
                 <v-col cols="12" lg="4">
@@ -566,16 +611,19 @@ export default {
                 <!-- 警備員登録情報 -->
                 <v-col cols="12">
                   <air-item-manager
-                    :item="instances.employee"
+                    :item="defaultProps.item"
                     :color="$FUTURE_COLOR_INDEX(5)"
                     :dialog-props="{ maxWidth: 600 }"
                     disable-delete
-                    :handle-update="handleUpdate"
-                    :handle-delete="handleDelete"
+                    :handle-update="async (item) => await item.update()"
                     label="警備員登録情報"
                   >
                     <template #default="{ attrs, on }">
-                      <g-card-floating-label v-bind="attrs" icon="mdi-shield">
+                      <g-card-floating-label
+                        v-bind="attrs"
+                        label="警備員登録情報"
+                        icon="mdi-shield"
+                      >
                         <g-list-iterator
                           :icon-color="attrs.color"
                           :lists="securityRegistrationProps"
@@ -618,7 +666,7 @@ export default {
       <template #inputs="{ attrs, on }">
         <g-input-employee v-bind="attrs" v-on="on" />
       </template>
-    </air-item-manager>
+    </g-document-manager-employee>
   </g-template-default>
 </template>
 
