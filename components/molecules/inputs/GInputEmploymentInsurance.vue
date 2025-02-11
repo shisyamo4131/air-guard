@@ -2,16 +2,14 @@
 /**
  * 従業員雇用保険情報入力コンポーネント
  * @author shisayamo4131
- * @refact 2025-01-20
+ * @refact 2025-02-11
  */
 import GAutocompleteEmployee from './GAutocompleteEmployee.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
-import GCheckbox from '~/components/atoms/inputs/GCheckbox.vue'
-import GSelect from '~/components/atoms/inputs/GSelect.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
-import { vueProps } from '~/models/Pension'
+import { vueProps } from '~/models/EmploymentInsurance'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -20,8 +18,6 @@ export default {
     GTextField,
     GComboboxDate,
     GAutocompleteEmployee,
-    GCheckbox,
-    GSelect,
     GTextarea,
   },
 
@@ -56,50 +52,20 @@ export default {
           :value="acquisitionDate"
           label="資格取得日"
           required
-          :disabled="isLossed"
           @input="$emit('update:acquisitionDate', $event)"
         />
-        <g-select
-          :value="acquisitionStatus"
-          label="取得手続き状況"
-          :items="$EMPLOYMENT_INSURANCE_PROCESSING_STATUS_ARRAY"
-          required
-          :disabled="isLossed"
-          @input="$emit('update:acquisitionStatus', $event)"
+        <g-text-field
+          :value="policyNumber"
+          label="被保険者整理番号"
+          @input="$emit('update:policyNumber', $event)"
         />
         <v-expand-transition>
-          <div v-show="acquisitionStatus === 'COMPLETED'">
-            <g-text-field
-              :value="policyNumber"
-              label="被保険者整理番号"
-              :required="acquisitionStatus === 'COMPLETED'"
-              :disabled="isLossed"
-              @input="$emit('update:policyNumber', $event)"
-            />
-          </div>
-        </v-expand-transition>
-        <g-checkbox
-          v-if="!isCreate"
-          :input-value="isLossed"
-          class="mt-0"
-          label="資格喪失"
-          :disabled="acquisitionStatus !== 'COMPLETED'"
-          @change="$emit('update:isLossed', $event)"
-        />
-        <v-expand-transition>
-          <div v-show="isLossed">
+          <div v-show="!isCreate">
             <g-combobox-date
               :value="lossDate"
               label="資格喪失日"
               :required="isLossed"
               @input="$emit('update:lossDate', $event)"
-            />
-            <g-select
-              :value="lossStatus"
-              label="喪失手続き状況"
-              :items="$EMPLOYMENT_INSURANCE_PROCESSING_STATUS_ARRAY"
-              :required="isLossed"
-              @input="$emit('update:lossStatus', $event)"
             />
           </div>
         </v-expand-transition>

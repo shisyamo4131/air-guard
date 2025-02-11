@@ -102,6 +102,14 @@ export default {
           return ['SitesIndex']
         case '/employees':
           return ['EmployeesIndex']
+        case '/employee-contracts':
+          return ['EmployeeContractsIndex']
+        case '/employment-insurances':
+          return ['EmploymentInsurancesIndex']
+        case '/health-insurances':
+          return ['healthInsurancesIndex']
+        case '/pensions':
+          return ['PensionsIndex']
         default:
           return []
       }

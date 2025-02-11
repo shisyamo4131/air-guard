@@ -39,21 +39,6 @@ export const allNavList = [
       { name: '従業員', to: '/employees', icon: 'mdi-account' },
       { name: '雇用契約', to: '/employee-contracts', icon: 'mdi-file-sign' },
       {
-        name: '雇用保険',
-        to: '/employment-insurances',
-        icon: 'mdi-shield-account',
-      },
-      {
-        name: '健康保険',
-        to: '/health-insurances',
-        icon: 'mdi-hospital-box',
-      },
-      {
-        name: '厚生年金',
-        to: '/pensions',
-        icon: 'mdi-currency-jpy',
-      },
-      {
         name: '健康診断',
         to: '/medical-checkups',
         icon: 'mdi-heart-pulse',
