@@ -248,4 +248,8 @@ export default {
   </v-dialog>
 </template>
 
-<style></style>
+<style>
+.g-dialog__height--fixed:not(.v-dialog--fullscreen) {
+  height: 90% !important;
+}
+</style>
