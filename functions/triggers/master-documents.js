@@ -153,7 +153,7 @@ const DOCUMENT_SYNC_DEFINITIONS = {
       compareProp: 'employeeId',
     },
 
-    // 従業員 -> 健康保険
+    // 従業員 -> 健康保険（Cloud Functions 内にカスタムクラスを用意していないためオンコーディング）
     HealthInsurances: {
       referenceClass: class {
         static customClassMap = {
@@ -164,7 +164,7 @@ const DOCUMENT_SYNC_DEFINITIONS = {
       compareProp: 'employeeId',
     },
 
-    // 従業員 -> 厚生年金
+    // 従業員 -> 厚生年金（Cloud Functions 内にカスタムクラスを用意していないためオンコーディング）
     Pensions: {
       referenceClass: class {
         static customClassMap = {
@@ -175,7 +175,7 @@ const DOCUMENT_SYNC_DEFINITIONS = {
       compareProp: 'employeeId',
     },
 
-    // 従業員 -> 雇用保険
+    // 従業員 -> 雇用保険（Cloud Functions 内にカスタムクラスを用意していないためオンコーディング）
     EmploymentInsurances: {
       referenceClass: class {
         static customClassMap = {
