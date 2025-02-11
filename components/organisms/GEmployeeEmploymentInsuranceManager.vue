@@ -2,8 +2,7 @@
 import GCollectionManager from '../managers/GCollectionManager.vue'
 import GInputEmploymentInsurance from '../molecules/inputs/GInputEmploymentInsurance.vue'
 import GCardEmploymentInsurance from '../molecules/cards/GCardEmploymentInsurance.vue'
-import GBtnRegist from '../atoms/btns/GBtnRegist.vue'
-import GBtnEdit from '../atoms/btns/GBtnEdit.vue'
+import GCardFloatingLabelV2 from '../atoms/cards/GCardFloatingLabelV2.vue'
 import EmploymentInsurance from '~/models/EmploymentInsurance'
 export default {
   /***************************************************************************
@@ -13,8 +12,7 @@ export default {
     GCollectionManager,
     GInputEmploymentInsurance,
     GCardEmploymentInsurance,
-    GBtnRegist,
-    GBtnEdit,
+    GCardFloatingLabelV2,
   },
 
   /***************************************************************************
@@ -96,19 +94,22 @@ export default {
     :items="computedItems"
     label="雇用保険情報編集"
   >
-    <template #default="{ activator, toUpdate }">
-      <v-card>
-        <v-toolbar dense flat>
-          <v-toolbar-title>雇用保険</v-toolbar-title>
-          <v-spacer />
-          <g-btn-regist icon v-bind="activator.attrs" v-on="activator.on" />
-          <g-btn-edit
-            :disabled="items.length === 0"
-            icon
-            v-bind="activator.attrs"
-            @click="toUpdate(computedItems[window])"
-          />
-        </v-toolbar>
+    <template #default="{ toRegist, toUpdate }">
+      <g-card-floating-label-v-2
+        :color="color"
+        dark
+        icon="mdi-shield-account"
+        label="雇用保険"
+        :menu-items="[
+          { text: '追加', icon: 'mdi-plus', action: toRegist },
+          {
+            text: '変更',
+            icon: 'mdi-pencil',
+            action: () => toUpdate(computedItems[window]),
+            disabled: computedItems.length === 0,
+          },
+        ]"
+      >
         <v-container>
           <v-window v-if="items.length !== 0" v-model="window">
             <v-window-item v-for="(item, index) in computedItems" :key="index">
@@ -138,7 +139,7 @@ export default {
             <v-icon>mdi-chevron-right</v-icon>
           </v-btn>
         </v-card-actions>
-      </v-card>
+      </g-card-floating-label-v-2>
     </template>
     <template #inputs="{ attrs, on }">
       <g-input-employment-insurance v-bind="attrs" hide-employee v-on="on" />

@@ -2,7 +2,7 @@
 /**
  * 従業員の詳細画面です。
  * @author shisyamo4131
- * @refact 2025-02-10
+ * @refact 2025-02-11
  */
 import GCardMap from '~/components/molecules/cards/GCardMap.vue'
 import GTemplateDefault from '~/components/templates/GTemplateDefault.vue'
@@ -263,18 +263,25 @@ export default {
               <v-row>
                 <!-- 健康保険 -->
                 <v-col cols="12" lg="4">
-                  <g-employee-health-insurance-manager :employee-id="docId" />
+                  <g-employee-health-insurance-manager
+                    :employee-id="docId"
+                    :color="$FUTURE_COLOR_INDEX(0)"
+                  />
                 </v-col>
 
                 <!-- 厚生年金 -->
                 <v-col cols="12" lg="4">
-                  <g-employee-pension-manager :employee-id="docId" />
+                  <g-employee-pension-manager
+                    :employee-id="docId"
+                    :color="$FUTURE_COLOR_INDEX(1)"
+                  />
                 </v-col>
 
                 <!-- 雇用保険 -->
                 <v-col cols="12" lg="4">
                   <g-employee-employment-insurance-manager
                     :employee-id="docId"
+                    :color="$FUTURE_COLOR_INDEX(2)"
                   />
                 </v-col>
 
