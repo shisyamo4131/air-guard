@@ -141,6 +141,16 @@ export default {
         }
       })
     },
+
+    /**
+     * アイテムが選択されているかどうかを返します。
+     */
+    isItemSelected() {
+      if (!this.selectedItem) return false
+      if (Array.isArray(this.selectedItem) && this.selectedItem.length === 0)
+        return false
+      return true
+    },
   },
 
   /***************************************************************************
@@ -327,7 +337,7 @@ export default {
         </slot>
       </v-container>
       <v-card-actions class="justify-end">
-        <v-btn icon @click="submit"
+        <v-btn color="primary" :disabled="!isItemSelected" icon @click="submit"
           ><v-icon>{{ submitIcon }}</v-icon></v-btn
         >
       </v-card-actions>
