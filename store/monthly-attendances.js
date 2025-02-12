@@ -7,7 +7,7 @@
 import { firestore } from 'air-firebase'
 import dayjs from 'dayjs'
 import { collection, onSnapshot, query, where } from 'firebase/firestore'
-import MonthlyAttendance from '~/models/MonthlyAttendance'
+import { MonthlyAttendanceMinimal } from '~/models/MonthlyAttendance'
 
 const MINUTES_PER_HOUR = 60
 
@@ -99,7 +99,8 @@ export const actions = {
     const currentDate = dayjs().startOf('month')
     const from = currentDate.subtract(1, 'month').format('YYYY-MM')
     const to = currentDate.add(1, 'month').format('YYYY-MM')
-    const instance = new MonthlyAttendance()
+    // const instance = new MonthlyAttendance()
+    const instance = new MonthlyAttendanceMinimal()
     const colRef = collection(firestore, 'MonthlyAttendances')
     const queryRef = query(
       colRef,

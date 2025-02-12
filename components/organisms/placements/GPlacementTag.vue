@@ -203,19 +203,24 @@ export default {
     },
 
     /**
+     * 2025-02-12
+     * 起動・読み込みに非常に時間がかかるため、MonthlyAttendance のVuexから DailyAttendancesを削除
+     * 結果、最終勤怠情報を取得することはできなくなったため、コメントアウト
+     */
+    /**
      * 当月の従業員の最終勤怠情報を返します。
      * - 外注先の場合は無条件で null を返します。
      */
-    latestAttendance() {
-      if (!this.employeeId) return null
-      const employeeId = this.employeeId
-      const date = this.placement.date
-      const month = this.$dayjs(date).format('YYYY-MM')
-      return this.$store.getters['monthly-attendances/latestAttendance']({
-        employeeId,
-        month,
-      })
-    },
+    // latestAttendance() {
+    //   if (!this.employeeId) return null
+    //   const employeeId = this.employeeId
+    //   const date = this.placement.date
+    //   const month = this.$dayjs(date).format('YYYY-MM')
+    //   return this.$store.getters['monthly-attendances/latestAttendance']({
+    //     employeeId,
+    //     month,
+    //   })
+    // },
 
     /**
      * 当月の従業員の累積残業時間（時間単位）を返します。
@@ -465,6 +470,7 @@ export default {
           <div :class="{ 'error--text': nearOvertimeLimit }">
             {{ `累積: ${overtimeTotal} H` }}
           </div>
+          <!--
           <div v-show="!ellipsis">
             {{
               `(${
@@ -474,6 +480,7 @@ export default {
               })`
             }}
           </div>
+          -->
         </div>
       </div>
 

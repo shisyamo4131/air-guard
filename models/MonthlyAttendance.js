@@ -53,3 +53,18 @@ export default class MonthlyAttendance extends FireModel {
     }
   }
 }
+
+/**
+ * 2025-02-12
+ * dailyAttendances を保有したままVuexで読み込みを行うと非常に時間がかかる。
+ * Minimalを用意して応急処置。
+ */
+export class MonthlyAttendanceMinimal extends MonthlyAttendance {
+  initialize(item = {}) {
+    super.initialize(item)
+
+    delete this.dailyAttendances
+    delete this.dailyAttendancesPrev
+    delete this.dailyAttendancesNext
+  }
+}
