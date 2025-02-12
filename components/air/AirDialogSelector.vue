@@ -54,6 +54,7 @@ export default {
      * 選択可能なアイテムの配列です。
      * - fetcher によるクエリが実行されると、選択可能なアイテムは fetcher の
      *   実行結果に置き換わります。
+     * - activator スロットで items プロパティとして提供されます。
      */
     items: { type: Array, default: () => [], required: false },
 
@@ -148,7 +149,7 @@ export default {
   watch: {
     // data.internalItems を監視し、値が更新されたらコンポーネントを初期化します。
     internalItems(v) {
-      this.initialize()
+      this.initializeSelection()
     },
 
     /**
@@ -168,7 +169,10 @@ export default {
      * - input イベントを emit します。
      */
     internalValue(v) {
-      if (!v) this.initialize()
+      if (!v) {
+        this.initializeSelection()
+        this.internalLazySearch = null
+      }
       this.$emit('input', v)
     },
 
@@ -194,9 +198,9 @@ export default {
    ***************************************************************************/
   methods: {
     /**
-     * コンポーネントを初期化します。
+     * コンポーネントの選択状態を初期化し、スクロール位置を最上部に戻します。
      */
-    initialize() {
+    initializeSelection() {
       this.selectedItem = this.multiple ? [] : null
       const element = this.$refs?.['scroll-container'] || null
       if (element) {
@@ -249,9 +253,12 @@ export default {
     content-class="air-dialog-selector__height--fixed"
     v-on="$listeners"
   >
-    <!-- activator スロットをそのまま提供 -->
-    <template #activator="props">
-      <slot name="activator" v-bind="props" />
+    <!-- activator スロットに items を追加して提供 -->
+    <template #activator="{ attrs, on }">
+      <slot
+        name="activator"
+        v-bind="{ attrs: { ...attrs, readonly: true }, on }"
+      />
     </template>
 
     <!-- card コンポーネント -->
