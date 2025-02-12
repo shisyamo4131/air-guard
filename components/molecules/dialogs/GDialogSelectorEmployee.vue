@@ -1,12 +1,12 @@
 <script>
 /**
- * 現場選択用コンポーネント
+ * 従業員選択用コンポーネント
  *
  * @author shisyamo4131
  * @refact 2025-02-11
  */
 import AirDialogSelector from '~/components/air/AirDialogSelector.vue'
-import Site from '~/models/Site'
+import Employee from '~/models/Employee'
 export default {
   /***************************************************************************
    * COMPONENTS
@@ -18,7 +18,7 @@ export default {
    ***************************************************************************/
   data() {
     return {
-      instance: new Site(),
+      instance: new Employee(),
     }
   },
 }
@@ -28,7 +28,7 @@ export default {
   <air-dialog-selector
     v-bind="$attrs"
     max-width="600"
-    label="現場選択"
+    label="従業員選択"
     :fetcher="async (search) => await instance.fetchDocs(search)"
     :sort-by="['status', 'abbrKana']"
     v-on="$listeners"
@@ -44,7 +44,7 @@ export default {
               {{ item.abbr }}
             </v-list-item-title>
             <v-list-item-subtitle class="text-caption">
-              {{ item.address }}
+              {{ item.abbrKana }}
             </v-list-item-subtitle>
             <v-list-item-subtitle class="text-caption">
               {{ item.status }}

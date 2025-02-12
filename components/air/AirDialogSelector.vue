@@ -5,12 +5,13 @@
  *
  * - activator スロットを使用してダイアログを起動してください。
  *   または open を実行することでも起動が可能です。
- * - 選択肢となるアイテムを配列を props.items で受け取ります。
+ * - 選択肢となるアイテムの配列を props.items で受け取ります。
  * - item スロットで単一アイテムの表示を行います。
  * - props.fetcher を指定することで外部データの取得にも対応します。
+ * - ダイアログの高さはアプリケーションの高さの 90% で固定されます。
  *
  * @author shisyamo4131
- * @refact 2025-02-07
+ * @refact 2025-02-11
  */
 import AirRenderlessDelayInput from '~/components/air/AirRenderlessDelayInput.vue'
 export default {
@@ -48,12 +49,6 @@ export default {
      * (search) => Promise<Array>
      */
     fetcher: { type: Function, default: undefined, required: false },
-
-    /**
-     * ダイアログコンポーネントの高さです。
-     * - 可変高コンポーネントの表示が切り替わるため、指定することを推奨します。
-     */
-    height: { type: [String, Number], default: '90%', required: false },
 
     /**
      * 選択可能なアイテムの配列です。
@@ -251,7 +246,7 @@ export default {
     v-bind="$attrs"
     v-model="internalValue"
     :fullscreen="$vuetify.breakpoint.mobile"
-    :height="height"
+    content-class="air-dialog-selector__height--fixed"
     v-on="$listeners"
   >
     <!-- activator スロットをそのまま提供 -->
@@ -333,4 +328,8 @@ export default {
   </v-dialog>
 </template>
 
-<style></style>
+<style>
+.air-dialog-selector__height--fixed:not(.v-dialog--fullscreen) {
+  height: 90% !important;
+}
+</style>
