@@ -2,13 +2,12 @@
 /**
  * 従業員健康保険情報入力コンポーネント
  * @author shisayamo4131
- * @refact 2025-02-11
+ * @refact 2025-02-13
  */
 import GAutocompleteEmployee from './GAutocompleteEmployee.vue'
 import GTextField from '~/components/atoms/inputs/GTextField.vue'
 import GComboboxDate from '~/components/atoms/inputs/GComboboxDate.vue'
 import GTextarea from '~/components/atoms/inputs/GTextarea.vue'
-import GNumeric from '~/components/atoms/inputs/GNumeric.vue'
 import { vueProps } from '~/models/HealthInsurance'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
 
@@ -21,7 +20,6 @@ export default {
     GComboboxDate,
     GAutocompleteEmployee,
     GTextarea,
-    GNumeric,
   },
 
   /***************************************************************************
@@ -57,25 +55,21 @@ export default {
           required
           @input="$emit('update:acquisitionDate', $event)"
         />
-        <g-numeric
-          :value="standardMonthlyAmount"
-          class="right-input"
-          label="標準報酬月額"
-          :required="acquisitionStatus === 'COMPLETED'"
-          suffix="円"
-          @input="$emit('update:standardMonthlyAmount', $event)"
-        />
         <g-text-field
           :value="policyNumber"
           label="被保険者整理番号"
-          :required="acquisitionStatus === 'COMPLETED'"
+          required
           @input="$emit('update:policyNumber', $event)"
         />
-        <g-combobox-date
-          :value="lossDate"
-          label="資格喪失日"
-          @input="$emit('update:lossDate', $event)"
-        />
+        <v-expand-transition>
+          <div v-show="!isCreate">
+            <g-combobox-date
+              :value="lossDate"
+              label="資格喪失日"
+              @input="$emit('update:lossDate', $event)"
+            />
+          </div>
+        </v-expand-transition>
       </v-col>
       <v-col cols="12" md="6">
         <g-textarea

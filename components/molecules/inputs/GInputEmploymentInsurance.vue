@@ -57,6 +57,7 @@ export default {
         <g-text-field
           :value="policyNumber"
           label="被保険者整理番号"
+          required
           @input="$emit('update:policyNumber', $event)"
         />
         <v-expand-transition>
@@ -64,7 +65,6 @@ export default {
             <g-combobox-date
               :value="lossDate"
               label="資格喪失日"
-              :required="isLossed"
               @input="$emit('update:lossDate', $event)"
             />
           </div>
