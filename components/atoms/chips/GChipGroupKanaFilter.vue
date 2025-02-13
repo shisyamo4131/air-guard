@@ -89,7 +89,7 @@ export default {
   <v-chip-group
     v-bind="{ ...$attrs, ...$props }"
     v-model="internalValue"
-    active-class="primary--text"
+    active-class="accent--text"
     mandatory
     v-on="$listeners"
   >
