@@ -149,7 +149,7 @@ export default {
      * 並び替えた配列を返します。
      */
     computedItems() {
-      // sortBy の指定がなければ filterdItems をそのまま返す。
+      // sortBy の指定がなければ filteredItems をそのまま返す。
       if (!this.sortBy || this.sortBy.length === 0) {
         return this.internalItems
       }
@@ -179,7 +179,7 @@ export default {
       })
     },
 
-    filterdItems() {
+    filteredItems() {
       return this.customFilter(this.computedItems, this.lazySearch)
     },
 
@@ -226,6 +226,7 @@ export default {
         this.$emit('lazy-search', v)
         this.reloadItems()
       },
+      immediate: true,
     },
 
     /**
@@ -269,7 +270,7 @@ export default {
       this.selectedItem = this.multiple ? [] : null
       const element = this.$refs?.['scroll-container'] || null
       if (element) {
-        this.$vuetify.goTo(this, { container: this.$refs['scroll-container'] })
+        this.$vuetify.goTo(this, { container: element })
       }
     },
 
@@ -364,19 +365,29 @@ export default {
         <slot name="search-extension" v-bind="{ items: computedItems }" />
       </div>
 
-      <v-container class="flex-grow-1 overflow-y-hidden" fluid>
-        <slot name="items" v-bind="{ items: filterdItems }">
+      <v-container
+        ref="scroll-container"
+        class="flex-grow-1 overflow-y-auto"
+        fluid
+      >
+        <slot
+          name="items"
+          v-bind="{
+            items: filteredItems,
+            multiple,
+            selectedItem,
+            select: (item) => (selectedItem = item),
+          }"
+        >
           <v-item-group
-            ref="scroll-container"
             v-model="selectedItem"
-            class="overflow-y-auto"
             style="height: 100%"
             :multiple="multiple"
           >
             <v-container>
               <v-row>
                 <v-col
-                  v-for="(item, index) of filterdItems"
+                  v-for="(item, index) of filteredItems"
                   :key="index"
                   v-bind="colOptions"
                 >
