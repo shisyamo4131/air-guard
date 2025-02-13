@@ -24,7 +24,7 @@
  * - version 1.1.0 - 2024-08-22 - FireModelの仕様変更に伴う修正
  * - version 1.0.0 - 2024-07-25 - 初版作成
  */
-import { database } from 'air-firebase'
+import { database, firestore } from 'air-firebase'
 import {
   get,
   onChildAdded,
@@ -38,6 +38,11 @@ import {
   endAt,
   onValue,
 } from 'firebase/database'
+import { collection, limit, onSnapshot, orderBy } from 'firebase/firestore'
+import Site from '~/models/Site'
+
+// 最近登録・更新された現場として取得する最大ドキュメント数
+const RECENTS_MAX_DOC_LENGTH = 20
 
 /******************************************************************
  * STATE
@@ -50,7 +55,15 @@ export const state = () => ({
     changed: null,
     removed: null,
     current: null,
+
+    // マスタ全参照を廃止しても以下は残す。
+    recents: null,
   },
+
+  /**
+   * マスタ全参照を廃止しても、以下は残す。
+   */
+  recents: [], // 最近登録・更新された現場
 })
 /******************************************************************
  * GETTERS
@@ -103,6 +116,20 @@ export const mutations = {
     })
     state.items.splice(0)
     state.current.splice(0)
+  },
+
+  /**
+   * マスタ全参照を廃止しても以下は残す。
+   */
+  SET_RECENT_ITEM(state, item) {
+    const index = state.recents.findIndex(({ docId }) => docId === item.docId)
+    if (index === -1) state.recents.push(item)
+    if (index !== -1) state.recents.splice(index, 1, item)
+  },
+
+  REMOVE_RECENT_ITEM(state, item) {
+    const index = state.recents.findIndex(({ docId }) => docId === item.docId)
+    if (index !== -1) state.recents.splice(index, 1)
   },
 }
 /******************************************************************
@@ -165,8 +192,32 @@ export const actions = {
     )
 
     // リスナーを state に登録
-    commit('setListeners', { added, changed, removed, current })
+    // commit('setListeners', { added, changed, removed, current })
+
+    /**
+     * マスタ全参照を廃止しても以下は残す。
+     */
+    const instance = new Site()
+    const colRef = collection(firestore, 'Sites')
+    const queryRef = query(
+      colRef,
+      orderBy('updateAt', 'desc'),
+      limit(RECENTS_MAX_DOC_LENGTH)
+    ).withConverter(instance.converter())
+    const recents = onSnapshot(queryRef, (snapshot) => {
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === 'added')
+          commit('SET_RECENT_ITEM', change.doc.data())
+        if (change.type === 'modified')
+          commit('SET_RECENT_ITEM', change.doc.data())
+        if (change.type === 'removed')
+          commit('REMOVE_RECENT_ITEM', change.doc.data())
+      })
+    })
+    // commit('setListeners', { recents })
+    commit('setListeners', { added, changed, removed, current, recents })
   },
+
   unsubscribe({ commit }) {
     commit('removeListeners')
   },

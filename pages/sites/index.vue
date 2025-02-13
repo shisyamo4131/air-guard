@@ -72,6 +72,10 @@ export default {
         )
       })
     },
+
+    recents() {
+      return this.$store.state.sites.recents
+    },
   },
 
   /***************************************************************************
@@ -155,7 +159,7 @@ export default {
         :event-edit="eventEdit"
         :event-edit-handler="eventEditHandler"
         height="100%"
-        :items="filteredItems"
+        :items="lazySearch ? filteredItems : recents"
         :loading="loading"
       >
         <template #default="{ activator, pagination, table }">
