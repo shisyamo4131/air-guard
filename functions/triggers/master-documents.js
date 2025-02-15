@@ -33,6 +33,7 @@ import { fetchCoordinates } from '../modules/utils/geocoding.js'
 import OperationResult from '../models/OperationResult.js'
 import EmployeeContract from '../models/EmployeeContract.js'
 import SiteOperationSchedule from '../models/SiteOperationSchedule.js'
+import YearlyCalendar from '../models/YearlyCalendar.js'
 
 /*****************************************************************************
  * コレクション毎の個別処理定義
@@ -102,6 +103,29 @@ const COLLECTION_HANDLERS = {
         'siteId',
         event.params.docId
       )
+    },
+  },
+  WorkRegulations: {
+    CREATED: async (event) => {
+      // 年間カレンダーを作成
+      const data = event.data.after.data()
+      const workRegulationId = data.docId
+      const instance = new YearlyCalendar({ workRegulationId, ...data })
+      await instance.create({ ...data })
+    },
+    UPDATE: async (event) => {
+      // 年間カレンダーを作成
+      const data = event.data.after.data()
+      const workRegulationId = data.docId
+      const instance = new YearlyCalendar({ workRegulationId, ...data })
+      await instance.create({ ...data })
+    },
+    DELETE: async (event) => {
+      // 年間カレンダーを削除
+      const data = event.data.before.data()
+      const workRegulationId = data.docId
+      const instance = new YearlyCalendar({ workRegulationId, ...data })
+      await instance.delete()
     },
   },
 }

@@ -18,9 +18,9 @@
       </v-col>
       <v-col cols="12">
         <v-card>
-          <v-card-title>従業員データ空更新</v-card-title>
+          <v-card-title>空更新</v-card-title>
           <v-card-actions>
-            <v-btn @click="test">test</v-btn>
+            <v-btn @click="emptyUpdate">empty update</v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -46,7 +46,7 @@ export default {
     GMaintenanceIntegrateSiteOperationSchedules,
   },
   methods: {
-    async test() {
+    async emptyUpdate() {
       try {
         const api = httpsCallable(functions, `maintenance-api`)
         const result = await api({ functionName: 'emptyUpdate' })

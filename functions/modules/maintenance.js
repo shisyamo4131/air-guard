@@ -38,7 +38,8 @@ export const api = onCall(async (request) => {
   }
 
   try {
-    return await handlers[functionName](params, request)
+    await handlers[functionName](params, request)
+    return { message: `[maintenance-api] Finished.` }
   } catch (error) {
     logger.error(`Error in function ${functionName}:`, error)
     throw new Error(error.message)

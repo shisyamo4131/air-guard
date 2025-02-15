@@ -8,6 +8,7 @@ import {
   CUSTOMER_STATUS,
   CUSTOMER_STATUS_ARRAY,
 } from '~/models/constants/customer-status'
+import { DAY_OF_WEEK, DAY_OF_WEEK_ARRAY } from '~/models/constants/day-of-weeks'
 import { DAY_TYPE, DAY_TYPE_ARRAY } from '~/models/constants/day-types'
 import { DEADLINE, DEADLINE_ARRAY } from '~/models/constants/deadlines'
 import {
@@ -195,6 +196,10 @@ export default (context, inject) => {
   inject('CUSTOMER_STATUS_ARRAY', CUSTOMER_STATUS_ARRAY)
   inject('DAY_DIV', DAY_DIV)
   inject('DAY_DIV_ARRAY', DAY_DIV_ARRAY)
+
+  inject('DAY_OF_WEEK', (index) => DAY_OF_WEEK(index))
+  inject('DAY_OF_WEEK_ARRAY', (index) => DAY_OF_WEEK_ARRAY(index))
+
   inject('DAY_OF_WEEK_JA', DAY_OF_WEEK_JA)
   inject('DAY_TYPE', DAY_TYPE)
   inject('DAY_TYPE_ARRAY', DAY_TYPE_ARRAY)

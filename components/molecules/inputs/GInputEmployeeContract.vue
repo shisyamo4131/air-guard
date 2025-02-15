@@ -104,14 +104,6 @@ export default {
         ({ docId }) => docId === this.workRegulationId
       )
     },
-
-    /**
-     * 現在選択されている就業規則ドキュメントから求められる週所定労働時間を返します。
-     */
-    scheduledWorkHoursPerWeek() {
-      if (!this.selectedWorkRegulation) return 0
-      return this.selectedWorkRegulation.scheduledWorkHoursPerWeek
-    },
   },
 
   /***************************************************************************

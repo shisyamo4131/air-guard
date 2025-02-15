@@ -19,10 +19,11 @@ const SITE_OPERATION_SCHEDULES_KEEP_DAYS = 90
 
 /**
  * 空更新の設定
- * { collectionId: 'Employees', UseClass: Employee }
+ * { collectionId: 'Employees', UseClass: Employee, maxCount: 10 }
  */
-const CLASSES = [{ collectionId: 'Employees', UseClass: Employee }]
-const MAX_DOC_COUNT = 20
+const CLASSES = [
+  { collectionId: 'Employees', UseClass: Employee, maxCount: 20 },
+]
 
 // 毎日 0 時に実行される Cloud Function
 export const runDailyTask = onSchedule(
@@ -377,16 +378,17 @@ export const emptyUpdate = async () => {
     logger.info(`[emptyUpdate] ${Cls.collectionId} の空更新を行います。`)
     const lastTimeDocId = historyData[Cls.collectionId]
     const instance = new Cls.UseClass()
+    const maxCount = Cls.maxCount
 
     const constraints = lastTimeDocId
       ? [
           ['where', 'docId', '>', lastTimeDocId],
           ['orderBy', 'docId'],
-          ['limit', MAX_DOC_COUNT],
+          ['limit', maxCount],
         ]
       : [
           ['orderBy', 'docId'],
-          ['limit', MAX_DOC_COUNT],
+          ['limit', maxCount],
         ]
 
     const docs = await instance.fetchDocs(constraints)

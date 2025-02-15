@@ -72,8 +72,6 @@ export default {
   computed: {
     items() {
       const {
-        scheduledWorkHoursPerWeek,
-        scheduledWorkHoursPerDay,
         legalHoliday,
         isHolidayWorkDay,
         averageMonthlyScheduledWorkDays,
@@ -84,12 +82,6 @@ export default {
         holidayPayRate,
       } = this.editModel
       return [
-        {
-          label: '週所定労働時間',
-          text: this.error.message
-            ? '-'
-            : `${scheduledWorkHoursPerWeek} 時間（1日 ${scheduledWorkHoursPerDay} 時間）`,
-        },
         {
           label: '法定休日',
           text: this.error.message
