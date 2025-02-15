@@ -7,6 +7,7 @@ import { EmployeeSiteHistory } from '../models/EmployeeSiteHistory.js'
 import { SiteEmployeeHistory } from '../models/SiteEmployeeHistory.js'
 import Placement from '../models/Placement.js'
 import Employee from '../models/Employee.js'
+import WorkRegulation from '../models/WorkRegulation.js'
 import { fetchCoordinates } from './utils/geocoding.js'
 
 const firestore = getFirestore()
@@ -23,6 +24,7 @@ const SITE_OPERATION_SCHEDULES_KEEP_DAYS = 90
  */
 const CLASSES = [
   { collectionId: 'Employees', UseClass: Employee, maxCount: 20 },
+  { collectionId: 'WorkRegulations', UseClass: WorkRegulation, maxCount: 5 },
 ]
 
 // 毎日 0 時に実行される Cloud Function
