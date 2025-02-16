@@ -5,11 +5,9 @@
  * @refact 2025-02-16
  *****************************************************************************/
 import dayjs from 'dayjs'
-import { getDatabase } from 'firebase-admin/database'
-import { logger } from 'firebase-functions/v2'
-import { DAY_OF_WEEK } from './constants/day-of-weeks.js'
-
-const database = getDatabase()
+import { ref, set, update } from 'firebase/database'
+import { database } from 'air-firebase'
+import { DAY_OF_WEEK } from './constants/day-of-weeks'
 
 /*****************************************************************************
  * カスタムクラス - default -
@@ -120,7 +118,7 @@ export default class YearlyCalendar {
       delete calendar[endDate.format('YYYY-MM-DD')]
 
       // 日ごとのカレンダーを書き込み
-      await database.ref(`${this.dbPath}/daily`).set(calendar)
+      await set(ref(database, `${this.dbPath}/daily`), calendar)
 
       // 月ごとの所定労働日数を集計
       const scheduledWorkDays = Object.keys(calendar).reduce((sum, key) => {
@@ -139,7 +137,7 @@ export default class YearlyCalendar {
       }, {})
 
       // 月ごとの所定労働日数を書き込み
-      await database.ref().update(updates)
+      await update(ref(database), updates)
 
       // 年間休日数をカウント
       const holidays = Object.keys(calendar).reduce((sum, key) => {
@@ -154,11 +152,13 @@ export default class YearlyCalendar {
         (Object.keys(calendar).length - holidays) / 12
 
       // 年間データを書き込み
-      await database
-        .ref(`${this.dbPath}/yearly`)
-        .set({ holidays, averageMonthlyScheduledWorkDays })
+      await set(ref(database, `${this.dbPath}/yearly`), {
+        holidays,
+        averageMonthlyScheduledWorkDays,
+      })
     } catch (err) {
-      logger.error(
+      // eslint-disable-next-line no-console
+      console.error(
         `[YearlyCalendar.js - create] 不明なエラーが発生しました。`,
         err
       )
@@ -186,7 +186,8 @@ export default class YearlyCalendar {
     try {
       await database.ref(this.dbPath).remove()
     } catch (err) {
-      logger.error(
+      // eslint-disable-next-line no-console
+      console.error(
         `[YearlyCalendar.js - delete] 不明なエラーが発生しました。`,
         err
       )
