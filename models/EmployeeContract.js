@@ -1,48 +1,191 @@
+/*****************************************************************************
+ * カスタムクラス定義: 従業員雇用契約 - EmployeeContract -
+ *
+ * @author shisyamo4131
+ * @refact 2025-03-04
+ *****************************************************************************/
 import { FireModel } from 'air-firebase'
 import { EmployeeMinimal } from './Employee'
-import { accessor, classProps } from './propsDefinition/EmployeeContract'
 import { WorkRegulationMinimal } from './WorkRegulation'
 import EmployeeAllowance from './EmployeeAllowance'
+import { EMPLOYEE_CONTRACT_TYPE } from './constants/employee-contract-types'
+import { PAYMENT_TYPE } from './constants/payment-types'
+import { generateProps } from './propsDefinition/propsUtil'
 
 /**
- * 従業員の雇用契約情報を管理するデータモデルです。
- * @author shisyamo4131
+ * PROPERTIES
  */
-export default class EmployeeContract extends FireModel {
-  /****************************************************************************
-   * STATIC
-   ****************************************************************************/
-  static collectionPath = 'EmployeeContracts'
-  static classProps = classProps
+const propsDefinition = {
+  // ドキュメントID
+  docId: { type: String, default: '', required: false },
 
-  /****************************************************************************
-   * CUSTOM CLASS MAPPING
-   ****************************************************************************/
+  // 従業員ID
+  employeeId: {
+    type: String,
+    default: '',
+    required: true,
+    requiredByClass: true,
+  },
+
+  // 従業員
+  employee: {
+    type: Object,
+    default: () => new EmployeeMinimal(),
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 契約開始日
+  startDate: {
+    type: String,
+    default: '',
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 契約期間の定め
+  hasPeriod: { type: Boolean, default: true, required: false },
+
+  // 契約満了日
+  expiredDate: { type: String, default: '', required: false },
+
+  // 雇用形態
+  contractType: {
+    type: String,
+    default: 'part-time',
+    validator: (v) => Object.keys(EMPLOYEE_CONTRACT_TYPE).includes(v),
+    required: true,
+    requiredByClass: true,
+  },
+
+  // 就業規則ID
+  workRegulationId: {
+    type: String,
+    default: '',
+    required: true,
+    requiredByClass: true,
+  },
+
+  // 就業規則
+  workRegulation: {
+    type: Object,
+    default: () => new WorkRegulationMinimal(),
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 支給形態
+  paymentType: {
+    type: String,
+    default: 'daily',
+    validator: (v) => Object.keys(PAYMENT_TYPE).includes(v),
+    requiredByClass: true,
+  },
+
+  // 基本給
+  basicWage: {
+    type: Number,
+    default: null,
+    validator: (v) => v >= 0,
+    required: false,
+    requiredByClass: true,
+  },
+
+  // 交通費支給
+  providesTransportationAllowance: {
+    type: Boolean,
+    default: false,
+    required: false,
+  },
+
+  // 健康保険加入
+  isHealthInsuranceRequired: {
+    type: Boolean,
+    default: false,
+    required: false,
+  },
+
+  // 厚生年金加入
+  isPensionRequired: {
+    type: Boolean,
+    default: false,
+    required: false,
+  },
+
+  // 雇用保険加入
+  isEmploymentInsuranceRequired: {
+    type: Boolean,
+    default: false,
+    required: false,
+  },
+
+  // 手当 ID の配列
+  allowanceIds: {
+    type: Array,
+    default: () => [],
+    required: false,
+  },
+
+  // 手当
+  allowances: {
+    type: Array,
+    default: () => [],
+    required: false,
+  },
+
+  // 備考
+  remarks: { type: String, default: '', required: false },
+}
+
+const { vueProps, classProps } = generateProps(propsDefinition)
+export { vueProps }
+
+const accessor = {
+  allowanceIds: {
+    enumerable: true,
+    configurable: true,
+    get() {
+      return this.allowances.map(({ docId }) => docId)
+    },
+    set(v) {},
+  },
+}
+
+/*****************************************************************************
+ * カスタムクラス - default -
+ *****************************************************************************/
+export default class EmployeeContract extends FireModel {
+  // FireModel 設定
+  static collectionPath = 'EmployeeContracts'
+  static logicalDelete = false
+  static classProps = classProps
+  static tokenFields = []
+  static hasMany = []
+
+  // カスタムクラスマップ
   static customClassMap = {
     employee: EmployeeMinimal,
     workRegulation: WorkRegulationMinimal,
     allowances: EmployeeAllowance,
   }
 
-  /****************************************************************************
-   * CONSTRUCTOR
-   ****************************************************************************/
-  constructor(item = {}) {
-    super(item)
-
+  // initialize をオーバーライドし、アクセサーを設定
+  initialize(item = {}) {
+    super.initialize(item)
     Object.defineProperties(this, {
+      // workMinutes を自動計算にする。
       allowanceIds: accessor.allowanceIds,
     })
   }
 
-  /****************************************************************************
+  /**
    * beforeCreateをオーバーライドします。
    * - `employeeId`、`startDate`の入力チェックを行います。
    * - `employeeId`と`startDate`が同一である他のドキュメントが存在した場合はエラーをスローします。
    * - `employeeId`に該当する`employee`オブジェクトを取得・セットします。
    * - validatePropertiesを行う為、super.beforeCreateを呼び出します。
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
-   ****************************************************************************/
+   */
   async beforeCreate() {
     if (!this.employeeId) {
       throw new Error('従業員の指定が必要です。')
@@ -88,13 +231,13 @@ export default class EmployeeContract extends FireModel {
     }
   }
 
-  /****************************************************************************
+  /**
    * beforeUpdateをオーバーライドします。
    * - `employeeId`、`startDate`が変更されていないかをチェックします。
    * - validatePropertiesを行う為、super.beforeUpdateを呼び出します。
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
    * @throws {Error} - 従業員、契約日が変更されている場合にエラーをスローします。
-   ****************************************************************************/
+   */
   async beforeUpdate() {
     const match = this.docId.match(/^(.+)-(\d{4}-\d{2}-\d{2})$/) // YYYY-MM-DD形式の日付部分をキャプチャ
     if (!match) {
@@ -123,18 +266,18 @@ export default class EmployeeContract extends FireModel {
     await super.beforeUpdate()
   }
 
-  /****************************************************************************
+  /**
    * createをオーバーライドします。
    * - ドキュメントIDを`${employeeId}-${startDate}`に固定します。
    * - super.create({docId})を呼び出します。
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
-   ****************************************************************************/
+   */
   async create() {
     const docId = `${this.employeeId}-${this.startDate}`
     return await super.create({ docId })
   }
 
-  /****************************************************************************
+  /**
    * 指定された複数の`employeeId`に該当するドキュメントを取得します。
    * - 30件ずつチャンクに分けてFirestoreにクエリを実行します。
    * - 各クエリ結果をまとめて返します。
@@ -142,7 +285,7 @@ export default class EmployeeContract extends FireModel {
    * @param {Array<string>} ids - 取得対象のemployeeIdの配列
    * @returns {Promise<Array>} - 一致するドキュメントの配列を返すPromise
    * @throws {Error} ドキュメント取得中にエラーが発生した場合にエラーをスローします
-   ****************************************************************************/
+   */
   async fetchByEmployeeIds(ids) {
     // 引数が配列でない、または空の場合は空配列を返す
     if (!Array.isArray(ids) || ids.length === 0) return []
@@ -179,45 +322,42 @@ export default class EmployeeContract extends FireModel {
       throw err
     }
   }
+}
 
-  /****************************************************************************
-   * 指定された`employeeId`に該当する最新の雇用契約ドキュメントを返します。
-   * - date が指定された場合, date 以前の最新の1件を返します。
-   * - 該当するものがない場合は null を返します。
-   *
-   * @param {Object} params - パラメータオブジェクト
-   * @param {string} params.employeeId - 取得対象のemployeeId
-   * @param {string|null} [params.date=null] - 指定された場合、その日付以前の最新のドキュメントを取得
-   * @returns {Promise<Object|null>} - 一致するドキュメント、またはnullを返すPromise
-   * @throws {Error} ドキュメント取得中にエラーが発生した場合にエラーをスローします
-   ****************************************************************************/
-  static async getLatest({ employeeId, date = null }) {
-    if (!employeeId) {
-      throw new Error(
-        '[getLatest] 必須の引数 employeeId が指定されていません。'
-      )
-    }
+/*****************************************************************************
+ * カスタムクラス - Minimal -
+ *****************************************************************************/
+export class EmployeeContractMinimal extends EmployeeContract {
+  // initialize をオーバーライド
+  initialize(item = {}) {
+    super.initialize(item)
+    delete this.tokenMap
+    delete this.remarks
+    delete this.createAt
+    delete this.updateAt
+    delete this.uid
+  }
 
-    const instance = new this()
+  // 更新系メソッドは使用不可
+  create() {
+    return Promise.reject(new Error('このクラスの create は使用できません。'))
+  }
 
-    try {
-      const conditions = [
-        ['where', 'employeeId', '==', employeeId],
-        ['orderBy', 'startDate', 'desc'],
-        ['limit', 1],
-      ]
+  update() {
+    return Promise.reject(new Error('このクラスの update は使用できません。'))
+  }
 
-      if (date) {
-        conditions.splice(1, 0, ['where', 'startDate', '<=', date])
-      }
+  delete() {
+    return Promise.reject(new Error('このクラスの delete は使用できません。'))
+  }
 
-      const result = await instance.fetchDocs(conditions)
-      return result.length ? result[0] : null
-    } catch (err) {
-      const message = '[getLatest] ドキュメント取得中にエラーが発生しました。'
-      // eslint-disable-next-line no-console
-      console.error(message, { employeeId, date, error: err })
-      throw err
-    }
+  deleteAll() {
+    return Promise.reject(
+      new Error('このクラスの deleteAll は使用できません。')
+    )
+  }
+
+  restore() {
+    return Promise.reject(new Error('このクラスの restore は使用できません。'))
   }
 }

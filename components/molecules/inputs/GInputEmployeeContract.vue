@@ -2,7 +2,7 @@
 /**
  * 従業員の雇用契約情報編集用コンポーネントです。
  * @author shisayamo4131
- * @refact 2025-01-28
+ * @refact 2025-03-04
  */
 import GDialogDatePicker from '../dialogs/GDialogDatePicker.vue'
 import GCardWorkRegulation from '../cards/GCardWorkRegulation.vue'
@@ -18,7 +18,7 @@ import { WorkRegulationMinimal } from '~/models/WorkRegulation'
 import { isValidDateFormat } from '~/utils/utility'
 import GSwitch from '~/components/atoms/inputs/GSwitch.vue'
 import GAutocompletePaymentType from '~/components/atoms/inputs/GAutocompletePaymentType.vue'
-import { vueProps } from '~/models/propsDefinition/EmployeeContract'
+import { vueProps } from '~/models/EmployeeContract'
 import GMixinEditModeReceiver from '~/mixins/GMixinEditModeReceiver'
 import EmployeeAllowance from '~/models/EmployeeAllowance'
 import AirArrayManager from '~/components/air/AirArrayManager.vue'
