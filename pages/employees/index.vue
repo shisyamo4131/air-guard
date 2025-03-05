@@ -106,7 +106,7 @@ export default {
 
     async _subscribeDocsDefault() {
       this.items = await this.instance.subscribeDocs([
-        ['orderBy', 'code'],
+        ['orderBy', 'code', 'desc'],
         ['limit', 10],
       ])
     },
