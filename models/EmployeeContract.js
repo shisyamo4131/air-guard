@@ -2,7 +2,7 @@
  * カスタムクラス定義: 従業員雇用契約 - EmployeeContract -
  *
  * @author shisyamo4131
- * @refact 2025-03-04
+ * @refact 2025-03-05
  *****************************************************************************/
 import { FireModel } from 'air-firebase'
 import { EmployeeMinimal } from './Employee'
@@ -173,8 +173,7 @@ export default class EmployeeContract extends FireModel {
   initialize(item = {}) {
     super.initialize(item)
     Object.defineProperties(this, {
-      // workMinutes を自動計算にする。
-      allowanceIds: accessor.allowanceIds,
+      allowanceIds: accessor.allowanceIds, // workMinutes を自動計算にする。
     })
   }
 
@@ -203,29 +202,19 @@ export default class EmployeeContract extends FireModel {
     }
     try {
       // 従業員情報の取得とセット
-      const employee = await new EmployeeMinimal().fetchDoc(this.employeeId)
-      if (!employee) {
-        throw new Error('従業員情報が取得できませんでした。')
-      }
-      this.employee = employee
+      await this.#loadEmployee()
+
+      // 就業規則情報の取得とセット
+      await this.#loadWorkRegulation()
 
       // 契約期間の定めがなければ契約満了日に空文字列をセット
       if (!this.hasPeriod) this.expiredDate = ''
 
-      // 就業規則情報の取得とセット
-      const workRegulationInstance = new WorkRegulationMinimal()
-      const workRegulation = await workRegulationInstance.fetchDoc(
-        this.workRegulationId
-      )
-      if (!workRegulation) {
-        throw new Error('就業規則情報が取得できませんでした。')
-      }
-      this.workRegulation = workRegulation
       await super.beforeCreate()
     } catch (err) {
       // eslint-disable-next-line
       console.error(
-        `[EmployeeContract.js beforeCreate] Error fetching employee: ${err.message}`
+        `[EmployeeContract.js beforeCreate] An error has occured. ${err.message}`
       )
       throw err
     }
@@ -233,37 +222,64 @@ export default class EmployeeContract extends FireModel {
 
   /**
    * beforeUpdateをオーバーライドします。
-   * - `employeeId`、`startDate`が変更されていないかをチェックします。
-   * - validatePropertiesを行う為、super.beforeUpdateを呼び出します。
+   * - 従業員ID、契約日が変更されていないかをチェックします。
+   * - 就業規則IDが変更されていた場合、就業規則情報を読み込みます。
    * @returns {Promise<void>} - 処理が完了すると解決されるPromise
    * @throws {Error} - 従業員、契約日が変更されている場合にエラーをスローします。
+   * @throws {Error} - 就業規則情報が取得できなかった場合にエラーをスローします。
    */
   async beforeUpdate() {
-    const match = this.docId.match(/^(.+)-(\d{4}-\d{2}-\d{2})$/) // YYYY-MM-DD形式の日付部分をキャプチャ
-    if (!match) {
-      throw new Error('docIdの形式が正しくありません。')
-    }
-
-    const [, employeeId, startDate] = match // 分割した結果を格納
-    if (employeeId !== this.employeeId || startDate !== this.startDate) {
-      throw new Error('従業員、契約日は変更できません。')
-    }
-
-    // 契約期間の定めがなければ契約満了日に空文字列をセット
-    if (!this.hasPeriod) this.expiredDate = ''
-
-    // 就業規則が変更されていれば就業規則情報を取得してセット
-    if (this.workRegulationId !== this.workRegulation.docId) {
-      const workRegulationInstance = new WorkRegulationMinimal()
-      const workRegulation = await workRegulationInstance.fetchDoc(
-        this.workRegulationId
-      )
-      if (!workRegulation) {
-        throw new Error('就業規則情報が取得できませんでした。')
+    try {
+      // 従業員ID、契約日は変更不可
+      const { employeeId, startDate } = this._beforeData
+      if (this.employeeId !== employeeId || this.startDate !== startDate) {
+        throw new Error('従業員、契約日は変更できません。')
       }
-      this.workRegulation = workRegulation
+
+      // 就業規則が変更されていれば就業規則情報を取得してセット
+      if (this.workRegulationId !== this._beforeData.workRegulationId) {
+        await this.#loadWorkRegulation()
+      }
+
+      // 契約期間の定めがなければ契約満了日に空文字列をセット
+      if (!this.hasPeriod) this.expiredDate = ''
+
+      await super.beforeUpdate()
+    } catch (err) {
+      // eslint-disable-next-line
+      console.error(
+        `[EmployeeContract.js beforeUpdate] An error has occured. ${err.message}`
+      )
+      throw err
     }
-    await super.beforeUpdate()
+  }
+
+  /**
+   * 従業員情報を自身の workRegulation プロパティに読み込みます。
+   * @returns {Promise<void>} - 処理が完了すると解決される Promise
+   * @throws {Error} - 従業員IDが自身のプロパティにセットされていない場合にエラーをスローします。
+   * @throws {Error} - 従業員情報が取得できなかった場合にエラーをスローします。
+   */
+  async #loadEmployee() {
+    if (!this.employeeId) throw new Error('従業員IDが必要です。')
+    const isDocExist = await this.employee.fetch(this.employeeId)
+    if (!isDocExist) {
+      throw new Error('従業員情報が取得できませんでした。')
+    }
+  }
+
+  /**
+   * 就業規則情報を自身の workRegulation プロパティに読み込みます。
+   * @returns {Promise<void>} - 処理が完了すると解決される Promise
+   * @throws {Error} - 就業規則IDが自身のプロパティにセットされていない場合にエラーをスローします。
+   * @throws {Error} - 就業規則情報が取得できなかった場合にエラーをスローします。
+   */
+  async #loadWorkRegulation() {
+    if (!this.workRegulationId) throw new Error('就業規則IDが必要です。')
+    const isDocExist = await this.workRegulation.fetch(this.workRegulationId)
+    if (!isDocExist) {
+      throw new Error('就業規則情報が取得できませんでした。')
+    }
   }
 
   /**

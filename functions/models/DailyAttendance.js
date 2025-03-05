@@ -16,7 +16,7 @@ import { calcOverlapMinutes, getNighttimeRange } from '../modules/utils.js'
 import FireModel from './FireModel.js'
 import { classProps } from './propsDefinition/DailyAttendance.js'
 import Employee from './Employee.js'
-import { EmployeeContractForDailyAttendance } from './EmployeeContract.js'
+import { EmployeeContractMinimal } from './EmployeeContract.js'
 import { LeaveRecordMinimal } from './LeaveRecord.js'
 import { OperationWorkResultMinimal } from './OperationWorkResult.js'
 
@@ -57,7 +57,7 @@ export default class DailyAttendance extends FireModel {
    * CUSTOM CLASS MAPPING
    ****************************************************************************/
   static customClassMap = {
-    employeeContracts: EmployeeContractForDailyAttendance,
+    employeeContracts: EmployeeContractMinimal,
     operationWorkResults: OperationWorkResultMinimal,
     leaveRecord: LeaveRecordMinimal,
   }
@@ -710,7 +710,7 @@ export default class DailyAttendance extends FireModel {
       const employeeContracts = (
         await Promise.all(
           employeeIds.map((employeeId) =>
-            EmployeeContractForDailyAttendance.getEmployeeContracts({
+            EmployeeContractMinimal.getEmployeeContracts({
               employeeId,
               from,
               to,

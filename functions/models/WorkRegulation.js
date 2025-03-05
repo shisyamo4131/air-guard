@@ -257,17 +257,3 @@ export class WorkRegulationMinimal extends WorkRegulation {
     return Promise.reject(new Error('このクラスの restore は使用できません。'))
   }
 }
-
-/*****************************************************************************
- * カスタムクラス - DailyAttendance -
- * DailyAttendance クラスのカスタムクラス用 WorkRegulation クラスです。
- * - Minimal クラスから更に不要なプロパティを削除しています。
- *****************************************************************************/
-export class WorkRegulationForDailyAttendance extends WorkRegulationMinimal {
-  // initialize をオーバーライド
-  initialize(item = {}) {
-    super.initialize(item)
-    delete this.name
-    delete this.bonusEligibility
-  }
-}
