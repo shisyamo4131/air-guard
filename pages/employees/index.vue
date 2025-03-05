@@ -56,8 +56,11 @@ export default {
       this.subscribeDocs()
     },
 
-    lazySearch(v) {
-      this.subscribeDocs()
+    lazySearch: {
+      handler(v) {
+        this.subscribeDocs()
+      },
+      immediate: true,
     },
 
     searchType(v) {
@@ -84,12 +87,11 @@ export default {
       // items を初期化
       this.items.splice(0)
 
-      // 検索文字列が入力されていなければ終了
-      if (!this.lazySearch) return
-
       this.loading = true
       try {
-        if (this.searchType === 'name') {
+        if (!this.lazySearch) {
+          await this._subscribeDocsDefault()
+        } else if (this.searchType === 'name') {
           await this._subscribeDocsByName()
         } else {
           await this._subscribeDocsByCode()
@@ -100,6 +102,13 @@ export default {
       } finally {
         this.loading = false
       }
+    },
+
+    async _subscribeDocsDefault() {
+      this.items = await this.instance.subscribeDocs([
+        ['orderBy', 'code'],
+        ['limit', 10],
+      ])
     },
 
     async _subscribeDocsByName() {
@@ -120,7 +129,7 @@ export default {
 
 <template>
   <g-template-default v-slot="{ height }">
-    <v-container fluid :style="{ height: `${height}px` }">
+    <v-container :style="{ height: `${height}px` }">
       <g-collection-manager-employees
         :event-edit="eventEdit"
         :event-edit-handler="eventEditHandler"

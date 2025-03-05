@@ -52,7 +52,7 @@ export default {
 <template>
   <div class="overflow-y-auto" :style="{ height: `${V_MAIN_HEIGHT}px` }">
     <slot name="default" v-bind="{ height: V_MAIN_HEIGHT }">
-      <v-container fluid>
+      <v-container>
         <v-card>
           <v-card-text v-for="n in 20" :key="n">
             プロジェクトのデフォルトレイアウトコンポーネントです。<br />
