@@ -89,11 +89,7 @@ const propsDefinition = {
    * その他の休日
    * - 法定休日、法定外休日以外の公休日を配列で管理します。
    */
-  otherHolidays: {
-    type: Array,
-    default: () => [],
-    required: false,
-  },
+  otherHolidays: { type: Array, default: () => [], required: false },
 
   // 月平均所定労働日数
   averageMonthlyScheduledWorkDays: {
@@ -126,52 +122,22 @@ const propsDefinition = {
   },
 
   // 賞与支給
-  bonusEligibility: {
-    type: Boolean,
-    default: true,
-    required: false,
-    requiredByClass: false,
-  },
+  bonusEligibility: { type: Boolean, default: true, required: false },
 
   // 備考
-  remarks: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: false,
-  },
+  remarks: { type: String, default: '', required: false },
 
   // [労働条件通知書] 就業場所（雇い入れ直後）
-  initialWorkLocation: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: false,
-  },
+  initialWorkLocation: { type: String, default: '', required: false },
 
   // [労働条件通知書] 就業場所（変更の範囲）
-  locationChangeScope: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: false,
-  },
+  locationChangeScope: { type: String, default: '', required: false },
 
   // [労働条件通知書] 従事すべき業務の内容（雇い入れ直後）
-  initialJob: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: false,
-  },
+  initialJob: { type: String, default: '', required: false },
 
   // [労働条件通知書] 従事すべき業務の内容（変更の範囲）
-  jobChangeScope: {
-    type: String,
-    default: '',
-    required: false,
-    requiredByClass: false,
-  },
+  jobChangeScope: { type: String, default: '', required: false },
 
   /**
    * 複製元の就業規則ドキュメントID
@@ -180,29 +146,21 @@ const propsDefinition = {
    */
   sourceDocId: { type: String, default: '', required: false },
 
-  /*****************
-   * 以下、不要になると思われるプロパティ
-   *****************/
+  /**
+   * 法定休日リスト
+   * - 当該就業規則上の法定休日に該当する当該年の日付のリストです。
+   * - 特定の日の労働日区分が法定休日であるかどうかを判断するために使用するほか、
+   *   翌日が法定休日かどうかを判断するためにも使用します。
+   * - 上記を理由に、このリストは翌年1月1日を含みます。
+   */
+  legalHolidays: { type: Array, default: () => [], required: false },
 
-  // 所定労働日
-  // 法定休日、法定外休日を年間カレンダーで指定するため、不要になるはず。
-  scheduledWorkDays: {
-    type: Array,
-    default: () => ['mon', 'tue', 'wed', 'thu', 'fri'],
-    required: false,
-    requiredByClass: true,
-  },
-
-  // 祝日を所定労働日とするか
-  // 年間カレンダーを作るため不要になるはず。
-  isHolidayWorkDay: {
-    type: Boolean,
-    default: true,
-    required: false,
-    requiredByClass: false,
-  },
-
-  holidays: { type: Array, default: () => [], required: false },
+  /**
+   * 法定外休日リスト
+   * - 当該就業規則上の法定外休日に該当する当該年の日付のリストです。
+   * - 特定の日の労働日区分が法定外休日であるかどうかを判断するために使用します。
+   */
+  nonStatutoryDays: { type: Array, default: () => [], required: false },
 }
 
 const { vueProps, classProps } = generateProps(propsDefinition)
@@ -275,6 +233,52 @@ const accessor = {
     },
     set() {},
   },
+
+  /**
+   * 法定休日リストを年、法定休日から計算して配列で返します。
+   */
+  legalHolidays: {
+    configurable: true,
+    enumerable: true,
+    get() {
+      if (!this.year) return []
+      if (!this.legalHoliday) return []
+      const result = []
+      let date = dayjs(`${this.year}-01-01`)
+      const endDate = date.endOf('year').add(1, 'day')
+      while (!date.isAfter(endDate, 'day')) {
+        const dayOfWeek = date.format('ddd').toLowerCase()
+        if (dayOfWeek === this.legalHoliday)
+          result.push(date.format('YYYY-MM-DD'))
+        date = date.add(1, 'day')
+      }
+      return result
+    },
+    set(v) {},
+  },
+
+  /**
+   * 法定外休日リストを年、法定外休日から計算して配列で返します。
+   */
+  nonStatutoryDays: {
+    configurable: true,
+    enumerable: true,
+    get() {
+      if (!this.year) return []
+      if (!this.nonStatutoryHolidays.length) return []
+      const result = []
+      let date = dayjs(`${this.year}-01-01`)
+      const endDate = date.endOf('year')
+      while (!date.isAfter(endDate, 'day')) {
+        const dayOfWeek = date.format('ddd').toLowerCase()
+        if (this.nonStatutoryHolidays.includes(dayOfWeek))
+          result.push(date.format('YYYY-MM-DD'))
+        date = date.add(1, 'day')
+      }
+      return result
+    },
+    set(v) {},
+  },
 }
 
 /*****************************************************************************
@@ -308,6 +312,8 @@ export default class WorkRegulation extends FireModel {
     Object.defineProperties(this, {
       averageMonthlyScheduledWorkDays: accessor.averageMonthlyScheduledWorkDays,
       scheduledWorkMinutes: accessor.scheduledWorkMinutes,
+      legalHolidays: accessor.legalHolidays,
+      nonStatutoryDays: accessor.nonStatutoryDays,
     })
   }
 
